@@ -1,5 +1,11 @@
+# Caches and compiled files
 __pycache__
-venv
 .mypy_cache
+.pytest_cache
 .pyc
+
+# Dependencies
+venv
+
+# Text editor temporary files
 .*.sw*

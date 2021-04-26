@@ -1,12 +1,10 @@
-from common.compile import (
+from compile import (
+    CompiledTexFile,
     did_compilation_fail,
     get_compiled_tex_files_from_autotex_output,
     get_errors,
     get_last_autotex_compiler,
-    get_last_colorized_entity_id,
-    is_driver_unimplemented,
 )
-from common.types import CompiledTexFile
 
 
 def test_get_compiled_tex_files():
@@ -24,26 +22,6 @@ def test_get_compiled_tex_files():
     compiled_tex_files = get_compiled_tex_files_from_autotex_output(stdout)
     assert len(compiled_tex_files) == 1
     assert CompiledTexFile("main.tex") in compiled_tex_files
-
-
-def test_is_not_missing_driver():
-    stdout = bytearray(
-        "(./main.tex\n"
-        + "Output written on main.pdf (1 page, 11340 bytes).\n"
-        + "Transcript written on main.log.",
-        "utf-8",
-    )
-    assert not is_driver_unimplemented(stdout)
-
-
-def test_is_missing_driver():
-    stdout = bytearray(
-        "[Loading MPS to PDF converter (version 2006.09.02).]\n"
-        + ")))) Coloring not implemented for driver luatex.def\n"
-        + "Coloring not implemented for driver luatex.def)",
-        "utf-8",
-    )
-    assert is_driver_unimplemented(stdout)
 
 
 def test_get_errors():
@@ -108,19 +86,3 @@ def test_ignore_compilation_failure_for_other_compiler():
     )
     failed = did_compilation_fail(autotex_log, "other-compiler-not-pdflatex")
     assert not failed
-
-
-def test_get_entity_colored_before_failure():
-    autotex_log = "\n".join(
-        [
-            "[verbose]:  ~~~~~~~~~~~ Running pdflatex for the first time ~~~~~~~~",
-            "...",
-            "S2: Colorized entity '1'.",
-            "...",
-            "S2: Colorized entity '2'.",
-            "...",
-            "! Emergency stop.",
-        ]
-    )
-    id_ = get_last_colorized_entity_id(autotex_log, "pdflatex")
-    assert id_ == "2"
