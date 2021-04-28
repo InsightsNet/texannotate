@@ -35,7 +35,7 @@ Say, for example, you wish to compile the LaTeX project for arXiv paper
 1601.00978. First, fetch the sources for the project:
 
 ```bash
-wget https://arxiv.org/e-print/1601.00978
+wget https://arxiv.org/e-print/1601.00978 --user-agent "Name <email>"
 ```
 
 Then, submit the sources to the service (using the `requests` library (`pip 
@@ -50,6 +50,7 @@ files = {'compressed_sources': ('1601.00978', sources, 'multipart/form-data')}
 
 # Make request to service. The port (80) should match the port passed as an
 # argument in the "Start the service" section.
+import requests
 response = requests.post('http://127.0.0.1:80/', files=files)
 ```
 
