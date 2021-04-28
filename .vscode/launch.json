@@ -8,7 +8,7 @@
       "name": "Debug local server",
       "type": "python",
       "request": "launch",
-      "program": "server.py",
+      "program": "service.py",
       "console": "integratedTerminal"
     }
   ]
