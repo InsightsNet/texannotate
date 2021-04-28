@@ -22,7 +22,8 @@ docker build -t tex-compilation-service .
 ## Start the service
 
 ```bash
-docker run -p 80:80 -it tex-compilation-service
+# Hosts the service on port 8000 of localhost.
+docker run -p 8000:80 -it tex-compilation-service
 ```
 
 ## Query the service
@@ -42,7 +43,7 @@ wget https://arxiv.org/e-print/1601.00978 --user-agent "Name <email>"
 Then, unpack the sources into a directory:
 
 ```bash
-tar xzvf 1601.00978 -C example-sources
+tar xzvf 1601.00978 -C sources
 ```
 
 Queries to the service can be made through a dedicated client library, which you 
@@ -58,7 +59,7 @@ Once the client library is installed, you can make a request like so:
 from texcompile import compile
 
 result = compile(
-  sources_dir='example-sources',
+  sources_dir='sources',
   output_dir='outputs',
 )
 ```
@@ -75,7 +76,7 @@ print(result.success)  # Output: True
 print(result.main_tex_files)  # Output: ['craternn.tex']
 
 # Inspect compilation logs.
-print(result.logs)  # Output: <Long string of logs from compiling the TeX>
+print(result.log)  # Output: <Long string of logs from compiling the TeX>
 
 # Manifest of generated files.
 print(result.output_files)  # Output: [{ 'type': 'pdf', 'name': 'craternn.pdf' }]
