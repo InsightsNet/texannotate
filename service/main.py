@@ -6,13 +6,13 @@ import aiofiles
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 
-from compile import compile_tex
+from lib.compile import compile_tex
 
 app = FastAPI()
 
 
 @app.post("/")
-async def detect_upload_file(compressed_sources: UploadFile = File(...)):
+async def detect_upload_file(sources: UploadFile = File(...)):
 
     config = ConfigParser()
     config.read("service_config.ini")
@@ -21,9 +21,9 @@ async def detect_upload_file(compressed_sources: UploadFile = File(...)):
     perl_binary = config["perl"]["binary"]
 
     with tempfile.TemporaryDirectory() as tempdir:
-        sources_filename = os.path.join(tempdir, "compressed_sources")
+        sources_filename = os.path.join(tempdir, "sources")
         async with aiofiles.open(sources_filename, "wb") as sources_file:
-            content = await compressed_sources.read()  # async read
+            content = await sources.read()  # async read
             await sources_file.write(content)  # async write
 
         json_result = compile_tex(

@@ -15,6 +15,7 @@ build requires an installation of the large TeX Live package and building a
 custom version of Perl.
 
 ```bash
+cd service
 docker build -t tex-compilation-service .
 ```
 
@@ -38,51 +39,52 @@ Say, for example, you wish to compile the LaTeX project for arXiv paper
 wget https://arxiv.org/e-print/1601.00978 --user-agent "Name <email>"
 ```
 
-Then, submit the sources to the service (using the `requests` library (`pip 
-install requests`)):
+Then, unpack the sources into a directory:
 
-```python
-# Read the gzipped tarball file containing the sources.
-sources = open('1601.00978', 'rb')
-
-# Prepare query parameters
-files = {'compressed_sources': ('1601.00978', sources, 'multipart/form-data')}
-
-# Make request to service. The port (80) should match the port passed as an
-# argument in the "Start the service" section.
-import requests
-response = requests.post('http://127.0.0.1:80/', files=files)
+```bash
+tar xzvf 1601.00978 -C example-sources
 ```
 
-Check for success of the job:
-```python
-# Get result
-data = response.json()
+Queries to the service can be made through a dedicated client library, which you 
+can install as follows:
 
-# Check success.
-print data['success']
-
-# Check which files were determined to be the main TeX files (these were the TeX 
-# files that were compiled).
-print data['main_tex_files']
+```bash
+pip install git+https://github.com/andrewhead/texcompile
 ```
 
-Then save the outputs (assuming the request was successful).
+Once the client library is installed, you can make a request like so:
 
 ```python
-import os
-import base64
+from texcompile import compile
 
-for i, output in enumerate(data['output']):
-  ext = output['type']  # compiled files may be 'pdf' or 'ps'
-  base64_contents = output['contents']
-  contents = base64.b64decode(base64_contents)
-  with open(f"compiled-file-{i}.{ext}", "wb") as file_:
-    file_.write(contents)
+result = compile(
+  sources_dir='example-sources',
+  output_dir='outputs',
+)
 ```
 
-In this case, open `compiled-file-0.pdf` and see the result of compiling the 
-sources for arXiv paper 1601.00978.
+Inspect whether the request succeeded:
+
+```python
+# Did the query succeed?
+print(result.success)  # Output: True
+
+# What are the main TeX files that were compiled to produce the outputs? Note 
+# that this only contains the names of main files that the TeX/LaTeX binaries
+# were called on, and not those that were 'input' or 'included'.
+print(result.main_tex_files)  # Output: ['craternn.tex']
+
+# Inspect compilation logs.
+print(result.logs)  # Output: <Long string of logs from compiling the TeX>
+
+# Manifest of generated files.
+print(result.output_files)  # Output: [{ 'type': 'pdf', 'name': 'craternn.pdf' }]
+```
+
+Each of the files listed in `result.output_files` will have been written into 
+the `output_dir` supplied as an argument to `compile`. At this point, you should 
+be able to open `outputs/craternn.pdf` to see the compiled PDF. Generated files 
+may be either PDFs (type: `pdf`) or PostScript files (type: `ps`).
 
 ## Caveats
 

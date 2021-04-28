@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional
 
-from unpack_tex import unpack_archive
+from lib.unpack_tex import unpack_archive
 
 PDF_MESSAGE_PREFIX = b"Generated PDF: "
 PDF_MESSAGE_SUFFIX = b"<end of PDF name>"
@@ -69,7 +69,7 @@ def compile_tex(
 
         json_result: Dict[str, Any] = {}
         json_result["success"] = compilation_result.success
-        json_result["autotex_logs"] = compilation_result.stdout.decode(
+        json_result["log"] = compilation_result.stdout.decode(
             "utf-8", errors="backslashreplace"
         )
         json_result["main_tex_files"] = [

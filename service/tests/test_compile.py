@@ -1,4 +1,4 @@
-from compile import (
+from lib.compile import (
     CompiledTexFile,
     did_compilation_fail,
     get_compiled_tex_files_from_autotex_output,

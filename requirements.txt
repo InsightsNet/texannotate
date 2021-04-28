@@ -1,5 +1,6 @@
-aiofiles
-fastapi[all]
+# These are requirements for the client. For requirements for the web service,
+# see requirements.txt in the 'service/' directory.
+requests
 
 # Development dependencies
 black==19.10b0

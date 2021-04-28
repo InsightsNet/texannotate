@@ -7,5 +7,10 @@ __pycache__
 # Dependencies
 venv
 
+# Outputs of running examples
+1601.00978
+sources
+outputs
+
 # Text editor temporary files
 .*.sw*
