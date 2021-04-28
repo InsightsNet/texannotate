@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name="texcompile",
     version="0.0.1",
-    packages=["texcompile"],
+    packages=["."],
     license="Apache License 2.0",
     long_description=open("README.md").read(),
     url="https://github.com/andrewhead/texcompile",

@@ -28,10 +28,9 @@ docker run -p 8000:80 -it tex-compilation-service
 
 ## Query the service
 
-The service takes as input a TeX/LaTeX project. The project should be gzipped 
-tarball (i.e., `.tgz` or `.tar.gz` file) containing the TeX/LaTeX project.  The 
-output is a JSON response, where all compiled output files (PDFs, PostScript 
-files) are written in Base64.
+The service takes as input a directory containing a TeX/LaTeX project (_without_ 
+any prior compilation results or auxiliary files), and returns a list of 
+generated PDFs and PostScript files.
 
 Say, for example, you wish to compile the LaTeX project for arXiv paper 
 1601.00978. First, fetch the sources for the project:
@@ -43,6 +42,7 @@ wget https://arxiv.org/e-print/1601.00978 --user-agent "Name <email>"
 Then, unpack the sources into a directory:
 
 ```bash
+mkdir sources
 tar xzvf 1601.00978 -C sources
 ```
 

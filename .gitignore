@@ -14,3 +14,6 @@ outputs
 
 # Text editor temporary files
 .*.sw*
+
+# Artifacts from packaging
+*.egg-info
