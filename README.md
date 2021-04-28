@@ -15,7 +15,7 @@ build requires an installation of the large TeX Live package and building a
 custom version of Perl.
 
 ```bash
-cd service
+cd texcompile/service
 docker build -t tex-compilation-service .
 ```
 
@@ -56,7 +56,7 @@ pip install git+https://github.com/andrewhead/texcompile
 Once the client library is installed, you can make a request like so:
 
 ```python
-from texcompile import compile
+from texcompile.client import compile
 
 result = compile(
   sources_dir='sources',
