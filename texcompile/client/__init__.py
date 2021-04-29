@@ -36,7 +36,7 @@ class Result:
     success: bool
     main_tex_files: List[str]
     log: str
-    output_files: List[Dict[str, str]]
+    output_files: List[OutputFile]
 
     def __repr__(self) -> str:
         return (
