@@ -80,9 +80,9 @@ def compile(
 
     # Check success.
     if not data["success"]:
-        raise CompilationException(data["logs"])
+        raise CompilationException(data["log"])
 
-    output_files = []
+    output_files: List[OutputFile] = []
     result = Result(
         success=data["success"],
         main_tex_files=data["main_tex_files"],
