@@ -18,12 +18,10 @@ RUN perlbrew --notest install perl-5.22.4
 RUN perlbrew install-cpanm
 
 # Install LaTeX suite
-# This download will take an extremely long time to install, so we install it first
-RUN apt-get install -y wget
-RUN wget https://arxiv-web-static1.s3.amazonaws.com/semantic_scholar_20210412/arXivTeXLive2020.tar.gz
-RUN tar -xf arXivTeXLive2020.tar.gz
+COPY texlive.tar.gz texlive.tar.gz
+RUN tar -xf texlive.tar.gz
 RUN echo "I" | perl 2020/install-tl
-RUN rm -r arXivTeXLive2020.tar.gz 2020
+RUN rm -r texlive.tar.gz 2020
 
 # Install AutoTeX TeX compilation library
 SHELL ["/bin/bash", "-c"]

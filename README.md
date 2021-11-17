@@ -10,12 +10,22 @@ automatically compile submissions to arXiv.
 
 ## Setup
 
-Build the Docker container for the service. This will take a long time, as the 
-build requires an installation of the large TeX Live package and building a 
-custom version of Perl.
+This project relies on a custom version of TeXLive. Download the TeXLive package 
+with the command below. This command requires an account with Amazon Web 
+Services, a local installation of the AWS Command Line Interface (CLI), and 
+having configured the AWS CLI with your login. Your AWS account will be charged 
+with the costs of downloading the TeXLive archive (see the Amazon S3 
+documentation for download charges).
 
 ```bash
 cd texcompile/service
+aws s3 cp --request-payer requester s3://texcompile/texlive.tar.gz texlive.tar.gz
+```
+
+Then, build the Docker container for the service. This will take a long time, as 
+it requires building a custom version of Perl.
+
+```bash
 docker build -t tex-compilation-service .
 ```
 
