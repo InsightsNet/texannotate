@@ -49,7 +49,7 @@ class Result:
         )
 
 
-def compile(
+def compile_pdf(
     sources_dir: Path,
     output_dir: Path,
     host: str = "http://127.0.0.1",
