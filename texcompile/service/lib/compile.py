@@ -9,6 +9,7 @@ import tempfile
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional
+import glob
 
 from lib.unpack_tex import unpack_archive
 
@@ -59,16 +60,27 @@ def compile_tex(
     system_path: Path,
     perl_binary: Path,
 ) -> Dict[str, Any]:
-
-    with tempfile.TemporaryDirectory() as temp_directory:
+    if os.path.exists('/tmpfs'):
+        tmp_path = '/tmpfs/'
+    else:
+        tmp_path = None
+    with tempfile.TemporaryDirectory(dir=tmp_path) as temp_directory:
         sources_dir = os.path.join(temp_directory, "sources")
         unpack_archive(compressed_sources_file, sources_dir)
+        before_compile_pdfs = set(glob.glob(sources_dir+"/*.pdf"))
         compilation_result = run_compilation(
             sources_dir, texlive_path, system_path, perl_binary
         )
 
         json_result: Dict[str, Any] = {}
         json_result["success"] = compilation_result.success
+        if json_result["success"] is True:
+            json_result["has_output"] = True
+            file_diff = {}
+        else:
+            after_compile_pdfs = set(glob.glob(sources_dir+"/*.pdf"))
+            file_diff = after_compile_pdfs - before_compile_pdfs
+            json_result["has_output"] = len(file_diff)!=0
         json_result["log"] = compilation_result.stdout.decode(
             "utf-8", errors="backslashreplace"
         )
@@ -76,8 +88,10 @@ def compile_tex(
             f.path for f in compilation_result.compiled_tex_files
         ]
         json_result["output"] = []
-
-        for output_file in compilation_result.output_files:
+        for output_file in compilation_result.output_files + list(file_diff):
+            if not isinstance(output_file, OutputFile):
+                assert isinstance(output_file, str)
+                output_file = OutputFile("pdf", output_file)
             with open(os.path.join(sources_dir, output_file.path), mode="rb") as file_:
                 contents = file_.read()
 

@@ -79,7 +79,7 @@ def compile(
     data = response.json()
 
     # Check success.
-    if not data["success"]:
+    if not (data["success"] or data["has_output"]):
         raise CompilationException(data["log"])
 
     output_files: List[OutputFile] = []
@@ -95,7 +95,6 @@ def compile(
         os.makedirs(output_dir)
 
     for i, output in enumerate(data["output"]):
-
         type_ = output["type"]
         # Use posixpath to get the base name, with the assumption that the TeX server will be
         # returning paths to compiled files in POSIX style (rather than, say, Windows).

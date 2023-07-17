@@ -11,6 +11,9 @@ venv
 1601.00978
 sources
 outputs
+arxiv
+downloaded
+*.log
 
 # Text editor temporary files
 .*.sw*
