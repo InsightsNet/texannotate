@@ -9,7 +9,7 @@ import docker
 from annotate_file import annotate_file
 from color_annotation import Color_Annotation
 from texcompile.client import compile_pdf_return_bytes
-from util import find_free_port
+from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex
 from extract_pdf import extract_pdf
 
 def main(basepath:str):
@@ -40,30 +40,42 @@ def main(basepath:str):
             #tmpfs={'/tmpfs':''},
             remove=True,
         )
+    try:
+        p = Path('.')
+        for filename in p.glob(basepath + '/*.tar.gz'):
+            with tempfile.TemporaryDirectory() as td:
+                #print('temp dir', td)
+                with tarfile.open(filename ,'r:gz') as tar:
+                    tar.extractall(td)
+                    preprocess_latex(td)
 
-    p = Path('.')
-    for filename in p.glob(basepath + '/*.tar.gz'):
-        with tempfile.TemporaryDirectory() as td:
-            print('temp dir', td)
-            with tarfile.open(filename ,'r:gz') as tar:
-                tar.extractall(td)
-        
-            pdf_bytes = compile_pdf_return_bytes(
-                sources_dir=td
-            ) # compile the unmodified latex firstly
-            shapes, tokens = extract_pdf(pdf_bytes)
-            ## get colors
-            color_dict = Color_Annotation()
-            color_dict.add_existing_color('#000000')
-            print(os.listdir(td))
+                basename, pdf_bytes = compile_pdf_return_bytes(
+                    sources_dir=td
+                ) # compile the unmodified latex firstly
+                shapes, tokens = extract_pdf(pdf_bytes)
+                ## get colors
+                color_dict = Color_Annotation()
+                for color in shapes:
+                    color_dict.add_existing_color(color)
+                for token in tokens:
+                    color_dict.add_existing_color(token['color'])
 
-            tex_file = input()#'main.tex'
-            annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
-            print(p/'output'/filename.stem)
-            shutil.make_archive(p/'output'/filename.stem, 'zip', td)
-
-    container.stop()
+            with tempfile.TemporaryDirectory() as td:
+                with tarfile.open(filename ,'r:gz') as tar:
+                    tar.extractall(td)
+                tex_file = find_latex_file(Path(basename).stem, basepath=td)
+                annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
+                postprocess_latex(tex_file)
+                #print(p/'outputs'/filename.stem)
+                #shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
+                basename, pdf_bytes = compile_pdf_return_bytes(
+                    sources_dir=td
+                ) # compile the unmodified latex firstly
+                shapes, tokens = extract_pdf(pdf_bytes)
+    except Exception as e:
+        container.stop()
+        raise e
 
 
 if __name__ == "__main__":
-    main("sources")
+    main("downloaded")

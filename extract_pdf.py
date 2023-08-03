@@ -28,7 +28,7 @@ def flags_decomposer(flags):
 
 
 def extract_tokens(pdf_bytes: bytes):
-    with fitz.open(pdf_bytes) as doc:
+    with fitz.open('pdf', pdf_bytes) as doc:
         tokens = []
         for page in doc:
             # read page text as a dictionary, suppressing extra spaces in CJK fonts

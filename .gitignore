@@ -20,3 +20,4 @@ downloaded
 
 # Artifacts from packaging
 *.egg-info
+test.*

@@ -5,8 +5,9 @@ import os.path
 import posixpath
 import tarfile
 from dataclasses import dataclass
-from typing import Dict, List
+from io import BytesIO
 from sys import platform
+from typing import Dict, List
 
 import requests
 from typing_extensions import Literal
@@ -54,13 +55,7 @@ class Result:
         )
 
 
-def compile_pdf(
-    sources_dir: Path,
-    output_dir: Path,
-    host: str = "http://127.0.0.1",
-    port: int = 8000,
-) -> Result:
-
+def send_request(sources_dir, host, port) -> dict:
     with tempfile.TemporaryDirectory() as temp_dir:
         # Prepare a gzipped tarball file containing the sources.
         archive_filename = os.path.join(temp_dir, "archive.tgz")
@@ -81,7 +76,17 @@ def compile_pdf(
                 )
 
     # Get result
-    data = response.json()
+    return response.json()
+
+
+def compile_pdf(
+    sources_dir: Path,
+    output_dir: Path,
+    host: str = "http://127.0.0.1",
+    port: int = 8000,
+) -> Result:
+
+    data = send_request(sources_dir, host, port)
 
     # Check success.
     if not (data["success"] or data["has_output"]):
@@ -127,27 +132,7 @@ def compile_pdf_return_bytes(
     port: int = 8000,
 ) -> Result:
     
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Prepare a gzipped tarball file containing the sources.
-        archive_filename = os.path.join(temp_dir, "archive.tgz")
-        with tarfile.open(archive_filename, "w:gz") as archive:
-            archive.add(sources_dir, arcname=os.path.sep)
-
-        # Prepare query parameters.
-        with open(archive_filename, "rb") as archive_file:
-            files = {"sources": ("archive.tgz", archive_file, "multipart/form-data")}
-
-            # Make request to service.
-            endpoint = f"{host}:{port}/"
-            try:
-                response = requests.post(endpoint, files=files)
-            except requests.exceptions.RequestException as e:
-                raise ServerConnectionException(
-                    f"Request to server {endpoint} failed.", e
-                )
-
-    # Get result
-    data = response.json()
+    data = send_request(sources_dir, host, port)
 
     # Check success.
     if not (data["success"] or data["has_output"]):
@@ -164,9 +149,10 @@ def compile_pdf_return_bytes(
     for i, output in enumerate(data["output"]):
         type_ = output["type"]
         if type_ == 'pdf':
+            basename = posixpath.basename(output["path"])
             base64_contents = output["contents"]
             contents = base64.b64decode(base64_contents)
-            return contents
+            return basename, BytesIO(contents)
 
     raise CompilationException('No pdf output.')
     
