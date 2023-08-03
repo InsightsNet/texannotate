@@ -15,8 +15,16 @@ from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 from pylatexenc.latexwalker import LatexWalker
 from pylatexenc.macrospec import LatexContextDb
 
-from pylatexenc.latex2text import get_default_latex_context_db
-latex2text_context = get_default_latex_context_db()
+from pylatexenc import macrospec
+from latex2text_spec import specs
+latex2text_context = macrospec.LatexContextDb()
+for cat, catspecs in specs:
+        latex2text_context.add_context_category(
+            cat,
+            macros=catspecs['macros'],
+            environments=catspecs['environments'],
+            specials=catspecs['specials']
+        )
 
 def macro_should_be_colored(macroname):
     spec = latex2text_context.get_macro_spec(macroname)
@@ -190,6 +198,19 @@ def annotate_file(filename: str, color_dict: Color_Annotation, latex_context: La
         print(e)
         return False
     
+    if latex_context is None:
+        latex_context = macrospec.LatexContextDb()
+        from latexwalk_spec import specs
+        for cat, catspecs in specs:
+            latex_context.add_context_category(
+                cat,
+                macros=catspecs['macros'],
+                environments=catspecs['environments'],
+                specials=catspecs['specials']
+            )
+        latex_context.set_unknown_macro_spec(macrospec.MacroSpec(''))
+        latex_context.set_unknown_environment_spec(macrospec.EnvironmentSpec(''))
+        
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
     nodelist, parsing_state_delta = w.parse_content(
