@@ -1,52 +1,69 @@
-from texcompile.client import compile_pdf
-import docker
 import os
+import shutil
+import tarfile
+from pathlib import Path
 from sys import platform
-import socket
-from contextlib import closing
+
+import docker
+
+from annotate_file import annotate_file
+from color_annotation import Color_Annotation
+from texcompile.client import compile_pdf_return_bytes
+from util import find_free_port
+from extract_pdf import extract_pdf
+
+def main(basepath:str):
+    #check docker image
+    client = docker.from_env()
+    try:
+        client.images.get('tex-compilation-service:latest')
+    except docker.errors.ImageNotFound:
+        client.images.build(path='texcompile/service', tag='tex-compilation-service')
+
+    port = find_free_port()
+    if platform == "linux" or platform == "linux2":
+        from memory_tempfile import MemoryTempfile
+        tempfile = MemoryTempfile()
+        container = client.containers.run(
+            image='tex-compilation-service',
+            detach=True,
+            ports={'80/tcp':port},
+            tmpfs={'/tmpfs':''},
+            remove=True,
+        )
+    else:
+        import tempfile
+        container = client.containers.run(
+            image='tex-compilation-service',
+            detach=True,
+            ports={'80/tcp':port},
+            #tmpfs={'/tmpfs':''},
+            remove=True,
+        )
+
+    p = Path('.')
+    for filename in p.glob(basepath + '/*.tar.gz'):
+        with tempfile.TemporaryDirectory() as td:
+            print('temp dir', td)
+            with tarfile.open(filename ,'r:gz') as tar:
+                tar.extractall(td)
+        
+            pdf_bytes = compile_pdf_return_bytes(
+                sources_dir=td
+            ) # compile the unmodified latex firstly
+            shapes, tokens = extract_pdf(pdf_bytes)
+            ## get colors
+            color_dict = Color_Annotation()
+            color_dict.add_existing_color('#000000')
+            print(os.listdir(td))
+
+            tex_file = input()#'main.tex'
+            annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
+            print(p/'output'/filename.stem)
+            shutil.make_archive(p/'output'/filename.stem, 'zip', td)
+
+    container.stop()
 
 
-def find_free_port() -> int:  #https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]    
-
-
-#check docker image
-client = docker.from_env()
-try:
-    client.images.get('tex-compilation-service:latest')
-except docker.errors.ImageNotFound:
-    client.images.build(path='texcompile/service', tag='tex-compilation-service')
-
-port = find_free_port()
-if platform == "linux" or platform == "linux2":
-    container = client.containers.run(
-        image='tex-compilation-service',
-        detach=True,
-        ports={'80/tcp':port},
-        tmpfs={'/tmpfs':''},
-        remove=True,
-    )
-elif platform == "darwin":
-    container = client.containers.run(
-        image='tex-compilation-service',
-        detach=True,
-        ports={'80/tcp':port},
-        #tmpfs={'/tmpfs':''},
-        remove=True,
-    )
-
-result = compile_pdf(
-  sources_dir='arxiv/2303.10142',
-  output_dir='outputs/2303.10142',
-)
-
-with open("test.log", 'w') as file:
-    file.write(result.log)
-
-print(port)
-print(container.logs())
-
-container.stop()
+if __name__ == "__main__":
+    main("sources")

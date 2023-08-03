@@ -3,6 +3,10 @@
 requests
 memory-tempfile
 docker
+git+https://github.com/phfaist/pylatexenc.git
+spacy
+pymupdf
+pdfplumber
 # Development dependencies
 #black==19.10b0
 #mypy==0.782

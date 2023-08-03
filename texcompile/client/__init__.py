@@ -4,15 +4,20 @@ import os
 import os.path
 import posixpath
 import tarfile
-import tempfile
 from dataclasses import dataclass
 from typing import Dict, List
+from sys import platform
 
 import requests
 from typing_extensions import Literal
 
 logger = logging.getLogger("texcompile-client")
 
+if platform == "linux" or platform == "linux2":
+    from memory_tempfile import MemoryTempfile
+    tempfile = MemoryTempfile()
+else:
+    import tempfile
 
 Path = str
 
@@ -114,3 +119,54 @@ def compile_pdf(
             file_.write(contents)
 
     return result
+
+
+def compile_pdf_return_bytes(
+    sources_dir: Path,
+    host: str = "http://127.0.0.1",
+    port: int = 8000,
+) -> Result:
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Prepare a gzipped tarball file containing the sources.
+        archive_filename = os.path.join(temp_dir, "archive.tgz")
+        with tarfile.open(archive_filename, "w:gz") as archive:
+            archive.add(sources_dir, arcname=os.path.sep)
+
+        # Prepare query parameters.
+        with open(archive_filename, "rb") as archive_file:
+            files = {"sources": ("archive.tgz", archive_file, "multipart/form-data")}
+
+            # Make request to service.
+            endpoint = f"{host}:{port}/"
+            try:
+                response = requests.post(endpoint, files=files)
+            except requests.exceptions.RequestException as e:
+                raise ServerConnectionException(
+                    f"Request to server {endpoint} failed.", e
+                )
+
+    # Get result
+    data = response.json()
+
+    # Check success.
+    if not (data["success"] or data["has_output"]):
+        raise CompilationException(data["log"])
+
+    output_files: List[OutputFile] = []
+    result = Result(
+        success=data["success"],
+        main_tex_files=data["main_tex_files"],
+        log=data["log"],
+        output_files=output_files,
+    )
+
+    for i, output in enumerate(data["output"]):
+        type_ = output["type"]
+        if type_ == 'pdf':
+            base64_contents = output["contents"]
+            contents = base64.b64decode(base64_contents)
+            return contents
+
+    raise CompilationException('No pdf output.')
+    
