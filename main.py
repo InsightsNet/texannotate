@@ -1,5 +1,3 @@
-import os
-import shutil
 import tarfile
 from pathlib import Path
 from sys import platform
@@ -10,7 +8,7 @@ from annotate_file import annotate_file
 from color_annotation import Color_Annotation
 from texcompile.client import compile_pdf_return_bytes
 from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex
-from extract_pdf import extract_pdf
+from pdf_extract import pdf_extract
 
 def main(basepath:str):
     #check docker image
@@ -52,11 +50,11 @@ def main(basepath:str):
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td
                 ) # compile the unmodified latex firstly
-                shapes, tokens = extract_pdf(pdf_bytes)
+                shapes, tokens = pdf_extract(pdf_bytes)
                 ## get colors
                 color_dict = Color_Annotation()
-                for color in shapes:
-                    color_dict.add_existing_color(color)
+                for rect in shapes:
+                    color_dict.add_existing_color(rect['stroking_color'])
                 for token in tokens:
                     color_dict.add_existing_color(token['color'])
 
@@ -71,7 +69,7 @@ def main(basepath:str):
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td
                 ) # compile the unmodified latex firstly
-                shapes, tokens = extract_pdf(pdf_bytes)
+                shapes, tokens = pdf_extract(pdf_bytes)
     except Exception as e:
         container.stop()
         raise e

@@ -4,7 +4,7 @@ import pdfplumber
 
 def extract_shapes(pdf_bytes: bytes):
     with pdfplumber.open(pdf_bytes) as doc:
-        return [rect['stroking_color'] for rect in doc.rects]
+        return doc.rects
 
 
 def flags_decomposer(flags):
@@ -47,5 +47,5 @@ def extract_tokens(pdf_bytes: bytes):
     return tokens
 
 
-def extract_pdf(pdf_bytes: bytes):
+def pdf_extract(pdf_bytes: bytes):
     return extract_shapes(pdf_bytes), extract_tokens(pdf_bytes)
