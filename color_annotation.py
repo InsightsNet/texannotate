@@ -50,7 +50,7 @@ class Color_Annotation:
         while hex_string in self.color_dict:
             RGB_tuple, hex_string = self._get_next_RGB()
         self.color_dict[hex_string] = {
-            "annotate": annotate,
+            "label": annotate,
             "reading": self.current_token_number,
             #"section": self.current_section_id[-1],
         }
@@ -61,7 +61,7 @@ class Color_Annotation:
         while rgb_tuple in self.color_dict:
             rgb_tuple = self._get_next_rgb()
         self.color_dict[rgb_tuple] = {
-            "annotate": annotate,
+            "label": annotate,
             "reading": self.current_token_number,
             #"section": self.current_section_id[-1],
         }

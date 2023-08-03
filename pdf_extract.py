@@ -37,11 +37,13 @@ def extract_tokens(pdf_bytes: bytes):
                 for l in b["lines"]:  # iterate through the text lines
                     for s in l["spans"]:  # iterate through the text spans
                         font_properties = {
+                            "page": page.number,
                             "text": s["text"],
                             "font": s["font"],  # font name
                             "flags": flags_decomposer(s["flags"]),  # readable font flags
                             "size": s["size"],  # font size
                             "color": s["color"],  # font color
+                            "bbox": s["bbox"]
                         }
                         tokens.append(font_properties)
     return tokens

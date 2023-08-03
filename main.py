@@ -70,6 +70,7 @@ def main(basepath:str):
                     sources_dir=td
                 ) # compile the unmodified latex firstly
                 shapes, tokens = pdf_extract(pdf_bytes)
+                
     except Exception as e:
         container.stop()
         raise e
