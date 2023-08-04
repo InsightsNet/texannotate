@@ -33,6 +33,9 @@ class Color_Annotation:
         RGB_tuple = self.hex_to_RGB(hex_string)
         self.current_RGB += 1
         return str(RGB_tuple)[1:-1], hex_string
+    
+    def __getitem__(self, key):
+        return self.color_dict[key]
 
     def int_to_hex_string(self, num: int):
         return "#%06x" % (num)
@@ -54,6 +57,7 @@ class Color_Annotation:
             "reading": self.current_token_number,
             #"section": self.current_section_id[-1],
         }
+        self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
 
     def add_annotation_rgb(self, tex_string, annotate):
@@ -65,4 +69,5 @@ class Color_Annotation:
             "reading": self.current_token_number,
             #"section": self.current_section_id[-1],
         }
+        self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"

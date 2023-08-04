@@ -9,6 +9,7 @@ from color_annotation import Color_Annotation
 from texcompile.client import compile_pdf_return_bytes
 from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex
 from pdf_extract import pdf_extract
+from export_annotation import export_annotation
 
 def main(basepath:str):
     #check docker image
@@ -70,7 +71,8 @@ def main(basepath:str):
                     sources_dir=td
                 ) # compile the unmodified latex firstly
                 shapes, tokens = pdf_extract(pdf_bytes)
-                
+            print(export_annotation(shapes, tokens, color_dict))
+
     except Exception as e:
         container.stop()
         raise e
