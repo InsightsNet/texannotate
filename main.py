@@ -7,7 +7,7 @@ import docker
 from annotate_file import annotate_file
 from color_annotation import Color_Annotation
 from texcompile.client import compile_pdf_return_bytes
-from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex
+from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex, tup2str
 from pdf_extract import pdf_extract
 from export_annotation import export_annotation
 
@@ -55,7 +55,7 @@ def main(basepath:str):
                 ## get colors
                 color_dict = Color_Annotation()
                 for rect in shapes:
-                    color_dict.add_existing_color(rect['stroking_color'])
+                    color_dict.add_existing_color(tup2str(rect['stroking_color']))
                 for token in tokens:
                     color_dict.add_existing_color(token['color'])
 
@@ -71,7 +71,11 @@ def main(basepath:str):
                     sources_dir=td
                 ) # compile the unmodified latex firstly
                 shapes, tokens = pdf_extract(pdf_bytes)
-            print(export_annotation(shapes, tokens, color_dict))
+            df = export_annotation(shapes, tokens, color_dict)
+            # df['reading_order'] = df['reading_order'].astype('int64') 
+            # cannot convert NaN to integer, skip for now
+            df.to_csv(str(filename)+'.csv', sep='\t')
+            container.stop()
 
     except Exception as e:
         container.stop()

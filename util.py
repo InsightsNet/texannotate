@@ -51,3 +51,16 @@ def preprocess_latex(path):
         file_string = BLOCK_1 + file_string
         with tex.open('w') as f:
             f.write(file_string)
+
+def tup2str(tup):
+    if type(tup) != tuple or len(tup) != 3:
+        return None
+    rgb_string = []
+    for rgb in tup:
+        if rgb < 1:
+            rgb_string.append("0.%d" % (int(rgb*10)))
+        elif rgb > 1:
+            raise "color error"
+        else:
+            rgb_string.append('1.0')
+    return ",".join(rgb_string)

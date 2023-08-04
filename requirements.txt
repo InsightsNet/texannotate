@@ -5,7 +5,7 @@ memory-tempfile
 docker
 git+https://github.com/phfaist/pylatexenc.git
 spacy
-pymupdf
+#pymupdf
 pdfplumber
 pandas
 # Development dependencies

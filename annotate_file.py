@@ -116,6 +116,8 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     file_string += s[node.pos:node.nodeargd.argnlist[-1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[-1].nodelist.nodelist, color_dict, macro_environment, basepath)
                     file_string += s[node.nodeargd.argnlist[-1].nodelist[-1].pos_end:node.pos_end]
+                elif 'bibliography' in node.environmentname:
+                    file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
                 else:
                     if not environment is None and macro_should_be_colored(node.macroname):
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
