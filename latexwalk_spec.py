@@ -159,6 +159,7 @@ specs = [
             std_macro('footnotetext', '[{'),
             std_macro('footnotemark', '[{'),
             std_macro('scalebox', False, 2),
+            std_macro('titlearea', '{{'),
             std_macro('twocolumn', '['),
             std_macro('aistatstitle', False, 1),
             std_macro('aistatsauthor', False, 1),
@@ -260,8 +261,8 @@ specs = [
 
             std_environment('figure', '['),
             std_environment('figure*', '['),
-            std_environment('subfigure', '['),
-            std_environment('subfigure*', '['),
+            std_environment('subfigure', '[{'),
+            std_environment('subfigure*', '[{'),
             std_environment('table', '['),
             std_environment('table*', '['),
             ##############################################

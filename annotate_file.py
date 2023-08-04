@@ -108,16 +108,22 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                 elif node.macroname in {'scalebox', 'resizebox'}:
                     macro_environment = annotate
 
-                if macro_environment:
-                    file_string += s[node.pos:node.nodeargs[-1].nodelist[0].pos]
-                    file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-1].nodelist, color_dict, macro_environment, basepath)
-                    file_string += s[node.nodeargs[-1].nodelist[-1].pos_end:node.pos_end]
+                if node.macroname == 'titlearea': 
+                    file_string += s[node.pos:node.nodeargd.argnlist[0].nodelist[0].pos]
+                    file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[0].nodelist, color_dict, 'title', basepath)
+                    file_string += s[node.nodeargd.argnlist[0].nodelist[-1].pos_end:node.nodeargd.argnlist[1].nodelist[0].pos]
+                    file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[1].nodelist, color_dict, 'author', basepath)
+                    file_string += s[node.nodeargd.argnlist[1].nodelist[-1].pos_end:node.pos_end]
                 elif node.macroname == 'twocolumn':
                     file_string += s[node.pos:node.nodeargd.argnlist[-1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[-1].nodelist.nodelist, color_dict, macro_environment, basepath)
                     file_string += s[node.nodeargd.argnlist[-1].nodelist[-1].pos_end:node.pos_end]
-                elif 'bibliography' in node.environmentname:
+                elif 'bibliography' in node.macroname:
                     file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
+                elif macro_environment:
+                    file_string += s[node.pos:node.nodeargs[-1].nodelist[0].pos]
+                    file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-1].nodelist, color_dict, macro_environment, basepath)
+                    file_string += s[node.nodeargs[-1].nodelist[-1].pos_end:node.pos_end]
                 else:
                     if not environment is None and macro_should_be_colored(node.macroname):
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
@@ -127,6 +133,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                         file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexEnvironmentNode):
+
             if node.spec.is_math_mode is True:
                 file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Equation')
             elif 'bibliography' in node.environmentname:
