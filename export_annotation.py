@@ -7,8 +7,8 @@ from util import tup2str
 Data = make_dataclass("Data", [
     ("reading_order", int), 
     ("label", str),
-    ("head", int),
     ("section", int),
+    ("head", int),
     ("token", str),
     ("page", int),
     ("x0", float),
