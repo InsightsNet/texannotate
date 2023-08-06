@@ -5,11 +5,13 @@ from sys import platform
 import docker
 
 from annotate_file import annotate_file
-from color_annotation import Color_Annotation
-from texcompile.client import compile_pdf_return_bytes
-from util import find_free_port, find_latex_file, postprocess_latex, preprocess_latex, tup2str
-from pdf_extract import pdf_extract
+from color_annotation import ColorAnnotation
 from export_annotation import export_annotation
+from pdf_extract import pdf_extract
+from texcompile.client import compile_pdf_return_bytes
+from util import (find_free_port, find_latex_file, postprocess_latex,
+                  preprocess_latex, tup2str)
+
 
 def main(basepath:str):
     #check docker image
@@ -53,7 +55,7 @@ def main(basepath:str):
                 ) # compile the unmodified latex firstly
                 shapes, tokens = pdf_extract(pdf_bytes)
                 ## get colors
-                color_dict = Color_Annotation()
+                color_dict = ColorAnnotation()
                 for rect in shapes:
                     color_dict.add_existing_color(tup2str(rect['stroking_color']))
                 for token in tokens:

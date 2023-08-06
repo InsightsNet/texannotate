@@ -1,4 +1,4 @@
-from color_annotation import Color_Annotation
+from color_annotation import ColorAnnotation
 from util import find_latex_file
 from pylatexenc.latexnodes.nodes import (
     LatexNode,
@@ -37,7 +37,7 @@ def macro_should_be_colored(macroname):
     else:
         return True
 
-def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Color_Annotation, environment, basepath):
+def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: ColorAnnotation, environment, basepath):
     if len(nodelist) > 0:
         s = nodelist[0].latex_walker.s
     else:
@@ -103,12 +103,16 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     macro_environment = 'footnote'
                 elif 'caption' in node.macroname:
                     macro_environment = 'caption'
-                elif 'section' in node.macroname or 'chapter' in node.macroname:
+                elif 'section' in node.macroname or node.macroname in {'chapter', 'part'}:
                     macro_environment = 'section'
                 elif node.macroname in {'scalebox', 'resizebox'}:
                     macro_environment = annotate
 
+                if macro_environment in {'title', 'section'} and node.macroname != 'titlearea':
+                    color_dict.toc.add_node(node.macroname)
+
                 if node.macroname == 'titlearea': 
+                    color_dict.toc.add_node('title')
                     file_string += s[node.pos:node.nodeargd.argnlist[0].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[0].nodelist, color_dict, 'title', basepath)
                     file_string += s[node.nodeargd.argnlist[0].nodelist[-1].pos_end:node.nodeargd.argnlist[1].nodelist[0].pos]
@@ -119,6 +123,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[-1].nodelist.nodelist, color_dict, macro_environment, basepath)
                     file_string += s[node.nodeargd.argnlist[-1].nodelist[-1].pos_end:node.pos_end]
                 elif 'bibliography' in node.macroname:
+                    color_dict.toc.add_node('section')
                     file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
                 elif macro_environment:
                     file_string += s[node.pos:node.nodeargs[-1].nodelist[0].pos]
@@ -196,7 +201,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
     return file_string, color_dict
 
 
-def annotate_file(filename: str, color_dict: Color_Annotation, latex_context: LatexContextDb, environment=None, basepath=None):  
+def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: LatexContextDb, environment=None, basepath=None):  
     print('start annotating:', filename)
     file_string = ''
     fullpath = find_latex_file(filename, basepath)

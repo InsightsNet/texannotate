@@ -1,13 +1,84 @@
-from spacy.tokenizer import Tokenizer
 from spacy.lang.en import English
+from spacy.tokenizer import Tokenizer
 
 
-class Color_Annotation:
+class TOCNode:
+    def __init__(self, section_id, level=-1):
+        self.section_id = section_id
+        self.level = level
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+    
+    def export(self):
+        if self.section_id > 0:
+            ret = str(self.section_id) + "\n"
+        else:
+            ret = ''
+        for child in self.children:
+            ret +=  str(self.section_id) + '\t' + child.export()
+        return ret
+    
+
+class TableOfContents:
+    level2macro = ['title', 'part', 'chapter', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
+    macro2level = {v:k for k, v in enumerate(level2macro)}
+    def __init__(self):
+        self.root = TOCNode(0)
+        self.current_node = self.root
+        self.current_section_id = 0
+
+    def add_node(self, macro):
+        if macro not in self.macro2level:
+            print(f"Invalid grading: {macro}. Please use one of {', '.join(self.level2macro)}")
+            return
+
+        # Determine the depth where the new node should be inserted
+        depth = self.macro2level[macro]
+
+        # Navigate back to the correct parent for this grading
+        while self.current_node.level >= depth:
+            self.current_node = self._find_parent(self.current_node)
+
+        # Create the new node and make it a child of the current node
+        new_node = TOCNode(self.current_section_id+1, depth)
+        self.current_node.add_child(new_node)
+
+        # Set the current node to the newly added node
+        self.current_node = new_node
+        self.current_section_id += 1
+
+    def _find_parent(self, node):
+        """Find parent of a node in the tree starting from root. Return None if parent is not found."""
+        nodes_to_check = [self.root]
+        while nodes_to_check:
+            current_node = nodes_to_check.pop()
+            if node in current_node.children:
+                return current_node
+            nodes_to_check.extend(current_node.children)
+        return None
+    
+    def get_current_section_id(self):
+        assert self.current_node.section_id == self.current_section_id
+        return self.current_node.section_id
+
+    def export_toc(self):
+        s = self.root.export()
+        ret = []
+        for line in s[:-1].split('\n'):
+            head, section_id = line.split('\t')
+            ret.append((int(section_id), int(head)))
+        return ret
+
+
+class ColorAnnotation:
     def __init__(self) -> None:
         self.color_dict = {}
         self.current_RGB = 0
         self.current_rgb = 0
         self.current_token_number = 0
+        self.toc = TableOfContents()
         self.current_section_id = []
         
         nlp = English()
@@ -33,7 +104,7 @@ class Color_Annotation:
         RGB_tuple = self.hex_to_RGB(hex_string)
         self.current_RGB += 1
         return str(RGB_tuple)[1:-1], hex_string
-    
+
     def __getitem__(self, key):
         return self.color_dict[key]
 
@@ -55,7 +126,7 @@ class Color_Annotation:
         self.color_dict[hex_string] = {
             "label": annotate,
             "reading": self.current_token_number,
-            #"section": self.current_section_id[-1],
+            "section": self.toc.get_current_section_id(),
         }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
@@ -67,7 +138,7 @@ class Color_Annotation:
         self.color_dict[rgb_tuple] = {
             "label": annotate,
             "reading": self.current_token_number,
-            #"section": self.current_section_id[-1],
+            "section": self.toc.get_current_section_id(),
         }
         self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"

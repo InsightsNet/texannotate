@@ -2,6 +2,7 @@
 import pdfplumber
 from matplotlib.colors import to_hex
 
+
 def extract_shapes(pdf_bytes: bytes):
     with pdfplumber.open(pdf_bytes) as doc:
         return doc.rects
