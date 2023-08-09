@@ -43,7 +43,7 @@ The tool outputs a pandas DataFrame for each input LaTeX source package, which h
 | int           | str   | int  | int     | str   | int  | float | float | float | float | str  | float | list  |
 
 The DataFrame has two parts: 
-1. The first n rows are the Toble of Contents nodes, whose *reading_order* column is -1 and *label* is *TOCNode*, *section* is the id of this node and *head* is the id of its parent node;
+1. The first n rows are the Toble of Contents nodes, whose *reading_order* is -1 and *label* is *TOCNode*, *section* is the id of this node and *head* is the id of its parent node;
 2. Each subsequent line is an figure or token being extracted from the PDF, the integer *reading_order* starting from 0 is the author's writing order. If it is -1, the token is not content written by the author (e.g., watermarks and headers).
 
 
@@ -51,7 +51,7 @@ The DataFrame has two parts:
  
 ## Acknowledgments
 
-- The compilation service is a dockerized wrapper around the [AutoTeX](https://metacpan.org/pod/TeX::AutoTeX) library used by arXiv to automatically compile submissions to arXiv. We [modified](https://github.com/Fireblossom/TeX-AutoTeX-Mod.git) part of it.
+- The compilation service is a dockerized wrapper around the [AutoTeX](https://metacpan.org/pod/TeX::AutoTeX) library used by arXiv to automatically compile submissions to arXiv. We [modified](https://github.com/) part of it.
 - The code for the compilation service is essentially inherited from [texcompile](https://github.com/andrewhead/texcompile.git), and this repository was formerly a fork of it.
 - [pylatexenc](https://github.com/phfaist/pylatexenc.git) 3.0alpha is used to identify and traverse the latex code.
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
