@@ -4,10 +4,10 @@ from sys import platform
 
 import docker
 
-from annotate_file import annotate_file
-from color_annotation import ColorAnnotation
-from export_annotation import export_annotation
-from pdf_extract import pdf_extract
+from pdfextract.export_annotation import export_annotation
+from pdfextract.pdf_extract import pdf_extract
+from texannotate.annotate_file import annotate_file
+from texannotate.color_annotation import ColorAnnotation
 from texcompile.client import compile_pdf_return_bytes
 from util import (find_free_port, find_latex_file, postprocess_latex,
                   preprocess_latex, tup2str)

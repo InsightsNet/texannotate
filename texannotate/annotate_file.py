@@ -1,4 +1,4 @@
-from color_annotation import ColorAnnotation
+from texannotate.color_annotation import ColorAnnotation
 from util import find_latex_file
 from pylatexenc.latexnodes.nodes import (
     LatexNode,
@@ -16,7 +16,7 @@ from pylatexenc.latexwalker import LatexWalker
 from pylatexenc.macrospec import LatexContextDb
 
 from pylatexenc import macrospec
-from latex2text_spec import specs
+from texannotate.latex2text_spec import specs
 latex2text_context = macrospec.LatexContextDb()
 for cat, catspecs in specs:
         latex2text_context.add_context_category(
@@ -214,7 +214,7 @@ def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: Lat
     
     if latex_context is None:
         latex_context = macrospec.LatexContextDb()
-        from latexwalk_spec import specs
+        from texannotate.latexwalk_spec import specs
         for cat, catspecs in specs:
             latex_context.add_context_category(
                 cat,

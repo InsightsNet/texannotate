@@ -1,5 +1,5 @@
 import pandas as pd
-from color_annotation import ColorAnnotation
+from texannotate.color_annotation import ColorAnnotation
 from dataclasses import make_dataclass
 from util import tup2str
 
