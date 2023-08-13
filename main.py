@@ -9,7 +9,7 @@ from pdfextract.pdf_extract import pdf_extract
 from texannotate.annotate_file import annotate_file
 from texannotate.color_annotation import ColorAnnotation
 from texcompile.client import compile_pdf_return_bytes
-from util import (find_free_port, find_latex_file, postprocess_latex,
+from texannotate.util import (find_free_port, find_latex_file, postprocess_latex,
                   preprocess_latex, tup2str)
 
 

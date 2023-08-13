@@ -1,5 +1,5 @@
 from texannotate.color_annotation import ColorAnnotation
-from util import find_latex_file
+from texannotate.util import find_latex_file
 from pylatexenc.latexnodes.nodes import (
     LatexNode,
     LatexCharsNode,
