@@ -4,8 +4,16 @@ from matplotlib.colors import to_hex
 
 
 def extract_shapes(pdf_bytes: bytes):
+    ret = []
     with pdfplumber.open(pdf_bytes) as doc:
-        return doc.rects
+        rects = doc.rects
+        for rect in rects:
+            page = doc.pages[rect['page_number']-1]
+            r = rect
+            r['y0'] = page.height - rect['y1']
+            r['y1'] = r['y0'] + rect['height']
+            ret.append(r)
+    return ret
 
 
 def flags_decomposer(flags):
@@ -48,7 +56,7 @@ def extract_tokens(pdf_bytes: bytes):
                     "font": token["fontname"],
                     "size": token["size"],
                     "color": convert_color(token["non_stroking_color"]),
-                    "bbox": (token["x0"], token["y0"], token["x1"], token["y1"]),
+                    "bbox": (token["x0"], page.height - token['y1'], token["x1"], page.height - token['y0']),
                     "flags":None
                 })
     return tokens

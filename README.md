@@ -1,6 +1,6 @@
 # TeX Annotate
 
-This service transform LaTeX codes into PDFs and extract detailed layout and reading information. 
+This service compiles LaTeX codes into PDFs and extract detailed layout and reading information. 
 Designed specifically for the academic publications.
 This tool not only compiles LaTeX but also annotates each token and figures, 
 retrieves their positions in the PDF, identifies corresponding semantic structure labels, and mark the correct reading order. 
@@ -8,7 +8,7 @@ retrieves their positions in the PDF, identifies corresponding semantic structur
 
 ## Main Purpose:
 
-1. **LaTeX Compilation**: Transform LaTeX into PDF using a dockerized environment, leveraging TexLive2023.
+1. **LaTeX Compilation**: Compile LaTeX into PDF using a dockerized environment, leveraging TexLive2023.
 2. **LaTeX Annotation**: Add color labels to each token and figure in LaTeX code to facilitate automatic extraction of document layout.
 3. **Data Extraction**: Extract fine information about every token and figure, such as its type, position, and corresponding section in the compiled PDF document, and output this as a pandas DataFrame.
 
@@ -48,7 +48,9 @@ The DataFrame has two parts:
 
 
 *label* are semantic structure labels, which includes: Abstract, Author, Caption, Equation, Figure, Footer, List, Paragraph, Reference, Section, Table, Title.
- 
+
+See [example](doc/example.ipynb).
+
 ## Acknowledgments
 
 - The compilation service is a dockerized wrapper around the [AutoTeX](https://metacpan.org/pod/TeX::AutoTeX) library used by arXiv to automatically compile submissions to arXiv. We [modified](https://github.com/) part of it.

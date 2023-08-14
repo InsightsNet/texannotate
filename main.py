@@ -67,11 +67,10 @@ def main(basepath:str):
                 tex_file = find_latex_file(Path(basename).stem, basepath=td)
                 annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
                 postprocess_latex(tex_file)
-                #print(p/'outputs'/filename.stem)
                 #shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td
-                ) # compile the unmodified latex firstly
+                ) # compile the modified latex
                 shapes, tokens = pdf_extract(pdf_bytes)
             df = export_annotation(shapes, tokens, color_dict)
             # df['reading_order'] = df['reading_order'].astype('int64') 
