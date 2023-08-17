@@ -58,6 +58,16 @@ See [example](doc/example.ipynb).
 - [pylatexenc](https://github.com/phfaist/pylatexenc.git) 3.0alpha is used to identify and traverse the latex code.
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
 
+# TODO:
+1. Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
+   1. Investigate the order of coloring
+2. Explore the method of SyncTex & Line based label correction
+3. Rainbow colors
+4. Improve Parsing rules of command & hierarchical structure (from Overleaf and TeX-Workshop)
+   1. parsing database from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)
+   2. [Tex-Workshop \newcommand](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208)
+5. Parallelization
+
 ## License
 
 Apache 2.0.
