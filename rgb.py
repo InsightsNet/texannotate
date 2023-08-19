@@ -54,5 +54,5 @@ def visualize_colors(colors):
     plt.tight_layout()
     plt.show()
 
-colors = generate_rainbow_colors()
-#visualize_colors(colors)
+colors = generate_rainbow_colors()[-50000:-1]
+visualize_colors(colors)
