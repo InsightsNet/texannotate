@@ -60,11 +60,12 @@ See [example](doc/example.ipynb).
 
 # TODO:
 1. Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
-   1. Investigate the order of coloring
+   1. Investigate Underlying logic of the coloring order.
 2. Explore the method of SyncTex & Line based label correction
 3. Rainbow colors
 4. Improve Parsing rules of command & hierarchical structure (from Overleaf and TeX-Workshop)
    1. parsing database from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)
+      1. Adapt pylatexenc for the case of \pagebreak<>
    2. [Tex-Workshop \newcommand](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208)
 5. Parallelization
 

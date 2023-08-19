@@ -24,6 +24,14 @@ def find_latex_file(filename, basepath) -> str:
     return fullpath
 
 
+def check_specs():
+    if os.path.exists('data/README.md'):
+        pass #TODO: check version
+    else:
+        from gitdir import gitdir
+        gitdir.download('https://github.com/James-Yu/LaTeX-Workshop/tree/master/data')
+
+
 BLOCK_1 = r"""\pdfoutput=1
 \interactionmode=1
 """

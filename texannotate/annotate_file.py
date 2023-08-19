@@ -19,12 +19,12 @@ from pylatexenc import macrospec
 from texannotate.latex2text_spec import specs
 latex2text_context = macrospec.LatexContextDb()
 for cat, catspecs in specs:
-        latex2text_context.add_context_category(
-            cat,
-            macros=catspecs['macros'],
-            environments=catspecs['environments'],
-            specials=catspecs['specials']
-        )
+    latex2text_context.add_context_category(
+        cat,
+        macros=catspecs['macros'],
+        environments=catspecs['environments'],
+        specials=catspecs['specials']
+    )
 
 def macro_should_be_colored(macroname):
     spec = latex2text_context.get_macro_spec(macroname)
