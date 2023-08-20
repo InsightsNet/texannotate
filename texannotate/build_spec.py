@@ -1,32 +1,21 @@
-from pylatexenc import macrospec
-from pylatexenc.latexwalker import LatexWalker
-from texannotate.latexwalk_spec import specs
-from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
-from pylatexenc.latexnodes.nodes import LatexMacroNode
-from texannotate.util import find_latex_file
-import os
 import json
-from pylatexenc.macrospec import (
-    std_macro,
-    std_environment,
-    std_specials,
-    MacroSpec, EnvironmentSpec, MacroStandardArgsParser,
-    VerbatimArgsParser, LstListingArgsParser,
-)
+import os
 import re
+
+from pylatexenc.latexnodes.nodes import LatexMacroNode
+from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
+from pylatexenc.latexwalker import LatexWalker
+from pylatexenc.macrospec import (EnvironmentSpec, LatexContextDb,
+                                  LstListingArgsParser, MacroSpec,
+                                  MacroStandardArgsParser, VerbatimArgsParser,
+                                  std_environment, std_macro, std_specials)
+
+from texannotate.latexwalk_spec import specs
+from texannotate.util import check_specs, find_latex_file
+
 prog = re.compile(r"[\w\_:]+")
 
-latex_context = macrospec.LatexContextDb()
-for cat, catspecs in specs:
-    latex_context.add_context_category(
-        cat,
-        macros=catspecs['macros'],
-        environments=catspecs['environments'],
-        specials=catspecs['specials']
-    )
-
-
-def parse_snippet(d, spec):
+def parse_snippet(d, spec, latex_context:LatexContextDb):
     ret = []
     macro_dict = {}
     for k in d[spec]:
@@ -47,35 +36,37 @@ def parse_snippet(d, spec):
     accept = {'{', '[', '*'}
     for k,v in macro_dict.items():
         if (set(v).issubset(accept)) and not k.endswith('_'):
-            if spec == 'cmds' and latex_context.get_macro_spec(k) is None:
+            if spec == 'cmds' and latex_context.get_macro_spec(k) == latex_context.unknown_macro_spec:
                 ret.append(std_macro(k ,v))
-            elif spec == 'envs' and latex_context.get_environment_spec(k) is None:
+            elif spec == 'envs' and latex_context.get_environment_spec(k) == latex_context.unknown_environment_spec:
                 ret.append(std_environment(k, v))
     return ret
 
 
-def import_package(package_name):
+def import_package(package_name, latex_context):
+    #print('Loading package:', package_name)
     ret = []
     if not os.path.isfile('data/packages/'+package_name+'.json'):
-        print('Cannot find the definition of imported package: '+package_name)
+        #print('Cannot find the definition of imported package: '+package_name)
         return ret
     else:
         with open('data/packages/'+package_name+'.json') as f:
             d = json.load(f)
         for dependency in d['includes']:
-            ret += import_package(dependency)
+            ret += import_package(dependency, latex_context)
         
         ret.append((
             'package_'+package_name, {
-                'macros': parse_snippet(d, 'cmds'),
-                'environments': parse_snippet(d, 'envs'),
+                'macros': parse_snippet(d, 'cmds', latex_context),
+                'environments': parse_snippet(d, 'envs', latex_context),
                 'specials': []
             }
         ))
         return ret
     
 
-def find_import_and_new(filename, basepath):
+def find_package(filename, basepath, latex_context):
+    ret = []
     fullpath = find_latex_file(filename, basepath)
     with open(fullpath) as f:
         tex_string = f.read()
@@ -90,11 +81,33 @@ def find_import_and_new(filename, basepath):
         if node.isNodeType(LatexMacroNode):
             if node.macroname in {'input', 'include'}:
                 filename = node.nodeargs[0].nodelist[0].chars
-                ret = find_import_and_new(filename, basepath)
+                ret += find_package(filename, basepath, latex_context)
             if node.macroname == 'usepackage':
-                package = nodelist[0].nodeargs[0].nodelist[0].chars
-                ret = import_package(package)
+                package = node.nodeargs[0].nodelist[0].chars
+                ret += import_package(package, latex_context)
+    return ret
 
 
-if __name__ == "__main__":
-    print(import_package('acro'))
+def init_db(filename, basepath):
+    check_specs()
+    latex_context = LatexContextDb()
+    for cat, catspecs in specs:
+        latex_context.add_context_category(
+            cat,
+            macros=catspecs['macros'],
+            environments=catspecs['environments'],
+            specials=catspecs['specials']
+        )
+    latex_context.set_unknown_macro_spec(MacroSpec(''))
+    latex_context.set_unknown_environment_spec(EnvironmentSpec(''))
+    package_defs = find_package(filename, basepath, latex_context)
+
+    for cat, catspecs in package_defs:
+        if not cat in latex_context.categories():
+            latex_context.extended_with(
+                cat,
+                macros=catspecs['macros'],
+                environments=catspecs['environments'],
+                specials=catspecs['specials']
+            )
+    return latex_context

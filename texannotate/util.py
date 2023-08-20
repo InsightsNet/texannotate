@@ -1,8 +1,9 @@
 import os
+import re
 import socket
 from contextlib import closing
-import re
 from pathlib import Path
+
 
 def find_free_port() -> int:  #https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:

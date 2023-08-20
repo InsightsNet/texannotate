@@ -59,15 +59,15 @@ See [example](doc/example.ipynb).
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
 
 # TODO:
-1. Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
-   1. Investigate Underlying logic of the coloring order.
-2. Explore the method of SyncTex & Line based label correction
-3. Rainbow colors
-4. Improve Parsing rules of command & hierarchical structure (from Overleaf and TeX-Workshop)
-   1. parsing database from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)
-      1. Adapt pylatexenc for such the case of \pagebreak<>
-   2. \newcommand parsing strategy from [Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)
-5. Parallelization
+- [ ] Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
+   - [ ] Investigate Underlying logic of the coloring order.
+- [ ] Explore the method of SyncTex & Line based label correction
+- [x] Rainbow colors [#1](https://github.com/InsightsNet/texannotate/pull/1) 
+- [ ] Improve Parsing rules of command & hierarchical structure (from Overleaf and TeX-Workshop)
+   - [x] Package command definitions from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) ~~and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)~~
+      - [ ] Adapt `pylatexenc` for such the case of `\pagebreak<blah>`
+   - [ ] `\newcommand` parsing strategy from [Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)
+- [ ] Parallelization
 
 ## License
 

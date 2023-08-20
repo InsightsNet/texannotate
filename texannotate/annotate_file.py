@@ -1,23 +1,18 @@
-from texannotate.color_annotation import ColorAnnotation
-from texannotate.util import find_latex_file
-from pylatexenc.latexnodes.nodes import (
-    LatexNode,
-    LatexCharsNode,
-    LatexGroupNode,
-    LatexCommentNode,
-    LatexMacroNode,
-    LatexEnvironmentNode,
-    LatexSpecialsNode,
-    LatexMathNode,
-    LatexNodeList
-)
+from pylatexenc.latexnodes.nodes import (LatexCharsNode, LatexCommentNode,
+                                         LatexEnvironmentNode, LatexGroupNode,
+                                         LatexMacroNode, LatexMathNode,
+                                         LatexNode, LatexNodeList,
+                                         LatexSpecialsNode)
 from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 from pylatexenc.latexwalker import LatexWalker
 from pylatexenc.macrospec import LatexContextDb
 
-from pylatexenc import macrospec
+from texannotate.build_spec import init_db
+from texannotate.color_annotation import ColorAnnotation
 from texannotate.latex2text_spec import specs
-latex2text_context = macrospec.LatexContextDb()
+from texannotate.util import find_latex_file
+
+latex2text_context = LatexContextDb()
 for cat, catspecs in specs:
     latex2text_context.add_context_category(
         cat,
@@ -212,19 +207,9 @@ def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: Lat
         print(e)
         return False
     
-    if latex_context is None:
-        latex_context = macrospec.LatexContextDb()
-        from texannotate.latexwalk_spec import specs
-        for cat, catspecs in specs:
-            latex_context.add_context_category(
-                cat,
-                macros=catspecs['macros'],
-                environments=catspecs['environments'],
-                specials=catspecs['specials']
-            )
-        latex_context.set_unknown_macro_spec(macrospec.MacroSpec(''))
-        latex_context.set_unknown_environment_spec(macrospec.EnvironmentSpec(''))
-        
+    if latex_context is None: # load package definitions
+        latex_context = init_db(filename, basepath)
+
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
     nodelist, parsing_state_delta = w.parse_content(

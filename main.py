@@ -8,13 +8,12 @@ from pdfextract.export_annotation import export_annotation
 from pdfextract.pdf_extract import pdf_extract
 from texannotate.annotate_file import annotate_file
 from texannotate.color_annotation import ColorAnnotation
+from texannotate.util import (find_free_port, find_latex_file,
+                              postprocess_latex, preprocess_latex, tup2str)
 from texcompile.client import compile_pdf_return_bytes
-from texannotate.util import (find_free_port, find_latex_file, postprocess_latex,
-                  preprocess_latex, tup2str, check_specs)
 
 
 def main(basepath:str):
-    check_specs()
     #check docker image
     client = docker.from_env()
     try:

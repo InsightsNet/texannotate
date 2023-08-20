@@ -1,8 +1,10 @@
-from spacy.lang.en import English
-from spacy.tokenizer import Tokenizer
+import colorsys
 import os
 import pickle
-import colorsys
+
+from spacy.lang.en import English
+from spacy.tokenizer import Tokenizer
+
 
 class TOCNode:
     def __init__(self, section_id, level=-1):
