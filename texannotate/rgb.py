@@ -19,7 +19,7 @@ def generate_rainbow_colors():  # number of color in one color
     for s in [i for i in range(256, 50, -1)]: 
         for v in [i for i in range(256, 50, -1)]:
             s_v_list.append([s/256, v/256])
-    print("num of s_v set: ", len(s_v_list))
+    #print("num of s_v set: ", len(s_v_list))
 
     hue_list = []
     for s_v in s_v_list:
@@ -31,7 +31,7 @@ def generate_rainbow_colors():  # number of color in one color
                 if (r, g, b) not in all_colors_set:
                     all_colors_set.add((r, g, b))
                     all_colors.append((r, g, b))
-    print("num of color: ", len(all_colors))
+    #print("num of color: ", len(all_colors))
     return all_colors
 
 
