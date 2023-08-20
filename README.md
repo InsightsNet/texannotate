@@ -64,9 +64,9 @@ See [example](doc/example.ipynb).
 2. Explore the method of SyncTex & Line based label correction
 3. Rainbow colors
 4. Improve Parsing rules of command & hierarchical structure (from Overleaf and TeX-Workshop)
-   1. parsing database from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)
-      1. Adapt pylatexenc for the case of \pagebreak<>
-   2. [Tex-Workshop \newcommand](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208)
+   1. parsing database from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)
+      1. Adapt pylatexenc for such the case of \pagebreak<>
+   2. \newcommand parsing strategy from [Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)
 5. Parallelization
 
 ## License
