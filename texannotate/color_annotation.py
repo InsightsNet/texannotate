@@ -1,6 +1,9 @@
 from spacy.lang.en import English
 from spacy.tokenizer import Tokenizer
-
+import os
+import pickle
+import colorsys
+from matplotlib.colors import to_hex
 
 class TOCNode:
     def __init__(self, section_id, level=-1):
@@ -72,6 +75,41 @@ class TableOfContents:
         return ret
 
 
+def generate_rainbow_colors():  # number of color in one color
+    if os.path.isfile('data/rainbow_colors_list.pkl'):
+        return pickle.load(open('data/rainbow_colors_list.pkl', 'wb'))
+    
+    all_colors = []
+    all_colors_set = set()
+
+    # Define steps for hue, saturation, and value
+    hue_list = []
+    for i in range(0, 359):
+        hue_list.append(i/359)
+
+    splited_hue_list = [hue_list[i::5] for i in range(5)]
+
+    s_v_list = []
+    for s in [i for i in range(256, 50, -1)]: 
+        for v in [i for i in range(256, 50, -1)]:
+            s_v_list.append([s/256, v/256])
+    #print("num of s_v set: ", len(s_v_list))
+
+    hue_list = []
+    for s_v in s_v_list:
+        for sub_hue_list in splited_hue_list:
+            for hue in sub_hue_list:
+                h = hue; s = s_v[0]; v = s_v[1]
+                r, g, b = [int(x * 255) for x in colorsys.hsv_to_rgb(h, s, v)]
+                #print((hue/10, s/100, v/100), "\t", (r, g, b))
+                if (r, g, b) not in all_colors_set:
+                    all_colors_set.add((r, g, b))
+                    all_colors.append((r, g, b))
+    #print("num of color: ", len(all_colors))
+    pickle.dump(open('data/rainbow_colors_list.pkl', 'wb'))
+    return all_colors
+
+
 class ColorAnnotation:
     def __init__(self) -> None:
         self.color_dict = {}
@@ -80,6 +118,7 @@ class ColorAnnotation:
         self.current_token_number = 0
         self.toc = TableOfContents()
         self.current_section_id = []
+        self.all_color = generate_rainbow_colors()
         
         nlp = English()
         self.tokenizer = Tokenizer(nlp.vocab)
@@ -99,9 +138,11 @@ class ColorAnnotation:
         return ",".join(rgb_string)
     
     def _get_next_RGB(self):
-        assert self.current_RGB < 16777216, "RGB reach upper limit"
-        hex_string = self.int_to_hex_string(self.current_RGB)
-        RGB_tuple = self.hex_to_RGB(hex_string)
+        assert self.current_RGB < len(self.all_color), "RGB reach upper limit"
+        #hex_string = self.int_to_hex_string(self.current_RGB)
+        #RGB_tuple = self.hex_to_RGB(hex_string)
+        RGB_tuple = self.all_color[self.current_RGB]
+        hex_string = to_hex(RGB_tuple)
         self.current_RGB += 1
         return str(RGB_tuple)[1:-1], hex_string
 
