@@ -9,6 +9,7 @@ from pylatexenc.macrospec import (EnvironmentSpec, LatexContextDb,
                                   LstListingArgsParser, MacroSpec,
                                   MacroStandardArgsParser, VerbatimArgsParser,
                                   std_environment, std_macro, std_specials)
+from texannotate.newcommand import MySimpleNewcommandArgsParser, MySimpleNewenvironmentArgsParser
 
 from texannotate.latexwalk_spec import specs
 from texannotate.util import check_specs, find_latex_file
@@ -66,7 +67,7 @@ def import_package(package_name, latex_context):
     
 
 def find_package(filename, basepath, latex_context):
-    ret = []
+    append = []
     fullpath = find_latex_file(filename, basepath)
     with open(fullpath) as f:
         tex_string = f.read()
@@ -81,16 +82,20 @@ def find_package(filename, basepath, latex_context):
         if node.isNodeType(LatexMacroNode):
             if node.macroname in {'input', 'include'}:
                 filename = node.nodeargs[0].nodelist[0].chars
-                ret += find_package(filename, basepath, latex_context)
+                append += find_package(filename, basepath, latex_context)
             if node.macroname == 'usepackage':
                 package = node.nodeargs[0].nodelist[0].chars
-                ret += import_package(package, latex_context)
-    return ret
+                append += import_package(package, latex_context)
+    return append
 
 
 def init_db(filename, basepath):
     check_specs()
     latex_context = LatexContextDb()
+    latex_context.add_context_category('newcommand-category', prepend=True, macros=[
+        MacroSpec('newcommand', args_parser=MySimpleNewcommandArgsParser()),
+        MacroSpec('newenvironment', args_parser=MySimpleNewenvironmentArgsParser())
+    ])
     for cat, catspecs in specs:
         latex_context.add_context_category(
             cat,
