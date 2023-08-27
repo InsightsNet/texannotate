@@ -72,10 +72,11 @@ def main(basepath:str):
                     sources_dir=td
                 ) # compile the modified latex
                 shapes, tokens = pdf_extract(pdf_bytes)
-            df = export_annotation(shapes, tokens, color_dict)
+            df_toc, df_data = export_annotation(shapes, tokens, color_dict)
             # df['reading_order'] = df['reading_order'].astype('int64') 
             # cannot convert NaN to integer, skip for now
-            df.to_csv(str(filename)+'.csv', sep='\t')
+            df_toc.to_csv(str(filename)+'_toc.csv', sep='\t')
+            df_data.to_csv(str(filename)+'_data.csv', sep='\t')
             container.stop()
 
     except Exception as e:

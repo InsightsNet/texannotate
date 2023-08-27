@@ -118,6 +118,7 @@ class ColorAnnotation:
         self.current_rgb = 0
         self.current_token_number = 0
         self.toc = TableOfContents()
+        self.block_num = 0
         self.current_section_id = []
         self.all_color = generate_rainbow_colors()
         
@@ -172,6 +173,7 @@ class ColorAnnotation:
             "label": annotate,
             "reading": self.current_token_number,
             "section": self.toc.get_current_section_id(),
+            "block": self.block_num,
         }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
@@ -184,6 +186,7 @@ class ColorAnnotation:
             "label": annotate,
             "reading": self.current_token_number,
             "section": self.toc.get_current_section_id(),
+            "block": self.block_num,
         }
         self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"

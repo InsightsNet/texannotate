@@ -113,6 +113,8 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     file_string += s[node.nodeargd.argnlist[0].nodelist[-1].pos_end:node.nodeargd.argnlist[1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[1].nodelist, color_dict, 'author', basepath)
                     file_string += s[node.nodeargd.argnlist[1].nodelist[-1].pos_end:node.pos_end]
+                    if not environment is None:
+                        color_dict.block_num += 1
                 elif node.macroname == 'twocolumn':
                     file_string += s[node.pos:node.nodeargd.argnlist[-1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[-1].nodelist.nodelist, color_dict, macro_environment, basepath)
@@ -120,24 +122,35 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                 elif 'bibliography' in node.macroname:
                     color_dict.toc.add_node('section')
                     file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
+                    if not environment is None:
+                        color_dict.block_num += 1
                 elif macro_environment:
                     file_string += s[node.pos:node.nodeargs[-1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-1].nodelist, color_dict, macro_environment, basepath)
                     file_string += s[node.nodeargs[-1].nodelist[-1].pos_end:node.pos_end]
+                    if not environment is None:
+                        color_dict.block_num += 1
                 else:
                     if not environment is None and macro_should_be_colored(node.macroname):
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
+                        if not environment is None:
+                            color_dict.block_num += 1
                     elif node.macroname == 'lstinputlisting':
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Equation')
+                        if not environment is None:
+                            color_dict.block_num += 1
                     else:
                         file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexEnvironmentNode):
-
             if node.spec.is_math_mode is True:
                 file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Equation')
+                if not environment is None:
+                    color_dict.block_num += 1
             elif 'bibliography' in node.environmentname:
                 file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
+                if not environment is None:
+                    color_dict.block_num += 1
             elif 'tikzpicture' in node.environmentname:
                 file_string += color_dict.add_annotation_rgb(s[node.pos:node.pos_end], annotate='Figure')
             elif 'tabular' in node.environmentname:
@@ -152,6 +165,8 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                 file_string += s[node.pos:node.nodelist[0].pos]
                 file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
                 file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+                if not environment is None:
+                    color_dict.block_num += 1
 
         elif node.isNodeType(LatexCharsNode):
             if (environment is None) or (node.chars.isspace()):
@@ -183,6 +198,9 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
             file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexSpecialsNode):
+            if node.specials_chars == '\n\n':
+                if not environment is None:
+                    color_dict.block_num += 1
             file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexNode):
