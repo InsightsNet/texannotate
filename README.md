@@ -1,4 +1,4 @@
-# TeX Annotate
+# LaTeX Rainbow
 
 This service compiles LaTeX codes into PDFs and extract detailed layout and reading information. 
 Designed specifically for the academic publications.
