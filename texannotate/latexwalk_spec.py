@@ -270,6 +270,8 @@ specs = [
             std_environment('algorithm*', '['),
             std_environment('lstlisting', '[', is_math_mode=True),
             std_environment('lstlisting*', '[', is_math_mode=True),
+            std_environment('adjustwidth', '{{'),
+            std_environment('adjustwidth*', '{{'),
             std_environment('abstract', None),
             std_environment('multicols', '{['),
             

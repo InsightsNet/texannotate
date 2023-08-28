@@ -182,10 +182,10 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
 
         elif node.isNodeType(LatexGroupNode):
             # TODO: should we break it up?
-            if not environment is None:
-                file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
-            else:
-                file_string += s[node.pos:node.pos_end]
+            #if not environment is None:
+            #    file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
+            #else:
+            file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexMathNode):
             if not environment is None:

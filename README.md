@@ -65,6 +65,7 @@ See [example](doc/example.ipynb).
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
 
 # TODO:
+- [ ] Parse `.cls` and `.sty` file.
 - [ ] Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
   - [ ] Investigate Underlying logic of the coloring order.
   - [ ] Explore the method of SyncTex.

@@ -37,6 +37,8 @@ def flags_decomposer(flags):
 
 
 def convert_color(non_stroking_color):
+    if non_stroking_color is None:
+        return '#000000'
     assert type(non_stroking_color) == tuple
     if len(non_stroking_color) < 3:
         return '#000000'

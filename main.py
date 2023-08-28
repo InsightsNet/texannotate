@@ -10,8 +10,8 @@ from texannotate.annotate_file import annotate_file
 from texannotate.color_annotation import ColorAnnotation
 from texannotate.util import (find_free_port, find_latex_file,
                               postprocess_latex, preprocess_latex, tup2str)
-from texcompile.client import compile_pdf_return_bytes
-
+from texcompile.client import compile_pdf_return_bytes, CompilationException
+import shutil
 
 def main(basepath:str):
     #check docker image
@@ -67,22 +67,22 @@ def main(basepath:str):
                 tex_file = find_latex_file(Path(basename).stem, basepath=td)
                 annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
                 postprocess_latex(tex_file)
-                #shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
+                shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td
                 ) # compile the modified latex
                 shapes, tokens = pdf_extract(pdf_bytes)
             df_toc, df_data = export_annotation(shapes, tokens, color_dict)
-            # df['reading_order'] = df['reading_order'].astype('int64') 
-            # cannot convert NaN to integer, skip for now
-            df_toc.to_csv(str(filename)+'_toc.csv', sep='\t')
-            df_data.to_csv(str(filename)+'_data.csv', sep='\t')
-            container.stop()
+            Path("outputs").mkdir(exist_ok=True)
+            df_toc.to_csv('outputs/'+str(filename.stem)+'_toc.csv', sep='\t')
+            df_data.to_csv('outputs/'+str(filename.stem)+'_data.csv', sep='\t')
+    except CompilationException:
+        print('LaTeX code compilation error.')
 
     except Exception as e:
         container.stop()
         raise e
-
+    container.stop()
 
 if __name__ == "__main__":
     main("downloaded")
