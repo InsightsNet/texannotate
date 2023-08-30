@@ -1,7 +1,7 @@
 import pandas as pd
 from texannotate.color_annotation import ColorAnnotation
 from dataclasses import make_dataclass
-from texannotate.util import tup2str
+from utils.utils import tup2str
 
 
 Data = make_dataclass("Data", [

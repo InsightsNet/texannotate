@@ -3,6 +3,7 @@ import re
 import socket
 from contextlib import closing
 from pathlib import Path
+import requests
 
 
 def find_free_port() -> int:  #https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
@@ -27,10 +28,10 @@ def find_latex_file(filename, basepath) -> str:
 
 def check_specs():
     if os.path.exists('data/README.md'):
-        pass #TODO: check version
+        pass #TODO: check update with github api
     else:
-        from gitdir import gitdir
-        gitdir.download('https://github.com/James-Yu/LaTeX-Workshop/tree/master/data')
+        from utils.pkgcommand import run
+        run()
 
 
 BLOCK_1 = r"""\pdfoutput=1

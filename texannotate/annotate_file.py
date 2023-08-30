@@ -10,7 +10,7 @@ from pylatexenc.macrospec import LatexContextDb
 from texannotate.build_spec import init_db
 from texannotate.color_annotation import ColorAnnotation
 from texannotate.latex2text_spec import specs
-from texannotate.util import find_latex_file
+from utils.utils import find_latex_file
 
 latex2text_context = LatexContextDb()
 for cat, catspecs in specs:

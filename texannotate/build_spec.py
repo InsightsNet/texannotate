@@ -12,7 +12,7 @@ from pylatexenc.macrospec import (EnvironmentSpec, LatexContextDb,
 from texannotate.newcommand import MySimpleNewcommandArgsParser, MySimpleNewenvironmentArgsParser
 
 from texannotate.latexwalk_spec import specs
-from texannotate.util import check_specs, find_latex_file
+from utils.utils import check_specs, find_latex_file
 
 prog = re.compile(r"[\w\_:]+")
 
@@ -44,11 +44,12 @@ def parse_snippet(d, spec, latex_context:LatexContextDb):
     return ret
 
 
-def import_package(package_name, latex_context):
-    #print('Loading package:', package_name)
+def import_package(package_name, latex_context, is_class=False):
+    if is_class:
+        class_name = package_name
+        package_name = 'class-' + class_name
     ret = []
     if not os.path.isfile('data/packages/'+package_name+'.json'):
-        #print('Cannot find the definition of imported package: '+package_name)
         return ret
     else:
         with open('data/packages/'+package_name+'.json') as f:
@@ -86,6 +87,9 @@ def find_package(filename, basepath, latex_context):
             if node.macroname == 'usepackage':
                 package = node.nodeargs[0].nodelist[0].chars
                 append += import_package(package, latex_context)
+            if node.macroname == 'documentclass':
+                class_ = node.nodeargs[0].nodelist[0].chars
+                append += import_package(class_, latex_context, is_class=True)
     return append
 
 
@@ -94,7 +98,9 @@ def init_db(filename, basepath):
     latex_context = LatexContextDb()
     latex_context.add_context_category('newcommand-category', prepend=True, macros=[
         MacroSpec('newcommand', args_parser=MySimpleNewcommandArgsParser()),
-        MacroSpec('newenvironment', args_parser=MySimpleNewenvironmentArgsParser())
+        MacroSpec('renewcommand', args_parser=MySimpleNewcommandArgsParser()),
+        MacroSpec('newenvironment', args_parser=MySimpleNewenvironmentArgsParser()),
+        MacroSpec('renewenvironment', args_parser=MySimpleNewenvironmentArgsParser()),
     ])
     for cat, catspecs in specs:
         latex_context.add_context_category(

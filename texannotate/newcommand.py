@@ -49,7 +49,7 @@ class MySimpleNewenvironmentArgsParser(macrospec.MacroStandardArgsParser):
             w=w, pos=pos, parsing_state=parsing_state, **kwargs
         )
         if argd.argnlist[1].isNodeType(LatexGroupNode):
-            argd.argnlist[1] = argd.argnlist[1].nodelist[0] # {\command} -> \command
+            argd.argnlist[1] = argd.argnlist[1].nodelist[0]
         assert argd.argnlist[1].isNodeType(LatexCharsNode)
         newcmdname = argd.argnlist[1].chars
         numargs = int(argd.argnlist[2].nodelist[0].chars) if argd.argnlist[2] else 0
@@ -89,6 +89,50 @@ Some text following the abstract. Some text following the abstract. Some text fo
 \newcommand*{\c}[2][]{abc #1}
 \newcommand\a{AAA}
 \newcommand{\b}[2]{BBB #1}
+\newcommand{\cright}{%
+        \ifthenelse{\equal{\@arttype}{Supfile}}{%
+		}{%
+		\ifthenelse{\equal{\@status}{submit}}{%
+		\fontdimen2\font=1.2pt
+			\textbf{Copyright: }\copyright{} {\@ \the\year} by the \@authornum.\linebreak%
+			Submitted to {\em\journalname} for %
+			possible open access publication %
+			under the terms and conditions of the Creative Commons Attri- bution %
+			\ifthenelse{\equal{\@journal}{ijtpp}}{(CC BY-NC-ND)}{(CC BY)} %
+			license %
+			\ifthenelse{\equal{\@journal}{ijtpp}}{%
+			\changeurlcolor{black}%
+			(\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{https://creative}\linebreak\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{commons.org/licenses/by-nc-nd/4.0/).}%
+			}{%
+			\changeurlcolor{black}%
+			(\href{https://creativecommons.org/licenses/by/4.0/}{https://}\linebreak\href{https://creativecommons.org/licenses/by/4.0/}{creativecommons.org/licenses/by/}\linebreak 4.0/).%
+			}
+			}{%
+			\href{https://creativecommons.org/}{%
+				\ifthenelse{\equal{\@journal}{ijtpp}}{%
+					\includegraphics[width=2 cm]{Definitions/logo-ccby-nc-nd.eps}%
+					}{%
+					\includegraphics[width=2 cm]{Definitions/logo-ccby.eps}
+					}
+				}\\
+				{\justifying\textbf{Copyright:} \copyright \ {\@copyrightyear} by the \@authornum.\linebreak%
+				Licensee MDPI, Basel, Switzerland.\linebreak%
+				This article is an open access article %
+				distributed under the terms and \linebreak% 
+				conditions of the Creative Commons Attribution %
+				\ifthenelse{\equal{\@journal}{ijtpp}}{(CC BY-NC-ND)}{(CC BY)} %
+				license %
+				\ifthenelse{\equal{\@journal}{ijtpp}}{%
+				\changeurlcolor{black}%
+				\linebreak
+				\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{(https://creativecommons.org/}\linebreak \href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{licenses/by-nc-nd/4.0/}).%
+				}{%
+				\changeurlcolor{black}%
+				(\href{https://creativecommons.org/licenses/by/4.0/}{https://} \href{https://creativecommons.org/licenses/by/4.0/}{creativecommons.org/licenses/by/}\linebreak 4.0/).}%
+				}
+			}
+		}
+	}
 
 Blah blah blah.
 

@@ -23,3 +23,8 @@ downloaded
 test.*
 *.pdf
 data/
+*.cwl
+*.csv
+*.tex
+gh_download.py
+utils/pyintel/

@@ -54,7 +54,7 @@ specs = [
     ('latex-base', {
         'macros': [
 
-            std_macro('documentclass', True, 1),
+            std_macro('documentclass', "[{"),
             std_macro('usepackage', "[{"),
             std_macro('RequirePackage', True, 1),
             std_macro('selectlanguage', True, 1),
@@ -164,6 +164,7 @@ specs = [
             std_macro('aistatstitle', False, 1),
             std_macro('aistatsauthor', False, 1),
             std_macro('aistatsaddress', False, 1),
+            std_macro('RequirePackage', '[{'),
 
             std_macro('keywords', False, 1),
 
