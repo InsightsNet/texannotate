@@ -2,6 +2,7 @@ import json
 import os
 import re
 
+import chardet
 from pylatexenc.latexnodes.nodes import LatexMacroNode
 from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 from pylatexenc.latexwalker import LatexWalker
@@ -9,9 +10,10 @@ from pylatexenc.macrospec import (EnvironmentSpec, LatexContextDb,
                                   LstListingArgsParser, MacroSpec,
                                   MacroStandardArgsParser, VerbatimArgsParser,
                                   std_environment, std_macro, std_specials)
-from texannotate.newcommand import MySimpleNewcommandArgsParser, MySimpleNewenvironmentArgsParser
 
 from texannotate.latexwalk_spec import specs
+from texannotate.newcommand import (MySimpleNewcommandArgsParser,
+                                    MySimpleNewenvironmentArgsParser)
 from utils.utils import check_specs, find_latex_file
 
 prog = re.compile(r"[\w\_:]+")
@@ -47,8 +49,15 @@ def parse_snippet(d, spec, latex_context:LatexContextDb):
 def parse_package(filename, basepath, latex_context):
     append = []
     fullpath = os.path.join(basepath, filename)
-    with open(fullpath) as f:
-        tex_string = f.read()
+    try:
+        with open(fullpath, 'rb') as f:
+            encodingInfo = chardet.detect(f.read()) # detect charset
+        with open(fullpath, encoding=encodingInfo['encoding']) as f:
+            tex_string = f.read()
+    except IOError as e:
+        print('read {} error.'.format(filename))
+        return append, latex_context
+
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
     parsing_state.enable_environments = False
@@ -95,8 +104,14 @@ def import_package(package_name, latex_context, is_class=False):
 def find_package(filename, basepath, latex_context):
     append = []
     fullpath = find_latex_file(filename, basepath)
-    with open(fullpath) as f:
-        tex_string = f.read()
+    try:
+        with open(fullpath, 'rb') as f:
+            encodingInfo = chardet.detect(f.read()) # detect charset
+        with open(fullpath, encoding=encodingInfo['encoding']) as f:
+            tex_string = f.read()
+    except IOError as e:
+        print('read {} error.'.format(filename))
+        return append, latex_context
         
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()

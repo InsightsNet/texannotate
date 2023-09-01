@@ -9,6 +9,7 @@ spacy
 pdfplumber
 pandas
 docker
+chardet
 # Development dependencies
 #black==19.10b0
 #mypy==0.782

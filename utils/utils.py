@@ -4,6 +4,7 @@ import socket
 from contextlib import closing
 from pathlib import Path
 import requests
+import chardet
 
 
 def find_free_port() -> int:  #https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
@@ -45,19 +46,32 @@ BLOCK_2 = r"""
 """
 regex = r"^\\usepackage(\[\w+\])?\{\w+\}$"
 def postprocess_latex(filename):
-    with open(filename) as f:
-        file_string = f.read()
-    for match in re.finditer(regex, file_string, re.DOTALL | re.MULTILINE):
-        end = match.end()
-    file_string = BLOCK_1 + file_string[:end] + BLOCK_2 + file_string[end:]
+    try:
+        with open(filename, 'rb') as f:
+            encodingInfo = chardet.detect(f.read()) # detect charset
+        with open(filename, encoding=encodingInfo['encoding']) as f:
+            file_string = f.read()
+    except IOError as e:
+        print(e)
+        return 
+    if file_string:
+        for match in re.finditer(regex, file_string, re.DOTALL | re.MULTILINE):
+            end = match.end()
+        file_string = BLOCK_1 + file_string[:end] + BLOCK_2 + file_string[end:]
     with open(filename, 'w') as f:
         f.write(file_string)
 
 def preprocess_latex(path):
     p = Path(path)
     for tex in list(p.glob(r'*.tex')) + list(list(p.glob(r'*.latex'))):
-        with tex.open() as f:
-            file_string = f.read()
+        try:
+            with tex.open('rb') as f:
+                encodingInfo = chardet.detect(f.read()) # detect charset
+            with tex.open('r', encoding=encodingInfo['encoding']) as f:
+                file_string = f.read()
+        except IOError as e:
+            print('read {} error.'.format(str(tex)))
+            return
         file_string = BLOCK_1 + file_string
         with tex.open('w') as f:
             f.write(file_string)

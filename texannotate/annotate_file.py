@@ -34,10 +34,10 @@ def macro_should_be_colored(macroname):
         return True
 
 def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: ColorAnnotation, environment, basepath):
-    if len(nodelist) > 0:
+    if nodelist and len(nodelist) > 0:
         s = nodelist[0].latex_walker.s
     else:
-        return False
+        return file_string, color_dict
     if not environment is None:
         environment = environment.lower()
         if 'title' in environment:
