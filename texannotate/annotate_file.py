@@ -11,6 +11,7 @@ from texannotate.build_spec import init_db
 from texannotate.color_annotation import ColorAnnotation
 from texannotate.latex2text_spec import specs
 from utils.utils import find_latex_file
+from texannotate.clean_latex import clean_latex, post_cleaned
 
 latex2text_context = LatexContextDb()
 for cat, catspecs in specs:
@@ -38,6 +39,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
     else:
         return False
     if not environment is None:
+        environment = environment.lower()
         if 'title' in environment:
             annotate = 'Title'
         elif 'author' in environment or 'address' in environment:
@@ -86,27 +88,28 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
             elif node.macroname == 'includegraphics':
                 file_string += color_dict.add_annotation_rgb(s[node.pos:node.pos_end], annotate='Figure')
 
-            else: # TODO: try only annotate the last group
+            else:
                 macro_environment = ''
-                if 'title' in node.macroname:
+                macroname = node.macroname.lower()
+                if 'title' in macroname:
                     macro_environment = 'title'
-                elif 'author' in node.macroname or 'address' in node.macroname:
+                elif 'author' in macroname or 'address' in macroname:
                     macro_environment = 'author'
-                elif 'abstract' in node.macroname or 'keyword' in node.macroname:
+                elif 'abstract' in macroname or 'keyword' in macroname:
                     macro_environment = 'abstract'
-                elif 'footnote' in node.macroname:
+                elif 'footnote' in macroname:
                     macro_environment = 'footnote'
-                elif 'caption' in node.macroname:
+                elif 'caption' == macroname:
                     macro_environment = 'caption'
-                elif 'section' in node.macroname or node.macroname in {'chapter', 'part'}:
+                elif 'section' in macroname or macroname in {'chapter', 'part'}:
                     macro_environment = 'section'
-                elif node.macroname in {'scalebox', 'resizebox'}:
+                elif macroname in {'scalebox', 'resizebox'}:
                     macro_environment = annotate
 
-                if macro_environment in {'title', 'section'} and node.macroname != 'titlearea':
-                    color_dict.toc.add_node(node.macroname)
+                if macro_environment in {'title', 'section'} and macroname != 'titlearea':
+                    color_dict.toc.add_node(macroname)
 
-                if node.macroname == 'titlearea': 
+                if macroname == 'titlearea': 
                     color_dict.toc.add_node('title')
                     file_string += s[node.pos:node.nodeargd.argnlist[0].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[0].nodelist, color_dict, 'title', basepath)
@@ -115,19 +118,22 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     file_string += s[node.nodeargd.argnlist[1].nodelist[-1].pos_end:node.pos_end]
                     if not environment is None:
                         color_dict.block_num += 1
-                elif node.macroname == 'twocolumn':
+                elif macroname == 'twocolumn':
                     file_string += s[node.pos:node.nodeargd.argnlist[-1].nodelist[0].pos]
                     file_string, color_dict = resolve_node_list(file_string, node.nodeargd.argnlist[-1].nodelist.nodelist, color_dict, macro_environment, basepath)
                     file_string += s[node.nodeargd.argnlist[-1].nodelist[-1].pos_end:node.pos_end]
-                elif 'bibliography' in node.macroname:
+                elif 'bibliography' in macroname:
                     color_dict.toc.add_node('section')
                     file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Reference')
                     if not environment is None:
                         color_dict.block_num += 1
                 elif macro_environment:
-                    file_string += s[node.pos:node.nodeargs[-1].nodelist[0].pos]
-                    file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-1].nodelist, color_dict, macro_environment, basepath)
-                    file_string += s[node.nodeargs[-1].nodelist[-1].pos_end:node.pos_end]
+                    for i in range(node.spec.arguments_spec_list.count('{')):
+                        if node.nodeargs[-i].isNodeType(LatexGroupNode):
+                            file_string += s[node.pos:node.nodeargs[-i].nodelist[0].pos]
+                            file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-i].nodelist, color_dict, macro_environment, basepath)
+                            file_string += s[node.nodeargs[-i].nodelist[-1].pos_end:node.pos_end]
+                            break
                     if not environment is None:
                         color_dict.block_num += 1
                 else:
@@ -135,7 +141,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
                         if not environment is None:
                             color_dict.block_num += 1
-                    elif node.macroname == 'lstinputlisting':
+                    elif macroname == 'lstinputlisting':
                         file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Equation')
                         if not environment is None:
                             color_dict.block_num += 1
@@ -162,9 +168,12 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                 file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
                 file_string += s[node.nodelist[-1].pos_end:node.pos_end]
             else:
-                file_string += s[node.pos:node.nodelist[0].pos]
-                file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
-                file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+                if len(node.nodelist) > 0:
+                    file_string += s[node.pos:node.nodelist[0].pos]
+                    file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
+                    file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+                else:
+                    file_string += s[node.pos:node.pos_end]
                 if not environment is None:
                     color_dict.block_num += 1
 
@@ -215,18 +224,10 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
 
 
 def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: LatexContextDb, environment=None, basepath=None):  
-    print('start annotating:', filename)
-    file_string = ''
-    fullpath = find_latex_file(filename, basepath)
-    try:
-        with open(fullpath) as f:
-            tex_string = f.read()
-    except IOError as e:
-        print(e)
-        return False
-    
+    print('start annotating:', filename)  
     if latex_context is None: # load package definitions
         latex_context = init_db(filename, basepath)
+    tex_string, removed = clean_latex(filename, basepath, latex_context)
 
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
@@ -234,8 +235,10 @@ def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: Lat
         LatexGeneralNodesParser(),
         parsing_state=parsing_state
     )
-    # TODO: first walk to load \newcommand and \def
+    file_string = ''
     file_string, color_dict = resolve_node_list(file_string, nodelist, color_dict, environment, basepath)
+    file_string = post_cleaned(file_string, removed, latex_context)
+    fullpath = find_latex_file(filename, basepath)
     with open(fullpath, 'w') as f:
         f.write(file_string)
     print('finish annotating:', filename)

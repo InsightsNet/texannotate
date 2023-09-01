@@ -65,7 +65,8 @@ See [example](doc/example.ipynb).
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
 
 # TODO:
-- [ ] Parse `.cls` and `.sty` file.
+- [x] Parse `.cls` and `.sty` file.
+  - [ ] Cannot parse environment, need update `pylatexenc`.
 - [ ] Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
   - [ ] Investigate Underlying logic of the coloring order.
   - [ ] Explore the method of SyncTex.
@@ -77,6 +78,7 @@ See [example](doc/example.ipynb).
    - [x] `\newcommand` parsing strategy from ~~[Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)~~ pylatexenc.
 - [x] Imporve document structure extraction rule from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/6ee7aca5dfe057642fec1781b6810796d745862e/src/providers/structurelib/latex.ts#L114C25-L114C25) 
 - [ ] Parallelization
+- [x] Evlauate annotation
 
 ## License
 

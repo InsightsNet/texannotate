@@ -243,7 +243,7 @@ Use macros: \a{} and \b{xxx}{yyy}.
     lw = LatexWalker(latextext, latex_context=latex_context)
 
     parsing_state = lw.make_parsing_state()
-
+    parsing_state.enable_environments = False
     p=0
     #nodes, npos, nlen = lw.get_latex_nodes(pos=p, parsing_state=parsing_state)
     
@@ -253,7 +253,7 @@ Use macros: \a{} and \b{xxx}{yyy}.
     )
 
     parsing_state_defa = nodes[1].parsing_state
-    parsing_state_defab = nodes[3].parsing_state
+    parsing_state_defab = nodes[-2].parsing_state
 
     # parsing_state_defa_sqbr = nodes[2].nodeargd.argnlist[2].parsing_state
 

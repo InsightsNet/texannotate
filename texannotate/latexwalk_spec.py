@@ -53,7 +53,7 @@ specs = [
     #
     ('latex-base', {
         'macros': [
-
+            std_macro('LaTeXRainbowSpecial', False, 1),
             std_macro('documentclass', True, 1),
             std_macro('usepackage', "[{"),
             std_macro('RequirePackage', True, 1),
@@ -62,10 +62,10 @@ specs = [
             std_macro('addlength', True, 2),
             std_macro('setcounter', True, 2),
             std_macro('addcounter', True, 2),
-            std_macro('newcommand', "*{[[{"),
+            #std_macro('newcommand', "*{[[{"),
             std_macro('renewcommand', "*{[[{"),
             std_macro('providecommand', "*{[[{"),
-            std_macro('newenvironment', "*{[[{{"),
+            #std_macro('newenvironment', "*{[[{{"),
             std_macro('renewenvironment', "*{[[{{"),
             std_macro('provideenvironment', "*{[[{{"),
 
@@ -258,7 +258,8 @@ specs = [
             # spec for the starred variant as the star really is part of the
             # environment name.  If you specify argspec='*', the parser will try to
             # look for an expression of the form '\begin{equation}*'
-
+            
+            std_environment('document', None),
             std_environment('figure', '['),
             std_environment('figure*', '['),
             std_environment('subfigure', '[{'),

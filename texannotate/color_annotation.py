@@ -71,8 +71,9 @@ class TableOfContents:
         s = self.root.export()
         ret = []
         for line in s[:-1].split('\n'):
-            head, section_id = line.split('\t')
-            ret.append((int(section_id), int(head)))
+            if line:
+                head, section_id = line.split('\t')
+                ret.append((int(section_id), int(head)))
         return ret
 
 

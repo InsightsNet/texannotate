@@ -41,9 +41,10 @@ def main(basepath:str):
             #tmpfs={'/tmpfs':''},
             remove=True,
         )
-    try:
-        p = Path('.')
-        for filename in p.glob(basepath + '/*.tar.gz'):
+    p = Path('.')
+    for filename in p.glob(basepath + '/*.tar.gz'):
+        print(filename)
+        try:
             with tempfile.TemporaryDirectory() as td:
                 #print('temp dir', td)
                 with tarfile.open(filename ,'r:gz') as tar:
@@ -76,12 +77,14 @@ def main(basepath:str):
             Path("outputs").mkdir(exist_ok=True)
             df_toc.to_csv('outputs/'+str(filename.stem)+'_toc.csv', sep='\t')
             df_data.to_csv('outputs/'+str(filename.stem)+'_data.csv', sep='\t')
-    except CompilationException:
-        print('LaTeX code compilation error.')
-
-    except Exception as e:
-        container.stop()
-        raise e
+        except CompilationException:
+            print('LaTeX code compilation error.')
+        except KeyboardInterrupt as e:
+            container.stop()
+        except Exception as e:
+            print(e)
+            #container.stop()
+            #raise e
     container.stop()
 
 if __name__ == "__main__":
