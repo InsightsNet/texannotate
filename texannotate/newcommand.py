@@ -1,6 +1,7 @@
 from pylatexenc import macrospec
 from pylatexenc.latexnodes.nodes import LatexGroupNode, LatexMacroNode, LatexCharsNode
 from pylatexenc.latexwalker import LatexWalker, get_default_latex_context_db
+from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 
 
 class MySimpleNewcommandArgsParser(macrospec.MacroStandardArgsParser):
@@ -27,13 +28,14 @@ class MySimpleNewcommandArgsParser(macrospec.MacroStandardArgsParser):
             args = '{'*numargs
 
         new_latex_context = parsing_state.latex_context.filter_context()
-        new_latex_context.add_context_category(
-            'newcommand-{}'.format(newcmdname),
-            macros=[
-                macrospec.MacroSpec(newcmdname, args)
-            ],
-            prepend=True
-        )
+        if newcmdname != '@' and 'newcommand-{}'.format(newcmdname) not in new_latex_context.category_list:
+            new_latex_context.add_context_category(
+                'newcommand-{}'.format(newcmdname),
+                macros=[
+                    macrospec.MacroSpec(newcmdname, args)
+                ],
+                prepend=True
+            )
         new_parsing_state = parsing_state.sub_context(latex_context=new_latex_context)
         return (argd, npos, nlen, dict(new_parsing_state=new_parsing_state))
 
@@ -59,13 +61,14 @@ class MySimpleNewenvironmentArgsParser(macrospec.MacroStandardArgsParser):
             args = '{'*numargs
 
         new_latex_context = parsing_state.latex_context.filter_context()
-        new_latex_context.add_context_category(
-            'newenvironment-{}'.format(newcmdname),
-            environments=[
-                macrospec.EnvironmentSpec(newcmdname, args)
-            ],
-            prepend=True
-        )
+        if newcmdname != '@' and 'newenvironment-{}'.format(newcmdname) not in new_latex_context.category_list:
+            new_latex_context.add_context_category(
+                'newenvironment-{}'.format(newcmdname),
+                environments=[
+                    macrospec.EnvironmentSpec(newcmdname, args)
+                ],
+                prepend=True
+            )
         new_parsing_state = parsing_state.sub_context(latex_context=new_latex_context)
         return (argd, npos, nlen, dict(new_parsing_state=new_parsing_state))
 
@@ -73,6 +76,98 @@ class MySimpleNewenvironmentArgsParser(macrospec.MacroStandardArgsParser):
 
 if __name__ == "__main__":
     latextext = r"""
+\renewcommand{\@maketitle}{
+	\ifthenelse{\equal{\@arttype}{Book}}{}{
+		\ifthenelse{\equal{\@leftcolumnsplit}{\@empty}}{% Default option for the left column
+			\marginnote[\contentleftcolumn]{}[\MyLen] % Bottom aligned
+			}{%
+		}
+		\begin{adjustwidth}{-\extralength}{}
+	}
+	\begin{flushleft}
+	\ifthenelse{\equal{\@arttype}{Supfile}}{%
+		\fontsize{18}{18}\selectfont
+		\raggedright
+		\hyphenpenalty=10000
+		\tolerance=1000
+		\noindent\textbf{Supplementary Materials: \@Title}%
+		\par
+		\vspace{12pt}
+		\fontsize{10}{10}\selectfont
+		\noindent\boldmath\bfseries{\@Author}
+		}{%
+		\ifthenelse{\equal{\@arttype}{Book}}{}{%
+			\vspace*{-1.75cm}
+		}
+		{%0
+		\ifthenelse{\equal{\@journal}{preprints}
+			\OR \equal{\@arttype}{Book}}{}{%
+				\ifthenelse{\equal{\@status}{submit}}{%	
+					\hfill \href{https://www.mdpi.com}{%
+					\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+					}{
+					\href{https://www.mdpi.com/journal/\@journal}{
+					\includegraphics[height=1.2cm]{Definitions/\@journal-logo.eps}}%
+					\hfill
+					\ifthenelse{\equal{\@journal}{scipharm}}{%
+						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-scipharm.eps}}%
+						}{%
+						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+						}%
+					}%
+					\par
+					\vspace{-8 pt}
+					\rule{\fulllength}{0.4pt}%
+			}%
+		\par
+		}%0
+		{%1
+    		\vspace{14pt}
+    		\fontsize{10}{10}\selectfont
+		\ifthenelse{\equal{\@arttype}{Book}}{}{
+			\textit{\@arttype}%
+			}%	
+ 	   	\par%
+    		}%1
+    		{%2
+  	  	\fontsize{18}{18}\selectfont
+		\hyphenpenalty=10000
+		\tolerance=1000
+   	 	\boldmath\bfseries{\@Title}
+   	 	\par
+   	 	\vspace{12pt}
+   	 	}%2
+		\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
+			}{%
+			\end{flushleft}%
+			\end{adjustwidth}%
+			\vspace{-2.5pt}
+		}
+   		{%3
+		\hyphenpenalty=10000
+		\tolerance=1000
+    		\boldmath\bfseries{\@Author}
+    		\par
+		\vspace{12pt}
+    		}%3
+		}%
+	\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
+		\end{flushleft}%
+		}{%
+	}%
+	\ifthenelse{\equal{\@arttype}{Book}}{}{%
+		\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
+			\end{adjustwidth}%
+			}{%
+		}
+	}
+		\ifthenelse{\equal{\@leftcolumnsplit}{\@empty}}{% Left column split
+			}{
+			\marginnote[\contentleftcolumn]{}% Alignment with the affiliations
+		}
+	}
+
+\RequirePackage[colorlinks=false,bookmarksopen=true,dvips]{hyperref}
 \newenvironment{Abstract}{
 \begin{center}\normalfont\bfseries Abstract\end{center}
 \begin{quote}\par
@@ -150,11 +245,16 @@ Use macros: \a{} and \b{xxx}{yyy}.
     parsing_state = lw.make_parsing_state()
 
     p=0
-    nodes, npos, nlen = lw.get_latex_nodes(pos=p, parsing_state=parsing_state)
+    #nodes, npos, nlen = lw.get_latex_nodes(pos=p, parsing_state=parsing_state)
+    
+    nodes, parsing_state_delta = lw.parse_content(
+        LatexGeneralNodesParser(),
+        parsing_state=parsing_state
+    )
 
     parsing_state_defa = nodes[1].parsing_state
     parsing_state_defab = nodes[3].parsing_state
 
-    parsing_state_defa_sqbr = nodes[2].nodeargd.argnlist[2].parsing_state
+    # parsing_state_defa_sqbr = nodes[2].nodeargd.argnlist[2].parsing_state
 
     pass

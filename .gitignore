@@ -28,3 +28,4 @@ data/
 *.tex
 gh_download.py
 utils/pyintel/
+DocBank_500K_txt/
