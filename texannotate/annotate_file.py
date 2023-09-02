@@ -105,6 +105,8 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                     macro_environment = 'section'
                 elif macroname in {'scalebox', 'resizebox'}:
                     macro_environment = annotate
+                elif macroname in {'textbf', 'textit', 'texttt', 'textsc', 'text', 'underline', 'emph'}:
+                    macro_environment = annotate
 
                 if macro_environment in {'title', 'section'} and macroname != 'titlearea':
                     color_dict.toc.add_node(macroname)
@@ -129,10 +131,13 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                         color_dict.block_num += 1
                 elif macro_environment:
                     for i in range(node.spec.arguments_spec_list.count('{')):
-                        if node.nodeargs[-i].isNodeType(LatexGroupNode):
-                            file_string += s[node.pos:node.nodeargs[-i].nodelist[0].pos]
-                            file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-i].nodelist, color_dict, macro_environment, basepath)
-                            file_string += s[node.nodeargs[-i].nodelist[-1].pos_end:node.pos_end]
+                        if node.nodeargs[-i-1].isNodeType(LatexGroupNode):
+                            if node.nodeargs[-i-1].nodelist:
+                                file_string += s[node.pos:node.nodeargs[-i-1].nodelist[0].pos]
+                                file_string, color_dict = resolve_node_list(file_string, node.nodeargs[-i-1].nodelist, color_dict, macro_environment, basepath)
+                                file_string += s[node.nodeargs[-i-1].nodelist[-1].pos_end:node.pos_end]
+                            else:
+                                file_string += s[node.pos:node.pos_end]
                             break
                     if not environment is None:
                         color_dict.block_num += 1
