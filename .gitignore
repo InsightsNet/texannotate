@@ -29,3 +29,6 @@ data/
 gh_download.py
 utils/pyintel/
 DocBank_500K_txt/
+down/
+second_downloaded/
+outputs_kappa/

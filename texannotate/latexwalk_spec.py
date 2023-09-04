@@ -78,8 +78,8 @@ specs = [
                       args_parser=MacroStandardArgsParser('{', args_math_mode=[False])),
 
             # \title, \author, \date
-            MacroSpec('title', '{'),
-            MacroSpec('author', '{'),
+            MacroSpec('title', '[{'),
+            MacroSpec('author', '[{'),
             MacroSpec('date', '{'),
 
             # (Note: single backslash) end of line with optional no-break ('*') and
