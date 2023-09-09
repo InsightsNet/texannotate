@@ -55,6 +55,10 @@ specs = [
         'macros': [
             std_macro('LaTeXRainbowSpecial', False, 1),
             std_macro('documentclass', True, 1),
+            std_macro('newtheorem', "*{{"),
+            std_macro('@namedef', "*{{"),
+            #\@namedef {{
+            #\eq \eeq
             std_macro('usepackage', "[{"),
             std_macro('RequirePackage', True, 1),
             std_macro('selectlanguage', True, 1),
@@ -267,6 +271,7 @@ specs = [
             std_environment('table', '['),
             std_environment('table*', '['),
             ##############################################
+            std_environment('minipage', '['),
             std_environment('algorithm', '['),
             std_environment('algorithm*', '['),
             std_environment('lstlisting', '[', is_math_mode=True),

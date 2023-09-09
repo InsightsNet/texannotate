@@ -55,7 +55,8 @@ Each row is an figure or token being extracted from the PDF, the integer *readin
 If it is -1, the token is not content written by the author (e.g., watermarks and headers).
 *label* are semantic structure labels, which includes: Abstract, Author, Caption, Equation, Figure, Footer, List, Paragraph, Reference, Section, Table, Title.
 
-See [example](doc/example.ipynb).
+See [example](doc/example.ipynb) about the annotation of one paper.
+Here's another [example](doc/tree_summarize.ipynb) summarizing the details of the paper with an LLM.
 
 ## Acknowledgments
 
@@ -66,7 +67,7 @@ See [example](doc/example.ipynb).
 
 # TODO:
 - [x] Parse `.cls` and `.sty` file.
-  - [ ] Cannot parse environment, need update `pylatexenc`.
+  - [ ] Cannot parse some environment, need update `pylatexenc`.
 - [ ] Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
   - [ ] Investigate Underlying logic of the coloring order.
   - [ ] Explore the method of SyncTex.

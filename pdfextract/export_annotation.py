@@ -33,7 +33,7 @@ def export_annotation(shapes, tokens, color_dict: ColorAnnotation) -> pd.DataFra
             annotate = color_dict[color]
             data.append(Data(annotate['reading'], annotate['label'], annotate['block'], annotate['section'],
                              None, rect['page_number'], rect['x0'], rect['y0'], 
-                             rect['x1'], rect['y1'], None, None, None))
+                             rect['x1'], rect['y1'], None, None, rect['flags']))
     
     for token in tokens:
         x0, y0, x1, y1 = token["bbox"]

@@ -32,3 +32,6 @@ DocBank_500K_txt/
 down/
 second_downloaded/
 outputs_kappa/
+*.txt
+solved/
+.vscode/
