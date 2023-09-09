@@ -66,6 +66,7 @@ Here's another [example](doc/tree_summarize.ipynb) summarizing the details of th
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
 
 # TODO:
+- [ ] A prettier frontend (like streamlit) to interact with papers and(or) to bundle with LLMs.
 - [x] Parse `.cls` and `.sty` file.
   - [ ] Cannot parse some environment, need update `pylatexenc`.
 - [ ] Make our own LaTeX package inheriting from [xcolor](https://github.com/latex3/xcolor) in CTAN to avoid conflict.
