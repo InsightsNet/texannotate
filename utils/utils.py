@@ -44,17 +44,20 @@ BLOCK_2 = r"""
 \setlength { \fboxsep }{ 0pt } 
 \setlength { \fboxrule }{ 0pt }
 """
-regex = r"^\\usepackage(\[\w+\])?\{\w+\}$"
+regex = r"^\\usepackage(\[\w+\])?\{\w+\}$" #find the latest usepackage
 def postprocess_latex(filename):
     try:
         with open(filename, 'rb') as f:
             encodingInfo = chardet.detect(f.read()) # detect charset
+            if encodingInfo['encoding'] == 'HZ-GB-2312':
+                encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
         with open(filename, encoding=encodingInfo['encoding']) as f:
             file_string = f.read()
     except IOError as e:
         print(e)
         return 
     if file_string:
+        end = 0
         for match in re.finditer(regex, file_string, re.DOTALL | re.MULTILINE):
             end = match.end()
         file_string = BLOCK_1 + file_string[:end] + BLOCK_2 + file_string[end:]
@@ -67,6 +70,8 @@ def preprocess_latex(path):
         try:
             with tex.open('rb') as f:
                 encodingInfo = chardet.detect(f.read()) # detect charset
+                if encodingInfo['encoding'] == 'HZ-GB-2312':
+                    encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
             with tex.open('r', encoding=encodingInfo['encoding']) as f:
                 file_string = f.read()
         except IOError as e:

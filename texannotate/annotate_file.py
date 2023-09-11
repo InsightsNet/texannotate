@@ -175,7 +175,10 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
             else:
                 if len(node.nodelist) > 0:
                     file_string += s[node.pos:node.nodelist[0].pos]
-                    file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
+                    if environment is None or annotate == 'Paragraph': # for the case of \begin{center} within \begin{figure}
+                        file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
+                    else:
+                        file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, annotate, basepath)
                     file_string += s[node.nodelist[-1].pos_end:node.pos_end]
                 else:
                     file_string += s[node.pos:node.pos_end]
@@ -215,7 +218,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
             if node.specials_chars == '\n\n':
                 if not environment is None:
                     color_dict.block_num += 1
-            file_string += s[node.pos:node.pos_end]
+            file_string += s[node.pos:node.pos_end] # TODO: annotate '' and `` an so on.
 
         elif node.isNodeType(LatexNode):
             # unknown node, do nothing
@@ -230,6 +233,10 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
 
 def annotate_file(filename: str, color_dict: ColorAnnotation, latex_context: LatexContextDb, environment=None, basepath=None):  
     print('start annotating:', filename)  
+    if not filename:
+        raise 'tex file not found, please check AutoTeX output.'
+    if not filename.endswith(('.tex', '.latex', '.cls', '.sty')): # for the case of \input{blah.pspdftex}
+        return False
     if latex_context is None: # load package definitions
         latex_context = init_db(filename, basepath)
     tex_string, removed = clean_latex(filename, basepath, latex_context)

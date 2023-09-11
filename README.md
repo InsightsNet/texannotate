@@ -56,6 +56,7 @@ If it is -1, the token is not content written by the author (e.g., watermarks an
 *label* are semantic structure labels, which includes: Abstract, Author, Caption, Equation, Figure, Footer, List, Paragraph, Reference, Section, Table, Title.
 
 See [example](doc/example.ipynb) about the annotation of one paper.
+
 Here's another [example](doc/tree_summarize.ipynb) summarizing the details of the paper with an LLM.
 
 ## Acknowledgments
@@ -77,6 +78,7 @@ Here's another [example](doc/tree_summarize.ipynb) summarizing the details of th
 - [x] Improve Parsing rules (from Overleaf and TeX-Workshop):
    - [x] Package command definitions from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) ~~and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)~~.
       - [ ] Adapt `pylatexenc` for such the case of `\pagebreak<blah>` and `\verb|blah|`
+      - [ ] Refine the parsing function for such the case of `\newcommand{\be}{\begin{equation}}`, consider replace the commands?
    - [x] `\newcommand` parsing strategy from ~~[Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)~~ pylatexenc.
 - [x] Imporve document structure extraction rule from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/6ee7aca5dfe057642fec1781b6810796d745862e/src/providers/structurelib/latex.ts#L114C25-L114C25) 
 - [ ] Parallelization

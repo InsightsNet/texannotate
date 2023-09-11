@@ -12,6 +12,8 @@ def clean_latex(filename, basepath, latex_context):
     try:
         with open(fullpath, 'rb') as f:
             encodingInfo = chardet.detect(f.read()) # detect charset
+            if encodingInfo['encoding'] == 'HZ-GB-2312':
+                encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
         with open(fullpath, encoding=encodingInfo['encoding']) as f:
             tex_string = f.read()
     except IOError as e:

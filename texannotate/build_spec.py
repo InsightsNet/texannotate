@@ -46,12 +46,14 @@ def parse_snippet(d, spec, latex_context:LatexContextDb):
     return ret
 
 
-def parse_package(filename, basepath, latex_context):
+def parse_userdefined_package(filename, basepath, latex_context):
     append = []
     fullpath = os.path.join(basepath, filename)
     try:
         with open(fullpath, 'rb') as f:
             encodingInfo = chardet.detect(f.read()) # detect charset
+            if encodingInfo['encoding'] == 'HZ-GB-2312':
+                encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
         with open(fullpath, encoding=encodingInfo['encoding']) as f:
             tex_string = f.read()
     except IOError as e:
@@ -78,7 +80,7 @@ def parse_package(filename, basepath, latex_context):
     return append, new_context
 
 
-def import_package(package_name, latex_context, is_class=False):
+def import_package(package_name, latex_context, is_class=False, added = set()):
     if is_class:
         class_name = package_name
         package_name = 'class-' + class_name
@@ -88,8 +90,10 @@ def import_package(package_name, latex_context, is_class=False):
     else:
         with open('data/packages/'+package_name+'.json') as f:
             d = json.load(f)
+        added.add(package_name) # Solve the infinite recursion
         for dependency in d['includes']:
-            ret += import_package(dependency, latex_context)
+            if not dependency in added:
+                ret += import_package(dependency, latex_context, added = added)
         
         ret.append((
             'package_'+package_name, {
@@ -104,14 +108,19 @@ def import_package(package_name, latex_context, is_class=False):
 def find_package(filename, basepath, latex_context):
     append = []
     fullpath = find_latex_file(filename, basepath)
+    if not filename.endswith(('.tex', '.latex', '.cls', '.sty')):
+        return [], latex_context
     try:
         with open(fullpath, 'rb') as f:
             encodingInfo = chardet.detect(f.read()) # detect charset
+            if encodingInfo['encoding'] == 'HZ-GB-2312':
+                encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
         with open(fullpath, encoding=encodingInfo['encoding']) as f:
+            
             tex_string = f.read()
     except IOError as e:
         print('read {} error.'.format(filename))
-        return append, latex_context
+        return [], latex_context
         
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
@@ -129,12 +138,13 @@ def find_package(filename, basepath, latex_context):
         if node.isNodeType(LatexMacroNode):
             if node.macroname in {'input', 'include'}:
                 filename = node.nodeargs[0].nodelist[0].chars
-                append += find_package(filename, basepath, latex_context)
+                append_, new_context_ = find_package(filename, basepath, latex_context)
+                append += append_
             if node.macroname == 'usepackage':
                 packages = node.nodeargs[0].nodelist[0].chars
                 for package in packages.split(','):
                     if os.path.isfile(os.path.join(basepath, package+'.sty')): # import user package
-                        pkg_def, pkg_context = parse_package(package+'.sty', basepath, latex_context)
+                        pkg_def, pkg_context = parse_userdefined_package(package+'.sty', basepath, latex_context)
                         append += pkg_def
                         pkg_new_context.append(pkg_context)
                     else:
@@ -143,7 +153,7 @@ def find_package(filename, basepath, latex_context):
                 class_s = node.nodeargs[0].nodelist[0].chars
                 for class_ in class_s.split(','):
                     if os.path.isfile(os.path.join(basepath, class_+'.cls')): # import user defined documentclass
-                        pkg_def, pkg_context = parse_package(class_+'.cls', basepath, latex_context)
+                        pkg_def, pkg_context = parse_userdefined_package(class_+'.cls', basepath, latex_context)
                         append += pkg_def
                         pkg_new_context.append(pkg_context)
                     else:
