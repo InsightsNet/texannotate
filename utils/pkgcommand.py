@@ -2,11 +2,11 @@ import dataclasses
 import json
 from pathlib import Path
 import subprocess
+from utils.gitdir import download
 
 if not Path('utils/pyintel').exists():
     download('https://github.com/James-Yu/LaTeX-Workshop/tree/master/dev/pyintel', flatten=True, output_dir= './utils/pyintel')
 
-from utils.gitdir import download
 from utils.pyintel import CwlIntel
 
 FILES_TO_IGNORE = ['diagxy.cwl', 'calculator.cwl', 'calculus.cwl', 'expl3.cwl']
