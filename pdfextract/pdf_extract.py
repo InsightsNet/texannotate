@@ -12,6 +12,7 @@ def extract_shapes(pdf_bytes: bytes):
             r = rect
             r['y0'] = page.height - rect['y1']
             r['y1'] = r['y0'] + rect['height']
+            r['flags'] = [page.height, page.width]
             ret.append(r)
     return ret
 
@@ -37,6 +38,8 @@ def flags_decomposer(flags):
 
 
 def convert_color(non_stroking_color):
+    if non_stroking_color is None:
+        return '#000000'
     assert type(non_stroking_color) == tuple
     if len(non_stroking_color) < 3:
         return '#000000'
@@ -57,7 +60,7 @@ def extract_tokens(pdf_bytes: bytes):
                     "size": token["size"],
                     "color": convert_color(token["non_stroking_color"]),
                     "bbox": (token["x0"], page.height - token['y1'], token["x1"], page.height - token['y0']),
-                    "flags":None
+                    "flags": [page.height, page.width]
                 })
     return tokens
     """with fitz.open("pdf", pdf_bytes) as doc:

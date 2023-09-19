@@ -1,8 +1,10 @@
-from spacy.lang.en import English
-from spacy.tokenizer import Tokenizer
+import colorsys
 import os
 import pickle
-import colorsys
+
+from spacy.lang.en import English
+from spacy.tokenizer import Tokenizer
+
 
 class TOCNode:
     def __init__(self, section_id, level=-1):
@@ -69,8 +71,9 @@ class TableOfContents:
         s = self.root.export()
         ret = []
         for line in s[:-1].split('\n'):
-            head, section_id = line.split('\t')
-            ret.append((int(section_id), int(head)))
+            if line:
+                head, section_id = line.split('\t')
+                ret.append((int(section_id), int(head)))
         return ret
 
 
@@ -105,6 +108,7 @@ def generate_rainbow_colors():  # number of color in one color
                     all_colors_set.add((r, g, b))
                     all_colors.append((r, g, b))
     #print("num of color: ", len(all_colors))
+    os.mkdir('data')
     pickle.dump(all_colors, open('data/rainbow_colors_list.pkl', 'wb'))
     return all_colors
 
@@ -116,6 +120,7 @@ class ColorAnnotation:
         self.current_rgb = 0
         self.current_token_number = 0
         self.toc = TableOfContents()
+        self.block_num = 0
         self.current_section_id = []
         self.all_color = generate_rainbow_colors()
         
@@ -170,6 +175,7 @@ class ColorAnnotation:
             "label": annotate,
             "reading": self.current_token_number,
             "section": self.toc.get_current_section_id(),
+            "block": self.block_num,
         }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
@@ -182,6 +188,7 @@ class ColorAnnotation:
             "label": annotate,
             "reading": self.current_token_number,
             "section": self.toc.get_current_section_id(),
+            "block": self.block_num,
         }
         self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"

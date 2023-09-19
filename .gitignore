@@ -22,3 +22,17 @@ downloaded
 *.egg-info
 test.*
 *.pdf
+data/
+*.cwl
+*.csv
+*.tex
+gh_download.py
+utils/pyintel/
+DocBank_500K_txt/
+down/
+second_downloaded/
+outputs_kappa/
+*.txt
+solved/
+.vscode/
+.streamlit

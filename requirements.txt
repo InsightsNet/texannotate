@@ -9,6 +9,10 @@ spacy
 pdfplumber
 pandas
 docker
+chardet
+gcsfs
+colorama
+git+https://github.com/streamlit/files-connection
 # Development dependencies
 #black==19.10b0
 #mypy==0.782
