@@ -8,12 +8,12 @@ from pdfextract.export_annotation import export_annotation
 from pdfextract.pdf_extract import pdf_extract
 from texannotate.annotate_file import annotate_file
 from texannotate.color_annotation import ColorAnnotation
-from utils.utils import (find_free_port, find_latex_file,
-                              postprocess_latex, preprocess_latex, tup2str)
-from texcompile.client import compile_pdf_return_bytes, CompilationException
-import shutil
+from texcompile.client import compile_pdf_return_bytes
+from texannotate.util import (find_free_port, find_latex_file, postprocess_latex,
+                  preprocess_latex, tup2str)
 
-def main(basepath:str, debug = False):
+
+def main(basepath:str):
     #check docker image
     client = docker.from_env()
     try:
@@ -41,13 +41,9 @@ def main(basepath:str, debug = False):
             #tmpfs={'/tmpfs':''},
             remove=True,
         )
-    p = Path('.')
-    errors = {}
-    for filename in p.glob(basepath + '/*.tar.gz'):
-        print(filename)
-        if Path('outputs_kappa/'+str(filename.stem)+'_data.csv').exists():
-            continue
-        try:
+    try:
+        p = Path('.')
+        for filename in p.glob(basepath + '/*.tar.gz'):
             with tempfile.TemporaryDirectory() as td:
                 #print('temp dir', td)
                 with tarfile.open(filename ,'r:gz') as tar:
@@ -64,36 +60,28 @@ def main(basepath:str, debug = False):
                     color_dict.add_existing_color(tup2str(rect['stroking_color']))
                 for token in tokens:
                     color_dict.add_existing_color(token['color'])
-            Path("outputs_kappa").mkdir(exist_ok=True)
+
             with tempfile.TemporaryDirectory() as td:
                 with tarfile.open(filename ,'r:gz') as tar:
                     tar.extractall(td)
-                tex_file = Path(find_latex_file(Path(basename).stem, basepath=td)).name
+                tex_file = find_latex_file(Path(basename).stem, basepath=td)
                 annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
-                postprocess_latex(str(Path(find_latex_file(Path(basename).stem, basepath=td))))
-                shutil.make_archive(p/'outputs_kappa'/filename.stem, 'zip', td)
+                postprocess_latex(tex_file)
+                #shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td
                 ) # compile the modified latex
                 shapes, tokens = pdf_extract(pdf_bytes)
-            df_toc, df_data = export_annotation(shapes, tokens, color_dict)
-            df_toc.to_csv('outputs_kappa/'+str(filename.stem)+'_toc.csv', sep='\t')
-            df_data.to_csv('outputs_kappa/'+str(filename.stem)+'_data.csv', sep='\t')
-        except CompilationException:
-            print('LaTeX code compilation error.')
-            errors[filename.stem] = 'LaTeX code compilation error.'
-        except KeyboardInterrupt as e:
+            df = export_annotation(shapes, tokens, color_dict)
+            # df['reading_order'] = df['reading_order'].astype('int64') 
+            # cannot convert NaN to integer, skip for now
+            df.to_csv(str(filename)+'.csv', sep='\t')
             container.stop()
-        except Exception as e:
-            print(e)
-            errors[filename.stem] = str(e)
-            if debug:
-                container.stop()
-                raise e
-            continue
-    container.stop()
-    import json
-    json.dump(errors, open('errors.json', 'w'), indent=2)
+
+    except Exception as e:
+        container.stop()
+        raise e
+
 
 if __name__ == "__main__":
-    main("downloaded", debug=True)
+    main("downloaded")

@@ -53,12 +53,8 @@ specs = [
     #
     ('latex-base', {
         'macros': [
-            std_macro('LaTeXRainbowSpecial', False, 1),
+
             std_macro('documentclass', True, 1),
-            std_macro('newtheorem', "*{{"),
-            std_macro('@namedef', "*{{"),
-            #\@namedef {{
-            #\eq \eeq
             std_macro('usepackage', "[{"),
             std_macro('RequirePackage', True, 1),
             std_macro('selectlanguage', True, 1),
@@ -66,10 +62,10 @@ specs = [
             std_macro('addlength', True, 2),
             std_macro('setcounter', True, 2),
             std_macro('addcounter', True, 2),
-            #std_macro('newcommand', "*{[[{"),
+            std_macro('newcommand', "*{[[{"),
             std_macro('renewcommand', "*{[[{"),
             std_macro('providecommand', "*{[[{"),
-            #std_macro('newenvironment', "*{[[{{"),
+            std_macro('newenvironment', "*{[[{{"),
             std_macro('renewenvironment', "*{[[{{"),
             std_macro('provideenvironment', "*{[[{{"),
 
@@ -82,8 +78,8 @@ specs = [
                       args_parser=MacroStandardArgsParser('{', args_math_mode=[False])),
 
             # \title, \author, \date
-            MacroSpec('title', '[{'),
-            MacroSpec('author', '[{'),
+            MacroSpec('title', '{'),
+            MacroSpec('author', '{'),
             MacroSpec('date', '{'),
 
             # (Note: single backslash) end of line with optional no-break ('*') and
@@ -262,8 +258,7 @@ specs = [
             # spec for the starred variant as the star really is part of the
             # environment name.  If you specify argspec='*', the parser will try to
             # look for an expression of the form '\begin{equation}*'
-            
-            std_environment('document', None),
+
             std_environment('figure', '['),
             std_environment('figure*', '['),
             std_environment('subfigure', '[{'),
@@ -271,13 +266,10 @@ specs = [
             std_environment('table', '['),
             std_environment('table*', '['),
             ##############################################
-            std_environment('minipage', '['),
             std_environment('algorithm', '['),
             std_environment('algorithm*', '['),
             std_environment('lstlisting', '[', is_math_mode=True),
             std_environment('lstlisting*', '[', is_math_mode=True),
-            std_environment('adjustwidth', '{{'),
-            std_environment('adjustwidth*', '{{'),
             std_environment('abstract', None),
             std_environment('multicols', '{['),
             

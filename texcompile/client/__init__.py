@@ -15,11 +15,8 @@ from typing_extensions import Literal
 logger = logging.getLogger("texcompile-client")
 
 if platform == "linux" or platform == "linux2":
-    try:
-        from memory_tempfile import MemoryTempfile
-        tempfile = MemoryTempfile()
-    except:
-        import tempfile
+    from memory_tempfile import MemoryTempfile
+    tempfile = MemoryTempfile()
 else:
     import tempfile
 
