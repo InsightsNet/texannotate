@@ -45,7 +45,7 @@ def main(basepath:str, debug = False):
     errors = {}
     for filename in p.glob(basepath + '/*.tar.gz'):
         print(filename)
-        if Path('outputs_kappa/'+str(filename.stem)+'_data.csv').exists():
+        if Path('outputs/'+str(filename.stem)+'_data.csv').exists():
             continue
         try:
             with tempfile.TemporaryDirectory() as td:
@@ -55,7 +55,8 @@ def main(basepath:str, debug = False):
                     preprocess_latex(td)
 
                 basename, pdf_bytes = compile_pdf_return_bytes(
-                    sources_dir=td
+                    sources_dir=td,
+                    port=port
                 ) # compile the unmodified latex firstly
                 shapes, tokens = pdf_extract(pdf_bytes)
                 ## get colors
@@ -64,26 +65,29 @@ def main(basepath:str, debug = False):
                     color_dict.add_existing_color(tup2str(rect['stroking_color']))
                 for token in tokens:
                     color_dict.add_existing_color(token['color'])
-            Path("outputs_kappa").mkdir(exist_ok=True)
+            Path("outputs").mkdir(exist_ok=True)
             with tempfile.TemporaryDirectory() as td:
                 with tarfile.open(filename ,'r:gz') as tar:
                     tar.extractall(td)
                 tex_file = Path(find_latex_file(Path(basename).stem, basepath=td)).name
                 annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
                 postprocess_latex(str(Path(find_latex_file(Path(basename).stem, basepath=td))))
-                shutil.make_archive(p/'outputs_kappa'/filename.stem, 'zip', td)
+                
+                shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
                 basename, pdf_bytes = compile_pdf_return_bytes(
-                    sources_dir=td
+                    sources_dir=td,
+                    port=port
                 ) # compile the modified latex
                 shapes, tokens = pdf_extract(pdf_bytes)
             df_toc, df_data = export_annotation(shapes, tokens, color_dict)
-            df_toc.to_csv('outputs_kappa/'+str(filename.stem)+'_toc.csv', sep='\t')
-            df_data.to_csv('outputs_kappa/'+str(filename.stem)+'_data.csv', sep='\t')
+            df_toc.to_csv('outputs/'+str(filename.stem)+'_toc.csv', sep='\t')
+            df_data.to_csv('outputs/'+str(filename.stem)+'_data.csv', sep='\t')
         except CompilationException:
             print('LaTeX code compilation error.')
             errors[filename.stem] = 'LaTeX code compilation error.'
         except KeyboardInterrupt as e:
             container.stop()
+            break
         except Exception as e:
             print(e)
             errors[filename.stem] = str(e)
@@ -96,4 +100,4 @@ def main(basepath:str, debug = False):
     json.dump(errors, open('errors.json', 'w'), indent=2)
 
 if __name__ == "__main__":
-    main("downloaded", debug=True)
+    main("downloaded", debug=False)
