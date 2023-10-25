@@ -69,9 +69,10 @@ def main(basepath:str, debug = False):
             with tempfile.TemporaryDirectory() as td:
                 with tarfile.open(filename ,'r:gz') as tar:
                     tar.extractall(td)
-                tex_file = find_latex_file(Path(basename).stem, basepath=td)
+                tex_file = Path(find_latex_file(Path(basename).stem, basepath=td)).name
                 annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
-                postprocess_latex(tex_file)
+                postprocess_latex(str(Path(find_latex_file(Path(basename).stem, basepath=td))))
+                
                 shutil.make_archive(p/'outputs'/filename.stem, 'zip', td)
                 basename, pdf_bytes = compile_pdf_return_bytes(
                     sources_dir=td,

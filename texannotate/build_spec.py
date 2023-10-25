@@ -57,7 +57,7 @@ def parse_userdefined_package(filename, basepath, latex_context):
         with open(fullpath, encoding=encodingInfo['encoding']) as f:
             tex_string = f.read()
     except IOError as e:
-        print('read {} error.'.format(filename))
+        print('parse_userdefined_package: read {} error.'.format(filename))
         return append, latex_context
 
     w = LatexWalker(tex_string, latex_context=latex_context)
@@ -116,10 +116,10 @@ def find_package(filename, basepath, latex_context):
             if encodingInfo['encoding'] == 'HZ-GB-2312':
                 encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
         with open(fullpath, encoding=encodingInfo['encoding']) as f:
-            
             tex_string = f.read()
     except IOError as e:
-        print('read {} error.'.format(filename))
+        print(e)
+        print('find_package: read {} error.'.format(filename))
         return [], latex_context
         
     w = LatexWalker(tex_string, latex_context=latex_context)

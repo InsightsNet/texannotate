@@ -20,6 +20,7 @@ def find_latex_file(filename, basepath) -> str:
     if not os.path.exists(fullpath) and os.path.exists(fullpath + '.latex'):
         fullpath = fullpath + '.latex'
     if not os.path.isfile(fullpath):
+        print(fullpath, 'not exist.')
         #logger.warning("Error, file doesn't exist: '%s'", fn)
         return ''
 
@@ -75,7 +76,7 @@ def preprocess_latex(path):
             with tex.open('r', encoding=encodingInfo['encoding']) as f:
                 file_string = f.read()
         except IOError as e:
-            print('read {} error.'.format(str(tex)))
+            print('preprocess_latex: read {} error.'.format(str(tex)))
             return
         file_string = BLOCK_1 + file_string
         with tex.open('w') as f:
