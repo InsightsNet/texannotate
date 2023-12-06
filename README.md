@@ -59,6 +59,12 @@ See [example](doc/example.ipynb) about the annotation of one paper.
 
 Here's another [example](doc/tree_summarize.ipynb) summarizing the details of the paper with an LLM.
 
+## Publication
+This work was presented at The 2nd Workshop on Information Extraction from Scientific Publications (WIESP) @ IJCNLP-AACL 2023. 
+Proceedings can be found [here](https://ui.adsabs.harvard.edu/WIESP/2023/book.pdf), and will appear in ACL Anthology shortly.
+
+This work was also presented in non-archived form at 3rd Workshop for Natural Language Processing Open Source Software (NLP-OSS) @ EMNLP 2023, you can read our poster [here](https://github.com/nlposs/NLP-OSS/blob/master/nlposs-2023/23-LaTeX-Rainbow-Poster.pdf).
+
 ## Acknowledgments
 
 - The compilation service is a dockerized wrapper around the [AutoTeX](https://metacpan.org/pod/TeX::AutoTeX) library used by arXiv to automatically compile submissions to arXiv. We [modified](https://github.com/) part of it.
