@@ -10,6 +10,7 @@ pdfplumber
 pandas
 docker
 chardet
+matplotlib
 # Development dependencies
 #black==19.10b0
 #mypy==0.782
