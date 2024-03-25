@@ -18,13 +18,14 @@ Data = make_dataclass("Data", [
     ("font", str),
     ("size", float),
     ("flags", list),
+    ("tex", str)
 ])
 
 TOC = make_dataclass("TOC", [
     ("section_id", int),
     ("nested_to", int)
 ])
-#COLUMNS = ['reading_order', 'label', 'block_id', 'section_id', 'token', 'page', 'x0', 'y0', 'x1', 'y1', 'font', 'size', 'flags']
+#COLUMNS = ['reading_order', 'label', 'block_id', 'section_id', 'token', 'page', 'x0', 'y0', 'x1', 'y1', 'font', 'size', 'flags', 'tex']
 def export_annotation(shapes, tokens, color_dict: ColorAnnotation) -> pd.DataFrame:
     data = []
     for rect in shapes:
@@ -33,7 +34,7 @@ def export_annotation(shapes, tokens, color_dict: ColorAnnotation) -> pd.DataFra
             annotate = color_dict[color]
             data.append(Data(annotate['reading'], annotate['label'], annotate['block'], annotate['section'],
                              None, rect['page_number'], rect['x0'], rect['y0'], 
-                             rect['x1'], rect['y1'], None, None, rect['flags']))
+                             rect['x1'], rect['y1'], None, None, rect['flags'], annotate['tex']))
     
     for token in tokens:
         x0, y0, x1, y1 = token["bbox"]
@@ -42,11 +43,11 @@ def export_annotation(shapes, tokens, color_dict: ColorAnnotation) -> pd.DataFra
             annotate = color_dict[color]
             data.append(Data(annotate['reading'], annotate['label'], annotate['block'], annotate['section'],
                             token['text'], token['page'], x0, y0, x1, y1,
-                            token['font'], token['size'], token['flags']))
+                            token['font'], token['size'], token['flags'], annotate['tex']))
         else:
             data.append(Data(-1, None, -1, -1,
                             token['text'], token['page'], x0, y0, x1, y1,
-                            token['font'], token['size'], token['flags']))
+                            token['font'], token['size'], token['flags'], ''))
     
     toc = []
     # add toc root node

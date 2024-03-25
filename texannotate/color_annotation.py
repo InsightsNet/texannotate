@@ -122,7 +122,8 @@ class ColorAnnotation:
         self.block_num = 0
         self.current_section_id = []
         self.all_color = generate_rainbow_colors()
-        
+        self.black = False
+
         nlp = English()
         self.tokenizer = Tokenizer(nlp.vocab)
 
@@ -167,27 +168,35 @@ class ColorAnnotation:
         self.color_dict[color_str] = None
 
     def add_annotation_RGB(self, tex_string, annotate):
-        RGB_tuple, hex_string = self._get_next_RGB()
-        while hex_string in self.color_dict:
+        if self.black:
+            RGB_tuple = '0, 0, 0'
+        else:
             RGB_tuple, hex_string = self._get_next_RGB()
-        self.color_dict[hex_string] = {
-            "label": annotate,
-            "reading": self.current_token_number,
-            "section": self.toc.get_current_section_id(),
-            "block": self.block_num,
-        }
+            while hex_string in self.color_dict:
+                RGB_tuple, hex_string = self._get_next_RGB()
+            self.color_dict[hex_string] = {
+                "label": annotate,
+                "reading": self.current_token_number,
+                "section": self.toc.get_current_section_id(),
+                "block": self.block_num,
+                "tex": tex_string
+            }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
 
     def add_annotation_rgb(self, tex_string, annotate):
-        rgb_tuple = self._get_next_rgb()
-        while rgb_tuple in self.color_dict:
+        if self.black:
+            rgb_tuple = '1, 1, 1'
+        else:
             rgb_tuple = self._get_next_rgb()
-        self.color_dict[rgb_tuple] = {
-            "label": annotate,
-            "reading": self.current_token_number,
-            "section": self.toc.get_current_section_id(),
-            "block": self.block_num,
-        }
+            while rgb_tuple in self.color_dict:
+                rgb_tuple = self._get_next_rgb()
+            self.color_dict[rgb_tuple] = {
+                "label": annotate,
+                "reading": self.current_token_number,
+                "section": self.toc.get_current_section_id(),
+                "block": self.block_num,
+                "tex": tex_string
+            }
         self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"
