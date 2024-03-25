@@ -108,6 +108,7 @@ def generate_rainbow_colors():  # number of color in one color
                     all_colors_set.add((r, g, b))
                     all_colors.append((r, g, b))
     #print("num of color: ", len(all_colors))
+    os.mkdir('data')
     pickle.dump(all_colors, open('data/rainbow_colors_list.pkl', 'wb'))
     return all_colors
 

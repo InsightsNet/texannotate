@@ -3,12 +3,14 @@ from pylatexenc.latexnodes.nodes import LatexMacroNode
 from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 from pylatexenc.latexwalker import LatexWalker
 import chardet
-
+import os
 
 def clean_latex(filename, basepath, latex_context):
     cleaned = ''
     removed = {}
     fullpath = find_latex_file(filename, basepath)
+    files = os.listdir(basepath)  # Get all the files in that directory
+    print("Files in %s" % (files))
     try:
         with open(fullpath, 'rb') as f:
             encodingInfo = chardet.detect(f.read()) # detect charset
@@ -18,7 +20,7 @@ def clean_latex(filename, basepath, latex_context):
             tex_string = f.read()
     except IOError as e:
         print(e)
-        return False
+        return False, False
         
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()

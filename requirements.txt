@@ -10,7 +10,13 @@ pdfplumber
 pandas
 docker
 chardet
+<<<<<<< HEAD
 matplotlib
+=======
+gcsfs
+colorama
+git+https://github.com/streamlit/files-connection
+>>>>>>> 228199e6b0d92b180e31137bd3ef4723e9b7b553
 # Development dependencies
 #black==19.10b0
 #mypy==0.782

@@ -36,3 +36,4 @@ outputs_kappa/
 *.txt
 solved/
 .vscode/
+.streamlit
