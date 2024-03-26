@@ -5,6 +5,11 @@ Designed specifically for the academic publications.
 This tool not only compiles LaTeX but also annotates each token and figures, 
 retrieves their positions in the PDF, identifies corresponding semantic structure labels, and mark the correct reading order. 
 
+## Update
+[2024-03-26]: 
+1. Added [de-macro](https://ctan.org/pkg/de-macro?lang=en) preprocessing, which cleans up LaTeX code by expanding a portion of a simple custom macros defined by `\newcommand`, and also inserts `\input` into the main file. This method should increase the success rate of parsing.
+2. Improved conservative parsing strategy for `LatexGroupNode`. We previously didn't color-code them because we were concerned that it was breaking the parameters of the unknown macro. Now we include `LatexGroupNode` with a length of more than 20 characters in the color annotation.
+3. Added a black font to the PDF output. This is because color markup still changes the layout of the original paper to a greater or lesser extent. To keep the annotation looking the same as the original document, we will now compile the "original document" in black font.
 
 ## Main Purpose:
 
@@ -59,10 +64,30 @@ See [example](doc/example.ipynb) about the annotation of one paper.
 
 Here's another [example](doc/tree_summarize.ipynb) summarizing the details of the paper with an LLM.
 
-## Publication
+## Citation
 This work was presented at The 2nd Workshop on Information Extraction from Scientific Publications (WIESP) @ IJCNLP-AACL 2023. 
-Proceedings can be found [here](https://ui.adsabs.harvard.edu/WIESP/2023/book.pdf), and will appear in ACL Anthology shortly.
-
+```
+@inproceedings{duan-etal-2023-latex,
+    title = "{L}a{T}e{X} Rainbow: Universal {L}a{T}e{X} to {PDF} Document Semantic {\&} Layout Annotation Framework",
+    author = "Duan, Changxu  and
+      Tan, Zhiyin  and
+      Bartsch, Sabine",
+    editor = "Ghosal, Tirthankar  and
+      Grezes, Felix  and
+      Allen, Thomas  and
+      Lockhart, Kelly  and
+      Accomazzi, Alberto  and
+      Blanco-Cuaresma, Sergi",
+    booktitle = "Proceedings of the Second Workshop on Information Extraction from Scientific Publications",
+    month = nov,
+    year = "2023",
+    address = "Bali, Indonesia",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.wiesp-1.8",
+    doi = "10.18653/v1/2023.wiesp-1.8",
+    pages = "56--67",
+}
+```
 This work was also presented in non-archived form at 3rd Workshop for Natural Language Processing Open Source Software (NLP-OSS) @ EMNLP 2023, you can read our poster [here](https://github.com/nlposs/NLP-OSS/blob/master/nlposs-2023/23-LaTeX-Rainbow-Poster.pdf).
 
 ## Acknowledgments
@@ -86,6 +111,7 @@ This work was also presented in non-archived form at 3rd Workshop for Natural La
       - [ ] Adapt `pylatexenc` for such the case of `\pagebreak<blah>` and `\verb|blah|`
       - [ ] Refine the parsing function for such the case of `\newcommand{\be}{\begin{equation}}`, consider replace the commands?
       - [ ] Combine `pylatexenc` with `latex-utensils` and `unified-latex`.
+      - [ ] Learn how [LaTeXML](https://github.com/brucemiller/LaTeXML) parses latex.
    - [x] `\newcommand` parsing strategy from ~~[Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)~~ `pylatexenc`.
 - [x] Imporve document structure extraction rule from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/6ee7aca5dfe057642fec1781b6810796d745862e/src/providers/structurelib/latex.ts#L114C25-L114C25) 
 - [x] Parallelization

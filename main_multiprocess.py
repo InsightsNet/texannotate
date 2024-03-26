@@ -16,6 +16,7 @@ from utils.utils import (find_free_port, find_latex_file,
                               postprocess_latex, preprocess_latex, tup2str)
 from texcompile.client import compile_pdf_return_bytes, CompilationException
 import shutil
+import fitz
 if platform == "linux" or platform == "linux2":
     from memory_tempfile import MemoryTempfile
     tempfile = MemoryTempfile()
@@ -74,6 +75,21 @@ def annotate(filename: Path, output: Path):
         df_toc, df_data = export_annotation(shapes, tokens, color_dict)
         df_toc.to_csv(output/(str(filename.stem)+'_toc.csv'), sep='\t')
         df_data.to_csv(output/(str(filename.stem)+'_data.csv'), sep='\t')
+        with tempfile.TemporaryDirectory() as td:
+            color_dict = ColorAnnotation()
+            color_dict.black = True
+            with tarfile.open(filename ,'r:gz') as tar:
+                tar.extractall(td)
+            tex_file = find_latex_file(Path(basename).stem, basepath=td)
+            annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
+            postprocess_latex(tex_file)
+            basename, pdf_bytes = compile_pdf_return_bytes(
+                sources_dir=td,
+                port=port
+            ) # compile the modified latex
+            with fitz.open("pdf", pdf_bytes) as doc:
+                doc.save(output/(str(filename.stem)+'.pdf'))
+
         container.stop()
         return filename, False
     except CompilationException:
@@ -93,10 +109,10 @@ if __name__ == "__main__":
     output_path = p/'outputs'
     output_path.mkdir(exist_ok=True)
     args = []
-    for filename in p.glob("downloaded" + '/*.tar.gz'):
+    for filename in p.glob("downloaded" + '/*.gz'):
         args.append((filename, output_path))
     print('Find %d source files, starting annotate.' %len(args))
-    pool = multiprocessing.Pool(processes=8)
+    pool = multiprocessing.Pool(processes=63)
     try:
         pool_outputs = pool.starmap(annotate, args)
         errors = {i[0].name:i[1] for i in pool_outputs if i[1]}

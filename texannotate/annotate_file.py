@@ -198,11 +198,12 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                             file_string += token.whitespace_
 
         elif node.isNodeType(LatexGroupNode):
-            # TODO: should we break it up?
-            #if not environment is None:
-            #    file_string += color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate=annotate)
-            #else:
-            file_string += s[node.pos:node.pos_end]
+            if not environment is None and node.pos_end-node.pos>=20 and len(node.nodelist) > 0:
+                file_string += s[node.pos:node.nodelist[0].pos]
+                file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, environment, basepath)
+                file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+            else:
+                file_string += s[node.pos:node.pos_end]
 
         elif node.isNodeType(LatexMathNode):
             if not environment is None:
@@ -217,7 +218,7 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
         elif node.isNodeType(LatexSpecialsNode):
             if node.specials_chars == '\n\n':
                 if not environment is None:
-                    color_dict.block_num += 1
+                    color_dict.block_num += 1 #TODO: add \par case
             file_string += s[node.pos:node.pos_end] # TODO: annotate '' and `` an so on.
 
         elif node.isNodeType(LatexNode):

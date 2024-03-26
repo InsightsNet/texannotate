@@ -2,6 +2,7 @@ from utils.utils import find_latex_file
 from pylatexenc.latexnodes.nodes import LatexMacroNode
 from pylatexenc.latexnodes.parsers import LatexGeneralNodesParser
 from pylatexenc.latexwalker import LatexWalker
+from texannotate.de_macro import de_macro
 import chardet
 import os
 
@@ -21,7 +22,7 @@ def clean_latex(filename, basepath, latex_context):
     except IOError as e:
         print(e)
         return False, False
-        
+    tex_string = de_macro(tex_string)
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
     parsing_state.enable_environments = False
