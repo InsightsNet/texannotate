@@ -1,5 +1,18 @@
 r"""
 Changed by Fireblossom for LaTeX Rainbow.
+1. Added the process_str method to the tex_stream class, which basically 
+   replicates the functionality of process_file, but it can take, process 
+   and return tex strings.
+2. Now process_str also scans the master file and macro definitions from 
+   LaTeX template styles, not just private styles. Note that template styles 
+   with optional parameters are still not scanned 
+   (e.g. \usepackage[review]{acl2024}), we plan to look into it later.
+3. Added de_macro function to trigger process_str method.
+4. Modified apply_all_recur so that it doesn't replace the macro's 
+   newcommand defined in the main file. 
+   (before: \newcommand{\blah}{blahblah} -> \newcommand{blahblah}{blahblah})
+   (after: \newcommand{\blah}{blahblah} -> \newcommand{\blah}{blahblah})
+
 
 Copyright 2005-2020 Peter Gacs
 Licensed under the Academic Free Licence version 2.1
@@ -1024,7 +1037,9 @@ class Tex_stream(Stream):
                 out.append(ts.item)
                 ts.next()
                 continue
-            elif not pprev_item is None and pprev_item.type==2 and prev_item.type==0 and pprev_item.val in {"newcommand", "renewcommand", "newenvironment", "renewenvironment"} and prev_item.val=="{":
+            elif not pprev_item is None and pprev_item.type==2 and prev_item.type==0 \
+                and pprev_item.val in {"newcommand", "renewcommand", "newenvironment", \
+                                        "renewenvironment"} and prev_item.val=="{":
                     # do not replace macro within \newcommand
                     out.append(ts.item)
                     ts.next()
@@ -1053,8 +1068,6 @@ class Tex_stream(Stream):
         # print([(t.type, t.val) for t in tokens])
         if not self.data:
             raise Error("Empty tokenization result.")
-        self.reset()
-        self.scan_defs()
         self.reset()
 
         if self.debug:
