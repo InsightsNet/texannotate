@@ -96,6 +96,7 @@ This work was also presented in non-archived form at 3rd Workshop for Natural La
 - The code for the compilation service is essentially inherited from [texcompile](https://github.com/andrewhead/texcompile.git), and this repository was formerly a fork of it.
 - [pylatexenc](https://github.com/phfaist/pylatexenc.git) 3.0alpha is used to identify and traverse the latex code.
 - [pdfplumber](https://github.com/jsvine/pdfplumber.git) is used to extract shapes and texts from PDF files.
+- [de-macro](https://ctan.org/pkg/de-macro?lang=en) parses and expands simple macro definitions.
 
 # TODO:
 - [x] A prettier frontend (like streamlit) to interact with papers and(or) to bundle with LLMs.
@@ -109,14 +110,16 @@ This work was also presented in non-archived form at 3rd Workshop for Natural La
 - [x] Improve Parsing rules (from Overleaf and TeX-Workshop):
    - [x] Package command definitions from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) ~~and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)~~.
       - [ ] Adapt `pylatexenc` for such the case of `\pagebreak<blah>` and `\verb|blah|`
-      - [ ] Refine the parsing function for such the case of `\newcommand{\be}{\begin{equation}}`, consider replace the commands?
+      - [x] Refine the parsing function for such the case of `\newcommand{\be}{\begin{equation}}`. Expanded by `de-macro`.
+      - [x] unclosed open group `{`.
       - [ ] Combine `pylatexenc` with `latex-utensils` and `unified-latex`.
-      - [ ] Learn how [LaTeXML](https://github.com/brucemiller/LaTeXML) parses latex.
+      - [ ] Learn how [LaTeXML](https://github.com/brucemiller/LaTeXML) parses, expand `\def` and `\if`s.
    - [x] `\newcommand` parsing strategy from ~~[Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)~~ `pylatexenc`.
 - [x] Imporve document structure extraction rule from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/6ee7aca5dfe057642fec1781b6810796d745862e/src/providers/structurelib/latex.ts#L114C25-L114C25) 
 - [x] Parallelization
   - [ ] Take advantage of container reusability
 - [x] Evlauate annotation
+- [ ] Documentation and Unit testing
 
 ## License
 

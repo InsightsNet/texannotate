@@ -6,6 +6,40 @@ from texannotate.de_macro import de_macro
 import chardet
 import os
 
+
+def remove_mismatched_braces(latex_content):
+    stack = []  # Stack to keep track of open braces and their indices
+    remove_indices = []  # Indices of braces to remove
+    
+    i = 0  # Manual index control to allow for skipping characters
+
+    while i < len(latex_content):
+        char = latex_content[i]
+
+        # Handle escaped braces
+        if char == '\\' and i + 1 < len(latex_content) and latex_content[i + 1] in "{}":
+            i += 2  # Skip the next character since it's escaped
+            continue
+
+        if char == '{':
+            stack.append(('open', i))  # Push the index and type of the brace
+        elif char == '}':
+            if stack and stack[-1][0] == 'open':
+                stack.pop()  # Pop the last open brace as it's now closed
+            else:
+                remove_indices.append(i)  # Mark unmatched closing brace for removal
+
+        i += 1
+
+    # Add indices of unclosed opening braces to the removal list
+    remove_indices.extend([index for brace_type, index in stack if brace_type == 'open'])
+
+    # Remove the mismatched braces by building a new string without them
+    new_content = ''.join(char for i, char in enumerate(latex_content) if i not in remove_indices)
+
+    return new_content
+
+
 def clean_latex(filename, basepath, latex_context):
     cleaned = ''
     removed = {}
@@ -22,6 +56,7 @@ def clean_latex(filename, basepath, latex_context):
     except IOError as e:
         print(e)
         return False, False
+    tex_string = remove_mismatched_braces(tex_string)
     tex_string = de_macro(tex_string)
     w = LatexWalker(tex_string, latex_context=latex_context)
     parsing_state = w.make_parsing_state()
@@ -31,7 +66,7 @@ def clean_latex(filename, basepath, latex_context):
         parsing_state=parsing_state
     )
     for node in nodelist:
-        if node.isNodeType(LatexMacroNode):
+        if node.isNodeType(LatexMacroNode): # remove these macro form annotation
             if node.macroname in {'newcommand', 'renewcommand', 'newenvironment', 'renewenvironment', 'providecommand', 'CheckCommand'}:
                 key = str(id(node))
                 removed[key] = tex_string[node.pos:node.pos_end]
@@ -58,3 +93,9 @@ def post_cleaned(tex_string, removed, latex_context):
             restored += tex_string[node.pos:node.pos_end]
 
     return restored
+
+if __name__ == "__main__":
+    # test case
+    latex_content = "This is a test \\{with }}}}{{{{some {nested} and some unclosed groups }{like this and an extra closing brace} {"
+    cleaned_content = remove_mismatched_braces(latex_content)
+    print(cleaned_content)
