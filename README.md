@@ -11,6 +11,12 @@ retrieves their positions in the PDF, identifies corresponding semantic structur
 2. Improved conservative parsing strategy for `LatexGroupNode`. We previously didn't color-code them because we were concerned that it was breaking the parameters of the unknown macro. Now we include `LatexGroupNode` with a length of more than 20 characters in the color annotation.
 3. Added a black font to the PDF output. This is because color markup still changes the layout of the original paper to a greater or lesser extent. To keep the annotation looking the same as the original document, we will now compile the "original document" in black font.
 
+[2024-04-08]:
+1. LaTeXML is installed in the AutoTeX container and is used to standardize the code for `tex` column in the annotation.
+2. Applied standardized annotation to `equation` and `table` annotation.
+3. Refined annotation strategy for `algorithm` environments.
+
+
 ## Main Purpose:
 
 1. **LaTeX Compilation**: Compile LaTeX into PDF using a dockerized environment, leveraging TexLive2023.
@@ -107,13 +113,16 @@ This work was also presented in non-archived form at 3rd Workshop for Natural La
   - [ ] Explore the method of SyncTex.
   - [ ] Line based label correction.
 - [x] Rainbow colors [#1](https://github.com/InsightsNet/texannotate/pull/1) 
-- [x] Improve Parsing rules (from Overleaf and TeX-Workshop):
+- [ ] Improve Parsing rules (from Overleaf and TeX-Workshop):
    - [x] Package command definitions from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/tree/master/data) ~~and [Overleaf](https://github.com/overleaf/overleaf/tree/main/services/web/frontend/js/features/source-editor/languages/latex/completions/data)~~.
       - [ ] Adapt `pylatexenc` for such the case of `\pagebreak<blah>` and `\verb|blah|`
       - [x] Refine the parsing function for such the case of `\newcommand{\be}{\begin{equation}}`. Expanded by `de-macro`.
-      - [x] unclosed open group `{`.
+      - [x] Unclosed open group `{`.
+      - [x] Standardize LaTeX code annotation in math formulas, tables, etc. with LaTeXML. Because they may include user-defined macros.
+      - [ ] Parse tabulars.
+      - [ ] Parse math in detail, which will need understand alignemts.
       - [ ] Combine `pylatexenc` with `latex-utensils` and `unified-latex`.
-      - [ ] Learn how [LaTeXML](https://github.com/brucemiller/LaTeXML) parses, expand `\def` and `\if`s.
+      - [ ] Learn how [LaTeXML](https://github.com/brucemiller/LaTeXML) parses, expands `\def` and `\if`s.
    - [x] `\newcommand` parsing strategy from ~~[Tex-Workshop (using unified-latex)](https://github.com/James-Yu/LaTeX-Workshop/blob/856eaeebd66e16b9f8d500793f307aa02d4295eb/src/providers/completer/command.ts#L208) and [Overleaf (using Lezer)](https://github.com/overleaf/overleaf/blob/main/services/web/frontend/js/features/source-editor/lezer-latex/README.md)~~ `pylatexenc`.
 - [x] Imporve document structure extraction rule from [TeX-Workshop](https://github.com/James-Yu/LaTeX-Workshop/blob/6ee7aca5dfe057642fec1781b6810796d745862e/src/providers/structurelib/latex.ts#L114C25-L114C25) 
 - [x] Parallelization

@@ -58,7 +58,7 @@ class Result:
         )
 
 
-def send_request(sources_dir, host, port) -> dict:
+def send_request(sources_dir, host, port, autotex_or_latexml, main_tex='') -> dict:
     with tempfile.TemporaryDirectory() as temp_dir:
         # Prepare a gzipped tarball file containing the sources.
         archive_filename = os.path.join(temp_dir, "archive.tgz")
@@ -68,11 +68,13 @@ def send_request(sources_dir, host, port) -> dict:
         # Prepare query parameters.
         with open(archive_filename, "rb") as archive_file:
             files = {"sources": ("archive.tgz", archive_file, "multipart/form-data")}
-
+            data = {"autotex_or_latexml": autotex_or_latexml, "main_tex_file": main_tex}
+            if autotex_or_latexml == "latexml":
+                assert main_tex, "No main .tex file specified."
             # Make request to service.
             endpoint = f"{host}:{port}/"
             try:
-                response = requests.post(endpoint, files=files)
+                response = requests.post(endpoint, files=files, data=data)
             except requests.exceptions.RequestException as e:
                 raise ServerConnectionException(
                     f"Request to server {endpoint} failed.", e
@@ -89,7 +91,7 @@ def compile_pdf(
     port: int = 8000,
 ) -> Result:
 
-    data = send_request(sources_dir, host, port)
+    data = send_request(sources_dir, host, port, "autotex")
 
     # Check success.
     if not (data["success"] or data["has_output"]):
@@ -135,7 +137,7 @@ def compile_pdf_return_bytes(
     port: int = 8000,
 ) -> Result:
     
-    data = send_request(sources_dir, host, port)
+    data = send_request(sources_dir, host, port, "autotex")
 
     # Check success.
     if not (data["success"] or data["has_output"]):
@@ -159,3 +161,22 @@ def compile_pdf_return_bytes(
 
     raise CompilationException('No pdf output.')
     
+def compile_html_return_text(
+    main_tex: str,
+    sources_dir: Path,
+    host: str = "http://127.0.0.1",
+    port: int = 8000,
+) -> Result:
+    data = send_request(sources_dir, host, port, "latexml", main_tex)
+
+    # Check success.
+    if not (data["success"] or data["has_output"]):
+        raise CompilationException(data["log"])
+
+    output_files: List[OutputFile] = []
+    result = Result(
+        success=data["success"],
+        main_tex_files=data["main_tex_files"],
+        log=data["log"],
+        output_files=output_files,
+    )

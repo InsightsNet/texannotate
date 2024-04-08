@@ -4,6 +4,9 @@ import pickle
 
 from spacy.lang.en import English
 from spacy.tokenizer import Tokenizer
+from texannotate.clean_latex import read_preamble
+from texcompile.client import compile_html_return_text
+from texannotate.parse_latexml import standardize_tex2md
 
 
 class TOCNode:
@@ -124,6 +127,9 @@ class ColorAnnotation:
         self.current_section_id = []
         self.all_color = generate_rainbow_colors()
         self.black = False
+        self.defs = None
+        self.td = None
+        self.port = None
 
         nlp = English()
         self.tokenizer = Tokenizer(nlp.vocab)
@@ -168,6 +174,22 @@ class ColorAnnotation:
     def add_existing_color(self, color_str):
         self.color_dict[color_str] = None
 
+    def extract_defs(self, filename, td, port):
+        self.td = td
+        self.port = port
+        self.defs = read_preamble(filename, td)
+
+    def standardize_tex(self, tex_string):
+        if self.defs is None:
+            raise "Missing main document definitions."
+        # make tex file tobe convert to tex
+        latexml_file_name = str(self.current_token_number)+'.tex'
+        with open(os.path.join(self.td, latexml_file_name), 'w') as f:
+            f.write(self.defs+tex_string+"\n\\end{document}")
+        html_text = compile_html_return_text(main_tex=latexml_file_name, sources_dir=self.td, port=self.port)
+        standard_tex, _ = standardize_tex2md(html_text)
+        return standard_tex
+
     def add_annotation_RGB(self, tex_string, annotate):
         if self.black:
             RGB_tuple = '0, 0, 0'
@@ -175,12 +197,19 @@ class ColorAnnotation:
             RGB_tuple, hex_string = self._get_next_RGB()
             while hex_string in self.color_dict:
                 RGB_tuple, hex_string = self._get_next_RGB()
+            if annotate in {"Equation", "Table"} and not self.black:
+                std_tex_string = self.standardize_tex(tex_string)
+                if not std_tex_string:
+                    std_tex_string = tex_string
+            else:
+                std_tex_string = tex_string
+            
             self.color_dict[hex_string] = {
                 "label": annotate,
                 "reading": self.current_token_number,
                 "section": self.toc.get_current_section_id(),
                 "block": self.block_num,
-                "tex": tex_string
+                "tex": std_tex_string
             }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"

@@ -12,6 +12,7 @@ from texannotate.color_annotation import ColorAnnotation
 from texannotate.latex2text_spec import specs
 from utils.utils import find_latex_file
 from texannotate.clean_latex import clean_latex, post_cleaned
+from difflib import SequenceMatcher
 
 latex2text_context = LatexContextDb()
 for cat, catspecs in specs:
@@ -172,6 +173,21 @@ def resolve_node_list(file_string:str, nodelist: LatexNodeList, color_dict: Colo
                 file_string += s[node.nodeargd.argnlist[-1].nodelist[-1].pos_end:node.nodelist[0].pos]
                 file_string, color_dict = resolve_node_list(file_string, node.nodelist, color_dict, node.environmentname, basepath)
                 file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+            elif node.environmentname.startswith('algorithm'): # algorithm and algorithmic
+                # \If \Else cannot be annotate separately
+                # Annotating the whole environment doesn't work, we have to put the annotation inside the environment
+                # TODO: caption in algorithm
+                if len(node.nodelist) > 0:
+                    environment_string = color_dict.add_annotation_RGB(s[node.pos:node.pos_end], annotate='Paragraph')
+                    match_ = SequenceMatcher(a=s[node.pos:node.pos_end], b=environment_string).find_longest_match()
+                    RGB_string = environment_string[:match_.b]
+                    file_string += s[node.pos:node.nodelist[0].pos]
+                    file_string += RGB_string
+                    file_string += s[node.nodelist[0].pos:node.nodelist[-1].pos_end]
+                    file_string += '}'
+                    file_string += s[node.nodelist[-1].pos_end:node.pos_end]
+                if not environment is None:
+                    color_dict.block_num += 1
             else:
                 if len(node.nodelist) > 0:
                     file_string += s[node.pos:node.nodelist[0].pos]

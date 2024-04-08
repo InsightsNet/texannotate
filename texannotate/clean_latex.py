@@ -94,6 +94,28 @@ def post_cleaned(tex_string, removed, latex_context):
 
     return restored
 
+def read_preamble(filename, basepath):
+    fullpath = find_latex_file(filename, basepath)
+    files = os.listdir(basepath)  # Get all the files in that directory
+    print("Files in %s" % (files))
+    preamble = ""
+    try:
+        with open(fullpath, 'rb') as f:
+            encodingInfo = chardet.detect(f.read()) # detect charset
+            if encodingInfo['encoding'] == 'HZ-GB-2312':
+                encodingInfo['encoding'] = 'utf-8' # sometime the chardet detect 'hz' incorrectly
+        with open(fullpath, encoding=encodingInfo['encoding']) as f:
+            for line in f:
+                # Check if the line contains the start of the document
+                if '\\begin{document}' in line:
+                    break
+                preamble += line
+    except IOError as e:
+        raise f"File cannot read: {fullpath}"
+    except Exception as e:
+        raise f"An error occurred: {e}"
+    return preamble + "\\begin{document}\n"
+
 if __name__ == "__main__":
     # test case
     latex_content = "This is a test \\{with }}}}{{{{some {nested} and some unclosed groups }{like this and an extra closing brace} {"

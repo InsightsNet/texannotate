@@ -64,6 +64,7 @@ def annotate(filename: Path, output: Path):
             with tarfile.open(filename ,'r:gz') as tar:
                 tar.extractall(td)
             tex_file = find_latex_file(Path(basename).stem, basepath=td)
+            color_dict.extract_defs(tex_file, td, port)
             annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
             postprocess_latex(tex_file)
             shutil.make_archive(output/filename.stem, 'zip', td)
@@ -81,6 +82,7 @@ def annotate(filename: Path, output: Path):
             with tarfile.open(filename ,'r:gz') as tar:
                 tar.extractall(td)
             tex_file = find_latex_file(Path(basename).stem, basepath=td)
+            color_dict.extract_defs(tex_file, td, port)
             annotate_file(tex_file, color_dict, latex_context=None, basepath=td)
             postprocess_latex(tex_file)
             basename, pdf_bytes = compile_pdf_return_bytes(
