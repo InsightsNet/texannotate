@@ -54,7 +54,7 @@ class CompilationResult:
     stderr: bytes
 
 
-def compile_tex(
+def compile_autotex(
     compressed_sources_file: str,
     texlive_path: Path,
     system_path: Path,
@@ -288,5 +288,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    result = compile_tex(args.sources, args.texlive_path, args.system_path, args.perl)
+    result = compile_autotex(args.sources, args.texlive_path, args.system_path, args.perl)
     print(json.dumps(result, indent=2))

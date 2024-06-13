@@ -10,9 +10,15 @@ pdfplumber
 pandas
 docker
 chardet
+matplotlib
 gcsfs
 colorama
+streamlit
 git+https://github.com/streamlit/files-connection
+unidecode
+htmlmin
+bs4
+Pebble # for multiprocess
 # Development dependencies
 #black==19.10b0
 #mypy==0.782

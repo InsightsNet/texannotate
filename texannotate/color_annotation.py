@@ -1,9 +1,16 @@
 import colorsys
 import os
+import re
 import pickle
 
 from spacy.lang.en import English
 from spacy.tokenizer import Tokenizer
+from texannotate.clean_latex import read_preamble
+from texcompile.client import compile_html_return_text
+from texannotate.parse_latexml import standardize_tex2md
+from texannotate.parse_latexml.markdown import format_document
+from texannotate.parse_latexml.latexml_parser import parse_latexml
+from texannotate.parse_latexml.document import Section, TextElement
 
 
 class TOCNode:
@@ -123,7 +130,13 @@ class ColorAnnotation:
         self.block_num = 0
         self.current_section_id = []
         self.all_color = generate_rainbow_colors()
-        
+        self.black = False
+        self.defs = None
+        self.td = None
+        self.port = None
+        self._standardize_tex_queue = {}
+        self.documentclass = None
+
         nlp = English()
         self.tokenizer = Tokenizer(nlp.vocab)
 
@@ -167,28 +180,75 @@ class ColorAnnotation:
     def add_existing_color(self, color_str):
         self.color_dict[color_str] = None
 
+    def extract_defs(self, filename, td, port):
+        self.td = td
+        self.port = port
+        self.defs = read_preamble(filename, td)
+
+    def standardize_tex_queue(self, tex_string, hex_string):
+        tex_string = re.sub(r'\\LaTeXRainbowSpecial\{[^}]*\}', '', tex_string)
+        self._standardize_tex_queue[hex_string] = tex_string
+    
+    def run_standardize_tex(self):
+        if self.defs is None:
+            raise "Missing main document definitions."
+        # make tex file tobe convert to tex
+        latexml_file_name = 'tobestd.tex'
+        tex_string = ''
+        for k, v in self._standardize_tex_queue.items():
+            tex_string += "\n\\section{"+k[1:]+"}\n"
+            tex_string += v
+        with open(os.path.join(self.td, latexml_file_name), 'w') as f:
+            f.write(self.defs+tex_string+"\n\\end{document}")
+        html_text = compile_html_return_text(main_tex=latexml_file_name, sources_dir=self.td, port=self.port)
+        doc = parse_latexml(html_text)
+        for element in doc.children:
+            if isinstance(element, Section):
+                if element.header:
+                    out, fig = format_document(element, keep_refs=True)
+                    child = element.header.children[-1]
+                    while not isinstance(child, TextElement): child = child.children[-1]
+                    k = '#'+child.content
+                    if k in self.color_dict:
+                        self.color_dict[k]["tex"] = out
+
     def add_annotation_RGB(self, tex_string, annotate):
-        RGB_tuple, hex_string = self._get_next_RGB()
-        while hex_string in self.color_dict:
+        if self.black:
+            RGB_tuple = '0, 0, 0'
+        else:
             RGB_tuple, hex_string = self._get_next_RGB()
-        self.color_dict[hex_string] = {
-            "label": annotate,
-            "reading": self.current_token_number,
-            "section": self.toc.get_current_section_id(),
-            "block": self.block_num,
-        }
+            while hex_string in self.color_dict:
+                RGB_tuple, hex_string = self._get_next_RGB()
+            if annotate in {"Equation", "Table"} and not self.black:
+                std_tex_string = self.standardize_tex_queue(tex_string, hex_string)
+                if std_tex_string is None:
+                    std_tex_string = tex_string
+            else:
+                std_tex_string = tex_string
+            
+            self.color_dict[hex_string] = {
+                "label": annotate,
+                "reading": self.current_token_number,
+                "section": self.toc.get_current_section_id(),
+                "block": self.block_num,
+                "tex": std_tex_string
+            }
         self.current_token_number += 1
         return "{\\color[RGB]{" + RGB_tuple + "}" + tex_string + "}"
 
     def add_annotation_rgb(self, tex_string, annotate):
-        rgb_tuple = self._get_next_rgb()
-        while rgb_tuple in self.color_dict:
+        if self.black:
+            rgb_tuple = '1, 1, 1'
+        else:
             rgb_tuple = self._get_next_rgb()
-        self.color_dict[rgb_tuple] = {
-            "label": annotate,
-            "reading": self.current_token_number,
-            "section": self.toc.get_current_section_id(),
-            "block": self.block_num,
-        }
+            while rgb_tuple in self.color_dict:
+                rgb_tuple = self._get_next_rgb()
+            self.color_dict[rgb_tuple] = {
+                "label": annotate,
+                "reading": self.current_token_number,
+                "section": self.toc.get_current_section_id(),
+                "block": self.block_num,
+                "tex": tex_string
+            }
         self.current_token_number += 1
         return "\\colorbox[rgb]{" + rgb_tuple + "}{" + tex_string + "}"
