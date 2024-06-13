@@ -140,7 +140,8 @@ class Reference:
     """
 
     title: Element = None
-    authors: List[Author] = field(default_factory=list)
+    # authors: List[Author] = field(default_factory=list)
+    authors: List[Element] = field(default_factory=list)
     ids: Dict[str, str] = field(default_factory=dict)
     date: str = None
     url: str = None

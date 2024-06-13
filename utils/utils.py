@@ -3,15 +3,56 @@ import re
 import socket
 from contextlib import closing
 from pathlib import Path
-import requests
 import chardet
+import time
+import docker
 
 
-def find_free_port() -> int:  #https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
+def find_free_port() -> int:  
+    # https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]    
+        return s.getsockname()[1]
+    
+
+def check_container_ready(container):
+    for _ in range(120): # timeout
+        container.reload()
+        if container.status == 'running':
+            return
+        time.sleep(1)
+    raise TimeoutError('Container init error.')
+    
+
+def start_container(name: str):
+    client = docker.from_env()
+    try: # reuse existing contianer
+        container = client.containers.get(name)
+        port = int(container.ports['80/tcp'][0]['HostPort'])
+        check_container_ready(container)
+        return container, port
+    except docker.errors.NotFound:
+        for _ in range(10):
+            try:
+                port = find_free_port()
+                container = client.containers.run(
+                    image='tex-compilation-service',
+                    detach=True,
+                    ports={'80/tcp':port},
+                    #tmpfs={'/tmpfs':''},
+                    remove=True,
+                    name=name
+                )
+                time.sleep(3)
+                check_container_ready(container)
+                return container, port
+            except:
+                time.sleep(1)
+        raise TimeoutError('Create container failed.')
+    except docker.errors.APIError as e:
+        raise e
+ 
 
 def find_latex_file(filename, basepath) -> str:
     fullpath = os.path.join(basepath, filename)
@@ -21,7 +62,7 @@ def find_latex_file(filename, basepath) -> str:
         fullpath = fullpath + '.latex'
     if not os.path.isfile(fullpath):
         print(fullpath, 'not exist.')
-        #logger.warning("Error, file doesn't exist: '%s'", fn)
+        # logger.warning("Error, file doesn't exist: '%s'", fn)
         return ''
 
     #logger.debug("Reading input file %r", fnfull)

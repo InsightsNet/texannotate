@@ -105,15 +105,15 @@ def run_compilation(
     Compile TeX sources into HTML files. Requires running an external
     script to attempt to compile the TeX. See README.md for dependencies.
     """
-    logging.debug("Compiling source %s.", source_path)
-    tex_files = [f for f in os.listdir(source_path) if f.endswith(".tex")]
-    if not tex_files:
+    main_path = os.path.join(source_path, main_file)
+    logging.debug("Compiling source %s.", main_path)
+    if not os.path.exists(main_path):
         logging.warning("No .tex files found in %s.", source_path)
 
     _set_sources_dir_permissions(source_path)
 
     result = subprocess.run(
-        ["latexmlc", os.path.join(source_path, main_file), "--post", "--dest="+main_file+".html"],
+        ["latexmlc", main_path, "--post", "--dest="+main_path+".html", "--timeout=2400"], # expl3 needs 10+min to load https://github.com/brucemiller/LaTeXML/issues/2268
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
@@ -123,13 +123,13 @@ def run_compilation(
     output_files: List[OutputFile] = []
     success = False
     if result.returncode == 0:
-        compiled_tex_files.append(CompiledTexFile(os.path.join(source_path, main_file)))
+        compiled_tex_files.append(CompiledTexFile(main_path))
         output_files.append(OutputFile("html", main_file+".html"))
         success = True
 
     logging.debug(
         "Finished compilation attempt for source %s. Success? %s.",
-        os.path.join(source_path, main_file),
+        main_path,
         success,
     )
 

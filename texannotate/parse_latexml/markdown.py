@@ -378,10 +378,12 @@ def format_document(
     """
     parts = []
 
-    if doc.title:
-        parts.extend([*format_element(doc.title), "\n"])
-    parts.append("\n")
+    # if doc.title:
+        # parts.extend([*format_element(doc.title), "\n"])
+    # parts.append("\n")
     parts.extend(format_children(doc, keep_refs))
+
+    parts = [i for i in parts if i != '\n\n']
     text = "".join(parts)
     text = text.replace("\xa0", " ")  # replace non-breakable spaces
     text = re.sub(r" $", "", text, flags=re.MULTILINE)

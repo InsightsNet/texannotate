@@ -47,7 +47,7 @@ not replace style files that have options.
 
 USAGE
 
-de-macro [--defs <defs-db>] <tex-file-1>[.tex] [<tex-file-2>[.tex] ...]
+de-macro <tex-file-1>[.tex] [<tex-file-2>[.tex] ...]
 
 Simplest example:     de-macro testament
 
@@ -66,17 +66,8 @@ guarantee the same expansion order as in TeX.
 
 FILES
 
-<tex-file-1>.db
 <tex-file>-clean.tex
 <defs-file>-private.sty
-
-For speed, a macro database file called <defs-file>.db is created.
-If such a file exists already then it is used.
-If <defs-file>-private.sty is older than <tex-file-1>.db then it will not
-be used.
-
-It is possible to specify another database filename via --defs <defs-db>.
-Then <defs-db>.db will be used.
 
 For each <tex-file-i>, a file <tex-file-i>-clean.tex will be produced.
 If <tex-file-i>-clean.tex is newer than <tex-file-i>.tex then it stays.
@@ -94,7 +85,44 @@ then remove all *-clean.tex files!
 
 """
 
-import sys, os, re, shelve
+import sys, os, re
+from texannotate.latexwalk_spec import specs
+from pylatexenc.macrospec import LatexContextDb
+
+
+def remove_mismatched_braces(latex_string):
+    latex_string = latex_string.replace(r'\\{', r'\\ {')
+    stack = []  # Stack to keep track of open braces and their indices
+    remove_indices = []  # Indices of braces to remove
+    
+    i = 0  # Manual index control to allow for skipping characters
+
+    while i < len(latex_string):
+        char = latex_string[i]
+
+        # Handle escaped braces
+        if char == '\\' and i + 1 < len(latex_string) and latex_string[i + 1] in "{}":
+            i += 2  # Skip the next character since it's escaped
+            continue
+
+        if char == '{':
+            stack.append(('open', i))  # Push the index and type of the brace
+        elif char == '}':
+            if stack and stack[-1][0] == 'open':
+                stack.pop()  # Pop the last open brace as it's now closed
+            else:
+                remove_indices.append(i)  # Mark unmatched closing brace for removal
+
+        i += 1
+    
+    # Add indices of unclosed opening braces to the removal list
+    remove_indices.extend([index for brace_type, index in stack if brace_type == 'open'])
+
+    # Remove the mismatched braces by building a new string without them
+    new_latex_string = ''.join(char for i, char in enumerate(latex_string) if i not in remove_indices)
+
+    return new_latex_string
+
 
 # Utilities
 
@@ -471,19 +499,18 @@ class Char_stream(Stream):
         if not "{" == item:
             raise Error("\\usepackage not followed by brace.")
         item = self.next()
-        while self.uplegal() and not blank_or_rbrace_re.match(item):
+        while self.uplegal() and not "}" == item:# blank_or_rbrace_re.match(item):
             file += item
             item = self.next()
         self.next()
-        return file.split(",")
+        return [s.strip() for s in file.split(",")]
 
 
 class Tex_stream(Stream):
 
     defs = ({}, {})
-    defs_db = "x"
-    defs_db_file = "x.db"
     debug = False
+    basepath = ""
 
     def smart_tokenize(self, in_str, handle_inputs=False, isatletter=False):
         """Returns a list of tokens.
@@ -507,9 +534,12 @@ class Tex_stream(Stream):
                 cs.next()
                 name = cs.scan_escape_token(isatletter)
                 if "input" == name and handle_inputs:
-                    file = cs.scan_input_filename()
-                    to_add = self.process_if_newer(file)
-                    text.extend(to_add)
+                    try:
+                        file = cs.scan_input_filename()
+                        to_add = self.process_if_newer(file)
+                        text.extend(to_add)
+                    except:
+                        pass
                 elif "usepackage" == name:
                     while cs.uplegal() and blank_re.match(cs.item):
                         cs.next()
@@ -519,7 +549,6 @@ class Tex_stream(Stream):
                         cs.next()
                         continue
                     files = cs.scan_package_filenames()
-                    print(files)
                     i = 0
                     while i < len(files):  # process private packages
                         file = files[i]
@@ -527,7 +556,6 @@ class Tex_stream(Stream):
                         if p < 0 or not len(file) - len("-private") == p:
                             i += 1
                             continue
-                        defs_db_file = file+".db"
                         self.add_defs(file)
                         del files[i:(i+1)]
                     if files: # non-private packages left
@@ -538,8 +566,7 @@ class Tex_stream(Stream):
                         # scan defs if non-private package is in template
                         # TODO: how to parse \usepackage[review]{ACL2024}
                         for file in files:
-                            if os.path.exists(file+'.sty'):
-                                defs_db_file = file+".db"
+                            if os.path.exists(self.basepath + file+'.sty'):
                                 self.add_defs(file)
 
                 else:
@@ -582,8 +609,8 @@ class Tex_stream(Stream):
                 group = self.scan_group()
                 file = detokenize(group.val)
                 clean_file = "%s-clean.tex" % (file)
-                print("Reading file %s" % (clean_file))
-                fp = open(clean_file,"r")
+                # print("Reading file %s" % (clean_file))
+                fp = open(self.basepath + clean_file,"r")
                 content = fp.read()
                 fp.close()
                 out += content
@@ -749,7 +776,6 @@ class Tex_stream(Stream):
         item = self.item
         if not 7 < len(self.data):
             raise Error("Environment definition is illegal.")
-        pos = 0
 
         if not item.type in [esc_symb_ty, esc_str_ty]:
             raise Error("Env. definition does not begin with control sequence:"+
@@ -785,12 +811,18 @@ class Tex_stream(Stream):
         while self.uplegal():
             if (esc_str_ty == self.item.type
                 and self.item.val in ["newcommand", "renewcommand"]):
-                command_def = self.scan_command_def()
-                command_defs[command_def.name] = command_def
+                try:
+                    command_def = self.scan_command_def()
+                    command_defs[command_def.name] = command_def
+                except:
+                    pass
             elif (esc_str_ty == self.item.type and self.item.val
                   in ["newenvironment", "renewenvironment"]):
-                env_def = self.scan_env_def()
-                env_defs[env_def.name] = env_def
+                try:
+                    env_def = self.scan_env_def()
+                    env_defs[env_def.name] = env_def
+                except:
+                    pass
             else:
                 self.next()
 
@@ -897,54 +929,36 @@ class Tex_stream(Stream):
                 body.extend(self.data[old_pos : self.pos])
         return Env_instance(env_def.name, args, body)
 
+
     # Definitions
-
-    def restore_defs(self):
-        if os.path.isfile(self.defs_db_file):
-            print("Using defs db %s" % (self.defs_db_file))
-            db_h = shelve.open(self.defs_db)
-            self.defs = db_h["defs"]
-            db_h.close()
-
-    def save_defs(self):
-        db_h = shelve.open(self.defs_db)
-        if "defs" in db_h:
-            del db_h["defs"]
-        db_h["defs"] = self.defs
-        db_h.close()
-
     def add_defs(self, defs_file):
         defs_file_compl = defs_file + ".sty"
-        if not os.path.isfile(defs_file_compl):
+        if not os.path.isfile(self.basepath + defs_file_compl):
             raise Error("%s does not exist" % (defs_file_compl))
 
-        defs_db_file = self.defs_db_file
-        if newer(defs_db_file, defs_file_compl):
-            print("Using defs db %s for %s" % (defs_db_file, defs_file))
-        else:
-            defs_fp = open(defs_file_compl, "r")
-            defs_str = defs_fp.read()
-            defs_fp.close()
-            ds = Tex_stream()
-            ds.defs = self.defs
-            defs_text = ds.smart_tokenize(defs_str,isatletter=True)
-            # changing ds.defs will change self.defs
-            if self.debug:
-                defs_seen_file = "%s-seen.sty" % (defs_file)
-                defs_seen_fp = open(defs_seen_file, "w")
-                out = detokenize(defs_text,isatletter=True)
-                defs_seen_fp.write(out)
-                defs_seen_fp.close()
-            ds.scan_defs()
-            if self.debug:
-                out = ""
-                command_defs, env_defs = self.defs
-                for def_name in command_defs.keys():
-                    out += command_defs[def_name].show() + "\n"
-                for def_name in env_defs.keys():
-                    out += env_defs[def_name].show() +"\n"
-                print("Definitions after reading %s:" % (defs_file))
-                print(out)
+        defs_fp = open(self.basepath + defs_file_compl, "r")
+        defs_str = defs_fp.read()
+        defs_fp.close()
+        ds = Tex_stream()
+        ds.defs = self.defs
+        defs_text = ds.smart_tokenize(defs_str,isatletter=True)
+        # changing ds.defs will change self.defs
+        if self.debug:
+            defs_seen_file = "%s-seen.sty" % (defs_file)
+            defs_seen_fp = open(self.basepath + defs_seen_file, "w")
+            out = detokenize(defs_text,isatletter=True)
+            defs_seen_fp.write(out)
+            defs_seen_fp.close()
+        ds.scan_defs()
+        if self.debug:
+            out = ""
+            command_defs, env_defs = self.defs
+            for def_name in command_defs.keys():
+                out += command_defs[def_name].show() + "\n"
+            for def_name in env_defs.keys():
+                out += env_defs[def_name].show() +"\n"
+            print("Definitions after reading %s:" % (defs_file))
+            # print(out)
 
     # Applying definitions, recursively
     # (maybe not quite in Knuth order, so avoid tricks!)    
@@ -1000,6 +1014,7 @@ class Tex_stream(Stream):
     def apply_all_recur(self, data, report=False):
         ts = Tex_stream(data)
         ts.defs = self.defs
+        ts.in_document = self.in_document
         command_defs, env_defs = self.defs
         out = []
         progress_step = 10000
@@ -1010,10 +1025,11 @@ class Tex_stream(Stream):
         prev_item = None
         pprev_item = None
         while ts.uplegal():
-            pprev_item = prev_item
-            prev_item = item
+            if item and not item.val.isspace():
+                pprev_item = prev_item
+                prev_item = item
             item = ts.item
-            print(ts.item.type, ts.item.val)
+            # print(ts.item.type, ts.item.val)
             if self.pos > progress:
                 if report:
                     print(self.pos)
@@ -1025,7 +1041,9 @@ class Tex_stream(Stream):
             if 1 == ts.test_env_boundary(ts.item):
                 old_pos = ts.pos
                 env_name = ts.scan_env_begin()
-                if env_name not in env_defs:
+                if env_name == 'document':
+                    ts.in_document = True
+                if env_name not in env_defs or not ts.in_document:
                     out.extend(ts.data[old_pos : ts.pos])
                     continue
                 else:
@@ -1033,15 +1051,30 @@ class Tex_stream(Stream):
                     env_instance = ts.scan_env_rest(env_def)
                     result = ts.apply_env_recur(env_instance)
                     out.extend(result)
-            elif ts.item.val not in command_defs:
+            elif -1 == ts.test_env_boundary(ts.item):
+                old_pos = ts.pos
+                env_name = ts.scan_env_end()
+                if env_name == 'document':
+                    ts.in_document = False
+                out.extend(ts.data[old_pos : ts.pos])
+                continue
+            elif ts.item.val not in command_defs or not ts.in_document:
                 out.append(ts.item)
                 ts.next()
                 continue
             elif not pprev_item is None and pprev_item.type==2 and prev_item.type==0 \
                 and pprev_item.val in {"newcommand", "renewcommand", "newenvironment", \
-                                        "renewenvironment"} and prev_item.val=="{":
+                                       "renewenvironment"} and prev_item.val=="{":
                     # do not replace macro within \newcommand
                     out.append(ts.item)
+                    ts.next()
+                    continue
+            elif not prev_item is None and prev_item.type==2 and \
+                prev_item.val in {"newcommand", "renewcommand", "newenvironment", \
+                                  "renewenvironment"} and item.type==2:
+                    out.append(Token(0, "{"))
+                    out.append(ts.item)
+                    out.append(Token(0, "}"))
                     ts.next()
                     continue
             else:
@@ -1059,11 +1092,12 @@ class Tex_stream(Stream):
         """
         file = cut_extension(file, ".tex")
         source_file = "%s.tex" % (file)
-        print("File %s [" % (source_file))
-        source_fp = open(source_file, "r")
+        # print("File %s [" % (source_file))
+        source_fp = open(self.basepath + source_file, "r")
         text_str = source_fp.read()
         source_fp.close()
-
+        text_str = remove_mismatched_braces(text_str)
+        
         tokens = self.smart_tokenize(text_str, handle_inputs=True)
         # print([(t.type, t.val) for t in tokens])
         if not self.data:
@@ -1072,20 +1106,21 @@ class Tex_stream(Stream):
 
         if self.debug:
             source_seen_fname = "%s-seen.tex" % (file)
-            source_seen_fp = open(source_seen_fname, "w")
+            source_seen_fp = open(self.basepath + source_seen_fname, "w")
             source_seen_fp.write(detokenize(self.data))
             source_seen_fp.close()
-
-        self.data = self.apply_all_recur(self.data, report=True)
+        self.filter_defs()
+        self.in_document = False
+        self.data = self.apply_all_recur(self.data, report=False)
 
         result_fname = "%s-clean.tex" % (file)
-        print("Writing %s [" % (result_fname))
-        result_fp = open(result_fname, "w")
+        # print("Writing %s [" % (result_fname))
+        result_fp = open(self.basepath + result_fname, "w")
         tex_string = self.smart_detokenize()
         result_fp.write(tex_string)
         result_fp.close()
-        print("] file %s" % (result_fname))
-        print("] file %s" % (source_file))
+        # print("] file %s" % (result_fname))
+        # print("] file %s" % (source_file))
         return tex_string
 
     def process_if_newer(self, file):
@@ -1097,74 +1132,60 @@ class Tex_stream(Stream):
         file = cut_extension(file, ".tex")
         tex_file = file+".tex"
         clean_tex_file = file+"-clean.tex"
-        if newer(clean_tex_file, tex_file):
-            print("Using %s." % (clean_tex_file))
+        if newer(self.basepath + clean_tex_file, self.basepath + tex_file):
+            pass
+            # print("Using %s." % (clean_tex_file))
         else:
             ts = Tex_stream()
             ts.data = []
             ts.defs = self.defs
+            ts.basepath = self.basepath
             ts.process_file(file)
         to_add = "\\input{%s}" % (file)
         return tokenize(to_add)
+    
+    def filter_defs(self):
+        latex_context = LatexContextDb()
+        for cat, catspecs in specs:
+            latex_context.add_context_category(
+                cat,
+                macros=catspecs['macros'],
+                environments=catspecs['environments'],
+                specials=catspecs['specials']
+            )
+
+        command_defs, env_defs = self.defs
+        filtered_cmd, filtered_env = {}, {}
+        for _cmd, _def in command_defs.items():
+            if not '@' in _def.show() and latex_context.get_macro_spec(_cmd) is None:
+                if _cmd not in [c.val for c in _def.body if c.type==2]:
+                    filtered_cmd[_cmd] = _def
+        for _cmd, _env in env_defs.items():
+            if not '@' in _env.show() and latex_context.get_environment_spec(_cmd) is None:
+                filtered_env[_cmd] = _env
+        self.defs = (filtered_cmd, filtered_env)
     
     def process_str(self, tex_string):
         tokens = self.smart_tokenize(tex_string, handle_inputs=True)
         if not self.data:
             raise Error("Empty tokenization result.")
+        tex_string_with_input = self.smart_detokenize()
+        self.smart_tokenize(tex_string_with_input, handle_inputs=False)
+        
         self.reset()
         self.scan_defs()
         self.reset()
+        self.filter_defs()
 
-        self.data = self.apply_all_recur(self.data, report=True)
+        self.in_document = False
+        self.data = self.apply_all_recur(self.data, report=False)
 
         return self.smart_detokenize()
     
 
-def de_macro(tex_string):
-    root = 'root'
-    defs_root = "%s" % (root)
-    defs_db = defs_root
-    defs_db_file = defs_root+".db"
-
+def de_macro(tex_string, basepath):
     ts = Tex_stream()
-    ts.defs_db = defs_db
-    ts.defs_db_file = defs_db_file
-    ts.restore_defs()
+    ts.basepath = basepath + "/"
     tex_string = ts.process_str(tex_string)
-    print("(Re)creating defs db %s" % (defs_db))
-    ts.save_defs()
+
     return tex_string
-
-
-def main():
-    long_optlist = ["debug","defs="]
-    options, restargs = getopt_map("x", long_optlist)
-
-    debug = False
-    if "--debug" in options:
-        debug = True
-
-    root = restargs[0]
-    root = cut_extension(root, ".tex")
-    if "--defs" in options:
-        defs_root = options["--defs"]
-    else: 
-        defs_root = "%s" % (root)
-    defs_db = defs_root
-    defs_db_file = defs_root+".db"
-
-    ts = Tex_stream()
-    ts.defs_db = defs_db
-    ts.defs_db_file = defs_db_file
-    ts.debug = debug
-
-    ts.restore_defs()
-    for root in restargs:
-        ts.process_file(root)
-
-    print("(Re)creating defs db %s" % (defs_db))
-    ts.save_defs()
-
-
-if __name__ == "__main__":
-    main()

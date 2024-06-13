@@ -77,14 +77,16 @@ specs = [
 
             std_macro('hspace', '*{'),
             std_macro('vspace', '*{'),
+            std_macro('vskip', False, 0),
 
             MacroSpec('mbox',
                       args_parser=MacroStandardArgsParser('{', args_math_mode=[False])),
 
             # \title, \author, \date
             MacroSpec('title', '[{'),
-            MacroSpec('author', '[{'),
+            MacroSpec('author', '*[{'),
             MacroSpec('date', '{'),
+            MacroSpec('thanks', '{'),
 
             # (Note: single backslash) end of line with optional no-break ('*') and
             # additional vertical spacing, e.g. \\*[2mm]
@@ -158,7 +160,7 @@ specs = [
              ################################################################
             std_macro('footnote', '[{'),
             std_macro('href', False, 2),
-            std_macro('abstract', False, 1),
+            std_macro('abstract', '[{'),
             std_macro('caption', '[{'),
             std_macro('footnotetext', '[{'),
             std_macro('footnotemark', '[{'),
@@ -168,6 +170,7 @@ specs = [
             std_macro('aistatstitle', False, 1),
             std_macro('aistatsauthor', False, 1),
             std_macro('aistatsaddress', False, 1),
+
 
             std_macro('keywords', False, 1),
 
@@ -255,6 +258,9 @@ specs = [
             MacroSpec('fcolorbox', '[{[{{'),
             MacroSpec('boxframe', '{{{'),
             MacroSpec('rowcolors', '*[{{{'),
+
+            # ieee
+            MacroSpec('ccsdesc', '[{')
         ],
         'environments': [
             # NOTE: Starred variants (as in \begin{equation*}) are not specified as
@@ -291,6 +297,7 @@ specs = [
             std_environment('equation*', None, is_math_mode=True),
             std_environment('eqnarray', None, is_math_mode=True),
             std_environment('eqnarray*', None, is_math_mode=True),
+            std_environment('displaymath',  None, is_math_mode=True),
         
             # AMS environments
             std_environment('align', None, is_math_mode=True),
@@ -304,6 +311,19 @@ specs = [
             std_environment('alignat', '{', is_math_mode=True),
             std_environment('alignat*', '{', is_math_mode=True),
             std_environment('split', None, is_math_mode=True),
+            std_environment('subequations', None, is_math_mode=True),
+            std_environment('matrix', None, is_math_mode=True),
+            std_environment('smallmatrix', None, is_math_mode=True),
+            std_environment('vmatrix', None, is_math_mode=True),
+            std_environment('bmatrix', None, is_math_mode=True),
+            std_environment('pmatrix', None, is_math_mode=True),
+            std_environment('Vmatrix', None, is_math_mode=True),
+            std_environment('Bmatrix', None, is_math_mode=True),
+            std_environment('cases', None, is_math_mode=True),
+
+            # Math from latex-workshop
+            # https://github.com/James-Yu/LaTeX-Workshop/blob/d82ba4951aa606185d12fb6e02ef871bb330af3d/src/parse/find.ts#L108
+            
         ],
         'specials': [
             std_specials('&'),

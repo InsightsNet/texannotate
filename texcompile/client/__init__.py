@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from sys import platform
 from typing import Dict, List
+import time
 
 import requests
 from typing_extensions import Literal
@@ -58,7 +59,7 @@ class Result:
         )
 
 
-def send_request(sources_dir, host, port, autotex_or_latexml, main_tex='') -> dict:
+def send_request(sources_dir, host, port, autotex_or_latexml, main_tex=' ') -> dict:
     with tempfile.TemporaryDirectory() as temp_dir:
         # Prepare a gzipped tarball file containing the sources.
         archive_filename = os.path.join(temp_dir, "archive.tgz")
@@ -75,6 +76,8 @@ def send_request(sources_dir, host, port, autotex_or_latexml, main_tex='') -> di
             endpoint = f"{host}:{port}/"
             try:
                 response = requests.post(endpoint, files=files, data=data)
+                while response.status_code == 104:
+                    response = requests.post(endpoint, files=files, data=data)
             except requests.exceptions.RequestException as e:
                 raise ServerConnectionException(
                     f"Request to server {endpoint} failed.", e
@@ -143,14 +146,6 @@ def compile_pdf_return_bytes(
     if not (data["success"] or data["has_output"]):
         raise CompilationException(data["log"])
 
-    output_files: List[OutputFile] = []
-    result = Result(
-        success=data["success"],
-        main_tex_files=data["main_tex_files"],
-        log=data["log"],
-        output_files=output_files,
-    )
-
     for i, output in enumerate(data["output"]):
         type_ = output["type"]
         if type_ == 'pdf':
@@ -166,17 +161,18 @@ def compile_html_return_text(
     sources_dir: Path,
     host: str = "http://127.0.0.1",
     port: int = 8000,
-) -> Result:
+) -> str:
     data = send_request(sources_dir, host, port, "latexml", main_tex)
 
     # Check success.
     if not (data["success"] or data["has_output"]):
         raise CompilationException(data["log"])
 
-    output_files: List[OutputFile] = []
-    result = Result(
-        success=data["success"],
-        main_tex_files=data["main_tex_files"],
-        log=data["log"],
-        output_files=output_files,
-    )
+    for i, output in enumerate(data["output"]):
+        type_ = output["type"]
+        if type_ == 'html':
+            base64_contents = output["contents"]
+            contents = base64.b64decode(base64_contents).decode("utf-8")
+            return contents
+
+    raise CompilationException('No pdf output.')

@@ -185,19 +185,22 @@ def parse_latexml_children(html: BeautifulSoup, parent: Element) -> None:
                         parent.append(TextElement(content=potential_num))
                         resolved = True
             if not resolved:
-                raise ValueError("missing reference detected")
+                pass
+                # raise ValueError("missing reference detected")
         elif sv.match(
             ".ltx_bibblock, .ltx_role_author, .ltx_contact, .ltx_role_email, .ltx_role_affiliation",
             child,
         ):
-            parse_latexml_children(child, parent.append(SpanElement()))
-            parent.append(TextElement(content="\n"))
+            pass
+            # parse_latexml_children(child, parent.append(SpanElement()))
+            # parent.append(TextElement(content="\n"))
         elif sv.match(
             ".ltx_authors, .ltx_personname, .ltx_role_creation.ltx_date, .ltx_engrafo_author_notes, .ltx_author_notes, .ltx_date.ltx_role_creation",
             child,
         ):
-            parse_latexml_children(child, parent.append(Paragraph()))
-            parent.append(TextElement(content="\n"))
+            pass
+            #parse_latexml_children(child, parent.append(Paragraph()))
+            #parent.append(TextElement(content="\n"))
         elif sv.match(
             ".ltx_author_before, .ltx_role_pubyear, .ltx_role_pagerange", child
         ):

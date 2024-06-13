@@ -27,6 +27,9 @@ def parse_snippet(d, spec, latex_context:LatexContextDb):
             continue
         macro = prog.match(k)
 
+        if not macro:
+            continue
+        
         assert macro.span()[0] == 0, k
         match_str = k[:macro.span()[1]]
         arguments = k[macro.span()[1]:].replace('}', '').replace(']', '').replace('>', '')
@@ -143,12 +146,14 @@ def find_package(filename, basepath, latex_context):
             if node.macroname == 'usepackage':
                 packages = node.nodeargs[0].nodelist[0].chars
                 for package in packages.split(','):
-                    if os.path.isfile(os.path.join(basepath, package+'.sty')): # import user package
-                        pkg_def, pkg_context = parse_userdefined_package(package+'.sty', basepath, latex_context)
+                    # split doesn't really work
+                    package_name = package.strip()
+                    if os.path.isfile(os.path.join(basepath, package_name+'.sty')): # import user package
+                        pkg_def, pkg_context = parse_userdefined_package(package_name+'.sty', basepath, latex_context)
                         append += pkg_def
                         pkg_new_context.append(pkg_context)
                     else:
-                        append += import_package(package, latex_context)
+                        append += import_package(package_name, latex_context)
             if node.macroname == 'documentclass':
                 class_s = node.nodeargs[0].nodelist[0].chars
                 for class_ in class_s.split(','):

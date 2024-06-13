@@ -1,5 +1,6 @@
 import colorsys
 import os
+import re
 import pickle
 
 from spacy.lang.en import English
@@ -7,6 +8,9 @@ from spacy.tokenizer import Tokenizer
 from texannotate.clean_latex import read_preamble
 from texcompile.client import compile_html_return_text
 from texannotate.parse_latexml import standardize_tex2md
+from texannotate.parse_latexml.markdown import format_document
+from texannotate.parse_latexml.latexml_parser import parse_latexml
+from texannotate.parse_latexml.document import Section, TextElement
 
 
 class TOCNode:
@@ -130,6 +134,8 @@ class ColorAnnotation:
         self.defs = None
         self.td = None
         self.port = None
+        self._standardize_tex_queue = {}
+        self.documentclass = None
 
         nlp = English()
         self.tokenizer = Tokenizer(nlp.vocab)
@@ -179,16 +185,32 @@ class ColorAnnotation:
         self.port = port
         self.defs = read_preamble(filename, td)
 
-    def standardize_tex(self, tex_string):
+    def standardize_tex_queue(self, tex_string, hex_string):
+        tex_string = re.sub(r'\\LaTeXRainbowSpecial\{[^}]*\}', '', tex_string)
+        self._standardize_tex_queue[hex_string] = tex_string
+    
+    def run_standardize_tex(self):
         if self.defs is None:
             raise "Missing main document definitions."
         # make tex file tobe convert to tex
-        latexml_file_name = str(self.current_token_number)+'.tex'
+        latexml_file_name = 'tobestd.tex'
+        tex_string = ''
+        for k, v in self._standardize_tex_queue.items():
+            tex_string += "\n\\section{"+k[1:]+"}\n"
+            tex_string += v
         with open(os.path.join(self.td, latexml_file_name), 'w') as f:
             f.write(self.defs+tex_string+"\n\\end{document}")
         html_text = compile_html_return_text(main_tex=latexml_file_name, sources_dir=self.td, port=self.port)
-        standard_tex, _ = standardize_tex2md(html_text)
-        return standard_tex
+        doc = parse_latexml(html_text)
+        for element in doc.children:
+            if isinstance(element, Section):
+                if element.header:
+                    out, fig = format_document(element, keep_refs=True)
+                    child = element.header.children[-1]
+                    while not isinstance(child, TextElement): child = child.children[-1]
+                    k = '#'+child.content
+                    if k in self.color_dict:
+                        self.color_dict[k]["tex"] = out
 
     def add_annotation_RGB(self, tex_string, annotate):
         if self.black:
@@ -198,8 +220,8 @@ class ColorAnnotation:
             while hex_string in self.color_dict:
                 RGB_tuple, hex_string = self._get_next_RGB()
             if annotate in {"Equation", "Table"} and not self.black:
-                std_tex_string = self.standardize_tex(tex_string)
-                if not std_tex_string:
+                std_tex_string = self.standardize_tex_queue(tex_string, hex_string)
+                if std_tex_string is None:
                     std_tex_string = tex_string
             else:
                 std_tex_string = tex_string

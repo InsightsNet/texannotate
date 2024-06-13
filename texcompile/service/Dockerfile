@@ -1,4 +1,4 @@
-FROM texlive/texlive:latest
+FROM texlive/texlive:TL2022-historic-src
 
 RUN apt-get update
 
@@ -74,7 +74,7 @@ RUN apt-get install -qy \
 
 # LaTeXML v0.8.8 cannot running on perl-5.22.4, use apt's
 # which is also v0.8.8
-RUN apt-get install -y latexml
+RUN cpan LaTeXML
 
 # Enable imagemagick policy permissions for work with arXiv PDF/EPS files
 RUN perl -pi.bak -e 's/rights="none" pattern="([XE]?PS\d?|PDF)"/rights="read|write" pattern="$1"/g' /etc/ImageMagick-6/policy.xml
