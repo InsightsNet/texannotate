@@ -21,23 +21,25 @@ prog = re.compile(r"[\w\_:]+")
 def parse_snippet(d, spec, latex_context:LatexContextDb):
     ret = []
     macro_dict = {}
-    for k in d[spec]:
-        if k.endswith('(') or k.endswith('[') or k.endswith('{') or k == '<' or k == '>': 
-            macro_dict[k] = ''
-            continue
-        macro = prog.match(k)
+    if spec in d:
+        for k in d[spec]:
+            k = k['name']
+            if k.endswith('(') or k.endswith('[') or k.endswith('{') or k == '<' or k == '>':
+                macro_dict[k] = ''
+                continue
+            macro = prog.match(k)
 
-        if not macro:
-            continue
-        
-        assert macro.span()[0] == 0, k
-        match_str = k[:macro.span()[1]]
-        arguments = k[macro.span()[1]:].replace('}', '').replace(']', '').replace('>', '')
-        if match_str in macro_dict:
-            if len(arguments) > len(macro_dict[match_str]):
+            if not macro:
+                continue
+
+            assert macro.span()[0] == 0, k
+            match_str = k[:macro.span()[1]]
+            arguments = k[macro.span()[1]:].replace('}', '').replace(']', '').replace('>', '')
+            if match_str in macro_dict:
+                if len(arguments) > len(macro_dict[match_str]):
+                    macro_dict[match_str] = arguments
+            else:
                 macro_dict[match_str] = arguments
-        else:
-            macro_dict[match_str] = arguments
 
     accept = {'{', '[', '*'}
     for k,v in macro_dict.items():
@@ -94,9 +96,10 @@ def import_package(package_name, latex_context, is_class=False, added = set()):
         with open('data/packages/'+package_name+'.json') as f:
             d = json.load(f)
         added.add(package_name) # Solve the infinite recursion
-        for dependency in d['includes']:
-            if not dependency in added:
-                ret += import_package(dependency, latex_context, added = added)
+        if 'includes' in d:
+            for dependency in d['includes']:
+                if not dependency in added:
+                    ret += import_package(dependency, latex_context, added = added)
         
         ret.append((
             'package_'+package_name, {
