@@ -251,6 +251,16 @@ def main():
         action='store_true',
         help='Print structure tree to console'
     )
+    parser.add_argument(
+        '--pdf',
+        type=Path,
+        help='PDF file for TD cell extraction (optional)'
+    )
+    parser.add_argument(
+        '--extract-cells',
+        action='store_true',
+        help='Extract TD cells from PDF (requires --pdf)'
+    )
     
     args = parser.parse_args()
     
@@ -263,6 +273,23 @@ def main():
     # Build tree
     builder = StructureTreeBuilder(args.input)
     builder.load_events()
+    
+    # Extract cells from PDF if requested
+    if args.extract_cells:
+        if not args.pdf:
+            print("Error: --extract-cells requires --pdf argument")
+            return
+        try:
+            from extract_cells import extract_table_cells_from_pdf
+            print(f"\n=== Extracting TD cells from {args.pdf} ===")
+            builder.events = extract_table_cells_from_pdf(str(args.pdf), builder.events)
+            print(f"TD extraction complete")
+        except ImportError:
+            print("Error: pdfplumber not installed. Run: pip install -r requirements.txt")
+            return
+        except Exception as e:
+            print(f"Warning: TD extraction failed: {e}")
+    
     builder.build_tree()
     
     # Print statistics

@@ -181,7 +181,7 @@ Optional MathML track (LuaLaTeX):
 | | Paragraphs (P) | ✅ | Uses kernel paragraph hooks (`para/begin`, `para/end`) |
 | **Tables** | Table Container | ✅ | `tabular`, `tabularx` |
 | | Rows (TR) | ✅ | Detects `\\` |
-| | Cells (TD) | ❌ | Difficult to hook `&` reliably |
+| | Cells (TD) | ✅ (optional) | Python-side extraction from PDF (Difficult to hook `&` reliably from LaTeX-side) |
 | **Math** | Display Formulas | ✅ | `equation`, `align`, `gather` |
 | | Inline Formulas | ✅ (LuaLaTeX) | `$...$` captured by `lpsb-luamath` |
 | | MathML | ✅ (LuaLaTeX) | via `luamml` in `lpsb-texlive:latest` |
@@ -193,9 +193,10 @@ Optional MathML track (LuaLaTeX):
 ### Known Limitations
 
 1. **Inline math in PDFLaTeX**: `$...$` is not hooked in PDFLaTeX. Use the LuaLaTeX math pass.
-2. **Table cells**: we detect `TR`, but not individual `TD`.
-3. **Paragraphs**: paragraph detection is much more reliable with kernel hooks, but pathological macro-generated text can still bypass it.
-4. **Macros**: heavily customized document-level macros can bypass hooks.
+2. **Table cells (TD)**: Not extracted by default. Enable with `python3 solver.py --pdf file.pdf --extract-cells` (requires `pdfplumber`). Cells are detected via PDF text positioning. **Note**: Requires 2 compilation passes for accurate coordinates.
+3. **Structure Tree Depth**: Due to an event ordering issue in `lpsb.sty` (mismatched nested environments), the JSON structure tree may be deeper than expected (e.g. `Table` closing after `TR` closes). This affects the tree hierarchy but not the content.
+4. **Paragraphs**: paragraph detection is much more reliable with kernel hooks, but pathological macro-generated text can still bypass it.
+5. **Macros**: heavily customized document-level macros can bypass hooks.
 
 ---
 

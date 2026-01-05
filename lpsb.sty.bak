@@ -75,6 +75,12 @@
     \fi
 }
 
+% Write entry with current position
+\def\lpsbWriteEntryWithPos#1{%
+    \lpsb@savepos
+    \lpsbWriteEntry{#1, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}%
+}
+
 % ===================================================================
 % PDF 2.0 Role Mapping
 % ===================================================================
@@ -234,20 +240,20 @@
 \AtBeginEnvironment{tabular}{%
     \lpsbRowCount=0%
     \global\advance\lpsbRowCount by 1%
-    \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
+    \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage}}%
     \lpsbCellCount=0%
     % Hook \\\ to detect row ends
     \let\lpsb@origcr\\%
     \def\\{%
-        \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
+        \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage}}%
         \global\advance\lpsbRowCount by 1%
-        \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
+        \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage}}%
         \lpsbCellCount=0%
         \lpsb@origcr
     }%
 }
 \AtEndEnvironment{tabular}{%
-    \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
+    \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage}}%
 }
 
 % --- Inline Text Formatting ---
