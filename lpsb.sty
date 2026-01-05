@@ -35,8 +35,16 @@
 % Context-aware counters for cross-compilation alignment
 \newcount\lpsbSectionNum
 \lpsbSectionNum=0
-\newcount\lpsbMathInSection
-\lpsbMathInSection=0
+% NOTE:
+% - \lpsbSectionNum counts ALL headings (\section, \subsection, ...) and can diverge across engines.
+% - For cross-engine math alignment we use a separate, coarse context counter bumped only at top-level.
+\newcount\lpsbMathContextNum
+\lpsbMathContextNum=0
+% Separate per-context counters so display-math IDs are stable even if inline math differs.
+\newcount\lpsbDisplayMathInContext
+\lpsbDisplayMathInContext=0
+\newcount\lpsbInlineMathInContext
+\lpsbInlineMathInContext=0
 \newcount\lpsbDisplayMathCount
 \lpsbDisplayMathCount=0
 \newcount\lpsbInlineMathCount
@@ -147,11 +155,11 @@
 \newcommand{\lpsbHookMath}[1]{%  #1=env name
     \AtBeginEnvironment{#1}{%
         \global\advance\lpsbDisplayMathCount by 1%
-        \global\advance\lpsbMathInSection by 1%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "Formula", "event": "start", "env": "#1", "page": \thepage}}%
+        \global\advance\lpsbDisplayMathInContext by 1%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "start", "env": "#1", "page": \thepage}}%
     }%
     \AtEndEnvironment{#1}{%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "Formula", "event": "end", "page": \thepage}}%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "end", "page": \thepage}}%
     }%
 }
 \lpsbHookMath{equation}
@@ -301,27 +309,34 @@
     \let\lpsb@origclosemath\)
     \def\({%
         \global\advance\lpsbInlineMathCount by 1%
-        \global\advance\lpsbMathInSection by 1%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "InlineMath", "event": "start", "page": \thepage}}%
+        \global\advance\lpsbInlineMathInContext by 1%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext", "role": "InlineMath", "event": "start", "page": \thepage}}%
         \lpsb@origopenmath
     }%
     \def\){%
         \lpsb@origclosemath
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "InlineMath", "event": "end", "page": \thepage}}%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext", "role": "InlineMath", "event": "end", "page": \thepage}}%
     }%
-    % Section hook - increment section counter and reset math counter
+    % Heading hook
+    % - \lpsbSectionNum increments for every heading level (used for heading IDs).
+    % - \lpsbMathContextNum increments only for top-level headings (used for math IDs).
     \let\lpsb@origsect\@sect
     \def\@sect#1#2#3#4#5#6[#7]#8{%
-        % Increment section counter, reset per-section math counter
+        % Always increment heading counter (used for H-* IDs)
         \global\advance\lpsbSectionNum by 1%
-        \global\lpsbMathInSection=0%
-        % Sync with Lua if LuaTeX (for lpsb-math.lua alignment)
-        \ifLuaTeX
-            \directlua{%
-                if lpsb_math and lpsb_math.new_section then
-                    lpsb_math.new_section(tex.count["lpsbSectionNum"] or 0)
-                end
-            }%
+        % Only bump math context on top-level headings (chapter/section in most classes)
+        \ifnum#2<2\relax
+            \global\advance\lpsbMathContextNum by 1%
+            \global\lpsbDisplayMathInContext=0%
+            \global\lpsbInlineMathInContext=0%
+            % Sync with Lua if LuaTeX (for lpsb-math.lua alignment)
+            \ifLuaTeX
+                \directlua{%
+                    if lpsb_math and lpsb_math.new_section then
+                        lpsb_math.new_section(tex.count["lpsbMathContextNum"] or 0)
+                    end
+                }%
+            \fi
         \fi
         % #2 = level (0=chapter, 1=section, 2=subsection, etc)
         % #8 = title text

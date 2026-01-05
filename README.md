@@ -44,7 +44,23 @@ docker run --rm -v "$(pwd)":/workdir -w /workdir lpsb-texlive:latest \
   pdflatex -interaction=nonstopmode main.tex
 ```
 
-Output: `main.lpsb.json`
+Output: `main.lpsb.json` (Structure only)
+
+ ### Dual-Track Compilation (MathML Support)
+
+ To extract **MathML** and inline formulas (`$...$`), run a second pass with LuaLaTeX:
+
+ 1. **Pass 1 (Structure)**: Run PDFLaTeX as above.
+ 2. **Pass 2 (Math)**: Add `\usepackage{lpsb-luamath}` to your tex file (or inject it), then run:
+
+ ```bash
+ docker run --rm -v "$(pwd)":/workdir -w /workdir lpsb-texlive:latest \
+   lualatex -interaction=nonstopmode main.tex
+ ```
+
+ Output: `main.lpsb-math.json` (Math events with MathML)
+
+ > **Note**: The official batch scripts (`script/test_lua_batch.sh`) handle package injection automatically.
 
 ### Build a structure tree
 

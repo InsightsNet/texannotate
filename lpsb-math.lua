@@ -6,7 +6,8 @@ local M = {}
 
 -- State (synchronized with TeX via new_section())
 local section_num = 0
-local math_in_section = 0
+local display_in_section = 0
+local inline_in_section = 0
 local output_file = nil
 local first_entry = true
 
@@ -19,7 +20,8 @@ local warned_mml = false
 -- Called from TeX when section changes
 function M.new_section(num)
     section_num = num
-    math_in_section = 0
+    display_in_section = 0
+    inline_in_section = 0
     texio.write_nl("term and log", string.format("LPSB-Math: Section %d started", num))
 end
 
@@ -51,13 +53,19 @@ end
 
 -- Callback: intercept all math lists
 local function process_math(head, style, penalties)
-    math_in_section = math_in_section + 1
-    
-    local id = string.format("Sec-%d-Math-%d", section_num, math_in_section)
     local is_display = false
     -- LuaTeX can pass style as a string ("display") or numeric math style.
     if style == "display" or style == 0 or style == 1 then
         is_display = true
+    end
+
+    local id
+    if is_display then
+        display_in_section = display_in_section + 1
+        id = string.format("Sec-%d-Math-%d", section_num, display_in_section)
+    else
+        inline_in_section = inline_in_section + 1
+        id = string.format("Sec-%d-IMath-%d", section_num, inline_in_section)
     end
     
     -- Try MathML extraction (optional)
