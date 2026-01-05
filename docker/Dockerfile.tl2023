@@ -1,3 +1,14 @@
 # Dockerfile for TeX Live 2023
+#
+# TL2023 is frozen and does not include the (newer) luamml package in its tlnet-final.
+# To keep TL2023 compatibility while enabling `require("luamml-convert")`, we copy the
+# luamml runtime files from the TeXLive latest image into TL2023's texmf-local.
+
+FROM texlive/texlive:latest AS luamml_src
+
 FROM texlive/texlive:TL2023-historic
 WORKDIR /workdir
+
+RUN mkdir -p /usr/local/texlive/2023/texmf-local/tex/lualatex/luamml
+COPY --from=luamml_src /usr/local/texlive/2025/texmf-dist/tex/lualatex/luamml/ /usr/local/texlive/2023/texmf-local/tex/lualatex/luamml/
+RUN mktexlsr

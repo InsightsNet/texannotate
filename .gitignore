@@ -59,3 +59,5 @@ test_output/
 test_sty.*
 
 devlog*
+test*/
+data/

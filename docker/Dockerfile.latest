@@ -1,3 +1,7 @@
 # Dockerfile for TeX Live Latest (2025)
 FROM texlive/texlive:latest
 WORKDIR /workdir
+
+# Install luamml (provides `luamml-convert` Lua module)
+# Keep it minimal; avoid full TeXLive updates in CI unless needed.
+RUN tlmgr install luamml

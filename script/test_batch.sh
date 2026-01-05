@@ -15,8 +15,13 @@ echo "=========================================="
 # Helper function to inject package
 inject_lpsb() {
     local file="$1"
-    # Insert \usepackage{lpsb} after \documentclass
-    sed -i '/\\documentclass/a \\\usepackage{lpsb}' "$file"
+    # Insert \usepackage{lpsb} after the first \documentclass (avoid pre-class injection)
+    if grep -qE '^[[:space:]]*\\usepackage(\[[^]]*\])?\{lpsb\}' "$file" 2>/dev/null; then
+        return 0
+    fi
+    # NOTE: Don't use {...} blocks here: "a\..." consumes the rest of the sed script line.
+    # For sed's "a\" text, backslashes are escape characters; use \\\\ to get a literal "\" in output.
+    sed -i '/^[[:space:]]*\\documentclass/a\\\\usepackage{lpsb}' "$file"
 }
 
 for tarball in "$INPUT_DIR"/*.tar.gz; do
@@ -61,18 +66,28 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
     
     # Determine Docker Image Version
     # Default to latest
-    DOCKER_IMAGE="texlive/texlive:latest"
+    # Prefer local image with extra packages (luamml, etc.) if present.
+    DOCKER_IMAGE="lpsb-texlive:latest"
+    if ! docker image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
+        DOCKER_IMAGE="texlive/texlive:latest"
+    fi
     if [ -f "$workdir/00README.json" ]; then
         # Extract version using grep and shell processing to avoid heavy jq dependency
         tl_version=$(grep -o '"texlive_version"[[:space:]]*:[[:space:]]*"[^"]*"' "$workdir/00README.json" | cut -d'"' -f4)
         if [ "$tl_version" == "2023" ]; then
             # Tag for historic releases is usually TL<YEAR>-historic
-            DOCKER_IMAGE="texlive/texlive:TL2023-historic"
+            DOCKER_IMAGE="lpsb-texlive:TL2023-historic"
+            if ! docker image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
+                DOCKER_IMAGE="texlive/texlive:TL2023-historic"
+            fi
             echo "  Detected TeX Live 2023 (Historic)"
         elif [ "$tl_version" == "2024" ]; then
             # 2024 is current/recent, might correspond to latest or exist as numeric tag
             # Assume TL2024-historic if available, or just latest which is functionally 2024/2025
-            DOCKER_IMAGE="texlive/texlive:latest"
+            DOCKER_IMAGE="lpsb-texlive:latest"
+            if ! docker image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
+                DOCKER_IMAGE="texlive/texlive:latest"
+            fi
             echo "  Detected TeX Live 2024 (Using Latest)"
         fi
     fi
@@ -81,14 +96,13 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
     cd "$workdir"
     # Use the original filename base as jobname so aux/bbl names match
     jobname="$main_base"
+
+    # Inject LPSB in-document (after \documentclass)
+    inject_lpsb "$workdir/$main_tex"
     
     # Pass 1
-    # Use command line injection to load lpsb before the main file.
-    # This keeps main.tex pristine (no sed) so biblatex/biber checksums match the pre-compiled .bbl.
-    # \RequirePackage works before \documentclass for this purpose.
     docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
-        pdflatex -interaction=nonstopmode -jobname="$jobname" \
-        "\RequirePackage{lpsb}\input{$main_tex}" \
+        pdflatex -interaction=nonstopmode -jobname="$jobname" "$main_tex" \
         > compile1.log 2>&1
     
     # Handle Bibliography
@@ -114,8 +128,7 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
     # Pass 2 & 3
     for pass in 2 3; do
         docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
-            pdflatex -interaction=nonstopmode -jobname="$jobname" \
-            "\RequirePackage{lpsb}\input{$main_tex}" \
+            pdflatex -interaction=nonstopmode -jobname="$jobname" "$main_tex" \
             > "compile$pass.log" 2>&1
     done
     
@@ -128,16 +141,16 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
         grep -m1 "^!" "$workdir/compile1.log" 2>/dev/null
     fi
     
-    if [ -f "$workdir/$jobname.lpsb.jsonl" ]; then
+    if [ -f "$workdir/$jobname.lpsb.json" ]; then
+        line_count=$(wc -l < "$workdir/$jobname.lpsb.json")
+        math_count=$(grep -c '"role": "Formula"' "$workdir/$jobname.lpsb.json" 2>/dev/null || echo 0)
+        echo "  JSON: $line_count lines, $math_count Formula events"
+    elif [ -f "$workdir/$jobname.lpsb.jsonl" ]; then
         probe_count=$(wc -l < "$workdir/$jobname.lpsb.jsonl")
         env_count=$(grep -c '"type": "env-start"' "$workdir/$jobname.lpsb.jsonl" 2>/dev/null || echo 0)
         echo "  JSONL: $probe_count probes, $env_count environments"
-        
-        # List unique environment types
-        envs=$(grep '"type": "env-start"' "$workdir/$jobname.lpsb.jsonl" 2>/dev/null | sed 's/.*"name": "\([^\"]*\)".*/\1/' | sort -u | tr '\n' ',' | sed 's/,$//')
-        echo "  Envs: $envs"
     else
-        echo "  JSONL: NOT GENERATED"
+        echo "  JSON: NOT GENERATED"
     fi
     
     cd - > /dev/null

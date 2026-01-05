@@ -5,11 +5,18 @@
 % USAGE: \usepackage{lpsb} (after \documentclass)
 % ===================================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{lpsb}[2026/01/05 v3.0 LPSB Package - PDF 2.0 Structure Elements]
+\ProvidesPackage{lpsb}[2026/01/05 v3.0 LPSB Package - PDF 2.0 Structure Elements]% Engine detection and primitive compatibility
+\RequirePackage{iftex}
+\ifLuaTeX
+    \let\lpsb@savepos\savepos
+    \let\lpsb@lastxpos\lastxpos
+    \let\lpsb@lastypos\lastypos
+\else
+    \let\lpsb@savepos\pdfsavepos
+    \let\lpsb@lastxpos\pdflastxpos
+    \let\lpsb@lastypos\pdflastypos
+\fi
 
-\RequirePackage{etoolbox}
-\RequirePackage{atbegshi}
-\RequirePackage{zref-savepos}
 
 % ===================================================================
 % Counters and State
@@ -22,6 +29,18 @@
 \lpsbParaCount=0
 \newcount\lpsbItemCount
 \lpsbItemCount=0
+\newcount\lpsbCaptionCount
+\lpsbCaptionCount=0
+
+% Context-aware counters for cross-compilation alignment
+\newcount\lpsbSectionNum
+\lpsbSectionNum=0
+\newcount\lpsbMathInSection
+\lpsbMathInSection=0
+\newcount\lpsbDisplayMathCount
+\lpsbDisplayMathCount=0
+\newcount\lpsbInlineMathCount
+\lpsbInlineMathCount=0
 
 % Flags
 \newif\iflpsbActive
@@ -61,8 +80,8 @@
 % ===================================================================
 \def\lpsbProbe#1#2#3{%
     \global\advance\lpsbProbeCount by 1%
-    \pdfsavepos
-    \lpsbWriteEntry{{"id": "#1", "role": "#2", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos #3}}%
+    \lpsb@savepos
+    \lpsbWriteEntry{{"id": "#1", "role": "#2", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos #3}}%
 }
 
 % ===================================================================
@@ -123,12 +142,24 @@
 \lpsbHookEnv{figure*}{Figure}
 \lpsbHookEnv{table}{Table}
 \lpsbHookEnv{table*}{Table}
-\lpsbHookEnv{equation}{Formula}
-\lpsbHookEnv{equation*}{Formula}
-\lpsbHookEnv{align}{Formula}
-\lpsbHookEnv{align*}{Formula}
-\lpsbHookEnv{gather}{Formula}
-\lpsbHookEnv{gather*}{Formula}
+
+% Special hook for Math environments - uses context-aware IDs for cross-compilation alignment
+\newcommand{\lpsbHookMath}[1]{%  #1=env name
+    \AtBeginEnvironment{#1}{%
+        \global\advance\lpsbDisplayMathCount by 1%
+        \global\advance\lpsbMathInSection by 1%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "Formula", "event": "start", "env": "#1", "page": \thepage}}%
+    }%
+    \AtEndEnvironment{#1}{%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "Formula", "event": "end", "page": \thepage}}%
+    }%
+}
+\lpsbHookMath{equation}
+\lpsbHookMath{equation*}
+\lpsbHookMath{align}
+\lpsbHookMath{align*}
+\lpsbHookMath{gather}
+\lpsbHookMath{gather*}
 \lpsbHookEnv{itemize}{L}
 \lpsbHookEnv{enumerate}{L}
 \lpsbHookEnv{description}{L}
@@ -146,17 +177,8 @@
 \newif\iflpsb@inbib
 \lpsb@inbibfalse
 
-% Hook thebibliography environment directly (more reliable than AtBeginEnvironment)
-\let\lpsb@origthebibliography\thebibliography
-\let\lpsb@origendthebibliography\endthebibliography
-\renewcommand{\thebibliography}[1]{%
-    \lpsb@inbibtrue%
-    \lpsb@origthebibliography{#1}%
-}
-\renewcommand{\endthebibliography}{%
-    \lpsb@origendthebibliography%
-    \lpsb@inbibfalse%
-}
+% Hook thebibliography environment (deferred to avoid undefined command errors)
+% Note: \thebibliography may not exist at package load time, so we hook it conditionally
 
 % Redefine \item to preserve optional argument behavior
 % We must use \def and \@ifnextchar distinct paths to avoid forcing an empty optional argument
@@ -258,16 +280,54 @@
         \lpsb@origlabel{#1}%
     }%
     %
-    % Hook section commands - done here to be compatible with hyperref
-    % Hyperref redefines these, so we must hook AFTER hyperref loads
+    % Hook thebibliography environment (conditional - may not exist in all documents)
+    \@ifundefined{thebibliography}{}{%
+        \let\lpsb@origthebibliography\thebibliography
+        \let\lpsb@origendthebibliography\endthebibliography
+        \renewcommand{\thebibliography}[1]{%
+            \lpsb@inbibtrue%
+            \lpsb@origthebibliography{#1}%
+        }%
+        \renewcommand{\endthebibliography}{%
+            \lpsb@origendthebibliography%
+            \lpsb@inbibfalse%
+        }%
+    }%
+    %
+    % Hook inline math \( ... \)
+    % Note: Does NOT catch $ ... $ which requires LuaTeX or dangerous hacks
+    % Uses same Math-N counter as display math for cross-compilation alignment
+    \let\lpsb@origopenmath\(
+    \let\lpsb@origclosemath\)
+    \def\({%
+        \global\advance\lpsbInlineMathCount by 1%
+        \global\advance\lpsbMathInSection by 1%
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "InlineMath", "event": "start", "page": \thepage}}%
+        \lpsb@origopenmath
+    }%
+    \def\){%
+        \lpsb@origclosemath
+        \lpsbWriteEntry{{"id": "Sec-\the\lpsbSectionNum-Math-\the\lpsbMathInSection", "role": "InlineMath", "event": "end", "page": \thepage}}%
+    }%
+    % Section hook - increment section counter and reset math counter
     \let\lpsb@origsect\@sect
     \def\@sect#1#2#3#4#5#6[#7]#8{%
-        % #1 = name (section/subsection/etc)
+        % Increment section counter, reset per-section math counter
+        \global\advance\lpsbSectionNum by 1%
+        \global\lpsbMathInSection=0%
+        % Sync with Lua if LuaTeX (for lpsb-math.lua alignment)
+        \ifLuaTeX
+            \directlua{%
+                if lpsb_math and lpsb_math.new_section then
+                    lpsb_math.new_section(tex.count["lpsbSectionNum"] or 0)
+                end
+            }%
+        \fi
         % #2 = level (0=chapter, 1=section, 2=subsection, etc)
         % #8 = title text
-        \lpsbWriteEntry{{"id": "H-#1-\the\lpsbEnvDepth", "role": "\lpsb@levelToH{#2}", "event": "start", "level": #2, "title": "\lpsb@escapeJSON{#8}", "page": \thepage}}%
+        \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "start", "level": #2, "title": "\lpsb@escapeJSON{#8}", "page": \thepage}}%
         \lpsb@origsect{#1}{#2}{#3}{#4}{#5}{#6}[{#7}]{#8}%
-        \lpsbWriteEntry{{"id": "H-#1-\the\lpsbEnvDepth", "role": "\lpsb@levelToH{#2}", "event": "end", "page": \thepage}}%
+        \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "end", "page": \thepage}}%
     }%
     %
     % Hook \@ssect for starred sections (e.g., \section*)
@@ -279,10 +339,10 @@
     }%
     %
     % Calibration hook for coordinate system
-    \AtBeginShipout{%
-        \AtBeginShipoutUpperLeft{%
-            \put(0,0){\pdfsavepos\lpsbWriteEntry{{"role": "Calibration", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos}}}%
-        }%
+    % Avoid non-kernel macros (\AtBeginShipoutUpperLeft/\put) which may not exist.
+    \AddToHook{shipout/before}{%
+        \lpsb@savepos%
+        \lpsbWriteEntry{{"role": "Calibration", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
     }%
     \typeout{LPSB Info: Package v3.0 active (PDF 2.0 Structure Elements)}%
     %

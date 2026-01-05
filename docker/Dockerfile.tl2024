@@ -1,3 +1,7 @@
-# Dockerfile for TeX Live 2024
-FROM texlive/texlive:2024
+# Dockerfile for TeX Live 2024 (historic tag)
+FROM texlive/texlive:TL2024-historic
 WORKDIR /workdir
+
+# TeX Live 2024 is frozen; point tlmgr at tlnet-final to install extra packages.
+RUN tlmgr option repository https://ftp.tu-chemnitz.de/pub/tug/historic/systems/texlive/2024/tlnet-final && \
+    tlmgr install luamml

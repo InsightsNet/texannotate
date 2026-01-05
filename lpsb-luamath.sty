@@ -1,0 +1,15 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-luamath}[2026/01/05 v1.0 LPSB LuaLaTeX Math Extension]
+
+% Load Lua module and initialize
+\directlua{lpsb_math = require("lpsb-math")}
+\directlua{lpsb_math.init()}
+% IMPORTANT: \directlua does not expand TeX macros here; get jobname from Lua.
+\directlua{lpsb_math.open_file(tex.jobname)}
+
+% Close file at end of document
+\AtEndDocument{%
+    \directlua{lpsb_math.close_file()}%
+}
+
+\endinput
