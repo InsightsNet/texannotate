@@ -61,3 +61,4 @@ test_sty.*
 devlog*
 test*/
 data/
+tmp*/

@@ -99,12 +99,9 @@
 \makeatletter
 
 % --- Paragraph Detection ---
-% Hook \everypar to detect paragraph starts
-\newtoks\lpsb@everypar
-\lpsb@everypar=\expandafter{\the\everypar}
-
-\everypar={%
-    \the\lpsb@everypar
+% Prefer LaTeX paragraph hooks (para/begin, para/end) over \everypar.
+% \everypar gets overwritten in many environments (lists, minipage, etc).
+\def\lpsb@ParaBegin{%
     \iflpsbInPara\else
         \global\advance\lpsbParaCount by 1%
         \global\lpsbInParatrue
@@ -112,15 +109,16 @@
     \fi
 }
 
-% Hook \par to detect paragraph ends
-\let\lpsb@origpar\par
-\def\par{%
+\def\lpsb@ParaEnd{%
     \iflpsbInPara
         \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "end", "page": \thepage}}%
         \global\lpsbInParafalse
     \fi
-    \lpsb@origpar
 }
+
+% Public wrappers (no @ in name). Useful outside \makeatletter contexts.
+\let\lpsbParaBegin\lpsb@ParaBegin
+\let\lpsbParaEnd\lpsb@ParaEnd
 
 % --- Heading Detection (H1-H6) ---
 % Hook internal \@sect command - must be done at AtBeginDocument to avoid hyperref conflicts
@@ -281,6 +279,10 @@
 % Label Hooks and Section Hooks (After Package Loading)
 % ===================================================================
 \AtBeginDocument{%
+    % Paragraph hooks (kernel-level, robust across environments)
+    \AddToHook{para/begin}{\lpsb@ParaBegin}%
+    \AddToHook{para/end}{\lpsb@ParaEnd}%
+    %
     % Hook \label for references
     \let\lpsb@origlabel\label
     \renewcommand{\label}[1]{%
@@ -394,6 +396,9 @@
 % End of Document Cleanup
 % ===================================================================
 \AtEndDocument{%
+    % If the document ends while TeX still considers us in a paragraph,
+    % \AddToHook{para/end} may not have fired. Close it explicitly.
+    \lpsbParaEnd%
     \lpsbWriteEntry{{"role": "Footer", "total_probes": \the\lpsbProbeCount, "total_paragraphs": \the\lpsbParaCount}}%
     \immediate\write\lpsbout{]}%
     \immediate\closeout\lpsbout

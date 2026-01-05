@@ -29,6 +29,16 @@ The scripts prefer a local image tag `lpsb-texlive:latest` if available.
 docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 ```
 
+### Optional: build TeX Live 2023 image (for older arXiv toolchains)
+
+Some arXiv sources pin TeX Live (via `00README.json` / `texlive_version`). In particular, `biblatex` `.bbl` files can be version-strict.
+
+If you want reproducible builds for TL2023 papers, build this tag too:
+
+```bash
+docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
+```
+
 ### Single file (local directory)
 
 Copy `lpsb.sty` into the same directory as your `main.tex` and add:
@@ -91,6 +101,8 @@ Outputs:
 - `test_output_lua/`: LuaLaTeX outputs and `*.lpsb-math.json` (math + MathML)
 - `test_output_merged/`: merged JSON (structure + `mathml` fields)
 
+> **TeX Live version selection**: the batch scripts read `00README.json` (if present) and select a compatible TeX Live Docker image based on `texlive_version` to avoid toolchain mismatches (e.g., `biblatex` `.bbl` format differences).
+
 ---
 
 ## Architecture
@@ -105,6 +117,57 @@ Optional:
 
 4. **Math enrichment (LuaLaTeX)**: `lpsb-luamath.sty` + `lpsb-math.lua` captures math and emits MathML using `luamml`. `merge_lpsb.py` merges by context-aware IDs.
 
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         LaTeX source (.tex)                          │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼ (package injected / \usepackage{lpsb})
+┌─────────────────────────────────────────────────────────────────────┐
+│                          Structure pass (PDFLaTeX)                   │
+│  lpsb.sty                                                             │
+│  - hooks environments/commands                                        │
+│  - emits start/end events + page/coords                               │
+└─────────────────────────────────────────────────────────────────────┘
+                │                                   │
+                ▼                                   ▼
+      ┌──────────────────────┐            ┌──────────────────────────┐
+      │  PDF output (*.pdf)  │            │  event log (*.lpsb.json) │
+      └──────────────────────┘            └──────────────────────────┘
+                                                   │
+                                                   ▼
+                                         ┌──────────────────────────┐
+                                         │ solver.py                │
+                                         │ - parse/validate events  │
+                                         │ - build structure tree   │
+                                         └──────────────────────────┘
+                                                   │
+                                                   ▼
+                                         ┌──────────────────────────┐
+                                         │ *.structure.json (tree)  │
+                                         └──────────────────────────┘
+
+Optional MathML track (LuaLaTeX):
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                          Math pass (LuaLaTeX)                        │
+│  lpsb-luamath.sty + lpsb-math.lua                                    │
+│  - captures inline + display math (incl. $...$)                      │
+│  - emits Math events + MathML via luamml                             │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+                      ┌──────────────────────────────┐
+                      │ *.lpsb-math.json (Math/MathML)│
+                      └──────────────────────────────┘
+                                 │
+                                 ▼
+                      ┌──────────────────────────────┐
+                      │ merge_lpsb.py / hybrid_merge  │
+                      │ -> merged JSON (mathml fields)│
+                      └──────────────────────────────┘
+```
+
 ---
 
 ## Current Capabilities & Status
@@ -115,7 +178,7 @@ Optional:
 | | Headings (H1-H6) | ✅ | Captures titles and hierarchy level |
 | **Blocks** | Lists (L, LI) | ✅ | `itemize`, `enumerate`, `description` |
 | | List Labels (Lbl) | ✅ | Captures `1.`, `a)`, `•` etc. |
-| | Paragraphs (P) | ⚠️ | `\everypar` hook is fragile in some envs |
+| | Paragraphs (P) | ✅ | Uses kernel paragraph hooks (`para/begin`, `para/end`) |
 | **Tables** | Table Container | ✅ | `tabular`, `tabularx` |
 | | Rows (TR) | ✅ | Detects `\\` |
 | | Cells (TD) | ❌ | Difficult to hook `&` reliably |
@@ -131,7 +194,7 @@ Optional:
 
 1. **Inline math in PDFLaTeX**: `$...$` is not hooked in PDFLaTeX. Use the LuaLaTeX math pass.
 2. **Table cells**: we detect `TR`, but not individual `TD`.
-3. **Paragraphs**: `\everypar` is fragile; expect sparse `P` tags in complex documents.
+3. **Paragraphs**: paragraph detection is much more reliable with kernel hooks, but pathological macro-generated text can still bypass it.
 4. **Macros**: heavily customized document-level macros can bypass hooks.
 
 ---
@@ -153,13 +216,14 @@ Optional:
 - **Docker**
   - `docker/Dockerfile.latest`: recommended image (`lpsb-texlive:latest`) with `luamml`
 
-## Before you commit
-
-- Do not commit generated outputs (`test_output*`, `*.pdf`, `*.log`, `*.aux`, `*.bbl`, `*.blg`, `*.lpsb*.json`, etc.).
-- Do not commit downloaded arXiv tarballs in `data/download/`.
-- `.gitignore` is expected to cover the above.
-
 ---
+
+## Future Work
+
+- [ ] PDF content stream parsing for semantic marker extraction (BDC/EMC)
+- [ ] Recover full affine transforms (better geometry for nested boxes)
+- [ ] Integrate with PDF toolkits (pdfplumber / PyMuPDF) for richer alignment/debugging
+- [ ] Add a small GUI/visualizer to inspect source↔PDF alignment
 
 ## License
 

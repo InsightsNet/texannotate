@@ -27,11 +27,28 @@ inject_pkg_after_documentclass() {
 }
 
 detect_texlive_image() {
+    local paper_dir="$1"
+
     # For math capture we always prefer a LuaLaTeX-capable image.
-    # Historic images may not include `lualatex` and won't have newer Lua modules (luamml).
+    # Prefer local images with luamml preinstalled.
     local img="lpsb-texlive:latest"
     if ! docker image inspect "$img" >/dev/null 2>&1; then
         img="texlive/texlive:latest"
+    fi
+
+    # Respect arXiv toolchain hints when present.
+    # Some papers include 00README.json with a pinned TeX Live version.
+    if [ -f "$paper_dir/00README.json" ]; then
+        tl_version=$(grep -o '"texlive_version"[[:space:]]*:[[:space:]]*"[^"]*"' "$paper_dir/00README.json" | cut -d'"' -f4)
+        if [ "$tl_version" == "2023" ]; then
+            # Prefer our custom TL2023 image which carries luamml runtime (see docker/Dockerfile.tl2023).
+            if docker image inspect "lpsb-texlive:TL2023-historic" >/dev/null 2>&1; then
+                img="lpsb-texlive:TL2023-historic"
+                echo "  Detected TeX Live 2023 (Using lpsb-texlive:TL2023-historic)" >&2
+            else
+                echo "  Detected TeX Live 2023 (NOTE: lpsb-texlive:TL2023-historic not found; using $img)" >&2
+            fi
+        fi
     fi
 
     echo "$img"
