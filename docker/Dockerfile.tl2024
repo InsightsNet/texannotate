@@ -1,0 +1,3 @@
+# Dockerfile for TeX Live 2024
+FROM texlive/texlive:2024
+WORKDIR /workdir

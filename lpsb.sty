@@ -1,0 +1,328 @@
+% ===================================================================
+% LPSB Package v3.0 - LaTeX-PDF Semantic Bridge
+% 
+% PDF 2.0 Structure Element Support
+% USAGE: \usepackage{lpsb} (after \documentclass)
+% ===================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb}[2026/01/05 v3.0 LPSB Package - PDF 2.0 Structure Elements]
+
+\RequirePackage{etoolbox}
+\RequirePackage{atbegshi}
+\RequirePackage{zref-savepos}
+
+% ===================================================================
+% Counters and State
+% ===================================================================
+\newcount\lpsbEnvDepth
+\lpsbEnvDepth=0
+\newcount\lpsbProbeCount
+\lpsbProbeCount=0
+\newcount\lpsbParaCount
+\lpsbParaCount=0
+\newcount\lpsbItemCount
+\lpsbItemCount=0
+
+% Flags
+\newif\iflpsbActive
+\lpsbActivefalse
+\newif\iflpsbInPara
+\lpsbInParafalse
+
+% ===================================================================
+% Output File (Structure Tree JSON)
+% ===================================================================
+\newwrite\lpsbout
+\immediate\openout\lpsbout=\jobname.lpsb.json
+\immediate\write\lpsbout{[}
+
+\newif\iflpsbFirstEntry
+\lpsbFirstEntrytrue
+
+\def\lpsbWriteEntry#1{%
+    \iflpsbFirstEntry
+        \immediate\write\lpsbout{#1}%
+        \global\lpsbFirstEntryfalse
+    \else
+        \immediate\write\lpsbout{,#1}%
+    \fi
+}
+
+% ===================================================================
+% PDF 2.0 Role Mapping
+% ===================================================================
+% LaTeX section level -> PDF/UA heading level
+\def\lpsb@levelToH#1{%
+    \ifcase#1 H1\or H2\or H3\or H4\or H5\or H6\else H6\fi
+}
+
+% ===================================================================
+% Core Probe Command
+% ===================================================================
+\def\lpsbProbe#1#2#3{%
+    \global\advance\lpsbProbeCount by 1%
+    \pdfsavepos
+    \lpsbWriteEntry{{"id": "#1", "role": "#2", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos #3}}%
+}
+
+% ===================================================================
+% PHASE 1: Paragraphs (P) and Headings (H1-H6)
+% ===================================================================
+
+\makeatletter
+
+% --- Paragraph Detection ---
+% Hook \everypar to detect paragraph starts
+\newtoks\lpsb@everypar
+\lpsb@everypar=\expandafter{\the\everypar}
+
+\everypar={%
+    \the\lpsb@everypar
+    \iflpsbInPara\else
+        \global\advance\lpsbParaCount by 1%
+        \global\lpsbInParatrue
+        \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "start", "page": \thepage}}%
+    \fi
+}
+
+% Hook \par to detect paragraph ends
+\let\lpsb@origpar\par
+\def\par{%
+    \iflpsbInPara
+        \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "end", "page": \thepage}}%
+        \global\lpsbInParafalse
+    \fi
+    \lpsb@origpar
+}
+
+% --- Heading Detection (H1-H6) ---
+% Hook internal \@sect command - must be done at AtBeginDocument to avoid hyperref conflicts
+% These hooks will be installed later to ensure hyperref's modifications take precedence
+
+% JSON Escaping - use detokenize to safely convert all special chars
+\def\lpsb@escapeJSON#1{\detokenize{#1}}
+
+% ===================================================================
+% Environment Hooks (for structure context)
+% ===================================================================
+\newcommand{\lpsbHookEnv}[2]{%  #1=env name, #2=PDF role
+    \AtBeginEnvironment{#1}{%
+        \global\advance\lpsbEnvDepth by 1%
+        \lpsbWriteEntry{{"id": "#1-\the\lpsbEnvDepth", "role": "#2", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+    }%
+    \AtEndEnvironment{#1}{%
+        \lpsbWriteEntry{{"id": "#1-\the\lpsbEnvDepth", "role": "#2", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+        \global\advance\lpsbEnvDepth by -1%
+    }%
+}
+
+% Hook standard environments with PDF 2.0 roles
+\lpsbHookEnv{document}{Document}
+\lpsbHookEnv{abstract}{Sect}
+\lpsbHookEnv{figure}{Figure}
+\lpsbHookEnv{figure*}{Figure}
+\lpsbHookEnv{table}{Table}
+\lpsbHookEnv{table*}{Table}
+\lpsbHookEnv{equation}{Formula}
+\lpsbHookEnv{equation*}{Formula}
+\lpsbHookEnv{align}{Formula}
+\lpsbHookEnv{align*}{Formula}
+\lpsbHookEnv{gather}{Formula}
+\lpsbHookEnv{gather*}{Formula}
+\lpsbHookEnv{itemize}{L}
+\lpsbHookEnv{enumerate}{L}
+\lpsbHookEnv{description}{L}
+\lpsbHookEnv{quote}{BlockQuote}
+\lpsbHookEnv{quotation}{BlockQuote}
+\lpsbHookEnv{center}{Div}
+\lpsbHookEnv{verbatim}{Code}
+\lpsbHookEnv{minipage}{Div}
+\lpsbHookEnv{tabular}{Table}
+%\lpsbHookEnv{thebibliography}{BibEntry}  % Disabled - interferes with bibliography numbering
+
+% ===================================================================
+% List Item Hooks (LI, Lbl, LBody)
+% ===================================================================
+\newif\iflpsb@inbib
+\lpsb@inbibfalse
+
+% Hook thebibliography environment directly (more reliable than AtBeginEnvironment)
+\let\lpsb@origthebibliography\thebibliography
+\let\lpsb@origendthebibliography\endthebibliography
+\renewcommand{\thebibliography}[1]{%
+    \lpsb@inbibtrue%
+    \lpsb@origthebibliography{#1}%
+}
+\renewcommand{\endthebibliography}{%
+    \lpsb@origendthebibliography%
+    \lpsb@inbibfalse%
+}
+
+% Redefine \item to preserve optional argument behavior
+% We must use \def and \@ifnextchar distinct paths to avoid forcing an empty optional argument
+% causing \item[] which suppresses default labels (e.g., bibliography numbers)
+
+\let\lpsb@origitem\item
+
+\def\item{%
+    \@ifnextchar[\lpsb@item@opt\lpsb@item@noopt
+}
+
+% Case 1: \item[...] provided
+\def\lpsb@item@opt[#1]{%
+    \iflpsb@inbib
+        \lpsb@origitem[#1]%
+    \else
+        \global\advance\lpsbItemCount by 1%
+        \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "start", "page": \thepage}}%
+        \lpsbWriteEntry{{"id": "Lbl-\the\lpsbItemCount", "role": "Lbl", "content": "\lpsb@escapeJSON{#1}", "page": \thepage}}%
+        \lpsb@origitem[#1]%
+    \fi
+}
+
+% Case 2: \item called without arguments (uses default label/number)
+\def\lpsb@item@noopt{%
+    \iflpsb@inbib
+        \lpsb@origitem
+    \else
+        \global\advance\lpsbItemCount by 1%
+        \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "start", "page": \thepage}}%
+        \lpsb@origitem
+    \fi
+}
+
+% ===================================================================
+% PHASE 2-4: Caption, Table Cells, Inline Formatting
+% ===================================================================
+
+% --- Caption Hook (deferred to AtBeginDocument for compatibility) ---
+\newcount\lpsbCaptionCount
+\lpsbCaptionCount=0
+
+% --- Table Row/Cell Detection ---
+% Hook tabular environment to detect rows (\\) and cells (&)
+\newcount\lpsbRowCount
+\newcount\lpsbCellCount
+\AtBeginEnvironment{tabular}{%
+    \lpsbRowCount=0%
+    \global\advance\lpsbRowCount by 1%
+    \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage}}%
+    \lpsbCellCount=0%
+    % Hook \\\ to detect row ends
+    \let\lpsb@origcr\\%
+    \def\\{%
+        \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage}}%
+        \global\advance\lpsbRowCount by 1%
+        \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage}}%
+        \lpsbCellCount=0%
+        \lpsb@origcr
+    }%
+}
+\AtEndEnvironment{tabular}{%
+    \lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage}}%
+}
+
+% --- Inline Text Formatting ---
+% Hook \textbf for strong emphasis
+\let\lpsb@origtextbf\textbf
+\renewcommand{\textbf}[1]{%
+    \lpsbWriteEntry{{"role": "Strong", "event": "start", "page": \thepage}}%
+    \lpsb@origtextbf{#1}%
+    \lpsbWriteEntry{{"role": "Strong", "event": "end", "page": \thepage}}%
+}
+
+% Hook \textit for italic
+\let\lpsb@origtextit\textit
+\renewcommand{\textit}[1]{%
+    \lpsbWriteEntry{{"role": "Em", "event": "start", "page": \thepage}}%
+    \lpsb@origtextit{#1}%
+    \lpsbWriteEntry{{"role": "Em", "event": "end", "page": \thepage}}%
+}
+
+% Hook \emph
+\let\lpsb@origemph\emph
+\renewcommand{\emph}[1]{%
+    \lpsbWriteEntry{{"role": "Em", "event": "start", "page": \thepage}}%
+    \lpsb@origemph{#1}%
+    \lpsbWriteEntry{{"role": "Em", "event": "end", "page": \thepage}}%
+}
+
+% ===================================================================
+% Label Hooks and Section Hooks (After Package Loading)
+% ===================================================================
+\AtBeginDocument{%
+    % Hook \label for references
+    \let\lpsb@origlabel\label
+    \renewcommand{\label}[1]{%
+        \lpsbProbe{label-#1}{Reference}{, "target": "#1"}%
+        \lpsb@origlabel{#1}%
+    }%
+    %
+    % Hook section commands - done here to be compatible with hyperref
+    % Hyperref redefines these, so we must hook AFTER hyperref loads
+    \let\lpsb@origsect\@sect
+    \def\@sect#1#2#3#4#5#6[#7]#8{%
+        % #1 = name (section/subsection/etc)
+        % #2 = level (0=chapter, 1=section, 2=subsection, etc)
+        % #8 = title text
+        \lpsbWriteEntry{{"id": "H-#1-\the\lpsbEnvDepth", "role": "\lpsb@levelToH{#2}", "event": "start", "level": #2, "title": "\lpsb@escapeJSON{#8}", "page": \thepage}}%
+        \lpsb@origsect{#1}{#2}{#3}{#4}{#5}{#6}[{#7}]{#8}%
+        \lpsbWriteEntry{{"id": "H-#1-\the\lpsbEnvDepth", "role": "\lpsb@levelToH{#2}", "event": "end", "page": \thepage}}%
+    }%
+    %
+    % Hook \@ssect for starred sections (e.g., \section*)
+    \let\lpsb@origssect\@ssect
+    \def\@ssect#1#2#3#4#5{%
+        \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "start", "title": "\lpsb@escapeJSON{#5}", "page": \thepage}}%
+        \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
+        \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "end", "page": \thepage}}%
+    }%
+    %
+    % Calibration hook for coordinate system
+    \AtBeginShipout{%
+        \AtBeginShipoutUpperLeft{%
+            \put(0,0){\pdfsavepos\lpsbWriteEntry{{"role": "Calibration", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos}}}%
+        }%
+    }%
+    \typeout{LPSB Info: Package v3.0 active (PDF 2.0 Structure Elements)}%
+    %
+    % Hook \href if hyperref is loaded
+    \@ifpackageloaded{hyperref}{%
+        \let\lpsb@orighref\href
+        \renewcommand{\href}[2]{%
+            \lpsbWriteEntry{{"role": "Link", "event": "start", "uri": "\lpsb@escapeJSON{#1}", "page": \thepage}}%
+            \lpsb@orighref{#1}{#2}%
+            \lpsbWriteEntry{{"role": "Link", "event": "end", "page": \thepage}}%
+        }%
+    }{}%
+    %
+    % Hook \footnote
+    \let\lpsb@origfootnote\footnote
+    \renewcommand{\footnote}[1]{%
+        \lpsbWriteEntry{{"role": "Note", "event": "start", "type": "footnote", "page": \thepage}}%
+        \lpsb@origfootnote{#1}%
+        \lpsbWriteEntry{{"role": "Note", "event": "end", "page": \thepage}}%
+    }%
+    %
+    % Hook \caption
+    \let\lpsb@origcaption\caption
+    \def\caption{%
+        \global\advance\lpsbCaptionCount by 1%
+        \lpsbWriteEntry{{"id": "Caption-\the\lpsbCaptionCount", "role": "Caption", "event": "start", "page": \thepage}}%
+        \lpsb@origcaption
+    }%
+}
+
+\makeatother
+
+% ===================================================================
+% End of Document Cleanup
+% ===================================================================
+\AtEndDocument{%
+    \lpsbWriteEntry{{"role": "Footer", "total_probes": \the\lpsbProbeCount, "total_paragraphs": \the\lpsbParaCount}}%
+    \immediate\write\lpsbout{]}%
+    \immediate\closeout\lpsbout
+    \typeout{LPSB Info: Wrote \the\lpsbProbeCount\space probes, \the\lpsbParaCount\space paragraphs}%
+}
+
+\endinput

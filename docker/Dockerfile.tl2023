@@ -1,0 +1,3 @@
+# Dockerfile for TeX Live 2023
+FROM texlive/texlive:TL2023-historic
+WORKDIR /workdir

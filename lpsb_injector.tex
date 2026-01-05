@@ -1,0 +1,75 @@
+% ===================================================================
+% LPSB Injector v1.6
+% Project: LaTeX-PDF Semantic Bridge
+% 
+% USAGE: pdflatex -jobname=output "\input{lpsb_injector.tex} \input{main.tex}"
+% ===================================================================
+\ProvidesFile{lpsb_injector.tex}[2024/01/05 v1.6 LPSB Injector]
+
+% Counters
+\newcount\lpsbEnvDepth
+\lpsbEnvDepth=0
+\newcount\lpsbProbeCount
+\lpsbProbeCount=0
+
+% Hook \document to load packages and activate
+\let\lpsb@origdocument\document
+\def\document{%
+    \RequirePackage{etoolbox}%
+    \RequirePackage{atbegshi}%
+    \RequirePackage{zref-savepos}%
+    \lpsb@origdocument
+    \lpsb@activate
+}
+
+% Activation code
+\def\lpsb@activate{%
+    % Open output
+    \newwrite\jsonout
+    \immediate\openout\jsonout=\jobname.lpsb.jsonl
+    \immediate\write\jsonout{{"type": "lpsb-header", "version": "1.6"}}%
+    %
+    % Define commands
+    \def\lpsbWrite##1{\immediate\write\jsonout{##1}}%
+    \def\lpsbProbe##1##2##3{%
+        \global\advance\lpsbProbeCount by 1%
+        \pdfsavepos
+        \lpsbWrite{{"id": "##1", "type": "##2", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos ##3}}%
+    }%
+    %
+    % Calibration
+    \AtBeginShipout{%
+        \AtBeginShipoutUpperLeft{%
+            \put(0,0){\pdfsavepos\lpsbWrite{{"type": "calibration", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos}}}%
+        }%
+    }%
+    %
+    % Hook environments
+    \let\lpsb@b\begin
+    \let\lpsb@e\end
+    \def\begin##1{%
+        \global\advance\lpsbEnvDepth by 1%
+        \lpsbWrite{{"type": "env-start", "name": "##1", "depth": \the\lpsbEnvDepth}}%
+        \lpsb@b{##1}%
+    }%
+    \def\end##1{%
+        \lpsb@e{##1}%
+        \lpsbWrite{{"type": "env-end", "name": "##1", "depth": \the\lpsbEnvDepth}}%
+        \global\advance\lpsbEnvDepth by -1%
+    }%
+    %
+    % Hook label
+    \let\lpsb@l\label
+    \def\label##1{%
+        \lpsbProbe{label-##1}{label-anchor}{, "target": "##1"}%
+        \lpsb@l{##1}%
+    }%
+    %
+    \typeout{LPSB Info: v1.6 active}%
+}
+
+\AtEndDocument{%
+    \lpsbWrite{{"type": "lpsb-footer", "total_probes": \the\lpsbProbeCount}}%
+    \immediate\closeout\jsonout
+    \typeout{LPSB Info: Wrote \the\lpsbProbeCount\space probes}%
+}

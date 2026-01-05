@@ -1,0 +1,3 @@
+# Dockerfile for TeX Live Latest (2025)
+FROM texlive/texlive:latest
+WORKDIR /workdir

@@ -1,0 +1,127 @@
+\documentclass{article}
+\usepackage{lpsb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{LPSB v3.0 Test Document}
+\author{Test Author}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document tests all PDF 2.0 structure elements supported by LPSB v3.0.
+It includes paragraphs, headings, lists, tables, figures, equations, and links.
+\end{abstract}
+
+\section{Introduction}
+
+This is the first paragraph of the introduction section.
+It should be tagged as a P element within the section.
+
+This is the second paragraph.
+LPSB should detect the paragraph boundary via the par hook.
+
+\subsection{Background}
+
+A subsection creates an H3 heading in PDF 2.0 terms.
+This paragraph belongs to the subsection context.
+
+\subsubsection{Details}
+
+An H4 heading from subsubsection.
+
+\section{Lists}
+
+\subsection{Itemize List}
+
+\begin{itemize}
+\item First item in unordered list
+\item Second item with more text
+\item Third item
+\end{itemize}
+
+\subsection{Enumerate List}
+
+\begin{enumerate}
+\item First numbered item
+\item Second numbered item
+\item Third numbered item
+\end{enumerate}
+
+\subsection{Description List}
+
+\begin{description}
+\item[Term A] Definition of term A
+\item[Term B] Definition of term B
+\end{description}
+
+\section{Tables}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|r|}
+\hline
+Left & Center & Right \\
+\hline
+A1 & B1 & C1 \\
+A2 & B2 & C2 \\
+\hline
+\end{tabular}
+\caption{A simple table with three columns.}
+\label{tab:simple}
+\end{table}
+
+Table~\ref{tab:simple} shows a basic table structure.
+
+\section{Figures}
+
+\begin{figure}[h]
+\centering
+% Placeholder for image - uses rule as stand-in
+\rule{4cm}{3cm}
+\caption{A placeholder figure.}
+\label{fig:placeholder}
+\end{figure}
+
+See Figure~\ref{fig:placeholder} for the visual element.
+
+\section{Mathematics}
+
+Inline math: $E = mc^2$ is Einstein's famous equation.
+
+Display equation:
+\begin{equation}
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+\label{eq:gaussian}
+\end{equation}
+
+Aligned equations:
+\begin{align}
+a &= b + c \\
+d &= e \cdot f
+\end{align}
+
+\section{Text Formatting}
+
+This paragraph contains \textbf{bold text} and \textit{italic text}.
+It also has \emph{emphasized text} for semantic markup.
+
+\section{Links and References}
+
+Visit \href{https://example.com}{Example Website} for more information.
+This references Equation~\ref{eq:gaussian}.
+
+\section*{Unnumbered Section}
+
+This is an unnumbered section (starred).
+It should still be detected as a heading.
+
+\section{Conclusion}
+
+This concludes the test document.
+All structure elements should be captured in the JSON output.
+
+\end{document}

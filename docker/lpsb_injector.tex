@@ -1,0 +1,99 @@
+% ===================================================================
+% LPSB Injector v1.4
+% Project: LaTeX-PDF Semantic Bridge
+% 
+% USAGE: pdflatex -jobname=output "\input{lpsb_injector.tex} \input{main.tex}"
+%
+% This version uses \AtEndOfClass to load packages after \documentclass.
+% ===================================================================
+\ProvidesFile{lpsb_injector.tex}[2024/01/05 v1.4 LPSB Injector]
+
+% ===================================================================
+% PHASE 1: Counters and flags (safe before \documentclass)
+% ===================================================================
+\newif\iflpsbCompatibilityMode
+\lpsbCompatibilityModefalse
+
+\newif\iflpsbVerbose
+\lpsbVerbosetrue
+
+\newcount\lpsbEnvDepth
+\lpsbEnvDepth=0
+
+\newcount\lpsbProbeCount
+\lpsbProbeCount=0
+
+% ===================================================================
+% PHASE 2: Hook after class to load packages
+% ===================================================================
+\AtEndOfClass{%
+    \RequirePackage{etoolbox}%
+    \RequirePackage{atbegshi}%
+    \RequirePackage{zref-savepos}%
+}
+
+% ===================================================================
+% PHASE 3: Define commands via \AtBeginDocument using \def
+% ===================================================================
+\AtBeginDocument{%
+    % Open output file
+    \newwrite\jsonout
+    \immediate\openout\jsonout=\jobname.lpsb.jsonl
+    
+    % Write header
+    \immediate\write\jsonout{{"type": "lpsb-header", "version": "1.4", "timestamp": "\the\year-\the\month-\the\day"}}%
+    
+    % Define lpsbWrite
+    \gdef\lpsbWrite#1{\immediate\write\jsonout{#1}}%
+    
+    % Define probe
+    \gdef\lpsbProbe#1#2#3{%
+        \global\advance\lpsbProbeCount by 1
+        \pdfsavepos
+        \lpsbWrite{{"id": "#1", "type": "#2", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos #3}}%
+    }%
+    
+    % Calibration hook
+    \AtBeginShipout{%
+        \AtBeginShipoutUpperLeft{%
+            \put(0,0){\pdfsavepos\lpsbWrite{{"type": "calibration", "page": \thepage, "x": \the\pdflastxpos, "y": \the\pdflastypos}}}%
+        }%
+    }%
+    
+    % Hook \begin and \end
+    \let\lpsb@origbegin\begin
+    \let\lpsb@origend\end
+    
+    \def\begin#1{%
+        \global\advance\lpsbEnvDepth by 1
+        \lpsbWrite{{"type": "env-start", "name": "#1", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+        \lpsb@origbegin{#1}%
+    }%
+    
+    \def\end#1{%
+        \lpsb@origend{#1}%
+        \lpsbWrite{{"type": "env-end", "name": "#1", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+        \global\advance\lpsbEnvDepth by -1
+    }%
+    
+    % Hook \label
+    \let\lpsb@origlabel\label
+    \def\label#1{%
+        \lpsbProbe{label-#1}{label-anchor}{, "target": "#1"}%
+        \lpsb@origlabel{#1}%
+    }%
+    
+    \typeout{LPSB Info: Injector v1.4 active}%
+}
+
+% ===================================================================
+% End of document
+% ===================================================================
+\AtEndDocument{%
+    \lpsbWrite{{"type": "lpsb-footer", "total_probes": \the\lpsbProbeCount, "final_env_depth": \the\lpsbEnvDepth}}%
+    \ifnum\lpsbEnvDepth>0
+        \PackageWarning{LPSB}{Detected \the\lpsbEnvDepth\space unclosed environment(s)!}%
+    \fi
+    \immediate\closeout\jsonout
+    \typeout{LPSB Info: Complete. Wrote \the\lpsbProbeCount\space probes.}%
+}
