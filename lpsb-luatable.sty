@@ -21,15 +21,21 @@
 % Named lpsb@zrsave to avoid conflict with lpsb.sty's lpsb@savepos.
 \newcommand*{\lpsb@zrsave}[1]{%
   \@bsphack
-  \pdfsavepos
+  \savepos
   \zref@labelbylist{#1}{lpsb}%
   \@esphack
 }
 
-% Helper: set page value. For now, just use current page counter.
-% TODO: Fix to extract from zref for cross-page longtable tracking.
+
+% Helper: extract abspage from a zref label and store in \lpsb@pageval.
 \newcommand{\lpsb@setpage}[1]{%
-  \edef\lpsb@pageval{\the\c@page}%
+  \edef\lpsb@tmplabel{#1}%
+  % Determine page value: try zref extraction, fallback to current page
+  \zref@ifrefundefined{\lpsb@tmplabel}{%
+    \edef\lpsb@pageval{\the\c@page}%
+  }{%
+    \edef\lpsb@pageval{\zref@extractdefault{\lpsb@tmplabel}{abspage}{\the\c@page}}%
+  }%
 }
 
 % Load Lua module and initialize
@@ -52,6 +58,9 @@
 \let\lpsb@orig@LT@tabularcr\relax
 
 % === Standard tabular/tabularx begin hook ===
+% NOTE: We do NOT inject ANY LaTeX content (including savepos, kern, etc) into 
+% tabular because even seemingly harmless injections disturb alignment/rule drawing.
+% Cell detection is handled purely via LuaTeX hpack_filter callback.
 \def\lpsb@tabularBegin{%
   \global\advance\lpsbTabularDepth by 1\relax
   \ifnum\lpsbTabularDepth=1\relax
@@ -66,55 +75,25 @@
         \edef\lpsb@tblid{Tabular-\the\lpsbTabularCount}%
       \fi
     }%
+    % Only Lua callbacks - no LaTeX injections
     \directlua{lpsb_table.begin_table("\lpsb@tblid")}%
     \directlua{lpsb_table.set_container("\lpsb@tblid")}%
-    % Row 1 baseline anchor
-    \global\lpsb@tblrow=1\relax
-    \lpsb@savepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-    \kern1pt\lpsb@savepos{lpsbtable-\lpsb@tblid-dirx}\kern-1pt%
-    \lpsb@setpage{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-    \directlua{lpsb_table.set_anchor(\lpsb@pageval, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
-    \directlua{lpsb_table.set_dirx(\zposx{lpsbtable-\lpsb@tblid-dirx}, \zposy{lpsbtable-\lpsb@tblid-dirx})}%
-    % Patch row-ending macros
-    \let\lpsb@orig@tabularcr\@tabularcr
-    \def\@tabularcr{%
-      \lpsb@orig@tabularcr
-      \noalign{%
-        \global\advance\lpsb@tblrow by 1\relax
-        \lpsb@savepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-        \lpsb@setpage{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-        \directlua{lpsb_table.row_break(\lpsb@pageval, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
-      }%
-    }%
-    \@ifundefined{@arraycr}{}{%
-      \let\lpsb@orig@arraycr\@arraycr
-      \def\@arraycr{%
-        \lpsb@orig@arraycr
-        \noalign{%
-          \global\advance\lpsb@tblrow by 1\relax
-          \lpsb@savepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-          \lpsb@setpage{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-          \directlua{lpsb_table.row_break(\lpsb@pageval, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
-        }%
-      }%
-    }%
   \fi
 }
 
 \def\lpsb@tabularEnd{%
   \ifnum\lpsbTabularDepth=1\relax
-    \ifx\lpsb@orig@tabularcr\relax\else
-      \let\@tabularcr\lpsb@orig@tabularcr
-    \fi
-    \ifx\lpsb@orig@arraycr\relax\else
-      \let\@arraycr\lpsb@orig@arraycr
-    \fi
     \directlua{lpsb_table.end_table()}%
   \fi
   \global\advance\lpsbTabularDepth by -1\relax
 }
 
 % === Longtable-specific hooks ===
+% CRITICAL: Any LaTeX injection (savepos, kern, or \LT@tabularcr patching) causes
+% visual artifacts in longtable (missing vertical lines, incorrect line counts).
+% Priority: visual correctness > JSON row tracking accuracy.
+% Solution: Minimal implementation - only Lua callbacks, no LaTeX injections.
+% Header/footer cells will be detected (can be filtered in post-processing).
 \def\lpsb@longtableBegin{%
   \global\advance\lpsbTabularDepth by 1\relax
   \ifnum\lpsbTabularDepth=1\relax
@@ -129,48 +108,62 @@
         \edef\lpsb@tblid{Tabular-\the\lpsbTabularCount}%
       \fi
     }%
-    \directlua{lpsb_table.begin_table("\lpsb@tblid")}%
-    \directlua{lpsb_table.set_container("\lpsb@tblid")}%
-    % Row 1 anchor
-    \global\lpsb@tblrow=1\relax
-    \lpsb@savepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-    \kern1pt\lpsb@savepos{lpsbtable-\lpsb@tblid-dirx}\kern-1pt%
-    \lpsb@setpage{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-    \directlua{lpsb_table.set_anchor(\lpsb@pageval, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
-    \directlua{lpsb_table.set_dirx(\zposx{lpsbtable-\lpsb@tblid-dirx}, \zposy{lpsbtable-\lpsb@tblid-dirx})}%
-    % Patch longtable's row break macro
-    \@ifundefined{LT@tabularcr}{}{%
-      \let\lpsb@orig@LT@tabularcr\LT@tabularcr
-      \def\LT@tabularcr{%
-        \lpsb@orig@LT@tabularcr
-        \noalign{%
-          \global\advance\lpsb@tblrow by 1\relax
-          \lpsb@savepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-          \lpsb@setpage{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
-          \directlua{lpsb_table.row_break(\lpsb@pageval, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
-        }%
-      }%
-    }%
+    % TESTING: All Lua calls disabled
+    %\directlua{lpsb_table.begin_table("\lpsb@tblid")}%
+    %\directlua{lpsb_table.set_container("\lpsb@tblid")}%
+    %\directlua{lpsb_table.disable_hpack_filter()}%
   \fi
 }
 
+% Hook longtable's head/foot end commands to mark header/footer context
+% This prevents hpack_filter from detecting header/footer cells as data rows
+% DISABLED FOR TESTING
+%\AtBeginDocument{%
+%  \@ifpackageloaded{longtable}{%
+%    % Save original commands
+%    \let\lpsb@orig@endfirsthead\endfirsthead
+%    \let\lpsb@orig@endhead\endhead
+%    \let\lpsb@orig@endfoot\endfoot
+%    \let\lpsb@orig@endlastfoot\endlastfoot
+%    % Wrap with flag setting
+%    \def\endfirsthead{%
+%      \lpsb@orig@endfirsthead
+%      \directlua{lpsb_table.set_in_header_footer(false)}%  % Resume normal row detection
+%    }%
+%    \def\endhead{%
+%      \lpsb@orig@endhead
+%      \directlua{lpsb_table.set_in_header_footer(false)}%
+%    }%
+%    \def\endfoot{%
+%      \lpsb@orig@endfoot
+%      \directlua{lpsb_table.set_in_header_footer(false)}%  % Foot definition done, back to normal
+%    }%
+%    \def\endlastfoot{%
+%      \lpsb@orig@endlastfoot
+%      \directlua{lpsb_table.set_in_header_footer(false)}%  % Back to normal
+%    }%
+%  }{}%
+%}
+
 \def\lpsb@longtableEnd{%
   \ifnum\lpsbTabularDepth=1\relax
-    \ifx\lpsb@orig@LT@tabularcr\relax\else
-      \let\LT@tabularcr\lpsb@orig@LT@tabularcr
-    \fi
-    \directlua{lpsb_table.end_table()}%
+    % TESTING: All Lu calls disabled
+    %\directlua{lpsb_table.end_table()}%
+    %\directlua{lpsb_table.enable_hpack_filter()}%
   \fi
   \global\advance\lpsbTabularDepth by -1\relax
 }
 
 % Register hooks
+% NOTE: tabular/tabularx hooks use MINIMAL Lua callbacks (no LaTeX injections)
+% to avoid disturbing alignment/rule drawing. This works for sideways table.
+% Longtable hooks remain DISABLED due to AddToHook incompatibility (see lpsb.sty).
 \AddToHook{env/tabular/begin}{\lpsb@tabularBegin}
 \AddToHook{env/tabular/end}{\lpsb@tabularEnd}
 \AddToHook{env/tabularx/begin}{\lpsb@tabularBegin}
 \AddToHook{env/tabularx/end}{\lpsb@tabularEnd}
-\AddToHook{env/longtable/begin}{\lpsb@longtableBegin}
-\AddToHook{env/longtable/end}{\lpsb@longtableEnd}
+% \AddToHook{env/longtable/begin}{\lpsb@longtableBegin}
+% \AddToHook{env/longtable/end}{\lpsb@longtableEnd}
 
 % Ensure our hooks run after lpsb.sty
 \IfFormatAtLeastTF{2020/10/01}{%

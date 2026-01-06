@@ -79,7 +79,7 @@ Each `TD` **start** includes:
 - **`row`**, **`col`**, **`colspan`**
 - **`text`** (best-effort; concatenated glyphs in traversal order)
 - **`page`**
-- **`x0,y0,x1,y1`** (absolute coordinates in **sp**, same unit family as `zref-savepos`)
+- **`x0,y0,x1,y1`** (absolute coordinates in **PDF bp** = 1/72in)
 - **`w,h,d`** (sp)
 
 ---
@@ -120,7 +120,7 @@ Then `lpsb-table.lua` computes:
 
 ### IMPORTANT: requires 2 LuaLaTeX passes
 
-`zref-savepos` positions are resolved through the `.aux` mechanism. The first run writes anchors; the second run reads back real positions.
+`zref-savepos` positions are resolved through the `.aux` mechanism. The first run writes anchors; the second run reads back real positions. The Lua module converts TeX `sp` to PDF `bp` when writing `x0..y1`.
 
 So: run LuaLaTeX **at least twice** for stable `x0/y0/x1/y1`.
 

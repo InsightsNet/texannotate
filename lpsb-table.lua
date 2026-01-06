@@ -12,7 +12,7 @@
 --
 -- NOTE:
 -- This is an MVP. It emits TR/TD with row/col/text and box dimensions (w/h/d in sp).
--- Absolute PDF bboxes are *not* computed yet.
+-- It emits absolute bboxes (x0,y0,x1,y1). Coordinates are converted to PDF bp (1/72in).
 
 local M = {}
 
@@ -20,6 +20,8 @@ local output_file = nil
 local first_entry = true
 
 local active = false
+local in_header_footer = false  -- Flag to skip header/footer cell detection
+local hpack_filter_enabled = true  -- Flag to disable hpack_filter entirely (for longtable)
 local active_table_id = nil
 local row = 0
 local col = 0
@@ -33,6 +35,26 @@ local container_id = nil
 
 -- Debug
 local debug = os.getenv("LPSB_TABLE_DEBUG") == "1"
+
+-- Unit conversion:
+-- TeX stores positions/dimensions in scaled points (sp).
+-- 65536 sp = 1 TeX pt, and 1 bp = 72/72.27 TeX pt.
+local SP_TO_BP = 72.0 / (72.27 * 65536.0)
+
+local function sp_to_bp(v)
+    return (tonumber(v) or 0) * SP_TO_BP
+end
+
+local function fmt_num(v)
+    -- JSON number: keep ints as-is, otherwise emit a trimmed float.
+    local n = tonumber(v) or 0
+    if n == math.floor(n) then
+        return string.format("%d", n)
+    end
+    local s = string.format("%.6f", n)
+    s = s:gsub("0+$", ""):gsub("%.$", "")
+    return s
+end
 
 local function write_event(json_str)
     if not output_file then
@@ -90,7 +112,7 @@ local function json_kv_string(k, v)
 end
 
 local function json_kv_number(k, v)
-    return string.format('"%s":%d', k, tonumber(v) or 0)
+    return string.format('"%s":%s', k, fmt_num(v))
 end
 
 local function ev_to_json(ev)
@@ -107,41 +129,44 @@ local function ev_to_json(ev)
     add_raw(json_kv_string("role", ev.role or ""))
     add_raw(json_kv_string("event", ev.event or ""))
 
-    if ev.row then
+    if ev.row ~= nil then
         add_raw(json_kv_number("row", ev.row))
     end
-    if ev.col then
+    if ev.col ~= nil then
         add_raw(json_kv_number("col", ev.col))
     end
-    if ev.colspan then
+    if ev.colspan ~= nil then
         add_raw(json_kv_number("colspan", ev.colspan))
     end
     if ev.text ~= nil then
         add_raw(json_kv_string("text", ev.text))
     end
-    if ev.w then
+    if ev.w ~= nil then
         add_raw(json_kv_number("w", ev.w))
     end
-    if ev.h then
+    if ev.h ~= nil then
         add_raw(json_kv_number("h", ev.h))
     end
-    if ev.d then
+    if ev.d ~= nil then
         add_raw(json_kv_number("d", ev.d))
     end
-    if ev.cols then
+    if ev.cols ~= nil then
         add_raw(json_kv_number("cols", ev.cols))
     end
-    if ev.page then
+    if ev.page ~= nil then
         add_raw(json_kv_number("page", ev.page))
     end
     if ev.container ~= nil then
         add_raw(json_kv_string("container", ev.container))
     end
-    if ev.x0 then
+    if ev.x0 ~= nil then
         add_raw(json_kv_number("x0", ev.x0))
         add_raw(json_kv_number("y0", ev.y0))
         add_raw(json_kv_number("x1", ev.x1))
         add_raw(json_kv_number("y1", ev.y1))
+    end
+    if ev.unit ~= nil then
+        add_raw(json_kv_string("unit", ev.unit))
     end
 
     -- drop trailing comma if present
@@ -383,8 +408,38 @@ function M.end_table()
     local col_widths = infer_col_widths(rows or {}, ncols)
     local row_heights = infer_row_heights(rows or {})
 
+    -- Infer table local axes in page coordinates.
+    -- Prefer row-to-row vector (more robust than TeX-mode-dependent dirx probing).
+    local ux, uy = dir.dx, dir.dy
+    local vx, vy = -uy, ux
+    if row_pos and row_pos[1] and row_pos[2] then
+        local rx = row_pos[2].x - row_pos[1].x
+        local ry = row_pos[2].y - row_pos[1].y
+        local rnorm = math.sqrt(rx * rx + ry * ry)
+        if rnorm > 0.000001 then
+            -- v: row progression direction (row1 -> row2) in page coords per sp.
+            vx, vy = rx / rnorm, ry / rnorm
+            -- u: perpendicular (local x axis).
+            ux, uy = -vy, vx
+        end
+    end
+
+    -- Optional y-axis correction (some engines report y from top; we want PDF-style bottom-up).
+    -- Heuristic: if row progression goes "down" by increasing y, flip using page height.
+    local flip_y = false
+    local pageheight_sp = nil
+    if row_pos and row_pos[1] and row_pos[2] then
+        local ry = row_pos[2].y - row_pos[1].y
+        if ry > 0 then
+            flip_y = true
+        end
+    end
+    if flip_y and tex and tex.dimen and tex.dimen.pageheight then
+        pageheight_sp = tonumber(tex.dimen.pageheight) or nil
+    end
+
     -- Emit JSON for this table instance.
-    write_event(ev_to_json({ id = active_table_id, role = "Table", event = "start", cols = ncols, page = anchor.page, container = container_id }))
+    write_event(ev_to_json({ id = active_table_id, role = "Table", event = "start", cols = ncols, page = anchor.page, container = container_id, unit = "bp" }))
     for r_i, r in ipairs(rows or {}) do
         local tr_id = string.format("%s-TR%d", active_table_id, r_i)
         local rp = row_pos and row_pos[r_i] or nil
@@ -400,19 +455,6 @@ function M.end_table()
             end
             local w = sum_width(col_widths, cell.col or 1, cell.colspan or 1)
             local rh = row_heights[r_i] or { h = 0, d = 0 }
-
-            -- Local x-axis direction (dir) may be rotated; local y-axis is perpendicular.
-            local ux, uy = dir.dx, dir.dy
-            local vx, vy = -uy, ux
-            -- Choose v sign so it matches the row progression if we have row2.
-            if row_pos and row_pos[1] and row_pos[2] then
-                local rx = row_pos[2].x - row_pos[1].x
-                local ry = row_pos[2].y - row_pos[1].y
-                local dot = vx * rx + vy * ry
-                if dot < 0 then
-                    vx, vy = -vx, -vy
-                end
-            end
 
             local px = base_x + ux * offset
             local py = base_y + uy * offset
@@ -433,6 +475,13 @@ function M.end_table()
             local x1i = math.floor(math.max(xA, xB, xC, xD, xE, xF) + 0.5)
             local y0i = math.floor(math.min(yA, yB, yC, yD, yE, yF) + 0.5)
             local y1i = math.floor(math.max(yA, yB, yC, yD, yE, yF) + 0.5)
+
+            if flip_y and pageheight_sp then
+                local ny0 = pageheight_sp - y1i
+                local ny1 = pageheight_sp - y0i
+                y0i, y1i = ny0, ny1
+            end
+
             write_event(ev_to_json({
                 id = td_id,
                 role = "TD",
@@ -441,14 +490,14 @@ function M.end_table()
                 col = cell.col,
                 colspan = cell.colspan or 1,
                 text = cell.text or "",
-                w = w or 0,
-                h = rh.h or 0,
-                d = rh.d or 0,
+                w = sp_to_bp(w or 0),
+                h = sp_to_bp(rh.h or 0),
+                d = sp_to_bp(rh.d or 0),
                 page = tr_page,
-                x0 = x0i,
-                y0 = y0i,
-                x1 = x1i,
-                y1 = y1i,
+                x0 = sp_to_bp(x0i),
+                y0 = sp_to_bp(y0i),
+                x1 = sp_to_bp(x1i),
+                y1 = sp_to_bp(y1i),
             }))
             write_event(ev_to_json({ id = td_id, role = "TD", event = "end" }))
         end
@@ -488,7 +537,20 @@ end
 -- - active table
 -- - has some glyphs
 local function hpack_filter(head, groupcode, size, packtype, direction)
+    -- Allow disabling hpack_filter entirely (e.g., for longtable which it corrupts)
+    if not hpack_filter_enabled then
+        return head
+    end
+    
     if not active then
+        return head
+    end
+
+    -- Skip cell detection when processing longtable headers/footers
+    if in_header_footer then
+        if debug then
+            texio.write_nl("LPSB-Table: Skipping cell (in header/footer)")
+        end
         return head
     end
 
@@ -544,6 +606,30 @@ function M.init()
         callback.register("hpack_filter", hpack_filter)
     end
     texio.write_nl("term and log", "LPSB-Table: Callback registered.")
+end
+
+-- Set flag for when longtable is processing headers/footers
+-- to prevent hpack_filter from detecting them as data cells
+function M.set_in_header_footer(flag)
+    in_header_footer = flag
+    if debug then
+        texio.write_nl(string.format("LPSB-Table: in_header_footer = %s", tostring(flag)))
+    end
+end
+
+-- Disable/enable hpack_filter entirely (for longtable which it corrupts)
+function M.disable_hpack_filter()
+    hpack_filter_enabled = false
+    if debug then
+        texio.write_nl("LPSB-Table: hpack_filter DISABLED")
+    end
+end
+
+function M.enable_hpack_filter()
+    hpack_filter_enabled = true
+    if debug then
+        texio.write_nl("LPSB-Table: hpack_filter ENABLED")
+    end
 end
 
 return M

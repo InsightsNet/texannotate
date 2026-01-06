@@ -65,7 +65,9 @@ test_sty.*
 
 devlog*
 test*/
+test*
 data/
 tmp*/
 README copy.md
 output_*/
+myenv/

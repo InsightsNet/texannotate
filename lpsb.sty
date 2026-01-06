@@ -179,18 +179,24 @@
 }%
 
 % longtable (multi-page table, non-float)
-% Use kernel env hooks so this works even if longtable is loaded after lpsb.
-\AddToHook{env/longtable/begin}{%
-    \lpsbParaEnd%
-    \global\advance\lpsbEnvDepth by 1%
-    \global\advance\lpsbTableCount by 1%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
-}%
-\AddToHook{env/longtable/end}{%
-    \lpsbParaEnd%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
-    \global\advance\lpsbEnvDepth by -1%
-}%
+% CRITICAL: AddToHook for longtable is DISABLED because it causes visual artifacts
+% (extra horizontal/vertical lines at the end of longtable environments).
+% Root cause: ANY hook on env/longtable (even empty hooks) interferes with
+% longtable's internal rendering, creating "ghost rows" with partial borders.
+% Trade-off: longtable environments will NOT emit Table start/end events in JSON,
+% but visual rendering is preserved.
+% NOTE: This is a limitation of LaTeX's hook system interaction with longtable.
+%\AddToHook{env/longtable/begin}{%
+%    \lpsbParaEnd%
+%    \global\advance\lpsbEnvDepth by 1%
+%    \global\advance\lpsbTableCount by 1%
+%    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
+%}%
+%\AddToHook{env/longtable/end}{%
+%    \lpsbParaEnd%
+%    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
+%    \global\advance\lpsbEnvDepth by -1%
+%}%
 
 % rotating package: sidewaystable (rotated float)
 % Hook by name; if the environment doesn't exist, the hook is ignored.
