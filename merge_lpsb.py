@@ -2,6 +2,7 @@
 """
 LPSB JSON Merger
 Merges .lpsb.json (structure from PDFLaTeX/LuaLaTeX) with .lpsb-math.json (math from LuaLaTeX)
+Optionally merges .lpsb-table.json (tables from LuaLaTeX table pass)
 Uses context-aware IDs (e.g., Sec-N-Math-M) to align math content across compilations.
 """
 
@@ -62,6 +63,50 @@ def build_math_index(math_events: List[dict]) -> Dict[str, dict]:
     
     return index
 
+
+def build_table_index(table_events: List[dict]) -> Dict[str, List[dict]]:
+    """
+    Build index of table detail events by Table id.
+    Returns: {Table-<n>: [events...]} where events are TR/TD starts/ends (no Table start/end).
+    """
+    idx: Dict[str, List[dict]] = {}
+    current_table: Optional[str] = None
+    depth = 0
+
+    for ev in table_events:
+        if ev.get("role") == "Table" and ev.get("event") == "start":
+            if depth == 0:
+                current_table = ev.get("id")
+                if current_table:
+                    idx.setdefault(current_table, [])
+            depth += 1
+            continue
+        if ev.get("role") == "Table" and ev.get("event") == "end":
+            depth -= 1
+            if depth == 0:
+                current_table = None
+            continue
+        if current_table:
+            idx[current_table].append(ev)
+
+    return idx
+
+
+def merge_table_events(structure_events: List[dict], table_index: Dict[str, List[dict]]) -> List[dict]:
+    """
+    Inject TR/TD events under matching Table containers in the structure event stream.
+    Strategy: when we see Table start with id=Table-N, insert corresponding table events right after it.
+    """
+    out: List[dict] = []
+    for ev in structure_events:
+        out.append(ev)
+        if ev.get("role") == "Table" and ev.get("event") == "start":
+            tid = ev.get("id")
+            if tid and tid in table_index:
+                for tev in table_index[tid]:
+                    out.append(tev)
+    return out
+
 def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> List[dict]:
     """
     Merge structure events with math data.
@@ -89,7 +134,7 @@ def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> L
     
     return merged
 
-def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, output_file: Optional[Path] = None):
+def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, output_file: Optional[Path] = None, table_file: Optional[Path] = None):
     """
     Merge LPSB structure and math JSON files.
     
@@ -105,6 +150,10 @@ def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, out
     # Auto-detect output file if not provided
     if output_file is None:
         output_file = structure_file.with_suffix('.lpsb.merged.json')
+
+    # Auto-detect table file if not provided
+    if table_file is None:
+        table_file = structure_file.with_suffix('.lpsb-table.json')
     
     print(f"Merging:")
     print(f"  Structure: {structure_file}")
@@ -114,6 +163,7 @@ def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, out
     # Load files
     structure_events = load_json(structure_file)
     math_events = load_json(math_file)
+    table_events = load_json(table_file) if table_file else []
     
     print(f"\nLoaded {len(structure_events)} structure events")
     print(f"Loaded {len(math_events)} math events")
@@ -121,6 +171,10 @@ def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, out
     # Build math index
     math_index = build_math_index(math_events)
     print(f"Indexed {len(math_index)} unique math formulas")
+
+    table_index = build_table_index(table_events)
+    if table_events:
+        print(f"Loaded {len(table_events)} table events, indexed {len(table_index)} tables")
 
     # Report match stats independent of MathML availability
     matchable_roles = {'Math', 'InlineMath', 'Formula'}
@@ -135,6 +189,8 @@ def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, out
     
     # Merge
     merged_events = merge_events(structure_events, math_index)
+    if table_index:
+        merged_events = merge_table_events(merged_events, table_index)
     
     # Count enriched events
     matched_count = sum(1 for e in merged_events if e.get('math_match'))
@@ -150,17 +206,18 @@ def merge_lpsb_files(structure_file: Path, math_file: Optional[Path] = None, out
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 merge_lpsb.py <structure.lpsb.json> [math.lpsb-math.json] [output.json]")
+        print("Usage: python3 merge_lpsb.py <structure.lpsb.json> [math.lpsb-math.json] [output.json] [table.lpsb-table.json]")
         print("\nExample:")
         print("  python3 merge_lpsb.py main.lpsb.json")
-        print("  python3 merge_lpsb.py main.lpsb.json main.lpsb-math.json main.merged.json")
+        print("  python3 merge_lpsb.py main.lpsb.json main.lpsb-math.json main.merged.json main.lpsb-table.json")
         sys.exit(1)
     
     structure_file = Path(sys.argv[1])
     math_file = Path(sys.argv[2]) if len(sys.argv) > 2 else None
     output_file = Path(sys.argv[3]) if len(sys.argv) > 3 else None
+    table_file = Path(sys.argv[4]) if len(sys.argv) > 4 else None
     
-    merge_lpsb_files(structure_file, math_file, output_file)
+    merge_lpsb_files(structure_file, math_file, output_file, table_file)
 
 if __name__ == '__main__':
     main()

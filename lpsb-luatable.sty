@@ -1,0 +1,97 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-luatable}[2026/01/06 v0.1 LPSB LuaLaTeX Table Extension]
+
+\RequirePackage[savepos]{zref}
+\RequirePackage{iftex}
+\ifLuaTeX\else
+  \PackageError{lpsb-luatable}{This package requires LuaLaTeX}{Use lualatex for the table pass.}
+\fi
+
+% Load Lua module and initialize
+\directlua{lpsb_table = require("lpsb-table")}
+\directlua{lpsb_table.init()}
+\directlua{lpsb_table.open_file(tex.jobname)}
+
+% Track nested tabular environments (only mark outermost)
+\newcount\lpsbTabularDepth
+\lpsbTabularDepth=0
+\newcount\lpsbTabularCount   % Internal counter for all tabular/tabularx instances
+\lpsbTabularCount=0
+\newcount\lpsb@tblrow
+\lpsb@tblrow=0
+\def\lpsb@tblid{Tabular-0}
+
+\makeatletter
+% Save/restore tabular row macros (LuaLaTeX pass only).
+\let\lpsb@orig@tabularcr\relax
+\let\lpsb@orig@arraycr\relax
+
+\def\lpsb@tabularBegin{%
+  \global\advance\lpsbTabularDepth by 1\relax
+  \ifnum\lpsbTabularDepth=1\relax
+    % Increment internal tabular counter for each outermost tabular/tabularx.
+    \global\advance\lpsbTabularCount by 1\relax
+    \edef\lpsb@tblid{Tabular-\the\lpsbTabularCount}%
+    \directlua{lpsb_table.begin_table("Tabular-\the\lpsbTabularCount")}%
+    % Row 1 baseline anchor.
+    % NOTE: positions are available reliably on the *second* run (aux-based),
+    % similar to cross-references.
+    \global\lpsb@tblrow=1\relax
+    \zsavepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
+    \directlua{lpsb_table.set_anchor(\the\c@page, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
+    % Row delimiter: patch LaTeX's internal row-ending macros.
+    % This is LuaLaTeX-only and must not run in the structure pass.
+    \let\lpsb@orig@tabularcr\@tabularcr
+    \def\@tabularcr{%
+      \lpsb@orig@tabularcr
+      \noalign{%
+        \global\advance\lpsb@tblrow by 1\relax
+        \zsavepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
+        \directlua{lpsb_table.row_break(\the\c@page, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
+      }%
+    }%
+    \@ifundefined{@arraycr}{}{%
+      \let\lpsb@orig@arraycr\@arraycr
+      \def\@arraycr{%
+        \lpsb@orig@arraycr
+        \noalign{%
+          \global\advance\lpsb@tblrow by 1\relax
+          \zsavepos{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}%
+          \directlua{lpsb_table.row_break(\the\c@page, \zposx{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow}, \zposy{lpsbtable-\lpsb@tblid-r\the\lpsb@tblrow})}%
+        }%
+      }%
+    }%
+  \fi
+}
+
+\def\lpsb@tabularEnd{%
+  \ifnum\lpsbTabularDepth=1\relax
+    % Restore patched row macros.
+    \ifx\lpsb@orig@tabularcr\relax\else
+      \let\@tabularcr\lpsb@orig@tabularcr
+    \fi
+    \ifx\lpsb@orig@arraycr\relax\else
+      \let\@arraycr\lpsb@orig@arraycr
+    \fi
+    \directlua{lpsb_table.end_table()}%
+  \fi
+  \global\advance\lpsbTabularDepth by -1\relax
+}
+
+% Use kernel environment hooks (no etoolbox dependency).
+\AddToHook{env/tabular/begin}{\lpsb@tabularBegin}
+\AddToHook{env/tabular/end}{\lpsb@tabularEnd}
+% Also hook tabularx (common in papers)
+\AddToHook{env/tabularx/begin}{\lpsb@tabularBegin}
+\AddToHook{env/tabularx/end}{\lpsb@tabularEnd}
+% Done with @-names
+\makeatother
+
+% Close file at end of document
+\AtEndDocument{%
+  \directlua{lpsb_table.close_file()}%
+}
+
+\endinput
+
+

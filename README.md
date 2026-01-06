@@ -90,6 +90,12 @@ python3 solver.py main.lpsb.json --pdf main.pdf --extract-cells --output main.st
 
 Details: see `docs/table_cells.md`.
 
+### Optional (LuaLaTeX): table pass (TR/TD + colspan + bbox)
+
+If you want TR/TD from a LuaLaTeX pass (similar to the MathML pipeline), see:
+
+- `docs/lua_table_pass.md`
+
 ### Batch processing (arXiv source tarballs)
 
 Put `*.tar.gz` into `data/download/`, then run:

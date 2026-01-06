@@ -158,4 +158,12 @@ Ensure you’re using the current `lpsb.sty` (unique `Table-*` ids, caption star
 
 If you want, we can add a dedicated batch script for TD extraction to mirror the existing LuaMath flow.
 
+---
+
+## Alternative: LuaLaTeX Table Pass (B方案)
+
+If you want TR/TD directly from a LuaLaTeX pass (with colspan and absolute bbox), see:
+
+- `docs/lua_table_pass.md`
+
 
