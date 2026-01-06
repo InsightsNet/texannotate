@@ -45,6 +45,20 @@ If you want reproducible builds for TL2023 papers, build this tag too:
 docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
 ```
 
+> Note: `docker/Dockerfile.tl2023` also vendors `luamml` runtime into the historic image (under `TEXMFLOCAL`)
+> so the LuaLaTeX pass can emit **MathML** even on frozen TeX Live releases.
+
+### Optional: build TeX Live 2022 image (for older biblatex `.bbl` formats)
+
+Older arXiv sources (pre-`00README.json`) may ship a pre-generated `biblatex` `.bbl` that is **format-version strict**.
+For those, compiling with a newer TeX Live can fail (or silently diverge).
+
+This repo provides a TL2022 historic image that also vendors `luamml` runtime (so the LuaLaTeX pass can still emit MathML):
+
+```bash
+docker build -f docker/Dockerfile.tl2022 -t lpsb-texlive:TL2022-historic docker
+```
+
 ### Single file (local directory)
 
 Copy `lpsb.sty` into the same directory as your `main.tex` and add:
@@ -107,23 +121,25 @@ If you want TR/TD from a LuaLaTeX pass (similar to the MathML pipeline), see:
 Put `*.tar.gz` into `data/download/`, then run:
 
 ```bash
-# PDFLaTeX: structure pass (refs/bib resolved via multi-pass)
-bash script/test_batch.sh
-
-# LuaLaTeX: math pass (captures $...$, emits *.lpsb-math.json with MathML)
-bash script/test_lua_batch.sh
-
-# Merge: enrich PDFLaTeX structure with LuaLaTeX MathML
-bash hybrid_merge.sh
+# Recommended: one-shot gold pipeline
+# - Stage A (gold): pdflatex -> PDF + *.lpsb.json
+# - Stage B (enrich): lualatex -> *.lpsb-math.json (MathML) + *.lpsb-table.json
+# - Merge: *.lpsb.merged.json
+bash script/batch_compile_all.sh
 ```
 
 Outputs:
 
-- `test_output/`: PDFLaTeX outputs and `*.lpsb.json` (structure)
-- `test_output_lua/`: LuaLaTeX outputs and `*.lpsb-math.json` (math + MathML)
-- `test_output_merged/`: merged JSON (structure + `mathml` fields)
+- `compile_results/<paper>/`: per-paper outputs (gold + enrich + logs)
+  - `_pdflatex/`: gold PDF + `*.lpsb.json`
+  - `_lualatex/`: `*.lpsb-math.json` (+ MathML when available) and `*.lpsb-table.json`
+  - `*.lpsb.merged.json`: merged output (structure enriched with `mathml` and table events)
 
-> **TeX Live version selection**: the batch scripts read `00README.json` (if present) and select a compatible TeX Live Docker image based on `texlive_version` to avoid toolchain mismatches (e.g., `biblatex` `.bbl` format differences).
+> **TeX Live selection**:
+> - New arXiv sources: read `00README.json` / `texlive_version`.
+> - Old arXiv sources (no `00README.json`): if a `biblatex` `.bbl` exists, infer TeX Live from the header
+>   (`% $ biblatex bbl format version X.Y $`) and pick a matching historic image (heuristic).
+> - The script prints: `TeX Live selected: <year> (image: <docker-tag>)`.
 
 ---
 
@@ -201,14 +217,14 @@ Optional MathML track (LuaLaTeX):
 | **Blocks** | Lists (L, LI) | ✅ | `itemize`, `enumerate`, `description` |
 | | List Labels (Lbl) | ✅ | Captures `1.`, `a)`, `•` etc. |
 | | Paragraphs (P) | ✅ | Uses kernel paragraph hooks (`para/begin`, `para/end`) |
-| **Tables** | Table Container | ✅ | `tabular`, `tabularx`, `longtable`, `sidewaystable` |
-| | Rows (TR) | ✅ | Detects `\\` (⚠️ except longtable MVP) |
-| | Cells (TD) | ✅ (LuaLaTeX) | Via `lpsb-luatable` + `lpsb-table.lua` |
-| | Colspan | ✅ (LuaLaTeX) | Inferred from row cell counts |
-| | Cell Bbox | ✅ (LuaLaTeX) | Absolute page/rotation coordinates |
+| **Tables** | Table Container | ✅ (floats) / ⚠️ (longtable) | Float `table`/`table*` are instrumented. `longtable` hooks are disabled due to visual artifacts. |
+| | Rows (TR) | ⚠️ | Best-effort; longtable row semantics are not reliable via TeX hooks. |
+| | Cells (TD) | ⚠️ (Lua) / ✅ (PDF-side) | Lua TD capture is best-effort; recommended approach is PDF-side extraction (`extract_cells.py`). |
+| | Colspan/Rowspan | ✅ (PDF-side) / ⚠️ (Lua) | PDF-side extractor supports spans; Lua pass may infer colspan but is not authoritative. |
+| | Cell Bbox | ✅ (Lua) / ✅ (PDF-side) | Lua bbox is approximate; PDF-side tends to be more stable across engines. |
 | **Math** | Display Formulas | ✅ | `equation`, `align`, `gather` |
 | | Inline Formulas | ✅ (LuaLaTeX) | `$...$` captured by `lpsb-luamath` |
-| | MathML | ✅ (LuaLaTeX) | via `luamml` in `lpsb-texlive:latest` |
+| | MathML | ✅ (LuaLaTeX) | Requires `luamml` runtime. Provided by `lpsb-texlive:latest`, and historic images `lpsb-texlive:TL2022-historic` / `lpsb-texlive:TL2023-historic`. |
 | **Refs** | Citations | ✅ | `\cite` links to bibliography |
 | | References | ✅ | `\ref`, `\label` linkages |
 | **Accessibility** | Captions | ✅ | Figures and Tables |
@@ -216,11 +232,14 @@ Optional MathML track (LuaLaTeX):
 
 ### Known Limitations
 
-1. **Inline math in PDFLaTeX**: `$...$` is not hooked in PDFLaTeX. Use the LuaLaTeX math pass.
-2. **Table cells (TD)**: Not extracted by default. Enable with `python3 solver.py --pdf file.pdf --extract-cells` (requires `pdfplumber`). Cells are detected via PDF text positioning. **Note**: Requires 2 compilation passes for accurate coordinates.
-3. **Structure Tree Depth**: Due to an event ordering issue in `lpsb.sty` (mismatched nested environments), the JSON structure tree may be deeper than expected (e.g. `Table` closing after `TR` closes). This affects the tree hierarchy but not the content.
-4. **Paragraphs**: paragraph detection is much more reliable with kernel hooks, but pathological macro-generated text can still bypass it.
-5. **Macros**: heavily customized document-level macros can bypass hooks.
+1. **PDF is gold = PDFLaTeX**: the pipeline treats the PDFLaTeX output as the visual “gold” PDF. The LuaLaTeX pass is for enrichment only.
+2. **Inline math in PDFLaTeX**: `$...$` is not hooked in PDFLaTeX. Use the LuaLaTeX math pass (`lpsb-luamath`) for inline math + MathML.
+3. **MathML depends on `luamml`**: if your container image does not ship `luamml`, `mathml` will be empty. Use `lpsb-texlive:latest` or the provided historic images with vendored `luamml`.
+4. **Table extraction is still messy**:
+   - Hooking `tabular` internals in TeX is fragile and can create visual artifacts.
+   - `longtable` is especially fragile; hooks are disabled to preserve rendering.
+   - Recommended: PDF-side cell extraction (`extract_cells.py`) for reliable TD/row/col/span.
+5. **Weird macros win**: heavily customized macros/classes/packages can bypass hooks or reorder output in ways that break event nesting.
 
 ---
 
@@ -232,7 +251,7 @@ Optional MathML track (LuaLaTeX):
 - **Math (LuaLaTeX)**
   - `lpsb-luamath.sty`, `lpsb-math.lua`: capture math + emit MathML (via `luamml`)
 - **Merge**
-  - `merge_lpsb.py`: merge structure + math by IDs
+  - `script/merge_lpsb.py`: merge structure + math/table by IDs
   - `hybrid_merge.sh`: batch merge `test_output/` + `test_output_lua/`
 - **Scripts**
   - `script/test_batch.sh`: PDFLaTeX batch pass

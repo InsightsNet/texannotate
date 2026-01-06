@@ -41,11 +41,26 @@ docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 
 Some arXiv sources include `00README.json` with `"texlive_version": "2023"`. This matters for things like `biblatex` `.bbl` format/version compatibility.
 
+This repo's `docker/Dockerfile.tl2023` also **vendors `luamml` runtime** into the historic image (under `TEXMFLOCAL`) so the LuaLaTeX pass can emit **MathML** even on frozen TeX Live releases.
+
 Build:
 
 ```bash
 cd /path/to/LPSB
 docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
+```
+
+### TeX Live 2022 (historic) for older biblatex `.bbl` formats (optional)
+
+Some older arXiv sources (pre-`00README.json`) ship a pre-generated `.bbl` created by `biblatex/biber`.
+Those `.bbl` files can be **format-version strict**, and compiling them with a newer TeX Live can fail
+or produce inconsistent outputs.
+
+This repo provides a TL2022 image with `luamml` runtime vendored in (for MathML extraction in the Lua pass):
+
+```bash
+cd /path/to/LPSB
+docker build -f docker/Dockerfile.tl2022 -t lpsb-texlive:TL2022-historic docker
 ```
 
 ### TeX Live 2024 (optional)
@@ -98,6 +113,16 @@ When a paper has `00README.json`, batch scripts read:
 - **`compiler`** (used by `run_full_pipeline.sh`): selects `pdflatex` vs `xelatex` vs `lualatex` for the structure pass
 
 Rationale: arXiv submissions sometimes include pre-generated artifacts (notably `.bbl`) that can be version-sensitive.
+
+For older arXiv sources **without** `00README.json`, `script/batch_compile_all.sh` uses a conservative fallback:
+
+- If a `biblatex`-generated `.bbl` exists, read its header line:
+  - `% $ biblatex bbl format version X.Y $`
+- Map it to a TeX Live historic image (heuristic; example: `3.1 -> TL2022`).
+
+The script prints the resolved choice in logs as:
+
+- `TeX Live selected: <year> (image: <docker-tag>)`
 
 ---
 
@@ -159,23 +184,45 @@ There is a copy/paste template at `docs/env.example` (recommended: `cp docs/env.
 
 `.gitignore` ignores many generated trees and also broad patterns like `test*/`, `tmp*/`, and `data/`. Make sure new docs live under `docs/` (tracked).
 
-### 3) Table internals in PDFLaTeX are intentionally not hooked
+### 3) Table extraction: PDF-side is recommended
 
-Hooking `tabular` macros in PDFLaTeX caused visual artifacts (“dangling vertical lines”). Default approach is:
+Hooking `tabular` macros in LaTeX is fragile and causes issues:
+- **Visual artifacts**: dangling vertical lines, extra rules
+- **Row detection**: `\everycr` hooks don't fire reliably
+- **colspan/rowspan**: `\multicolumn`/`\multirow` hooks interfere with rendering
 
-- PDFLaTeX: only `Table` container events (no TD/TR internals)
-- TD/TR details: either **PDF-side** via pdfplumber (`extract_cells.py`) or **Lua table pass** (`lpsb-luatable`).
+**Recommended approach: PDF-side extraction** (`extract_cells.py`)
+
+| Method | Row Detection | colspan | rowspan | Reliability |
+|--------|---------------|---------|---------|-------------|
+| Lua hpack_filter | ❌ No | ❌ Lost | ❌ Lost | Low |
+| LaTeX hooks | ⚠️ Risky | ⚠️ Complex | ⚠️ Complex | Medium |
+| **PDF-side (pdfplumber)** ✅ | ✅ Perfect | ✅ Perfect | ✅ Perfect | High |
+
+Workflow:
+```bash
+# 1. Compile (generates PDF)
+lualatex doc.tex
+
+# 2. Extract table cells from PDF
+python extract_cells.py doc.pdf -o doc.lpsb-table.json
+```
+
+The Lua-based `lpsb-luatable` still runs during compilation to capture cell text and approximate bbox, but for accurate row/column/span info, use `extract_cells.py` as post-processing.
 
 ---
 
 ## Current status: what to fix next (engineering list)
 
 - **Path configurability**: remove hard-coded `/home/duan/...` paths from scripts (make env-var driven).
-- **Lua table pass “page” semantics**:
-  - Current table pass can generate TR/TD + bbox, but “which PDF page” attribution needs a robust method (likely shipout-time binding).
-  - This item is explicitly delegated to another teammate.
+- **Table extraction pipeline**:
+  - ✅ DONE: `extract_cells.py` for PDF-side extraction with colspan/rowspan support
+  - ✅ DONE: Log markers in `lpsb-luatable.sty` for row tracking
+  - TODO: Integrate into batch scripts (`test_lua_batch.sh`)
 - **Rotated tables**:
-  - `sidewaystable`/rotation handling exists in structure pass; Lua table pass includes a direction probe (`dirx`) so bbox can be rotated into page coords. Needs more real-paper coverage.
+  - `sidewaystable`/rotation handling exists in structure pass
+  - PDF-side extraction via pdfplumber should handle rotated tables correctly
+  - Needs more real-paper coverage
 
 ---
 
@@ -205,9 +252,19 @@ bash hybrid_merge.sh
 Tree build:
 
 ```bash
-cd /home/duan/rainbow_2/LPSB
-source /home/duan/rainbow_2/.venv/bin/activate
+cd /path/to/LPSB
+source .venv/bin/activate
 python3 solver.py /path/to/main.lpsb.json --output /path/to/main.structure.json --validate
+```
+
+Table extraction (PDF-side):
+
+```bash
+# Extract tables with colspan/rowspan detection
+python extract_cells.py main.pdf -o main.lpsb-table.json
+
+# Or just view the structure
+python extract_cells.py main.pdf | python -c "import json,sys; print(json.dumps(json.load(sys.stdin), indent=2))"
 ```
 
 

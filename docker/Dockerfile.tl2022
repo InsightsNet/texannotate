@@ -1,8 +1,8 @@
-# Dockerfile for TeX Live 2023
+# Dockerfile for TeX Live 2022 (historic tag)
 #
-# TL2023 is frozen and does not include the (newer) luamml package in its tlnet-final.
-# To keep TL2023 compatibility while enabling `require("luamml-convert")`, we copy the
-# luamml runtime files from the TeXLive latest image into TL2023's texmf-local.
+# TL2022 is frozen; for MathML extraction our Lua pass needs `luamml` runtime
+# (require("luamml-convert")). In older TLs this package may be missing from
+# their tlnet-final; we vendor the runtime from the latest image into texmf-local.
 
 FROM texlive/texlive:latest AS luamml_src
 
@@ -12,7 +12,7 @@ RUN set -e; \
     test -n "$d"; \
     tar -C "$d" -cf /luamml.tar .
 
-FROM texlive/texlive:TL2023-historic
+FROM texlive/texlive:TL2022-historic
 WORKDIR /workdir
 
 RUN mkdir -p /usr/local/texlive/texmf-local/tex/lualatex/luamml && \
@@ -20,7 +20,10 @@ RUN mkdir -p /usr/local/texlive/texmf-local/tex/lualatex/luamml && \
 COPY --from=luamml_src /luamml.tar /tmp/luamml.tar
 RUN set -e; \
     tar -C /usr/local/texlive/texmf-local/tex/lualatex/luamml -xf /tmp/luamml.tar; \
+    # Make Lua modules discoverable by LuaTeX's require(): place them under tex/luatex too.
     find /usr/local/texlive/texmf-local/tex/lualatex/luamml -maxdepth 1 -type f -name '*.lua' -print0 | \
       xargs -0 -I{} cp -f {} /usr/local/texlive/texmf-local/tex/luatex/luamml/; \
     rm -f /tmp/luamml.tar; \
     mktexlsr
+
+

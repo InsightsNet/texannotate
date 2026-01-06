@@ -183,6 +183,8 @@
         \edef\lpsb@tblid{Tabular-\the\lpsbTabularCount}%
       \fi
     }%
+    \global\lpsb@rowcount=0\relax  % Reset row counter for this table
+    \typeout{LPSB-TABLE-BEGIN: table=\lpsb@tblid, page=\thepage}%
     \directlua{lpsb_table.begin_table("\lpsb@tblid")}%
     \directlua{lpsb_table.set_container("\lpsb@tblid")}%
   \fi
@@ -242,6 +244,29 @@
 }
 
 % Note: Both tabular and longtable now use direct patching (no AddToHook)
+
+% ============================================================================
+% Row Tracking via Log Markers (2026-01-06)
+% ============================================================================
+% Log-based approach: write markers to log file, post-process with Python.
+% This avoids modifying Lua callback timing which causes row misalignment.
+% Marker format: LPSB-ROW-END: table=<id>, page=<n>
+% ============================================================================
+\newcount\lpsb@rowcount
+\lpsb@rowcount=0
+
+\AtBeginDocument{%
+  % Hook \@tabularcr (tabular row break)
+  \let\lpsb@orig@tabularcr\@tabularcr
+  \def\@tabularcr{%
+    \ifnum\lpsbTabularDepth>0\relax
+      \global\advance\lpsb@rowcount by 1\relax
+      \typeout{LPSB-ROW-END: table=\lpsb@tblid, row=\the\lpsb@rowcount, page=\thepage}%
+    \fi
+    \lpsb@orig@tabularcr
+  }%
+}
+
 \makeatother
 
 % Close file at end of document

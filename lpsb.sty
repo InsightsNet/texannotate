@@ -429,7 +429,8 @@
         \fi
         % #2 = level (0=chapter, 1=section, 2=subsection, etc)
         % #8 = title text
-        \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "start", "level": #2, "title": "\lpsb@escapeJSON{#8}", "page": \thepage}}%
+        % Ensure level is numeric even if LaTeX passes macros like \@M (e.g. TOC internals).
+        \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "start", "level": \number#2, "title": "\lpsb@escapeJSON{#8}", "page": \thepage}}%
         \lpsb@origsect{#1}{#2}{#3}{#4}{#5}{#6}[{#7}]{#8}%
         \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "end", "page": \thepage}}%
     }%
