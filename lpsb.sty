@@ -178,6 +178,34 @@
     \global\advance\lpsbEnvDepth by -1%
 }%
 
+% longtable (multi-page table, non-float)
+% Use kernel env hooks so this works even if longtable is loaded after lpsb.
+\AddToHook{env/longtable/begin}{%
+    \lpsbParaEnd%
+    \global\advance\lpsbEnvDepth by 1%
+    \global\advance\lpsbTableCount by 1%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
+}%
+\AddToHook{env/longtable/end}{%
+    \lpsbParaEnd%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "longtable"}}%
+    \global\advance\lpsbEnvDepth by -1%
+}%
+
+% rotating package: sidewaystable (rotated float)
+% Hook by name; if the environment doesn't exist, the hook is ignored.
+\AddToHook{env/sidewaystable/begin}{%
+    \lpsbParaEnd%
+    \global\advance\lpsbEnvDepth by 1%
+    \global\advance\lpsbTableCount by 1%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "sidewaystable", "rotated": true}}%
+}%
+\AddToHook{env/sidewaystable/end}{%
+    \lpsbParaEnd%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage, "env": "sidewaystable", "rotated": true}}%
+    \global\advance\lpsbEnvDepth by -1%
+}%
+
 % Special hook for Math environments - uses context-aware IDs for cross-compilation alignment
 \newcommand{\lpsbHookMath}[1]{%  #1=env name
     \AtBeginEnvironment{#1}{%

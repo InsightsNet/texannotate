@@ -5,9 +5,16 @@
 set -u
 set -o pipefail
 
-DATA_DIR="/home/duan/rainbow_2/data/download"
-OUTPUT_DIR="/home/duan/rainbow_2/LPSB/test_output_lua"
-LPSB_DIR="/home/duan/rainbow_2/LPSB"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+LPSB_DIR_DEFAULT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+
+LPSB_DIR="${LPSB_DIR:-$LPSB_DIR_DEFAULT}"
+LPSB_DATA_DIR="${LPSB_DATA_DIR:-${LPSB_DATA_DOWNLOAD_DIR:-"$LPSB_DIR/data/download"}}"
+LPSB_OUT_LUA_DIR="${LPSB_OUT_LUA_DIR:-${LPSB_OUTPUT_LUA_DIR:-"$LPSB_DIR/test_output_lua"}}"
+
+# Backward-compatible overrides (old variable names).
+DATA_DIR="${DATA_DIR:-$LPSB_DATA_DIR}"
+OUTPUT_DIR="${OUTPUT_DIR:-$LPSB_OUT_LUA_DIR}"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -85,6 +92,17 @@ echo "=========================================="
 echo "LuaLaTeX Math Capture Test"
 echo "=========================================="
 
+if [ ! -d "$DATA_DIR" ]; then
+    echo "ERROR: DATA_DIR not found: $DATA_DIR" >&2
+    echo "Hint: set LPSB_DATA_DIR or DATA_DIR (default: \$LPSB_DIR/data/download)" >&2
+    exit 2
+fi
+if [ ! -f "$LPSB_DIR/lpsb.sty" ]; then
+    echo "ERROR: LPSB_DIR does not look like repo root: $LPSB_DIR" >&2
+    echo "Hint: set LPSB_DIR explicitly." >&2
+    exit 2
+fi
+
 for tarball in "$DATA_DIR"/*.tar.gz; do
     paper=$(basename "$tarball" .tar.gz)
     echo
@@ -140,24 +158,28 @@ for tarball in "$DATA_DIR"/*.tar.gz; do
     # Pass 1
     docker run --rm -v "$paper_dir":/workdir -w "$container_wd" "$DOCKER_IMAGE" \
         lualatex -interaction=nonstopmode -jobname="$jobname" "$main_name.tex" \
-        > "$paper_dir/compile1.log" 2>&1 || true
+        > "$paper_dir/compile1.log" 2>&1
+    rc_compile1=$?
 
     # Bibliography (biber/bibtex) if needed
     if [ -f "$tex_dir/$main_name.bbl" ]; then
         : # use existing bbl
     elif grep -q 'biblatex' "$main_tex" 2>/dev/null; then
         docker run --rm -v "$paper_dir":/workdir -w "$container_wd" "$DOCKER_IMAGE" \
-            biber "$jobname" > "$paper_dir/biber.log" 2>&1 || true
+            biber "$jobname" > "$paper_dir/biber.log" 2>&1
+        rc_biber=$?
     elif grep -q 'bibliography' "$main_tex" 2>/dev/null || ls "$paper_dir"/*.bib >/dev/null 2>&1; then
         docker run --rm -v "$paper_dir":/workdir -w "$container_wd" "$DOCKER_IMAGE" \
-            bibtex "$jobname" > "$paper_dir/bibtex.log" 2>&1 || true
+            bibtex "$jobname" > "$paper_dir/bibtex.log" 2>&1
+        rc_bibtex=$?
     fi
 
     # Pass 2 & 3 (resolve refs)
     for pass in 2 3; do
         docker run --rm -v "$paper_dir":/workdir -w "$container_wd" "$DOCKER_IMAGE" \
             lualatex -interaction=nonstopmode -jobname="$jobname" "$main_name.tex" \
-            > "$paper_dir/compile$pass.log" 2>&1 || true
+            > "$paper_dir/compile$pass.log" 2>&1
+        eval "rc_compile$pass=$?"
     done
     
     # Check results
@@ -167,6 +189,9 @@ for tarball in "$DATA_DIR"/*.tar.gz; do
         echo "  ✓ Math formulas captured: $math_count"
     else
         echo "  ✗ No math JSON generated"
+        echo "  Logs: $paper_dir/compile1.log (and compile2/3.log)"
+        grep -m1 "^!" "$paper_dir/compile3.log" 2>/dev/null || grep -m1 "^!" "$paper_dir/compile1.log" 2>/dev/null || true
+        echo "  Return codes: lualatex(1)=${rc_compile1:-?} lualatex(2)=${rc_compile2:-?} lualatex(3)=${rc_compile3:-?} biber=${rc_biber:-n/a} bibtex=${rc_bibtex:-n/a}"
     fi
     
     if [ -f "$tex_dir/$jobname.lpsb.json" ]; then

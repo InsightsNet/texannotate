@@ -2,9 +2,22 @@
 # Hybrid merge: Combine PDFLaTeX structure JSON with LuaLaTeX math JSON
 # Uses context-aware IDs for alignment
 
-PDFLATEX_DIR="/home/duan/rainbow_2/LPSB/test_output"
-LUALATEX_DIR="/home/duan/rainbow_2/LPSB/test_output_lua"
-OUTPUT_DIR="/home/duan/rainbow_2/LPSB/test_output_merged"
+set -u
+set -o pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+LPSB_DIR_DEFAULT="$SCRIPT_DIR"
+
+LPSB_DIR="${LPSB_DIR:-$LPSB_DIR_DEFAULT}"
+LPSB_OUT_DIR="${LPSB_OUT_DIR:-${LPSB_OUTPUT_DIR:-"$LPSB_DIR/test_output"}}"
+LPSB_OUT_LUA_DIR="${LPSB_OUT_LUA_DIR:-${LPSB_OUTPUT_LUA_DIR:-"$LPSB_DIR/test_output_lua"}}"
+LPSB_OUT_MERGED_DIR="${LPSB_OUT_MERGED_DIR:-${LPSB_OUTPUT_MERGED_DIR:-"$LPSB_DIR/test_output_merged"}}"
+LPSB_MERGE_PY="${LPSB_MERGE_PY:-"$LPSB_DIR/merge_lpsb.py"}"
+
+# Backward-compatible overrides (old variable names).
+PDFLATEX_DIR="${PDFLATEX_DIR:-$LPSB_OUT_DIR}"
+LUALATEX_DIR="${LUALATEX_DIR:-$LPSB_OUT_LUA_DIR}"
+OUTPUT_DIR="${OUTPUT_DIR:-$LPSB_OUT_MERGED_DIR}"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -40,7 +53,7 @@ for paper_dir in "$PDFLATEX_DIR"/*/; do
     
     # Merge using Python script
     output_json="$OUTPUT_DIR/$paper-merged.json"
-    python3 /home/duan/rainbow_2/LPSB/merge_lpsb.py \
+    python3 "$LPSB_MERGE_PY" \
         "$pdflatex_json" \
         "$lualatex_json" \
         "$output_json" 2>&1 | grep -E "Loaded|Indexed|Enriched|✓"

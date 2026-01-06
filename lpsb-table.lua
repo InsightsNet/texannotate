@@ -27,6 +27,9 @@ local row_started = false
 local rows = nil -- { {cells={...}}, ... }
 local anchor = { page = 0, x = 0, y = 0 }
 local row_pos = nil -- { [row]= {page=, x=, y=} }
+local dirx = { x = 0, y = 0 } -- anchor + 1pt in local x (page coords)
+local dir = { dx = 1.0, dy = 0.0 } -- local x direction in page coords per sp
+local container_id = nil
 
 -- Debug
 local debug = os.getenv("LPSB_TABLE_DEBUG") == "1"
@@ -49,7 +52,18 @@ local function escape_json(s)
         return ""
     end
     s = tostring(s)
-    s = s:gsub("\\", "\\\\"):gsub('"', '\\"'):gsub("\r", " "):gsub("\n", " ")
+    -- Escape backslash and quote first
+    s = s:gsub("\\", "\\\\")
+    s = s:gsub('"', '\\"')
+    -- Escape control characters (JSON requires escaping U+0000 to U+001F)
+    s = s:gsub("[%z\1-\31]", function(c)
+        if c == "\n" then return "\\n" end
+        if c == "\r" then return "\\r" end
+        if c == "\t" then return "\\t" end
+        if c == "\b" then return "\\b" end
+        if c == "\f" then return "\\f" end
+        return string.format("\\u%04x", string.byte(c))
+    end)
     return s
 end
 
@@ -119,6 +133,9 @@ local function ev_to_json(ev)
     end
     if ev.page then
         add_raw(json_kv_number("page", ev.page))
+    end
+    if ev.container ~= nil then
+        add_raw(json_kv_string("container", ev.container))
     end
     if ev.x0 then
         add_raw(json_kv_number("x0", ev.x0))
@@ -294,6 +311,26 @@ function M.set_anchor(page, x, y)
     row_pos[1] = { page = anchor.page, x = anchor.x, y = anchor.y }
 end
 
+function M.set_dirx(x, y)
+    dirx.x = tonumber(x) or 0
+    dirx.y = tonumber(y) or 0
+    -- Derive local x direction vector per sp using 1pt offset (65536sp).
+    local dx = (dirx.x - anchor.x) / 65536.0
+    local dy = (dirx.y - anchor.y) / 65536.0
+    local norm = math.sqrt(dx * dx + dy * dy)
+    if norm > 0.000001 then
+        dir.dx = dx / norm
+        dir.dy = dy / norm
+    else
+        dir.dx = 1.0
+        dir.dy = 0.0
+    end
+end
+
+function M.set_container(cid)
+    container_id = cid
+end
+
 function M.open_file(jobname)
     if not jobname or jobname == "" then
         jobname = (tex and tex.jobname) or (status and status.jobname) or "texput"
@@ -322,6 +359,7 @@ function M.begin_table(table_id)
     row_started = false
     rows = { { cells = {} } }
     row_pos = {}
+    container_id = container_id -- keep last value if set before begin_table
     if debug then
         texio.write_nl("term and log", "LPSB-Table: begin_table " .. tostring(active_table_id))
     end
@@ -346,7 +384,7 @@ function M.end_table()
     local row_heights = infer_row_heights(rows or {})
 
     -- Emit JSON for this table instance.
-    write_event(ev_to_json({ id = active_table_id, role = "Table", event = "start", cols = ncols, page = anchor.page }))
+    write_event(ev_to_json({ id = active_table_id, role = "Table", event = "start", cols = ncols, page = anchor.page, container = container_id }))
     for r_i, r in ipairs(rows or {}) do
         local tr_id = string.format("%s-TR%d", active_table_id, r_i)
         local rp = row_pos and row_pos[r_i] or nil
@@ -356,13 +394,45 @@ function M.end_table()
             local td_id = string.format("%s-TD%d", tr_id, cell.col or 0)
             local base_x = (rp and rp.x) or anchor.x
             local base_y = (rp and rp.y) or anchor.y
-            local x0 = base_x
+            local offset = 0
             if cell.col and cell.col > 1 then
-                x0 = x0 + sum_width(col_widths, 1, cell.col - 1)
+                offset = sum_width(col_widths, 1, cell.col - 1)
             end
             local w = sum_width(col_widths, cell.col or 1, cell.colspan or 1)
             local rh = row_heights[r_i] or { h = 0, d = 0 }
-            local x0i, y0i, x1i, y1i = bbox_from_baseline(x0, base_y, w, rh.h or 0, rh.d or 0)
+
+            -- Local x-axis direction (dir) may be rotated; local y-axis is perpendicular.
+            local ux, uy = dir.dx, dir.dy
+            local vx, vy = -uy, ux
+            -- Choose v sign so it matches the row progression if we have row2.
+            if row_pos and row_pos[1] and row_pos[2] then
+                local rx = row_pos[2].x - row_pos[1].x
+                local ry = row_pos[2].y - row_pos[1].y
+                local dot = vx * rx + vy * ry
+                if dot < 0 then
+                    vx, vy = -vx, -vy
+                end
+            end
+
+            local px = base_x + ux * offset
+            local py = base_y + uy * offset
+
+            local function addpt(x, y, dxs, dys)
+                return x + dxs, y + dys
+            end
+
+            -- Corners (axis-aligned bbox of parallelogram).
+            local xA, yA = px, py
+            local xB, yB = addpt(px, py, ux * w, uy * w)
+            local xC, yC = addpt(px, py, vx * (rh.h or 0), vy * (rh.h or 0))
+            local xD, yD = addpt(xB, yB, vx * (rh.h or 0), vy * (rh.h or 0))
+            local xE, yE = addpt(px, py, -vx * (rh.d or 0), -vy * (rh.d or 0))
+            local xF, yF = addpt(xB, yB, -vx * (rh.d or 0), -vy * (rh.d or 0))
+
+            local x0i = math.floor(math.min(xA, xB, xC, xD, xE, xF) + 0.5)
+            local x1i = math.floor(math.max(xA, xB, xC, xD, xE, xF) + 0.5)
+            local y0i = math.floor(math.min(yA, yB, yC, yD, yE, yF) + 0.5)
+            local y1i = math.floor(math.max(yA, yB, yC, yD, yE, yF) + 0.5)
             write_event(ev_to_json({
                 id = td_id,
                 role = "TD",
@@ -395,6 +465,8 @@ function M.end_table()
     col = 0
     row_started = false
     rows = nil
+    row_pos = nil
+    container_id = nil
 end
 
 function M.row_break(page, x, y)

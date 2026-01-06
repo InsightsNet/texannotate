@@ -2,9 +2,21 @@
 # LPSB Batch Test Script v2.0
 # Tests all arXiv papers in the download directory using lpsb.sty auto-injection
 
-INPUT_DIR="/home/duan/rainbow_2/data/download"
-OUTPUT_DIR="/home/duan/rainbow_2/LPSB/test_output"
-INJECTOR="/home/duan/rainbow_2/LPSB/lpsb.sty"
+set -u
+set -o pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+LPSB_DIR_DEFAULT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+
+LPSB_DIR="${LPSB_DIR:-$LPSB_DIR_DEFAULT}"
+LPSB_DATA_DIR="${LPSB_DATA_DIR:-${LPSB_DATA_DOWNLOAD_DIR:-"$LPSB_DIR/data/download"}}"
+LPSB_OUT_DIR="${LPSB_OUT_DIR:-${LPSB_OUTPUT_DIR:-"$LPSB_DIR/test_output"}}"
+LPSB_INJECTOR="${LPSB_INJECTOR:-"$LPSB_DIR/lpsb.sty"}"
+
+# Backward-compatible overrides (old variable names).
+INPUT_DIR="${INPUT_DIR:-$LPSB_DATA_DIR}"
+OUTPUT_DIR="${OUTPUT_DIR:-$LPSB_OUT_DIR}"
+INJECTOR="${INJECTOR:-$LPSB_INJECTOR}"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -23,6 +35,43 @@ inject_lpsb() {
     # For sed's "a\" text, backslashes are escape characters; use \\\\ to get a literal "\" in output.
     sed -i '/^[[:space:]]*\\documentclass/a\\\\usepackage{lpsb}' "$file"
 }
+
+find_main_tex() {
+    local workdir="$1"
+    local candidate=""
+
+    for candidate in main.tex paper.tex ms.tex article.tex manuscript.tex; do
+        if [ -f "$workdir/$candidate" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    candidate="$(grep -l '\\documentclass' "$workdir"/*.tex 2>/dev/null | head -1 || true)"
+    if [ -n "$candidate" ]; then
+        basename "$candidate"
+        return 0
+    fi
+
+    candidate="$(find "$workdir" -maxdepth 2 -name "*.tex" -type f -print0 2>/dev/null | xargs -0 -r grep -l '\\documentclass' 2>/dev/null | head -1 || true)"
+    if [ -n "$candidate" ]; then
+        basename "$candidate"
+        return 0
+    fi
+
+    return 1
+}
+
+if [ ! -d "$INPUT_DIR" ]; then
+    echo "ERROR: INPUT_DIR not found: $INPUT_DIR" >&2
+    echo "Hint: set LPSB_DATA_DIR or INPUT_DIR (default: \$LPSB_DIR/data/download)" >&2
+    exit 2
+fi
+if [ ! -f "$INJECTOR" ]; then
+    echo "ERROR: INJECTOR not found: $INJECTOR" >&2
+    echo "Hint: set LPSB_INJECTOR or INJECTOR (default: \$LPSB_DIR/lpsb.sty)" >&2
+    exit 2
+fi
 
 for tarball in "$INPUT_DIR"/*.tar.gz; do
     name=$(basename "$tarball" .tar.gz)
@@ -44,17 +93,7 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
     cp "$INJECTOR" "$workdir/"
     
     # Find main tex file
-    main_tex=""
-    for candidate in main.tex paper.tex ms.tex article.tex manuscript.tex; do
-        if [ -f "$workdir/$candidate" ]; then
-            main_tex="$candidate"
-            break
-        fi
-    done
-    
-    if [ -z "$main_tex" ]; then
-        main_tex=$(grep -l '\documentclass' "$workdir"/*.tex 2>/dev/null | head -1 | xargs basename)
-    fi
+    main_tex="$(find_main_tex "$workdir" || true)"
     
     if [ -z "$main_tex" ]; then
         echo "  ERROR: No main .tex file found"
@@ -104,6 +143,7 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
     docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
         pdflatex -interaction=nonstopmode -jobname="$jobname" "$main_tex" \
         > compile1.log 2>&1
+    rc_compile1=$?
     
     # Handle Bibliography
     # Priority:
@@ -119,10 +159,12 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
         echo "  Running biber..."
         docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
             biber "$jobname" > biber.log 2>&1
+        rc_biber=$?
     elif grep -q 'bibliography' "$main_tex" 2>/dev/null || [ -f "$workdir"/*.bib ]; then
         echo "  Running bibtex..."
         docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
             bibtex "$jobname" > bibtex.log 2>&1
+        rc_bibtex=$?
     fi
     
     # Pass 2 & 3
@@ -130,6 +172,7 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
         docker run --rm -v "$workdir":/workdir -w /workdir "$DOCKER_IMAGE" \
             pdflatex -interaction=nonstopmode -jobname="$jobname" "$main_tex" \
             > "compile$pass.log" 2>&1
+        eval "rc_compile$pass=$?"
     done
     
     # Check results
@@ -138,7 +181,9 @@ for tarball in "$INPUT_DIR"/*.tar.gz; do
         echo "  PDF: $(($pdf_size/1024))KB"
     else
         echo "  PDF: FAILED"
-        grep -m1 "^!" "$workdir/compile1.log" 2>/dev/null
+        echo "  Logs: $workdir/compile1.log (and compile2/3.log)"
+        grep -m1 "^!" "$workdir/compile3.log" 2>/dev/null || grep -m1 "^!" "$workdir/compile1.log" 2>/dev/null || true
+        echo "  Return codes: pdflatex(1)=${rc_compile1:-?} pdflatex(2)=${rc_compile2:-?} pdflatex(3)=${rc_compile3:-?} biber=${rc_biber:-n/a} bibtex=${rc_bibtex:-n/a}"
     fi
     
     if [ -f "$workdir/$jobname.lpsb.json" ]; then

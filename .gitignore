@@ -28,6 +28,10 @@ ENV/
 *.aux
 *.bbl
 *.blg
+*.lpsb.json
+*.lpsb.jsonl
+*.lpsb-math.json
+*.lpsb-table.json
 *.idx
 *.ind
 *.lof
@@ -53,6 +57,7 @@ ENV/
 .vscode/
 .idea/
 *.swp
+/.env
 
 # Test and Output
 test_output/
@@ -63,3 +68,4 @@ test*/
 data/
 tmp*/
 README copy.md
+output_*/

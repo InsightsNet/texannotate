@@ -1,6 +1,12 @@
-# LPSB: LaTeX-PDF Semantic Bridge
+# LPSB: LaTeX-PDF Semantic Bridge (LaTeX Rainbow 2.0)
 
 LPSB extracts semantic structure from LaTeX compilations and aligns it with PDF page coordinates. It produces a single event log (`*.lpsb.json`) that can be rebuilt into a tree (`*.structure.json`) and can be enriched with MathML from a LuaLaTeX pass.
+
+## Status / Version Notice (READ THIS FIRST)
+
+This repository is **LaTeX Rainbow 2.0**: a **complete rewrite / restructuring** of the original codebase. It is under active development and **not stable**.
+
+If you need a version that works today, use the **`v1` branch** (the previous implementation).
 
 ## Key Features
 
@@ -195,9 +201,11 @@ Optional MathML track (LuaLaTeX):
 | **Blocks** | Lists (L, LI) | ✅ | `itemize`, `enumerate`, `description` |
 | | List Labels (Lbl) | ✅ | Captures `1.`, `a)`, `•` etc. |
 | | Paragraphs (P) | ✅ | Uses kernel paragraph hooks (`para/begin`, `para/end`) |
-| **Tables** | Table Container | ✅ | `tabular`, `tabularx` |
-| | Rows (TR) | ✅ | Detects `\\` |
-| | Cells (TD) | ✅ (optional) | Python-side extraction from PDF (Difficult to hook `&` reliably from LaTeX-side) |
+| **Tables** | Table Container | ✅ | `tabular`, `tabularx`, `longtable`, `sidewaystable` |
+| | Rows (TR) | ✅ | Detects `\\` (⚠️ except longtable MVP) |
+| | Cells (TD) | ✅ (LuaLaTeX) | Via `lpsb-luatable` + `lpsb-table.lua` |
+| | Colspan | ✅ (LuaLaTeX) | Inferred from row cell counts |
+| | Cell Bbox | ✅ (LuaLaTeX) | Absolute page/rotation coordinates |
 | **Math** | Display Formulas | ✅ | `equation`, `align`, `gather` |
 | | Inline Formulas | ✅ (LuaLaTeX) | `$...$` captured by `lpsb-luamath` |
 | | MathML | ✅ (LuaLaTeX) | via `luamml` in `lpsb-texlive:latest` |

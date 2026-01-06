@@ -67,7 +67,8 @@ def build_math_index(math_events: List[dict]) -> Dict[str, dict]:
 def build_table_index(table_events: List[dict]) -> Dict[str, List[dict]]:
     """
     Build index of table detail events by Table id.
-    Returns: {Table-<n>: [events...]} where events are TR/TD starts/ends (no Table start/end).
+    Returns: {Table-<n>: [events...]} where events are TR/TD starts/ends.
+    If the table-pass emits a "container" field, we index by that container id.
     """
     idx: Dict[str, List[dict]] = {}
     current_table: Optional[str] = None
@@ -76,7 +77,7 @@ def build_table_index(table_events: List[dict]) -> Dict[str, List[dict]]:
     for ev in table_events:
         if ev.get("role") == "Table" and ev.get("event") == "start":
             if depth == 0:
-                current_table = ev.get("id")
+                current_table = ev.get("container") or ev.get("id")
                 if current_table:
                     idx.setdefault(current_table, [])
             depth += 1
