@@ -7,6 +7,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{lpsb}[2026/01/05 v3.0 LPSB Package - PDF 2.0 Structure Elements]% Engine detection and primitive compatibility
 \RequirePackage{iftex}
+\RequirePackage[savepos]{zref}
 \ifLuaTeX
     \let\lpsb@savepos\savepos
     \let\lpsb@lastxpos\lastxpos
@@ -30,7 +31,10 @@
 \newcount\lpsbItemCount
 \lpsbItemCount=0
 \newcount\lpsbCaptionCount
+\newcount\lpsbCaptionCount
 \lpsbCaptionCount=0
+\newcount\lpsbTableCount
+\lpsbTableCount=0
 
 % Context-aware counters for cross-compilation alignment
 \newcount\lpsbSectionNum
@@ -55,6 +59,8 @@
 \lpsbActivefalse
 \newif\iflpsbInPara
 \lpsbInParafalse
+\newif\iflpsbInListItem
+\lpsbInListItemfalse
 
 % ===================================================================
 % Output File (Structure Tree JSON)
@@ -132,6 +138,7 @@
 % ===================================================================
 \newcommand{\lpsbHookEnv}[2]{%  #1=env name, #2=PDF role
     \AtBeginEnvironment{#1}{%
+        \lpsbParaEnd% Close any open paragraph before environment starts
         \global\advance\lpsbEnvDepth by 1%
         \lpsbWriteEntry{{"id": "#1-\the\lpsbEnvDepth", "role": "#2", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
     }%
@@ -146,12 +153,35 @@
 \lpsbHookEnv{abstract}{Sect}
 \lpsbHookEnv{figure}{Figure}
 \lpsbHookEnv{figure*}{Figure}
-\lpsbHookEnv{table}{Table}
-\lpsbHookEnv{table*}{Table}
+% Tables: use unique instance IDs and close open paragraphs before ending the float.
+% NOTE: We intentionally avoid hooking tabular internals; they can perturb rule drawing.
+\AtBeginEnvironment{table}{%
+    \lpsbParaEnd%
+    \global\advance\lpsbEnvDepth by 1%
+    \global\advance\lpsbTableCount by 1%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+}%
+\AtEndEnvironment{table}{%
+    \lpsbParaEnd%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+    \global\advance\lpsbEnvDepth by -1%
+}%
+\AtBeginEnvironment{table*}{%
+    \lpsbParaEnd%
+    \global\advance\lpsbEnvDepth by 1%
+    \global\advance\lpsbTableCount by 1%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+}%
+\AtEndEnvironment{table*}{%
+    \lpsbParaEnd%
+    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+    \global\advance\lpsbEnvDepth by -1%
+}%
 
 % Special hook for Math environments - uses context-aware IDs for cross-compilation alignment
 \newcommand{\lpsbHookMath}[1]{%  #1=env name
     \AtBeginEnvironment{#1}{%
+        \lpsbParaEnd% Close any open paragraph before math starts
         \global\advance\lpsbDisplayMathCount by 1%
         \global\advance\lpsbDisplayMathInContext by 1%
         \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "start", "env": "#1", "page": \thepage}}%
@@ -166,15 +196,16 @@
 \lpsbHookMath{align*}
 \lpsbHookMath{gather}
 \lpsbHookMath{gather*}
-\lpsbHookEnv{itemize}{L}
-\lpsbHookEnv{enumerate}{L}
-\lpsbHookEnv{description}{L}
+\lpsbHookMath{gather*}
+% \lpsbHookEnv{itemize}{L}     % Handled manually for LI closure
+% \lpsbHookEnv{enumerate}{L}   % Handled manually for LI closure
+% \lpsbHookEnv{description}{L} % Handled manually for LI closure
 \lpsbHookEnv{quote}{BlockQuote}
 \lpsbHookEnv{quotation}{BlockQuote}
 \lpsbHookEnv{center}{Div}
 \lpsbHookEnv{verbatim}{Code}
 \lpsbHookEnv{minipage}{Div}
-\lpsbHookEnv{tabular}{Table}
+% \lpsbHookEnv{tabular}{Table} % Handled manually for TR nesting
 %\lpsbHookEnv{thebibliography}{BibEntry}  % Disabled - interferes with bibliography numbering
 
 % ===================================================================
@@ -190,6 +221,8 @@
 % We must use \def and \@ifnextchar distinct paths to avoid forcing an empty optional argument
 % causing \item[] which suppresses default labels (e.g., bibliography numbers)
 
+% Defer to AtBeginDocument to ensure we patch after packages like enumitem
+\AtBeginDocument{%
 \let\lpsb@origitem\item
 
 \def\item{%
@@ -201,7 +234,12 @@
     \iflpsb@inbib
         \lpsb@origitem[#1]%
     \else
+        \iflpsbInListItem
+            \lpsbParaEnd% Close any open paragraph
+            \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "end", "page": \thepage}}%
+        \fi
         \global\advance\lpsbItemCount by 1%
+        \lpsbInListItemtrue
         \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "start", "page": \thepage}}%
         \lpsbWriteEntry{{"id": "Lbl-\the\lpsbItemCount", "role": "Lbl", "content": "\lpsb@escapeJSON{#1}", "page": \thepage}}%
         \lpsb@origitem[#1]%
@@ -213,10 +251,39 @@
     \iflpsb@inbib
         \lpsb@origitem
     \else
+        \iflpsbInListItem
+            \lpsbParaEnd% Close any open paragraph
+            \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "end", "page": \thepage}}%
+        \fi
         \global\advance\lpsbItemCount by 1%
+        \lpsbInListItemtrue
         \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "start", "page": \thepage}}%
         \lpsb@origitem
     \fi
+}
+
+}% End AtBeginDocument for item redefinition
+
+% Helper macro to hook list environments manually
+\newcommand{\lpsbHookList}[1]{%
+    \AtBeginEnvironment{#1}{%
+        \global\advance\lpsbEnvDepth by 1%
+        \lpsbWriteEntry{{"id": "#1-\the\lpsbEnvDepth", "role": "L", "event": "start", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+        \lpsbInListItemfalse%
+    }%
+    \AtEndEnvironment{#1}{%
+        \lpsbParaEnd% Close any open paragraph in the last item
+        \iflpsbInListItem
+            \lpsbWriteEntry{{"id": "LI-\the\lpsbItemCount", "role": "LI", "event": "end", "page": \thepage}}%
+        \fi
+        \lpsbWriteEntry{{"id": "#1-\the\lpsbEnvDepth", "role": "L", "event": "end", "depth": \the\lpsbEnvDepth, "page": \thepage}}%
+        \global\advance\lpsbEnvDepth by -1%
+    }%
+}
+\AtBeginDocument{%
+\lpsbHookList{itemize}
+\lpsbHookList{enumerate}
+\lpsbHookList{description}
 }
 
 % ===================================================================
@@ -227,33 +294,16 @@
 \newcount\lpsbCaptionCount
 \lpsbCaptionCount=0
 
-% --- Table Row/Cell Detection ---
-% Hook tabular environment to detect rows (\\) and cells (&)
-\newcount\lpsbRowCount
-\newcount\lpsbCellCount
-\AtBeginEnvironment{tabular}{%
-    \lpsbRowCount=0%
-    \global\advance\lpsbRowCount by 1%
-    \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
-    \lpsbCellCount=0%
-    % Hook \\\ to detect row ends
-    \let\lpsb@origcr\\%
-    \def\\{%
-        \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
-        \global\advance\lpsbRowCount by 1%
-        \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "start", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
-        \lpsbCellCount=0%
-        \lpsb@origcr
-    }%
-}
-\AtEndEnvironment{tabular}{%
-    \lpsb@savepos\lpsbWriteEntry{{"id": "TR-\the\lpsbRowCount", "role": "TR", "event": "end", "page": \thepage, "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
-}
+% --- Tables ---
+% IMPORTANT: Do NOT hook `tabular` internals. Even seemingly harmless injections at
+% environment begin/end can perturb alignment/rule drawing in some documents.
+% We rely on the outer `table` environment for the Table container role.
 
 % --- Inline Text Formatting ---
 % Hook \textbf for strong emphasis
 \let\lpsb@origtextbf\textbf
 \renewcommand{\textbf}[1]{%
+    \ifvmode\leavevmode\fi% Ensure paragraph starts first
     \lpsbWriteEntry{{"role": "Strong", "event": "start", "page": \thepage}}%
     \lpsb@origtextbf{#1}%
     \lpsbWriteEntry{{"role": "Strong", "event": "end", "page": \thepage}}%
@@ -262,6 +312,7 @@
 % Hook \textit for italic
 \let\lpsb@origtextit\textit
 \renewcommand{\textit}[1]{%
+    \ifvmode\leavevmode\fi% Ensure paragraph starts first
     \lpsbWriteEntry{{"role": "Em", "event": "start", "page": \thepage}}%
     \lpsb@origtextit{#1}%
     \lpsbWriteEntry{{"role": "Em", "event": "end", "page": \thepage}}%
@@ -270,6 +321,7 @@
 % Hook \emph
 \let\lpsb@origemph\emph
 \renewcommand{\emph}[1]{%
+    \ifvmode\leavevmode\fi% Ensure paragraph starts first
     \lpsbWriteEntry{{"role": "Em", "event": "start", "page": \thepage}}%
     \lpsb@origemph{#1}%
     \lpsbWriteEntry{{"role": "Em", "event": "end", "page": \thepage}}%
@@ -324,6 +376,7 @@
     % - \lpsbMathContextNum increments only for top-level headings (used for math IDs).
     \let\lpsb@origsect\@sect
     \def\@sect#1#2#3#4#5#6[#7]#8{%
+        \lpsbParaEnd% Close any open paragraph before section starts
         % Always increment heading counter (used for H-* IDs)
         \global\advance\lpsbSectionNum by 1%
         % Only bump math context on top-level headings (chapter/section in most classes)
@@ -381,12 +434,18 @@
         \lpsbWriteEntry{{"role": "Note", "event": "end", "page": \thepage}}%
     }%
     %
-    % Hook \caption
+    % Hook \caption (preserve optional argument)
     \let\lpsb@origcaption\caption
-    \def\caption{%
+    \renewcommand{\caption}[2][]{%
         \global\advance\lpsbCaptionCount by 1%
+        \lpsbParaEnd%
         \lpsbWriteEntry{{"id": "Caption-\the\lpsbCaptionCount", "role": "Caption", "event": "start", "page": \thepage}}%
-        \lpsb@origcaption
+        \if\relax\detokenize{#1}\relax
+            \lpsb@origcaption{#2}%
+        \else
+            \lpsb@origcaption[#1]{#2}%
+        \fi
+        \lpsbWriteEntry{{"id": "Caption-\the\lpsbCaptionCount", "role": "Caption", "event": "end", "page": \thepage}}%
     }%
 }
 

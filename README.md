@@ -80,6 +80,16 @@ Use the Python solver to reconstruct the DOM tree:
 python3 solver.py main.lpsb.json --output main.structure.json --validate
 ```
 
+### Optional: extract table cells (TR/TD) from the PDF
+
+By default, LPSB does **not** hook `tabular` internals (to avoid TeX alignment/rule artifacts). If you need `TR/TD`, extract them from the compiled PDF using `pdfplumber`:
+
+```bash
+python3 solver.py main.lpsb.json --pdf main.pdf --extract-cells --output main.structure.json
+```
+
+Details: see `docs/table_cells.md`.
+
 ### Batch processing (arXiv source tarballs)
 
 Put `*.tar.gz` into `data/download/`, then run:
