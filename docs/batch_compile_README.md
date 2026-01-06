@@ -54,7 +54,7 @@ export LPSB_OUT_DIR="/path/to/output"          # 输出目录（默认：compile
 export LPSB_INJECTOR="/path/to/lpsb.sty"       # LPSB 包路径（默认：./lpsb.sty）
 ```
 
-### 2. `analyze_compile_errors.py` - 错误分析脚本（可选）
+### 2. `script/analyze_compile_errors.py` - 错误分析脚本（可选）
 
 **功能**：
 - 分析编译日志，提取错误模式
@@ -64,10 +64,10 @@ export LPSB_INJECTOR="/path/to/lpsb.sty"       # LPSB 包路径（默认：./lps
 **使用方法**：
 ```bash
 # 分析编译结果并输出到控制台
-python3 analyze_compile_errors.py compile_results/
+python3 script/analyze_compile_errors.py compile_results/
 
 # 分析并保存到文件
-python3 analyze_compile_errors.py compile_results/ error_report.txt
+python3 script/analyze_compile_errors.py compile_results/ error_report.txt
 ```
 
 **报告内容**：
@@ -87,7 +87,7 @@ python3 analyze_compile_errors.py compile_results/ error_report.txt
 cat compile_results/summary_*.txt
 
 # 3. 生成详细错误分析
-python3 analyze_compile_errors.py compile_results/ error_analysis.txt
+python3 script/analyze_compile_errors.py compile_results/ error_analysis.txt
 
 # 4. 查看详细报告
 cat error_analysis.txt
