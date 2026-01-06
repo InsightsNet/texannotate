@@ -71,3 +71,5 @@ tmp*/
 README copy.md
 output_*/
 myenv/
+verification_tests/
+artifacts_investigation/

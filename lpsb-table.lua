@@ -32,9 +32,13 @@ local row_pos = nil -- { [row]= {page=, x=, y=} }
 local dirx = { x = 0, y = 0 } -- anchor + 1pt in local x (page coords)
 local dir = { dx = 1.0, dy = 0.0 } -- local x direction in page coords per sp
 local container_id = nil
+-- Per-table row templates: stores first row cell count for each table
+local table_row_templates = {}
 
 -- Debug
 local debug = os.getenv("LPSB_TABLE_DEBUG") == "1"
+-- Test mode: hpack_filter immediately returns (for Priority 1 investigation)
+local test_hpack_immediate_return = os.getenv("LPSB_TABLE_TEST_IMMEDIATE_RETURN") == "1"
 
 -- Unit conversion:
 -- TeX stores positions/dimensions in scaled points (sp).
@@ -404,6 +408,11 @@ function M.end_table()
         end
     end
 
+    -- Save first row as template for this table (for future reference)
+    if active_table_id and rows and rows[1] and rows[1].cells then
+        table_row_templates[active_table_id] = #rows[1].cells
+    end
+
     local ncols = finalize_colspans(rows or {})
     local col_widths = infer_col_widths(rows or {}, ncols)
     local row_heights = infer_row_heights(rows or {})
@@ -537,6 +546,11 @@ end
 -- - active table
 -- - has some glyphs
 local function hpack_filter(head, groupcode, size, packtype, direction)
+    -- TEST MODE: Immediately return (Priority 1 investigation)
+    if test_hpack_immediate_return then
+        return head
+    end
+    
     -- Allow disabling hpack_filter entirely (e.g., for longtable which it corrupts)
     if not hpack_filter_enabled then
         return head
@@ -557,6 +571,34 @@ local function hpack_filter(head, groupcode, size, packtype, direction)
     local txt = extract_text_from_hlist(head)
     if txt == "" then
         return head
+    end
+
+    -- Automatic row detection (no LaTeX hooks needed)
+    -- Per-table strategy: Each table has its own first-row template
+    if row_started and col > 0 and active_table_id then
+        -- Get or establish template for this table
+        local template_cols = table_row_templates[active_table_id]
+        
+        if not template_cols then
+            -- First row of this table - establish template after it's complete
+            -- For now, just accumulate cells
+        else
+            -- Template exists - check if current row has reached the template count
+            local current_row_cells = (rows and rows[#rows] and rows[#rows].cells) or {}
+            
+            if #current_row_cells >= template_cols then
+                -- Start new row
+                row = row + 1
+                col = 0
+                row_started = false
+                if rows then
+                    rows[#rows + 1] = { cells = {} }
+                end
+                if debug then
+                    texio.write_nl("LPSB-Table: New row for " .. active_table_id .. " (r=" .. row .. ", template=" .. template_cols .. ")")
+                end
+            end
+        end
     end
 
     if not row_started then
