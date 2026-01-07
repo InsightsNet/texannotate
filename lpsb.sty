@@ -1221,34 +1221,48 @@
         \lpsbWriteEntry{{"id": "Caption-\the\lpsbCaptionCount", "role": "Caption", "event": "end", "page": "\thepage"}}%
     }%
     %
-    % Hook \cite (basic version - may conflict with natbib/biblatex/amsrefs/achemso)
     % IMPORTANT: Skip for packages/classes that redefine \cite in complex ways
     % causing infinite recursion with zref. This is a trade-off: we lose cite
     % position tracking but gain compatibility.
     \newif\iflpsb@skipcitehook
     \lpsb@skipcitehookfalse
+    %
+    % amsrefs has complex internal recursion that conflicts with hooks
+    % Hooking \citedest causes input stack overflow in production documents
+    % even though minimal tests work. Skip cite hook for amsrefs documents.
     \@ifpackageloaded{amsrefs}{\lpsb@skipcitehooktrue}{}%
-    \@ifclassloaded{achemso}{\lpsb@skipcitehooktrue}{}%
-    \@ifclassloaded{revtex4-2}{\lpsb@skipcitehooktrue}{}%
-    \@ifclassloaded{revtex4-1}{\lpsb@skipcitehooktrue}{}%
-    \@ifclassloaded{revtex4}{\lpsb@skipcitehooktrue}{}%
-    \iflpsb@skipcitehook
-        \typeout{LPSB Info: Skipping cite hook (known conflict with document class/packages)}%
-    \else
-        \@ifundefined{lpsb@origcite}{%
-            \let\lpsb@origcite\cite
-            \renewcommand{\cite}[2][]{%
-                \global\advance\lpsbCiteCount by 1%
-                \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
-                \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
-                \if\relax\detokenize{#1}\relax
-                    \lpsb@origcite{#2}%
-                \else
-                    \lpsb@origcite[#1]{#2}%
-                \fi
-            }%
-        }{}%
-    \fi
+    % Note: achemso and revtex load natbib internally, so natbib hook will work for them
+    % Check for natbib - use specialized hook for natbib's complex cite handling
+    \@ifpackageloaded{natbib}{%
+        % Hook natbib's internal \@citex command which has signature [#1][#2]#3
+        % where #1=pre-note, #2=post-note, #3=keys
+        \typeout{LPSB Info: Using natbib-compatible cite hook}%
+        \let\lpsb@orig@citex\@citex
+        \def\@citex[#1][#2]#3{%
+            \global\advance\lpsbCiteCount by 1%
+            \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#3}", "page": "\thepage"}}%
+            \lpsb@orig@citex[#1][#2]{#3}%
+        }%
+    }{%
+        % Non-natbib documents: use simple hook or skip if incompatible
+        \iflpsb@skipcitehook
+            \typeout{LPSB Info: Skipping cite hook (known conflict with document class/packages)}%
+        \else
+            \@ifundefined{lpsb@origcite}{%
+                \let\lpsb@origcite\cite
+                \renewcommand{\cite}[2][]{%
+                    \global\advance\lpsbCiteCount by 1%
+                    \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
+                    \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
+                    \if\relax\detokenize{#1}\relax
+                        \lpsb@origcite{#2}%
+                    \else
+                        \lpsb@origcite[#1]{#2}%
+                    \fi
+                }%
+            }{}%
+        \fi
+    }%
     %
     % Hook \ref (basic version)
     \@ifundefined{lpsb@origref}{%
