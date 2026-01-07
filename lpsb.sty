@@ -252,6 +252,44 @@
     \global\advance\lpsbEnvDepth by -1%
 }%
 
+% ===================================================================
+% longtable Support (Command Redefinition)
+% ===================================================================
+% Note: TaggingSocket only works when DocumentMetadata{tagging=on} is used,
+% which conflicts with LPSB. Using command redefinition for all cases.
+
+\newif\iflpsb@inlongtable
+\lpsb@inlongtablefalse
+
+\newcount\lpsbLTRowCount
+\lpsbLTRowCount=0
+
+\AtBeginDocument{%
+  \@ifpackageloaded{longtable}{%
+    % Save original longtable command
+    \let\lpsb@orig@longtable\longtable
+    \let\lpsb@orig@endlongtable\endlongtable
+    
+    % Redefine longtable to add start/end markers
+    \renewcommand{\longtable}{%
+      \global\advance\lpsbTableCount by 1%
+      \global\lpsbLTRowCount=0%
+      \global\lpsb@inlongtabletrue%
+      \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "env": "longtable", "page": \thepage}}%
+      \lpsb@orig@longtable
+    }%
+    
+    \renewcommand{\endlongtable}{%
+      \lpsb@orig@endlongtable
+      \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "env": "longtable", "page": \thepage}}%
+      \global\lpsb@inlongtablefalse%
+    }%
+    
+    \typeout{LPSB Info: Hooked longtable environment}%
+  }{}%
+}
+
+
 % Special hook for Math environments - uses context-aware IDs for cross-compilation alignment
 \newcommand{\lpsbHookMath}[1]{%  #1=env name
     \AtBeginEnvironment{#1}{%
