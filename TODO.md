@@ -125,3 +125,25 @@ RUN tlmgr install aa iopart svmult PoS && \
 ```
 
 **Priority**: Medium (affects 3% of papers, specific to astronomy/physics domains)
+
+## Known Compatibility Issues
+
+### Document Class/Package Conflicts
+
+| Class/Package | Error Type | Status | Notes |
+|---------------|------------|--------|-------|
+| `WileyNJD-v2` + `NJDnatbib` | `\lpsbWriteEntry` extra } | ⚠️ Unsolved | JSON parameter parsing fails with complex titles. Needs JSON generation rewrite. |
+| `xy` (XY-pic) + authblk | Missing number at `\maketitle` | ✅ Fixed | Inline formatting hooks now check `lpsbActive` flag to skip preamble |
+| `cas-sc` (Elsevier) | xkeyval mismatch | ⚠️ TL version | Works on TL2023+, fails on TL2020 (source/TL version mismatch, not LPSB bug) |
+| `amsrefs` | Input stack overflow | ✅ Fixed | Skip cite hook when amsrefs loaded |
+| `achemso` | Input stack overflow | ✅ Fixed | Skip cite hook for achemso class |
+| `revtex4*` | Input stack overflow | ✅ Fixed | Skip cite hook for revtex classes |
+
+### Source Issues (Cannot Fix)
+
+| paper_id | Issue | Reason |
+|----------|-------|--------|
+| 2001.00257 | File not found | Source missing `tikz_figures/nonexisting-doubly-attached.tex` |
+| 2401.00096 | File not found | Source missing `p.tex` |
+| WITHDRAWN papers | Empty/placeholder | arXiv `%auto-ignore` placeholder files |
+

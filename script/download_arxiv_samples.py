@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Download arXiv source tar files from S3 (requester pays).
-Downloads one tar file per year from 2020-2025 for testing.
+Downloads one tar file per month from 2020-2025 for testing.
 Each tar file is ~500MB and contains ~500 papers.
 """
 
@@ -16,12 +16,9 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # Files to download: one per year from January (first chunk)
 # Format: arXiv_src_YYMM_NNN.tar
 FILES_TO_DOWNLOAD = [
-    "src/arXiv_src_2001_001.tar",  # 2020-01
-    "src/arXiv_src_2101_001.tar",  # 2021-01
-    "src/arXiv_src_2201_001.tar",  # 2022-01
-    "src/arXiv_src_2301_001.tar",  # 2023-01
-    "src/arXiv_src_2401_001.tar",  # 2024-01
-    "src/arXiv_src_2501_001.tar",  # 2025-01
+    f"src/arXiv_src_{year:02d}{month:02d}_001.tar"
+    for year in range(20, 26)
+    for month in range(1, 13)
 ]
 
 BUCKET = "arxiv"
@@ -51,9 +48,22 @@ def main():
         filename = os.path.basename(key)
         output_path = OUTPUT_DIR / filename
         
+        # Check if file already exists and is complete
         if output_path.exists():
-            print(f"Skipping {filename} (already exists)")
-            continue
+            try:
+                remote_size = s3.head_object(
+                    Bucket=BUCKET, 
+                    Key=key, 
+                    RequestPayer='requester'
+                )['ContentLength']
+                local_size = output_path.stat().st_size
+                if local_size == remote_size:
+                    print(f"Skipping {filename} (already exists, {local_size / (1024*1024):.1f} MB)")
+                    continue
+                else:
+                    print(f"Re-downloading {filename} (incomplete: {local_size} vs {remote_size} bytes)")
+            except Exception as e:
+                print(f"Could not verify {filename}, will re-download: {e}")
         
         try:
             download_file(s3, key, output_path)

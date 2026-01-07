@@ -142,3 +142,72 @@ We tried to extract table structure entirely from LaTeX (LuaTeX `hpack_filter`).
 Use **PDF-side extraction** (`pdfplumber`) as the ground truth for the grid structure (rows/cols/spans), and use the **LaTeX stream** to populate the cell content. This "Hybrid" approach gives the best of both worlds:
 1.  PDF defines the skeleton (Table T has 5 rows, 3 cols).
 2.  LaTeX provides the rich text (Cell (2,1) contains `$E=mc^2$`).
+
+---
+
+## 6. arXiv Bibliography Underscore Failures (`Missing $ inserted.`)
+
+### The Symptom
+Some arXiv sources ship a pre-generated bibliography (either `\jobname.bbl` or a vendored `bbl.tex`) where the `\bibitem{...}` key contains a raw underscore, e.g.:
+- `\bibitem[Anderson(1996)]{Anderson_}`
+- `\bibitem{Liu_2024QGreview}`
+
+TeX interprets `_` as math subscript in text mode, producing a fatal:
+- `! Missing $ inserted.`
+
+### Naive Fix Attempt (Rejected): `\usepackage[strings]{underscore}`
+We considered injecting `underscore` to allow `_` in text. This was rejected because it can make `_` active globally, which interferes with other tooling and label writing (notably LPSB’s `zref`-based identifiers), and can cause secondary failures like `Missing \endcsname inserted`.
+
+### Final Fix: Localized catcode workaround during inputs
+We implemented `LPSB_BBL_UNDERSCORE_FIX`, which temporarily sets `\catcode\`_\`=12` **only while reading bibliography-like files**, then restores it.
+
+Key design choices:
+- **Scope**: Only apply during `\@input{...}` / `\@input@{...}` (LaTeX kernel file input) for `\jobname.bbl`, `\jobname.aux`, `\jobname.toc`, and `bbl.tex`.
+- **Safety**: Do **not** globally change underscore behavior in normal document content.
+
+### Two real-world pitfalls we hit (and fixed)
+
+#### Pitfall A: `.bbl` detection bug prevented the fix from triggering
+We originally added detection logic that should have enabled the fix when `\bibitem{..._...}` appears in `.bbl`.
+However, the helper `_bbl_has_unsafe_bibitem_key()` was accidentally malformed (control flow/indentation), returning `None` and effectively never triggering.
+
+**Fix**:
+- Refactor into a shared parser `_has_unsafe_bibitem_key_in_text()` and implement both `_bbl_has_unsafe_bibitem_key()` and `_tex_has_unsafe_bibitem_key()` on top of it.
+
+#### Pitfall B: pre-generated `.bbl` can be read on the *first* pdflatex pass
+Some papers crash on the first `pdflatex` run before we have a chance to generate `.bbl` or re-run.
+
+**Fix**:
+- Add a **preflight scan** (before the first `pdflatex` pass) that checks for existing `*.bbl` / `bbl.tex` and injects the workaround early.
+
+### Verification (Representative cases)
+- `2501.00098`: bibliography was vendored as `bbl.tex`; adding `bbl.tex` detection resolved it.
+- `2201.00034`: pre-generated `.bbl` had `\bibitem{Anderson_}`; fixing `.bbl` detection + preflight injection resolved it.
+
+---
+
+## 7. A subtle macro-injection landmine: breaking unbraced `\input`
+
+### The Symptom
+After introducing the bibliography workaround, two papers failed with confusing missing-file errors:
+- `2301.00072`: `LaTeX Error: File 'p.tex' not found.`
+- `2401.00044`: read `tools/x.tex` and aborted with `! .` / `No pages of output.`
+
+### Root Cause
+We had wrapped plain `\input` as:
+```tex
+\def\input#1{...{#1}...}
+```
+This is unsafe because many packages use the *unbraced* form:
+```tex
+\input xstring.tex
+```
+In TeX, `#1` captures only the next token (`xstring`), effectively truncating the filename. The engine then tries to read `x.tex` (a TeXLive “exit” file) or `p.tex` depending on the first letter of the real filename.
+
+### Fix
+We changed the wrapper to only intercept the braced form `\input{...}` via `\futurelet`, and defer everything else to the original primitive `\input` unchanged.
+
+### Verification
+Re-running:
+- `2301.00072` → SUCCESS (PDF produced)
+- `2401.00044` → SUCCESS (PDF produced)

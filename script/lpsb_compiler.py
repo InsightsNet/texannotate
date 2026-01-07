@@ -135,7 +135,7 @@ def _paper_id_from_src(src_path: Path) -> str:
         name = name[:-4]
     return name
 
-def _inject_pkg_after_documentclass(tex_file: Path, pkg: str) -> None:
+def _inject_pkg_after_documentclass(tex_file: Path, pkg: str, options: str = "") -> None:
     """Idempotent insertion of \\usepackage{pkg} right after \\documentclass.
     
     Handles multi-line \\documentclass declarations where options span multiple lines.
@@ -218,8 +218,216 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str) -> None:
     if docclass_end_idx < 0:
         return  # No valid \documentclass{...} found
 
-    lines.insert(docclass_end_idx + 1, f"\\usepackage{{{pkg}}}{newline}")
+    opt = f"[{options}]" if options else ""
+    lines.insert(docclass_end_idx + 1, f"\\usepackage{opt}{{{pkg}}}{newline}")
 
+    try:
+        tex_file.write_text("".join(lines))
+    except Exception:
+        return
+
+def _has_unsafe_bibitem_key_in_text(s: str) -> bool:
+    """Return True if text contains \\bibitem{<key>} where <key> contains a raw '_'."""
+    i = 0
+    n = len(s)
+    while True:
+        j = s.find(r"\bibitem", i)
+        if j < 0:
+            return False
+        k = j + len(r"\bibitem")
+        # Skip whitespace
+        while k < n and s[k].isspace():
+            k += 1
+        # Optional argument [..] may exist; skip it if present.
+        if k < n and s[k] == "[":
+            depth = 1
+            k += 1
+            while k < n and depth > 0:
+                if s[k] == "[":
+                    depth += 1
+                elif s[k] == "]":
+                    depth -= 1
+                k += 1
+            while k < n and s[k].isspace():
+                k += 1
+        # Some .bbl put a % line break between \bibitem[...] and {key}; skip comments.
+        while k < n:
+            while k < n and s[k].isspace():
+                k += 1
+            if k < n and s[k] == "%":
+                while k < n and s[k] not in "\r\n":
+                    k += 1
+                continue
+            break
+        if k >= n or s[k] != "{":
+            i = j + 1
+            continue
+        # Parse {key} with brace counting.
+        depth = 1
+        k += 1
+        start = k
+        while k < n and depth > 0:
+            if s[k] == "{":
+                depth += 1
+            elif s[k] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        if depth != 0:
+            i = j + 1
+            continue
+        key = s[start:k]
+        if "_" in key:
+            return True
+        i = k + 1
+
+
+def _bbl_has_unsafe_bibitem_key(bbl: Path) -> bool:
+    """Return True if the .bbl contains a \\bibitem key with raw '_' characters."""
+    if not bbl.exists():
+        return False
+    try:
+        s = bbl.read_text(errors="ignore")
+    except Exception:
+        return False
+    return _has_unsafe_bibitem_key_in_text(s)
+
+
+def _tex_has_unsafe_bibitem_key(tex: Path) -> bool:
+    """Like _bbl_has_unsafe_bibitem_key, but for generic .tex bibliography includes."""
+    if not tex.exists():
+        return False
+    try:
+        s = tex.read_text(errors="ignore")
+    except Exception:
+        return False
+    return _has_unsafe_bibitem_key_in_text(s)
+
+def _inject_bbl_underscore_catcode_fix(tex_file: Path) -> None:
+    """Inject a minimal, localized fix for underscores in .bbl files.
+
+    Some .bbl files contain raw '_' in \\bibitem keys (e.g. {nearly_sorted}), which
+    triggers TeX's 'Missing $ inserted.' during \\@input{\\jobname.bbl}.  Using the
+    underscore package can make '_' an active character and may break other tooling
+    (e.g., labels written to .aux that contain underscores).  Instead, temporarily
+    set catcode('_')=12 only while inputting \\jobname.bbl, then restore.
+    """
+    try:
+        content = tex_file.read_text(errors="ignore")
+    except Exception:
+        return
+    if "LPSB_BBL_UNDERSCORE_FIX" in content:
+        return
+
+    newline = "\r\n" if "\r\n" in content else "\n"
+    lines = content.splitlines(keepends=True)
+
+    # Insert immediately after \documentclass block (same placement as other injected packages).
+    # Reuse the same docclass end parsing logic by calling _inject_pkg_after_documentclass
+    # with an empty package and then patching the inserted line? No: keep it self-contained.
+
+    # Find insertion index: end of \documentclass{...}
+    in_docclass = False
+    saw_open_brace = False
+    brace_depth = 0
+    docclass_end_idx = -1
+
+    def _strip_tex_comment(s: str) -> str:
+        out = []
+        esc = False
+        for ch in s:
+            if esc:
+                out.append(ch)
+                esc = False
+                continue
+            if ch == "\\":
+                out.append(ch)
+                esc = True
+                continue
+            if ch == "%":
+                break
+            out.append(ch)
+        return "".join(out)
+
+    for i, raw in enumerate(lines):
+        stripped = raw.lstrip()
+        if stripped.startswith("%"):
+            continue
+        line = _strip_tex_comment(raw)
+        if not in_docclass:
+            if "\\documentclass" not in line:
+                continue
+            in_docclass = True
+        if in_docclass:
+            for ch in line:
+                if not saw_open_brace:
+                    if ch == "{":
+                        saw_open_brace = True
+                        brace_depth = 1
+                    continue
+                if ch == "{":
+                    brace_depth += 1
+                elif ch == "}":
+                    brace_depth -= 1
+                    if brace_depth == 0:
+                        docclass_end_idx = i
+                        break
+            if docclass_end_idx >= 0:
+                break
+
+    if docclass_end_idx < 0:
+        return
+
+    snippet = (
+        "% LPSB_BBL_UNDERSCORE_FIX" + newline +
+        "\\makeatletter" + newline +
+        "\\providecommand\\lpsb@olduscat{}" + newline +
+        "\\let\\lpsb@orig@input\\@input" + newline +
+        "\\@ifundefined{@input@}{}{\\let\\lpsb@orig@inputat\\@input@}" + newline +
+        "\\def\\lpsb@catcode@underscore@do#1#2{%" + newline +
+        "  \\begingroup\\xdef\\lpsb@olduscat{\\the\\catcode`\\_}\\endgroup" + newline +
+        "  \\catcode`\\_=12\\relax" + newline +
+        "  #1{#2}%" + newline +
+        "  \\catcode`\\_=\\lpsb@olduscat\\relax" + newline +
+        "}"+ newline +
+        "% Only enable underscore-catcode fix for bibliography-like inputs." + newline +
+        "\\edef\\lpsb@jobnamebbl{\\jobname.bbl}" + newline +
+        "\\edef\\lpsb@jobnameaux{\\jobname.aux}" + newline +
+        "\\def\\lpsb@bbltex{bbl.tex}" + newline +
+        "\\def\\lpsb@bbl{bbl}" + newline +
+        "\\def\\lpsb@maybe@fix@file#1#2{%" + newline +
+        "  \\edef\\lpsb@tmp{#2}%" + newline +
+        "  \\ifx\\lpsb@tmp\\lpsb@jobnamebbl" + newline +
+        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "  \\else\\ifx\\lpsb@tmp\\lpsb@jobnameaux" + newline +
+        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "  \\else\\ifx\\lpsb@tmp\\lpsb@bbltex" + newline +
+        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "  \\else\\ifx\\lpsb@tmp\\lpsb@bbl" + newline +
+        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "  \\else" + newline +
+        "    #1{#2}%" + newline +
+        "  \\fi\\fi\\fi\\fi" + newline +
+        "}"+ newline +
+        "\\def\\@input#1{\\lpsb@maybe@fix@file\\lpsb@orig@input{#1}}" + newline +
+        "\\@ifundefined{@input@}{}{\\def\\@input@#1{\\lpsb@maybe@fix@file\\lpsb@orig@inputat{#1}}}" + newline +
+        "% Wrap plain \\input *safely*: only intercept the braced form \\input{...}." + newline +
+        "% Many packages use the unbraced form (e.g. \\input xstring.tex); a naive" + newline +
+        "% \\def\\input#1{...} would only capture the first token ('x'), breaking them." + newline +
+        "\\let\\lpsb@orig@plaininput\\input" + newline +
+        "\\def\\input{\\futurelet\\lpsb@next\\lpsb@input@maybe@fix}" + newline +
+        "\\def\\lpsb@input@maybe@fix{%" + newline +
+        "  \\ifx\\lpsb@next\\bgroup" + newline +
+        "    \\expandafter\\lpsb@input@maybe@fix@braced" + newline +
+        "  \\else" + newline +
+        "    \\lpsb@orig@plaininput" + newline +
+        "  \\fi" + newline +
+        "}" + newline +
+        "\\def\\lpsb@input@maybe@fix@braced#1{\\lpsb@maybe@fix@file\\lpsb@orig@plaininput{#1}}" + newline +
+        "\\makeatother" + newline
+    )
+    lines.insert(docclass_end_idx + 1, snippet)
     try:
         tex_file.write_text("".join(lines))
     except Exception:
@@ -359,6 +567,16 @@ def find_main_tex(work_dir):
     if not tex_files:
         return None
         
+    def _looks_like_latex_main(s: str) -> bool:
+        # We only support LaTeX-style entrypoints. Reject obvious non-TeX payloads
+        # (some arXiv sources contain HTML mistakenly named *.tex).
+        head = s.lstrip()[:2000].lower()
+        if head.startswith("<!doctype html") or head.startswith("<html") or "<html" in head:
+            return False
+        # Must have at least one real LaTeX marker. This avoids picking arbitrary
+        # fragments or non-LaTeX text files as "main".
+        return ("\\documentclass" in s) or ("\\begin{document}" in s) or ("\\end{document}" in s)
+
     # Priority 1: File containing \documentclass and \begin{document}
     candidates = []
     for f in tex_files:
@@ -386,13 +604,93 @@ def find_main_tex(work_dir):
     # Priority 2: Largest .tex file
     tex_files.sort(key=lambda x: x.stat().st_size, reverse=True)
     try:
+        # Avoid selecting non-LaTeX garbage (e.g. HTML) as the entrypoint.
+        content = tex_files[0].read_text(errors="ignore")
+        if not _looks_like_latex_main(content):
+            return None
         return str(tex_files[0].relative_to(Path(work_dir)))
     except Exception:
-        return tex_files[0].name
+        return None
 
 import tarfile
 import gzip
 import tempfile
+
+
+def _detect_withdrawn_or_invalid(work_dir: Path) -> str:
+    """Detect if extracted content is an arXiv withdrawn placeholder or non-TeX file.
+    
+    Returns:
+        "" if content looks valid
+        "WITHDRAWN" if it's an arXiv withdrawal placeholder
+        "NOT_TEX" if it's not a TeX file (HTML, PDF, etc.)
+    """
+    # Check all files in work_dir
+    all_files = list(work_dir.rglob("*"))
+    if not all_files:
+        return "WITHDRAWN"  # Empty extraction
+    
+    # Filter to actual files (not dirs)
+    files = [f for f in all_files if f.is_file()]
+    if not files:
+        return "WITHDRAWN"
+    
+    # Check for withdrawn placeholder: typically a single tiny file with "%auto-ignore"
+    total_size = sum(f.stat().st_size for f in files)
+    if total_size < 100:
+        # Very small - check content
+        for f in files:
+            try:
+                content = f.read_text(errors="ignore").strip()
+                if content == "%auto-ignore" or content.startswith("%auto-ignore"):
+                    return "WITHDRAWN"
+            except Exception:
+                pass
+    
+    # Check if any file looks like TeX (and NOT HTML/PDF mislabeled as .tex)
+    has_tex = False
+    for f in files:
+        suffix = f.suffix.lower()
+        if suffix in (".tex", ".sty", ".cls", ".bbl", ".bib"):
+            # Even with .tex extension, verify it's not actually HTML/PDF
+            try:
+                head = f.read_bytes()[:500].decode("utf-8", errors="ignore").lower()
+                if "<html" in head or "<!doctype html" in head:
+                    # This is HTML mislabeled as .tex
+                    return "NOT_TEX"
+                if head.strip().startswith("%pdf-"):
+                    # This is a PDF mislabeled
+                    return "NOT_TEX"
+            except Exception:
+                pass
+            has_tex = True
+            break
+        # Also check content for \documentclass
+        if suffix in ("", ".txt") or not suffix:
+            try:
+                head = f.read_bytes()[:2000].decode("utf-8", errors="ignore")
+                if "\\documentclass" in head or "\\begin{document}" in head:
+                    has_tex = True
+                    break
+            except Exception:
+                pass
+    
+    if not has_tex:
+        # Check what we actually have
+        for f in files:
+            try:
+                head = f.read_bytes()[:500].decode("utf-8", errors="ignore").lower()
+                if "<html" in head or "<!doctype html" in head:
+                    return "NOT_TEX"
+                if head.startswith("%pdf-"):
+                    return "NOT_TEX"
+            except Exception:
+                pass
+        # No TeX found but also not clearly HTML/PDF - might be binary or other
+        # Still try to compile, might work
+    
+    return ""
+
 
 def extract_archive(src_file, dst_dir):
     """Extract .gz archive (tar or single file) to dst_dir."""
@@ -494,6 +792,13 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                 shutil.copy(src_path, work_dir / src_path.name)
         else:
             shutil.copytree(src_path, work_dir, dirs_exist_ok=True)
+
+        # 1b. Check for withdrawn placeholders or non-TeX content
+        invalid_status = _detect_withdrawn_or_invalid(work_dir)
+        if invalid_status:
+            with open(log_file, 'a') as log:
+                log.write(f"Error: {invalid_status} (source is not valid TeX)\n")
+            return invalid_status
 
         # 2. Find main tex (relative path under work_dir)
         if main_tex_override:
@@ -634,6 +939,30 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                         pass
                     return 124
 
+        # Preflight: some papers ship a pre-generated .bbl that is read on the *first* pdflatex pass.
+        # If it contains raw '_' in \\bibitem keys, pdflatex can fail before we get a chance to
+        # detect and inject a workaround. Detect early and inject before the first run.
+        pre_bbl = pd_tex_dir / f"{main_base}.bbl"
+        pre_bbltex = pd_tex_dir / "bbl.tex"
+        pre_any_bbl = []
+        try:
+            pre_any_bbl = sorted(pd_tex_dir.glob("*.bbl"))[:5]
+        except Exception:
+            pre_any_bbl = []
+        preflight_underscore = False
+        if (pre_bbl.exists() and _bbl_has_unsafe_bibitem_key(pre_bbl)) or _tex_has_unsafe_bibitem_key(pre_bbltex):
+            preflight_underscore = True
+        else:
+            for b in pre_any_bbl:
+                if _bbl_has_unsafe_bibitem_key(b):
+                    preflight_underscore = True
+                    break
+        if preflight_underscore:
+            _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
+            _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+            with open(log_file, "a") as log:
+                log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
+
         # Stage A: pdflatex gold (3 passes)
         _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
 
@@ -644,6 +973,17 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             _run(pdflatex_dir, pd_container_wd, ["biber", main_base], TIMEOUT_SEC)
         elif _file_mentions(pd_main_tex_full, "bibliography") or _find_any_bib_files(pd_tex_dir):
             _run(pdflatex_dir, pd_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
+
+        # If the bibliography includes raw underscores in \bibitem keys, TeX will
+        # throw "Missing $ inserted." when reading the .bbl. Mitigate by applying a
+        # localized catcode fix for '_' only while inputting \jobname.bbl.
+        bbl = pd_tex_dir / f"{main_base}.bbl"
+        bbltex = pd_tex_dir / "bbl.tex"
+        if (bbl.exists() and _bbl_has_unsafe_bibitem_key(bbl)) or _tex_has_unsafe_bibitem_key(bbltex):
+            _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
+            _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+            with open(log_file, "a") as log:
+                log.write("\nInfo: Detected '_' in .bbl \\\\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
         _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
@@ -816,17 +1156,25 @@ def main():
                 pid = futures[f]
                 try:
                     res = f.result()
-                    results[res] = results.get(res, 0) + 1
+                    # Track WITHDRAWN and NOT_TEX as SKIPPED (source issues, not LPSB bugs)
+                    if res in ('WITHDRAWN', 'NOT_TEX'):
+                        results['SKIPPED'] = results.get('SKIPPED', 0) + 1
+                    else:
+                        results[res] = results.get(res, 0) + 1
                     if HAS_TQDM:
-                        pbar.set_postfix(S=results['SUCCESS'], F=results['FAIL'], T=results.get('TIMEOUT', 0))
+                        pbar.set_postfix(
+                            S=results.get('SUCCESS', 0), 
+                            F=results.get('FAIL', 0), 
+                            Skip=results.get('SKIPPED', 0)
+                        )
                     else:
                         print(f"[{res}] {pid}")
                 except Exception as e:
                     if HAS_TQDM:
-                        pbar.set_postfix(S=results['SUCCESS'], F=results['FAIL'], E=results['ERROR']+1)
+                        pbar.set_postfix(S=results.get('SUCCESS', 0), F=results.get('FAIL', 0), E=results.get('ERROR', 0)+1)
                     else:
                         print(f"[CRASH] {pid}: {e}")
-                    results['ERROR'] += 1
+                    results['ERROR'] = results.get('ERROR', 0) + 1
                     
         print("\nSummary:")
         print(results)

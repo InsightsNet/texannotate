@@ -21,7 +21,11 @@ All notable changes to LPSB are documented here.
 - Duplicate section events with skip flag mechanism
 - Robust `\documentclass`-adjacent injection for `\usepackage{lpsb}` when `\documentclass` spans multiple lines (prevents `\@fileswith@pti@ns has an extra }`-style crashes)
 - Docker run volume mount now always mounts stage dir at `/workdir` (workdir selection handled by `-w`), preventing path resolution breakage for papers with nested sources
+- `Missing $ inserted.` crashes from raw underscores in bibliography item keys by enabling a localized underscore catcode workaround during `.bbl`/`bbl.tex`/`.aux`/`.toc` input (avoids global `_` activation issues)
+- Preflight detection for shipped/pre-generated `.bbl` files so the workaround is applied before the first `pdflatex` pass (prevents immediate crash on first bibliography read)
+- Fix `LPSB_BBL_UNDERSCORE_FIX` plain `\input` wrapper to only intercept braced `\input{...}` (avoids breaking package loads like `\input xstring.tex`, which can manifest as missing `p.tex` or reading TeXLive’s `x.tex`)
 - Analysis script now supports current per-paper aggregated log name `compile.log`: `script/analysis/analyze_compile_errors.py`
+- Avoid selecting non-LaTeX payloads (e.g. HTML accidentally named `*.tex`) as main entrypoints; these previously surfaced as `LaTeX Error: Missing \begin{document}.`
 
 ### Templates Tested
 - ACL, ICML, NeurIPS, ICLR, AAAI, AISTATS, IJCAI (ML/AI)

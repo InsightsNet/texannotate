@@ -1,11 +1,11 @@
 % ===================================================================
-% LPSB Package v3.0 - LaTeX-PDF Semantic Bridge
+% LPSB Package - LaTeX-PDF Semantic Bridge
 % 
 % PDF 2.0 Structure Element Support
 % USAGE: \usepackage{lpsb} (after \documentclass)
 % ===================================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{lpsb}[2026/01/05 v3.0 LPSB Package - PDF 2.0 Structure Elements]% Engine detection and primitive compatibility
+\ProvidesPackage{lpsb}[2026/01/05 LPSB Package - PDF 2.0 Structure Elements]% Engine detection and primitive compatibility
 \RequirePackage{iftex}
 \RequirePackage[savepos]{zref}
 \ifLuaTeX
@@ -130,12 +130,14 @@
 % \everypar gets overwritten in many environments (lists, minipage, etc).
 \def\lpsb@ParaBegin{%
     \iflpsb@intikz\else  % Skip paragraph tracking inside TikZ/PGF
+    \iflpsb@inbib\else  % Skip paragraph tracking inside bibliography
         \iflpsbInPara\else
             \global\advance\lpsbParaCount by 1%
             \global\lpsbInParatrue
             \zsavepos{lpsb-P-\the\lpsbParaCount-start}%
             \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "start", "page": "\thepage"}}%
         \fi
+    \fi
     \fi
 }
 
@@ -701,39 +703,54 @@
 \newcount\lpsbEmCount \lpsbEmCount=0
 
 % Hook \textbf for strong emphasis
+% NOTE: Check lpsbActive to avoid logging before \begin{document} (e.g., authblk author setup)
 \let\lpsb@origtextbf\textbf
 \renewcommand{\textbf}[1]{%
-    \ifvmode\leavevmode\fi% Ensure paragraph starts first
-    \global\advance\lpsbStrongCount by 1%
-    \zsavepos{lpsb-Strong-\the\lpsbStrongCount-start}%
-    \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "start", "page": "\thepage"}}%
-    \lpsb@origtextbf{#1}%
-    \zsavepos{lpsb-Strong-\the\lpsbStrongCount-end}%
-    \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "end", "page": "\thepage"}}%
+    \iflpsbActive
+        \ifvmode\leavevmode\fi% Ensure paragraph starts first
+        \global\advance\lpsbStrongCount by 1%
+        \zsavepos{lpsb-Strong-\the\lpsbStrongCount-start}%
+        \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "start", "page": "\thepage"}}%
+        \lpsb@origtextbf{#1}%
+        \zsavepos{lpsb-Strong-\the\lpsbStrongCount-end}%
+        \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "end", "page": "\thepage"}}%
+    \else
+        \lpsb@origtextbf{#1}%
+    \fi
 }
 
 % Hook \textit for italic
+% NOTE: Check lpsbActive to avoid logging before \begin{document}
 \let\lpsb@origtextit\textit
 \renewcommand{\textit}[1]{%
-    \ifvmode\leavevmode\fi% Ensure paragraph starts first
-    \global\advance\lpsbEmCount by 1%
-    \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
-    \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
-    \lpsb@origtextit{#1}%
-    \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
-    \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+    \iflpsbActive
+        \ifvmode\leavevmode\fi% Ensure paragraph starts first
+        \global\advance\lpsbEmCount by 1%
+        \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
+        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
+        \lpsb@origtextit{#1}%
+        \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
+        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+    \else
+        \lpsb@origtextit{#1}%
+    \fi
 }
 
 % Hook \emph - shares counter with \textit
+% NOTE: Check lpsbActive to avoid logging before \begin{document}
 \let\lpsb@origemph\emph
 \renewcommand{\emph}[1]{%
-    \ifvmode\leavevmode\fi% Ensure paragraph starts first
-    \global\advance\lpsbEmCount by 1%
-    \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
-    \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
-    \lpsb@origemph{#1}%
-    \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
-    \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+    \iflpsbActive
+        \ifvmode\leavevmode\fi% Ensure paragraph starts first
+        \global\advance\lpsbEmCount by 1%
+        \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
+        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
+        \lpsb@origemph{#1}%
+        \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
+        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+    \else
+        \lpsb@origemph{#1}%
+    \fi
 }
 
 % --- Chemistry Inline Commands ---
@@ -781,6 +798,23 @@
 % Label Hooks and Section Hooks (After Package Loading)
 % ===================================================================
 \AtBeginDocument{%
+    % Hyperref compatibility: disable LPSB commands during PDF bookmark generation
+    % When hyperref processes section titles for PDF bookmarks, it expands many commands
+    % This can cause conflicts with LPSB hooks that write to files or use special catcodes
+    \@ifpackageloaded{hyperref}{%
+        \pdfstringdefDisableCommands{%
+            \let\lpsbWriteEntry\@gobble
+            \let\lpsbProbe\@gobbletwo
+            \let\zsavepos\@gobble
+            \let\zposx\@gobble
+            \let\zposy\@gobble
+        }%
+        \typeout{LPSB Info: Hyperref compatibility enabled}%
+    }{}%
+    %
+    % Mark LPSB as active - inline formatting hooks will only log after this point
+    \lpsbActivetrue
+    %
     % Paragraph hooks (kernel-level, robust across environments)
     \AddToHook{para/begin}{\lpsb@ParaBegin}%
     \AddToHook{para/end}{\lpsb@ParaEnd}%
@@ -795,29 +829,37 @@
     %
     % Hook thebibliography environment (conditional - may not exist in all documents)
     % Now records environment boundaries AND each \bibitem, while keeping \item hook disabled
-    \@ifundefined{thebibliography}{}{%
-        \let\lpsb@origthebibliography\thebibliography
-        \let\lpsb@origendthebibliography\endthebibliography
-        \renewcommand{\thebibliography}[1]{%
-            \lpsb@inbibtrue%
-            \lpsbParaEnd%
-            \global\advance\lpsbEnvDepth by 1%
-            \global\advance\lpsbListCount by 1%
-            \zsavepos{lpsb-BibList-\the\lpsbListCount-start}%
-            \lpsbWriteEntry{{"id": "BibList-\the\lpsbListCount", "role": "BibList", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
-            \def\lpsbCurrentBibID{\the\lpsbListCount}%
-            \lpsb@origthebibliography{#1}%
+    % IMPORTANT: Skip for packages/classes with incompatible \thebibliography redefinitions
+    \newif\iflpsb@skipbiblhook
+    \lpsb@skipbiblhookfalse
+    \@ifpackageloaded{NJDnatbib}{\lpsb@skipbiblhooktrue}{}%  % WileyNJD-v2 class
+    \iflpsb@skipbiblhook
+        \typeout{LPSB Info: Skipping thebibliography hook (known conflict detected)}%
+    \else
+        \@ifundefined{thebibliography}{}{%
+            \let\lpsb@origthebibliography\thebibliography
+            \let\lpsb@origendthebibliography\endthebibliography
+            \renewcommand{\thebibliography}[1]{%
+                \lpsb@inbibtrue%
+                \lpsbParaEnd%
+                \global\advance\lpsbEnvDepth by 1%
+                \global\advance\lpsbListCount by 1%
+                \zsavepos{lpsb-BibList-\the\lpsbListCount-start}%
+                \lpsbWriteEntry{{"id": "BibList-\the\lpsbListCount", "role": "BibList", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+                \def\lpsbCurrentBibID{\the\lpsbListCount}%
+                \lpsb@origthebibliography{#1}%
+            }%
+            \renewcommand{\endthebibliography}{%
+                \lpsbParaEnd%
+                \@ifundefined{lpsbCurrentBibID}{\def\lpsbCurrentBibID{0}}{}%
+                \zsavepos{lpsb-BibList-\lpsbCurrentBibID-end}%
+                \lpsbWriteEntry{{"id": "BibList-\lpsbCurrentBibID", "role": "BibList", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+                \global\advance\lpsbEnvDepth by -1%
+                \lpsb@origendthebibliography%
+                \lpsb@inbibfalse%
+            }%
         }%
-        \renewcommand{\endthebibliography}{%
-            \lpsbParaEnd%
-            \@ifundefined{lpsbCurrentBibID}{\def\lpsbCurrentBibID{0}}{}%
-            \zsavepos{lpsb-BibList-\lpsbCurrentBibID-end}%
-            \lpsbWriteEntry{{"id": "BibList-\lpsbCurrentBibID", "role": "BibList", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
-            \global\advance\lpsbEnvDepth by -1%
-            \lpsb@origendthebibliography%
-            \lpsb@inbibfalse%
-        }%
-    }%
+    \fi
     % Hook \bibitem to track individual bibliography entries (without interfering with numbering)
     \@ifundefined{bibitem}{}{%
         \let\lpsb@origbibitem\bibitem
@@ -1136,7 +1178,7 @@
         \lpsb@savepos%
         \lpsbWriteEntry{{"role": "Calibration", "page": "\thepage", "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
     }%
-    \typeout{LPSB Info: Package v3.0 active (PDF 2.0 Structure Elements)}%
+    \typeout{LPSB Info: Package active (PDF 2.0 Structure Elements)}%
     %
     % Hook \href if hyperref is loaded
     \newcount\lpsbLinkCount \lpsbLinkCount=0%
@@ -1179,20 +1221,34 @@
         \lpsbWriteEntry{{"id": "Caption-\the\lpsbCaptionCount", "role": "Caption", "event": "end", "page": "\thepage"}}%
     }%
     %
-    % Hook \cite (basic version - may conflict with natbib/biblatex)
-    \@ifundefined{lpsb@origcite}{%
-        \let\lpsb@origcite\cite
-        \renewcommand{\cite}[2][]{%
-            \global\advance\lpsbCiteCount by 1%
-            \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
-            \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
-            \if\relax\detokenize{#1}\relax
-                \lpsb@origcite{#2}%
-            \else
-                \lpsb@origcite[#1]{#2}%
-            \fi
-        }%
-    }{}%
+    % Hook \cite (basic version - may conflict with natbib/biblatex/amsrefs/achemso)
+    % IMPORTANT: Skip for packages/classes that redefine \cite in complex ways
+    % causing infinite recursion with zref. This is a trade-off: we lose cite
+    % position tracking but gain compatibility.
+    \newif\iflpsb@skipcitehook
+    \lpsb@skipcitehookfalse
+    \@ifpackageloaded{amsrefs}{\lpsb@skipcitehooktrue}{}%
+    \@ifclassloaded{achemso}{\lpsb@skipcitehooktrue}{}%
+    \@ifclassloaded{revtex4-2}{\lpsb@skipcitehooktrue}{}%
+    \@ifclassloaded{revtex4-1}{\lpsb@skipcitehooktrue}{}%
+    \@ifclassloaded{revtex4}{\lpsb@skipcitehooktrue}{}%
+    \iflpsb@skipcitehook
+        \typeout{LPSB Info: Skipping cite hook (known conflict with document class/packages)}%
+    \else
+        \@ifundefined{lpsb@origcite}{%
+            \let\lpsb@origcite\cite
+            \renewcommand{\cite}[2][]{%
+                \global\advance\lpsbCiteCount by 1%
+                \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
+                \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
+                \if\relax\detokenize{#1}\relax
+                    \lpsb@origcite{#2}%
+                \else
+                    \lpsb@origcite[#1]{#2}%
+                \fi
+            }%
+        }{}%
+    \fi
     %
     % Hook \ref (basic version)
     \@ifundefined{lpsb@origref}{%

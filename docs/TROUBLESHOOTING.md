@@ -35,6 +35,20 @@ packages inside the option block. (This is easy to get wrong if you treat braces
 `script/lpsb_compiler.py` now parses until the mandatory `{class}` argument closes, and inserts
 `\\usepackage{lpsb}` after that point.
 
+### `LaTeX Error: Missing \begin{document}.`
+
+**Symptom**:
+- `! LaTeX Error: Missing \begin{document}.`
+
+**Cause**:
+The selected “main `.tex`” is not a LaTeX document. In arXiv sources we have seen `*.tex`
+files that are actually HTML (e.g. starting with `<html>`), which makes `pdflatex` complain
+and abort.
+
+**Solution (LPSB default)**:
+`find_main_tex()` rejects obvious non-LaTeX payloads and will not pick a file as the entrypoint
+unless it contains a real LaTeX marker like `\documentclass` or `\begin{document}`.
+
 ### Undefined control sequence: `\directlua`
 
 **Symptom**: Error when compiling with pdfLaTeX
@@ -66,6 +80,21 @@ packages inside the option block. (This is easy to get wrong if you treat braces
    - Format 3.1 → TeX Live 2022
    - Format 3.2 → TeX Live 2023
    - Format 3.3+ → TeX Live 2024/2025
+
+### `Missing $ inserted.` (often from `.bbl` / `bbl.tex`)
+
+**Symptom**:
+- `! Missing $ inserted.` and the log points into a bibliography line like `\bibitem{Key_With_Underscore}`.
+
+**Cause**:
+Some sources ship pre-generated bibliography files where the `\bibitem{...}` key contains raw `_`,
+which TeX interprets as math subscript in text mode.
+
+**Solution (LPSB default)**:
+LPSB detects raw `_` in bibliography keys (both `.bbl` and `bbl.tex`) and injects a **localized**
+underscore catcode workaround that only applies while reading bibliography/aux/toc inputs.
+This is done *before the first `pdflatex` pass* to handle shipped `.bbl` files that would otherwise
+crash immediately.
 
 ### inputenc error with LuaLaTeX
 
