@@ -12,10 +12,16 @@ All notable changes to LPSB are documented here.
 - Internal macro filter for `\@ssect` (filters `\contentsname`, etc.)
 - Roman numeral page number support (page values as strings)
 - ECCV, CoRL, JHEP, PLOS ONE template testing
+- Batch rerun helper for failed cases: `script/analysis/rerun_failed_cases.py`
+- Minimal arXiv compatibility stubs (only used when sources omit these files): `arxiv_stubs/`
+  - `jheppub.sty`, `aastex.cls`, `aastex6.cls`, `iopart.cls`, `tcilatex.tex`, `diagrams.sty`, `picins.sty`, `aa.cls`, `svmult.cls`, `PoS.cls`
 
 ### Fixed
 - JSON escape errors with `\texorpdfstring` in section titles
 - Duplicate section events with skip flag mechanism
+- Robust `\documentclass`-adjacent injection for `\usepackage{lpsb}` when `\documentclass` spans multiple lines (prevents `\@fileswith@pti@ns has an extra }`-style crashes)
+- Docker run volume mount now always mounts stage dir at `/workdir` (workdir selection handled by `-w`), preventing path resolution breakage for papers with nested sources
+- Analysis script now supports current per-paper aggregated log name `compile.log`: `script/analysis/analyze_compile_errors.py`
 
 ### Templates Tested
 - ACL, ICML, NeurIPS, ICLR, AAAI, AISTATS, IJCAI (ML/AI)

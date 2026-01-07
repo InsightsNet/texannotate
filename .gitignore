@@ -77,3 +77,5 @@ compile*/
 script/analysis/
 script/archive/
 archive/
+_*/
+compile_test*

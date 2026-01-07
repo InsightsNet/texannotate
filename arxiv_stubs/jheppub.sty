@@ -1,0 +1,22 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jheppub}[2026/01/07 Minimal stub for offline compilation]
+%
+% This is a compatibility stub for arXiv sources that expect jheppub.sty to be
+% preinstalled (as on arXiv). It is NOT a full reimplementation; it only aims
+% to be "good enough" to compile and extract structure.
+%
+\RequirePackage{ifthen}
+\newcommand{\preprint}[1]{}
+\newcommand{\arxivnumber}[1]{}
+\newcommand{\collaboration}[1]{}
+\newcommand{\affiliation}[1]{\par\small #1\par\normalsize}
+\newcommand{\emailAdd}[1]{\footnote{\texttt{#1}}}
+\makeatletter
+\newcommand{\keywords}[1]{\gdef\@jheppub@keywords{#1}}
+\makeatother
+% Some sources use \abstract{...} instead of the environment.
+% Do not clobber existing definitions.
+\providecommand{\abstract}[1]{\begin{abstract}#1\end{abstract}}
+\endinput
+
+

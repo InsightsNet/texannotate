@@ -16,12 +16,19 @@ import re
 import sys
 from pathlib import Path
 
+# PDF libraries - prefer PyMuPDF (much faster), fallback to pdfplumber
+try:
+    import fitz  # PyMuPDF
+    HAS_PYMUPDF = True
+except ImportError:
+    HAS_PYMUPDF = False
+
 try:
     import pdfplumber
     HAS_PDFPLUMBER = True
 except ImportError:
     HAS_PDFPLUMBER = False
-    # print("Warning: pdfplumber not available. PDF-based enrichment disabled.")
+
 
 
 def parse_aux_positions(aux_path: str) -> dict:
@@ -342,38 +349,95 @@ def enrich_from_pdf(entries: list, pdf_data: dict) -> int:
     return enriched_count
 
 
-def extract_words_from_pdf(pdf_path: str) -> dict:
+def extract_words_from_pdf(pdf_path: str, max_size_mb: float = 5.0, max_time_per_page: float = 5.0) -> dict:
     """
     Extract word-level bboxes from PDF using pdfplumber.
     
-    Returns dict mapping page_number -> list of word dicts:
-        {'text': str, 'x0': float, 'y0': float, 'x1': float, 'y1': float}
-    """
-    if not HAS_PDFPLUMBER:
-        return {}
+    Args:
+        pdf_path: Path to PDF file
+        max_size_mb: Skip word extraction for PDFs larger than this (default 5MB)
+        max_time_per_page: Abort if first pages take longer than this (seconds)
     
+    Returns dict mapping page_number -> list of word dicts:
+        {'text': str, 'x0': float, 'y0': float, 'x1': float, 'y1': float, 'fontname': str}
+    """
+    import os
+    import time
+    
+    file_size_mb = os.path.getsize(pdf_path) / (1024 * 1024) if os.path.exists(pdf_path) else 0
     words_by_page = {}
     
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            for page_num, page in enumerate(pdf.pages, start=1):
-                words = page.extract_words(
-                    keep_blank_chars=False,
-                    x_tolerance=3,
-                    y_tolerance=3,
-                    extra_attrs=['fontname', 'size']
-                )
-                words_by_page[page_num] = [{
-                    'text': w.get('text', ''),
-                    'x0': w.get('x0', 0),
-                    'y0': w.get('top', 0),
-                    'x1': w.get('x1', 0),
-                    'y1': w.get('bottom', 0),
-                    'fontname': w.get('fontname', ''),
-                    'size': w.get('size', 0)
-                } for w in words]
-    except Exception as e:
-        print(f"Warning: Failed to extract words from PDF: {e}")
+    # Try PyMuPDF first (much faster)
+    if HAS_PYMUPDF:
+        try:
+            doc = fitz.open(pdf_path)
+            for page_num, page in enumerate(doc, start=1):
+                page_start = time.time()
+                
+                # Use dict mode to get font information
+                data = page.get_text('dict')
+                words = []
+                
+                for block in data.get('blocks', []):
+                    if 'lines' not in block:
+                        continue
+                    for line in block['lines']:
+                        for span in line['spans']:
+                            bbox = span.get('bbox', (0, 0, 0, 0))
+                            words.append({
+                                'text': span.get('text', ''),
+                                'x0': bbox[0],
+                                'y0': bbox[1],
+                                'x1': bbox[2],
+                                'y1': bbox[3],
+                                'fontname': span.get('font', ''),
+                                'size': span.get('size', 0)
+                            })
+                
+                # Check if first pages are too slow
+                page_time = time.time() - page_start
+                if page_num <= 3 and page_time > max_time_per_page:
+                    break
+                
+                words_by_page[page_num] = words
+            doc.close()
+            return words_by_page
+        except Exception as e:
+            pass  # Fall through to pdfplumber
+    
+    # Fallback to pdfplumber
+    if HAS_PDFPLUMBER:
+        # Skip large PDFs with pdfplumber (too slow)
+        if file_size_mb > max_size_mb:
+            return {}
+        
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                for page_num, page in enumerate(pdf.pages, start=1):
+                    page_start = time.time()
+                    
+                    words = page.extract_words(
+                        keep_blank_chars=False,
+                        x_tolerance=3,
+                        y_tolerance=3,
+                        extra_attrs=['fontname', 'size']
+                    )
+                    
+                    page_time = time.time() - page_start
+                    if page_num <= 3 and page_time > max_time_per_page:
+                        break
+                    
+                    words_by_page[page_num] = [{
+                        'text': w.get('text', ''),
+                        'x0': w.get('x0', 0),
+                        'y0': w.get('top', 0),
+                        'x1': w.get('x1', 0),
+                        'y1': w.get('bottom', 0),
+                        'fontname': w.get('fontname', ''),
+                        'size': w.get('size', 0)
+                    } for w in words]
+        except Exception as e:
+            print(f"Warning: Failed to extract words from PDF: {e}")
     
     return words_by_page
 
@@ -880,9 +944,57 @@ def main():
         if args.verbose:
             print(f"  Found {len(positions)} position labels")
     
-    # Load JSON
-    with open(args.json, 'r') as f:
-        entries = json.load(f)
+    
+    # Load JSON with fault tolerance for LaTeX escape issues
+    def _fix_latex_escapes(content: str) -> str:
+        """Fix invalid escape sequences from LaTeX detokenize output.
+        
+        LaTeX's \\detokenize{} outputs backslashes as-is, but JSON requires
+        \\ to be escaped as \\\\. Common problematic sequences include:
+        \\chi, \\Delta, \\doibase, etc.
+        """
+        import re
+        # Find backslash followed by a letter (LaTeX command), not already escaped
+        # and not a valid JSON escape (n, r, t, b, f, u, \\, /, ")
+        valid_escapes = set('nrtbfu\\"/')
+        result = []
+        i = 0
+        while i < len(content):
+            if content[i] == '\\' and i + 1 < len(content):
+                next_char = content[i + 1]
+                # If next char is backslash, it's already escaped
+                if next_char == '\\':
+                    result.append('\\\\')
+                    i += 2
+                # If it's a valid JSON escape, keep as-is
+                elif next_char in valid_escapes:
+                    result.append(content[i:i+2])
+                    i += 2
+                # Otherwise, escape the backslash
+                else:
+                    result.append('\\\\')
+                    i += 1
+            else:
+                result.append(content[i])
+                i += 1
+        return ''.join(result)
+    
+    try:
+        with open(args.json, 'r') as f:
+            content = f.read()
+        
+        # Try direct parse first
+        try:
+            entries = json.loads(content)
+        except json.JSONDecodeError as e:
+            # Fix LaTeX escapes and retry
+            if args.verbose:
+                print(f"Warning: JSON parse error ({e}), fixing LaTeX escapes...")
+            fixed_content = _fix_latex_escapes(content)
+            entries = json.loads(fixed_content)
+    except Exception as e:
+        print(f"Error: Failed to load JSON file {args.json}: {e}")
+        sys.exit(1)
     
     # Enrich from aux
     aux_count = enrich_from_aux(entries, positions)

@@ -4,6 +4,37 @@ Common issues and solutions for LPSB.
 
 ## Compilation Issues
 
+### Missing arXiv template/class files (e.g. `jheppub.sty`, `aastex.cls`, `iopart.cls`)
+
+**Symptom**:
+- `! LaTeX Error: File 'jheppub.sty' not found.`
+- `! LaTeX Error: File 'aastex.cls' not found.`
+- `! LaTeX Error: File 'iopart.cls' not found.`
+- `! LaTeX Error: File 'tcilatex.tex' not found.`
+
+**Cause**:
+Some arXiv sources rely on template/class files that are available in arXiv's build environment
+but are not included in the submission tarball and may not exist in your TeX Live image.
+
+**Solution (LPSB default)**:
+The compiler will copy minimal compatibility stubs from `arxiv_stubs/` into the build directory
+**only if the source tree does not already provide that file**. This unblocks compilation for
+structure extraction.
+
+### Crash around `\documentclass` (e.g. `\@fileswith@pti@ns has an extra }`)
+
+**Symptom**:
+- `! Argument of \@fileswith@pti@ns has an extra }.`
+- Often followed by `Missing \\begin{document}` and cascaded errors.
+
+**Cause**:
+Some papers use a multi-line `\documentclass[...]` declaration. Injection logic must not insert
+packages inside the option block. (This is easy to get wrong if you treat braces line-by-line.)
+
+**Solution**:
+`script/lpsb_compiler.py` now parses until the mandatory `{class}` argument closes, and inserts
+`\\usepackage{lpsb}` after that point.
+
 ### Undefined control sequence: `\directlua`
 
 **Symptom**: Error when compiling with pdfLaTeX
@@ -187,4 +218,18 @@ grep -c '"event": "start"' doc.lpsb.json
 
 # Find specific roles
 grep '"role": "H2"' doc.lpsb.json
+```
+
+### Rerun only the failed cases from a previous batch
+
+If you have a batch output directory (e.g. `compile_test_20260107_180627/`) and want to rerun
+only the cases that failed (missing PDF or `COMPILATION_FAILED` marker):
+
+```bash
+python3 -u script/analysis/rerun_failed_cases.py \
+  compile_test_20260107_180627 \
+  data/arxiv/arxiv_extracted \
+  --out _rerun_failed/out \
+  --no-ramdisk \
+  -j 250
 ```

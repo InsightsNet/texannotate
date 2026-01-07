@@ -95,3 +95,33 @@
     \AddToHook{env/.../begin}{...}
 }
 ```
+
+## Missing TeX Live Journal Packages
+
+### Issue
+
+Batch compilation revealed **~27 papers (3%)** failing due to missing journal class files. These are available in arXiv's environment but missing from our Docker images.
+
+### Missing Packages
+
+| Package | Class File | Count | TL2020 Status | Purpose |
+|---------|------------|-------|---------------|---------|
+| `aa` | `aa.cls` | 3 | ❌ Not installed | Astronomy & Astrophysics journal |
+| `iopart` | `iopart.cls` | 6 | ❌ Not installed | IOP Publishing journals |
+| `svmult` | `svmult.cls` | 3 | ❌ Not installed | Springer multi-author books |
+| `PoS` | `PoS.cls` | 3 | ❌ Not installed | Proceedings of Science |
+| `aastex` | `aastex.cls` | 9 | ⚠️ Installed as `aastex631.cls` | American Astronomical Society |
+
+### Solution
+
+Add to `docker/Dockerfile.tl2020`:
+
+```dockerfile
+# Install missing journal packages
+RUN tlmgr install aa iopart svmult PoS && \
+    # Create version-agnostic symlinks for aastex
+    ln -s aastex631.cls /usr/local/texlive/2020/texmf-dist/tex/latex/aastex/aastex.cls && \
+    mktexlsr
+```
+
+**Priority**: Medium (affects 3% of papers, specific to astronomy/physics domains)

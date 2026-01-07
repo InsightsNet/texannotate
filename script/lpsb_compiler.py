@@ -19,6 +19,12 @@ import sys
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+
 # Configuration
 LPSB_IMAGE = "lpsb-texlive:latest"
 TIMEOUT_SEC = 300  # 5 mins per paper
@@ -133,6 +139,7 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str) -> None:
     """Idempotent insertion of \\usepackage{pkg} right after \\documentclass.
     
     Handles multi-line \\documentclass declarations where options span multiple lines.
+    Skips commented lines (starting with %).
     """
     try:
         content = tex_file.read_text(errors="ignore")
@@ -144,52 +151,79 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str) -> None:
     if pat.search(content):
         return
 
-    # Find documentclass - may span multiple lines
-    # Match: \documentclass followed by optional [...] and then {...}
-    docclass_pattern = re.compile(
-        r"(\\documentclass\s*(?:\[[^\]]*\])?\s*\{[^}]+\})",
-        re.MULTILINE | re.DOTALL
-    )
-    
-    match = docclass_pattern.search(content)
-    if not match:
-        # Fallback: try to find just \documentclass and insert after that line
-        lines = content.splitlines(True)
+    # Respect the file's newline style for minimal churn.
+    newline = "\r\n" if "\r\n" in content else "\n"
+
+    # Work with lines for insertion, but locate the *end* of \documentclass by parsing
+    # until the mandatory {class} argument closes. Counting braces per-line is wrong
+    # when \documentclass options span multiple lines before the first '{'.
+    lines = content.splitlines(keepends=True)
+
+    def _strip_tex_comment(s: str) -> str:
+        # Remove TeX comments, preserving escaped \% (best-effort).
         out = []
-        inserted = False
-        in_docclass = False
-        brace_depth = 0
-        
-        for line in lines:
-            out.append(line)
-            
-            if not inserted:
-                if "\\documentclass" in line:
-                    in_docclass = True
-                
-                if in_docclass:
-                    brace_depth += line.count('{') - line.count('}')
-                    if brace_depth <= 0 and '{' in line:
-                        # End of documentclass
-                        out.append("\\usepackage{" + pkg + "}\n")
-                        inserted = True
-                        in_docclass = False
-        
-        if inserted:
-            try:
-                tex_file.write_text("".join(out))
-            except Exception:
-                pass
-        return
-    
-    # Insert \usepackage right after the documentclass
-    insert_pos = match.end()
-    new_content = content[:insert_pos] + "\n\\usepackage{" + pkg + "}" + content[insert_pos:]
-    
+        esc = False
+        for ch in s:
+            if esc:
+                out.append(ch)
+                esc = False
+                continue
+            if ch == "\\":
+                out.append(ch)
+                esc = True
+                continue
+            if ch == "%":
+                break
+            out.append(ch)
+        return "".join(out)
+
+    in_docclass = False
+    saw_open_brace = False
+    brace_depth = 0
+    docclass_end_idx = -1
+
+    for i, raw in enumerate(lines):
+        stripped = raw.lstrip()
+        if stripped.startswith("%"):
+            continue
+
+        line = _strip_tex_comment(raw)
+
+        if not in_docclass:
+            if "\\documentclass" not in line:
+                continue
+            in_docclass = True
+
+            # Continue parsing *from this line*; do not assume '{' is present.
+            # Fall through to brace scanning below.
+
+        if in_docclass:
+            for ch in line:
+                if not saw_open_brace:
+                    if ch == "{":
+                        saw_open_brace = True
+                        brace_depth = 1
+                    continue
+                # after we saw the mandatory '{', track nested braces until it closes
+                if ch == "{":
+                    brace_depth += 1
+                elif ch == "}":
+                    brace_depth -= 1
+                    if brace_depth == 0:
+                        docclass_end_idx = i
+                        break
+            if docclass_end_idx >= 0:
+                break
+
+    if docclass_end_idx < 0:
+        return  # No valid \documentclass{...} found
+
+    lines.insert(docclass_end_idx + 1, f"\\usepackage{{{pkg}}}{newline}")
+
     try:
-        tex_file.write_text(new_content)
+        tex_file.write_text("".join(lines))
     except Exception:
-        pass
+        return
 
 def _find_any_bib_files(tex_dir: Path) -> bool:
     try:
@@ -502,6 +536,24 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             if src.exists():
                 shutil.copy(src, dst_dir / name)
 
+        def _copy_arxiv_stub_if_missing(name: str, dst_dir: Path) -> None:
+            # Some arXiv sources rely on template/class files that are present on arXiv
+            # but not shipped in TeX Live images (e.g., jheppub.sty, aastex.cls).
+            # Provide minimal stubs so compilation can proceed for structure extraction.
+            try:
+                if (dst_dir / name).exists():
+                    return
+            except Exception:
+                return
+            stub = lpsb_root / "arxiv_stubs" / name
+            if not stub.exists():
+                stub = lpsb_root.parent / "arxiv_stubs" / name
+            if stub.exists():
+                try:
+                    shutil.copy(stub, dst_dir / name)
+                except Exception:
+                    return
+
         # Like batch_compile_all.sh: pdflatex needs only lpsb.sty.
         _copy_if_exists("lpsb.sty", pd_tex_dir)
         # Lua stage: structure + math/table enrich.
@@ -510,6 +562,22 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
         _copy_if_exists("lpsb-math.lua", lua_tex_dir)
         _copy_if_exists("lpsb-luatable.sty", lua_tex_dir)
         _copy_if_exists("lpsb-table.lua", lua_tex_dir)
+
+        # Minimal arXiv template stubs (only if missing in source tree).
+        for fn in (
+            "jheppub.sty",
+            "aastex.cls",
+            "aastex6.cls",
+            "iopart.cls",
+            "tcilatex.tex",
+            "diagrams.sty",
+            "picins.sty",
+            "aa.cls",
+            "svmult.cls",
+            "PoS.cls",
+        ):
+            _copy_arxiv_stub_if_missing(fn, pd_tex_dir)
+            _copy_arxiv_stub_if_missing(fn, lua_tex_dir)
 
         pd_main_tex_full = pdflatex_dir / main_tex
         lua_main_tex_full = lualatex_dir / main_tex
@@ -541,7 +609,11 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                     docker_cmd = [
                         "docker", "run", "--rm",
                         "--name", container_name,
+                        # Always mount the whole stage at /workdir; set -w separately.
+                        # Mounting at a subdir breaks relative paths and makes it impossible
+                        # for TeX to access sibling/parent resources.
                         "-v", f"{stage_dir}:/workdir",
+                        "--net", "none",
                         "-w", container_wd,
                         docker_image
                     ] + cmd
@@ -655,7 +727,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
         
         with open(log_file, 'a') as log:
             log.write("\n=== Enrichment ===\n")
-            r = subprocess.run(enrich_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=60, check=False)
+            r = subprocess.run(enrich_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=180, check=False)
             if r.returncode != 0:
                 log.write(f"\nWarning: enrichment returned {r.returncode}; falling back to raw structure JSON\n")
         if not final_json.exists():
@@ -734,14 +806,26 @@ def main():
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             futures = {executor.submit(batch_worker, task): task[0].name for task in tasks}
             
-            for f in as_completed(futures):
+            # Use tqdm for progress bar if available
+            if HAS_TQDM:
+                pbar = tqdm(as_completed(futures), total=len(futures), desc="Compiling", unit="paper")
+            else:
+                pbar = as_completed(futures)
+            
+            for f in pbar:
                 pid = futures[f]
                 try:
                     res = f.result()
                     results[res] = results.get(res, 0) + 1
-                    print(f"[{res}] {pid}")
+                    if HAS_TQDM:
+                        pbar.set_postfix(S=results['SUCCESS'], F=results['FAIL'], T=results.get('TIMEOUT', 0))
+                    else:
+                        print(f"[{res}] {pid}")
                 except Exception as e:
-                    print(f"[CRASH] {pid}: {e}")
+                    if HAS_TQDM:
+                        pbar.set_postfix(S=results['SUCCESS'], F=results['FAIL'], E=results['ERROR']+1)
+                    else:
+                        print(f"[CRASH] {pid}: {e}")
                     results['ERROR'] += 1
                     
         print("\nSummary:")
