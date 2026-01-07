@@ -13,39 +13,98 @@ from typing import Dict, List, Optional
 
 def load_json(filepath: Path) -> List[dict]:
     """Load JSON array from file with fault tolerance."""
-    try:
-        # Try importing solver's fault-tolerant loader
-        import sys
-        sys.path.insert(0, str(filepath.parent.parent if filepath.parent.name.startswith('arXiv') else filepath.parent))
-        from solver import StructureTreeBuilder
-        
-        builder = StructureTreeBuilder(str(filepath))
-        builder.load_events()
-        return builder.events
-    except ImportError:
-        # Fallback to standard JSON load
-        pass
-    except Exception as e:
-        print(f"Warning: Fault-tolerant load failed ({e}), trying standard JSON")
+    # Note: Previously attempted to use solver.StructureTreeBuilder but it has issues
+    # with certain JSON escape sequences. Using our own robust parser instead.
     
+    # Try standard JSON load with auto-fix for missing closing bracket and escape sequences
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            if not isinstance(data, list):
-                print(f"Warning: {filepath} is not a JSON array")
-                return []
-            return data
+            content = f.read().strip()
+        
+        # Auto-fix: if starts with [ but doesn't end with ], append it
+        if content.startswith('[') and not content.rstrip().endswith(']'):
+            content = content.rstrip().rstrip(',') + '\n]'
+        
+        # Fix LaTeX escape sequences before parsing
+        content = _fix_latex_escapes(content)
+        
+        data = json.loads(content)
+        if not isinstance(data, list):
+            print(f"Warning: {filepath} is not a JSON array")
+            return []
+        return data
     except FileNotFoundError:
         print(f"Warning: {filepath} not found")
         return []
     except json.JSONDecodeError as e:
-        print(f"Error parsing {filepath}: {e}")
-        return []
+        print(f"Warning: JSON parse error in {filepath}: {e}, using line-by-line fallback")
+        return _parse_json_lines(filepath)
+
+
+def _fix_latex_escapes(content: str) -> str:
+    """Fix invalid escape sequences from LaTeX detokenize output.
+    
+    LaTeX's \\detokenize{} outputs backslashes as-is, but JSON requires
+    \\ to be escaped as \\\\. Common problematic sequences include:
+    \\chi, \\Delta, \\alpha, etc.
+    """
+    import re
+    # Find backslash followed by a letter (LaTeX command), not already escaped
+    # and not a valid JSON escape (n, r, t, b, f, u, \\, /, ")
+    valid_escapes = set('nrtbfu\\"/')
+    result = []
+    i = 0
+    while i < len(content):
+        if content[i] == '\\' and i + 1 < len(content):
+            next_char = content[i + 1]
+            # If next char is backslash, it's already escaped
+            if next_char == '\\':
+                result.append('\\\\')
+                i += 2
+            # If it's a valid JSON escape, keep as-is
+            elif next_char in valid_escapes:
+                result.append(content[i:i+2])
+                i += 2
+            # Otherwise, escape the backslash
+            else:
+                result.append('\\\\')
+                i += 1
+        else:
+            result.append(content[i])
+            i += 1
+    return ''.join(result)
+
+
+def _parse_json_lines(filepath: Path) -> List[dict]:
+    """Parse JSON file line-by-line for maximum fault tolerance."""
+    events = []
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line in ('[', ']'):
+                    continue
+                # Remove leading comma
+                if line.startswith(','):
+                    line = line[1:]
+                # Remove trailing comma
+                if line.endswith(','):
+                    line = line[:-1]
+                try:
+                    event = json.loads(line)
+                    if isinstance(event, dict):
+                        events.append(event)
+                except json.JSONDecodeError:
+                    continue
+    except Exception as e:
+        print(f"Error in line-by-line parsing: {e}")
+    return events
+
 
 def build_math_index(math_events: List[dict]) -> Dict[str, dict]:
     """
     Build index of math events by ID.
-    Returns: {id: {mathml: ..., display: ...}}
+    Returns: {id: {mathml: ..., display: ..., x: ..., y: ..., page: ..., width: ..., height: ..., depth: ...}}
     """
     index = {}
     for event in math_events:
@@ -56,10 +115,17 @@ def build_math_index(math_events: List[dict]) -> Dict[str, dict]:
         if not event_id:
             continue
         
-        index[event_id] = {
+        # Copy all relevant fields including coordinates
+        data = {
             'mathml': event.get('mathml', ''),
             'display': event.get('display', False)
         }
+        # Add coordinate fields if present
+        for key in ('x', 'y', 'page', 'width', 'height', 'depth'):
+            if key in event:
+                data[key] = event[key]
+        
+        index[event_id] = data
     
     return index
 
@@ -111,7 +177,7 @@ def merge_table_events(structure_events: List[dict], table_index: Dict[str, List
 def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> List[dict]:
     """
     Merge structure events with math data.
-    For Math/InlineMath events with matching IDs, add mathml field.
+    For Math/InlineMath events with matching IDs, add mathml and coordinate fields.
     """
     merged = []
     
@@ -130,6 +196,10 @@ def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> L
                 merged_event['mathml'] = math_data['mathml']
                 if 'display' in math_data:
                     merged_event['display'] = math_data['display']
+                # Copy coordinate fields from lualatex math pass
+                for key in ('x', 'y', 'page', 'width', 'height', 'depth'):
+                    if key in math_data and key not in merged_event:
+                        merged_event[key] = math_data[key]
         
         merged.append(merged_event)
     

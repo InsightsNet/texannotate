@@ -74,3 +74,6 @@ myenv/
 verification_tests/
 artifacts_investigation/
 compile*/
+script/analysis/
+script/archive/
+archive/

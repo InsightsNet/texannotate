@@ -54,3 +54,4 @@ If you use LPSB in your research, please cite:
   year={[Year]}
 }
 ```
+- [Development Lessons](DEVELOPMENT_LESSONS.md) - Technical insights and pitfalls

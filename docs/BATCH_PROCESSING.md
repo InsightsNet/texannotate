@@ -1,203 +1,115 @@
-# Batch Processing
+# Batch Processing with LPSB Compiler
 
-LPSB includes a batch processing pipeline for compiling and extracting structure from collections of arXiv papers.
+The unified compiler script `script/lpsb_compiler.py` handles the complete arXiv paper processing pipeline, from extraction to annotated JSON output.
 
-## Overview
+## Core Architecture: Two-Stage Compilation
 
-The batch pipeline:
-1. Extracts arXiv source tarballs
-2. Injects LPSB packages
-3. Compiles with appropriate TeX Live version
-4. Merges structure, math, and table data
-5. Generates analysis reports
+LPSB uses a **dual-stage** compilation strategy to ensure output fidelity while maximizing data extraction:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Stage A: Gold PDF                         │
+│  Compiler: pdflatex (3 passes)                               │
+│  Packages: lpsb.sty                                          │
+│  Output:   paper.pdf (authoritative), paper.lpsb.json        │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Stage B: Enrichment                       │
+│  Compiler: lualatex (3 passes)                               │
+│  Packages: lpsb.sty + lpsb-luamath.sty + lpsb-luatable.sty   │
+│  Output:   paper.lpsb-math.json, paper.lpsb-table.json       │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Merge & Enrich                            │
+│  Scripts: merge_lpsb.py, enrich_positions.py                 │
+│  Output:  paper.json (final enriched structure)              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Why Two Stages?
+
+1. **Visual Fidelity**: pdflatex produces the "Gold Standard" PDF matching arXiv's original output.
+2. **Data Richness**: lualatex enables MathML extraction (`lpsb-luamath`) and table cell parsing (`lpsb-luatable`) via Lua callbacks.
+3. **Coordinate Consistency**: Position enrichment uses the Gold PDF, ensuring coordinates match the authoritative output.
 
 ## Quick Start
 
 ```bash
-cd /path/to/LPSB
+# Single paper
+python3 script/lpsb_compiler.py --single /path/to/paper_src --output results/
 
-# Build Docker image
-docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
-
-# Place arXiv tarballs in data/download/
-ls data/download/*.tar.gz
-
-# Run batch compilation
-bash script/batch_compile_all.sh
-
-# View results
-cat compile_results/summary_*.txt
+# Batch processing (arXiv dump)
+python3 script/lpsb_compiler.py --batch data/arxiv/extracted --output results/ --workers 64
 ```
+
+## Command-Line Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `--single <PATH>` | Process a single paper (directory or `.gz`/`.tex` file) |
+| `--batch <DIR>` | Recursively process all `.gz` and `.tex` files in directory |
+| `--output <DIR>` | Output directory for results |
+| `--workers <N>` | Number of parallel workers (default: 1) |
+| `--no-ramdisk` | Disable `/dev/shm` acceleration (default: enabled) |
 
 ## TeX Live Version Selection
 
-### Modern Papers (2024+)
+The script automatically selects the appropriate TeX Live environment:
 
-arXiv papers submitted after summer 2024 include `00README.json`:
+### Detection Priority
+1. **`00README.json`**: Modern arXiv papers include `texlive_version` field
+2. **`.bbl` format version**: Biblatex format headers indicate required TeX Live
+3. **ArXiv ID date**: Fallback based on submission date (YYMM)
 
-```json
-{
-  "texlive_version": "2025",
-  "process": {"compiler": "pdflatex"}
-}
-```
+### Version Mapping
 
-The batch script reads this file and selects the matching Docker image.
+| Source | arXiv Date | TeX Live |
+|--------|------------|----------|
+| `00README.json` | N/A | As specified |
+| BBL format 3.4 | N/A | 2025 |
+| BBL format 3.2 | N/A | 2023 |
+| ArXiv ID 2508+ | Aug 2025+ | 2025 |
+| ArXiv ID 2305+ | May 2023+ | 2023 |
+| ArXiv ID 2010+ | Oct 2020+ | 2020 |
+| Older | Pre-2020 | 2020 (min) |
 
-### Legacy Papers
-
-For older papers without `00README.json`, the script:
-1. Checks for biblatex `.bbl` files
-2. Reads the format version header: `% $ biblatex bbl format version 3.1 $`
-3. Maps to appropriate TeX Live version
-
-| BBL Format | TeX Live |
-|------------|----------|
-| 3.1 | 2022 |
-| 3.2 | 2023 |
-| 3.3+ | 2024/2025 |
-
-## Two-Stage Compilation
-
-For maximum compatibility, the batch script uses a two-stage approach:
-
-### Stage A: Gold PDF (pdfLaTeX)
-
-- Compiler: `pdflatex`
-- Produces: authoritative PDF, `*.lpsb.json` (structure)
-- Compatibility: handles legacy packages (`inputenc`, etc.)
-
-### Stage B: Enrichment (LuaLaTeX)
-
-- Compiler: `lualatex`
-- Produces: `*.lpsb-math.json` (MathML), `*.lpsb-table.json`
-- Requires: `luamml` runtime (included in Docker images)
-
-### Merge
-
-The `merge_lpsb.py` script combines outputs:
-- Base: structure from Stage A
-- Enrichment: math/table data from Stage B
-- Output: `*.lpsb.merged.json`
+> **Note**: `LPSB_TEXLIVE_MIN=2020` ensures compatibility with modern LaTeX kernel hooks.
 
 ## Docker Images
 
-### Building Images
+Build historic images for maximum compatibility:
 
 ```bash
-# Latest TeX Live (recommended)
-docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
-
-# TeX Live 2023 (for older biblatex)
-docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
-
-# TeX Live 2022 (for even older papers)
+# Required images
+docker build -f docker/Dockerfile.tl2020 -t lpsb-texlive:TL2020-historic docker
 docker build -f docker/Dockerfile.tl2022 -t lpsb-texlive:TL2022-historic docker
-```
-
-### Image Contents
-
-All images include:
-- Full TeX Live installation
-- `luamml` runtime (for MathML extraction)
-- LPSB packages pre-installed in `TEXMFLOCAL`
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LPSB_DATA_DIR` | Input tarballs directory | `data/download` |
-| `LPSB_OUT_DIR` | Output directory | `compile_results` |
-| `LPSB_DOCKER_IMAGE` | Default Docker image | `lpsb-texlive:latest` |
-
-### Configuration File
-
-Copy and customize `docs/env.example`:
-
-```bash
-cp docs/env.example .env
-source .env
+docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
+docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 ```
 
 ## Output Structure
 
 ```
-compile_results/
-├── paper1/
-│   ├── main.pdf                    # Compiled PDF
-│   ├── main.lpsb.json              # Structure events
-│   ├── main.lpsb-math.json         # Math events (if LuaLaTeX)
-│   ├── main.lpsb-table.json        # Table events (if LuaLaTeX)
-│   ├── main.lpsb.merged.json       # Merged output
-│   ├── compile1.log                # pdfLaTeX pass 1
-│   ├── compile2.log                # pdfLaTeX pass 2
-│   └── compile3.log                # pdfLaTeX pass 3
-├── paper2/
-│   └── ...
-├── compile_report_YYYYMMDD.txt     # Detailed report
-└── summary_YYYYMMDD.txt            # Summary statistics
+results/
+├── 2305.12345/
+│   ├── 2305.12345.pdf          # Gold PDF (from pdflatex)
+│   ├── 2305.12345.json         # Final merged + enriched JSON
+│   ├── 2305.12345.lpsb.json    # Raw structure (from pdflatex)
+│   └── compile.log             # Full compilation log
 ```
 
-## Analysis
+## Environment Variables
 
-### Summary Report
-
-```
-==========================================
-COMPILATION SUMMARY
-==========================================
-Total papers: 100
-Successful: 92
-Failed: 8
-Success rate: 92.0%
-```
-
-### Error Analysis
-
-```bash
-python script/analyze_compile_errors.py compile_results/ -o error_report.txt
-```
-
-Produces:
-- Most common missing files
-- Most common undefined commands
-- Per-paper error details
-
-## Common Issues
-
-### biblatex Format Mismatch
-
-**Symptom**: 100,000+ page PDF with raw biblatex data
-
-**Cause**: `.bbl` format version incompatible with TeX Live version
-
-**Solution**: Use matching TeX Live image based on `.bbl` header
-
-### Missing `luamml`
-
-**Symptom**: Empty MathML fields in output
-
-**Cause**: Historic TeX Live image lacks `luamml`
-
-**Solution**: Use LPSB Docker images with vendored `luamml`
-
-### Package Conflicts
-
-**Symptom**: `inputenc` or `fontenc` errors with LuaLaTeX
-
-**Cause**: Legacy packages incompatible with LuaTeX
-
-**Solution**: Two-stage compilation (gold PDF from pdfLaTeX)
+| Variable | Description |
+|----------|-------------|
+| `LPSB_TEXLIVE_MIN` | Minimum TeX Live version (default: 2020) |
+| `LPSB_TEXLIVE_VERSION_OVERRIDE` | Force specific TeX Live version |
+| `LPSB_DOCKER_IMAGE_OVERRIDE` | Force specific Docker image |
 
 ## Performance
 
-Typical timing on modern hardware:
-- Single paper: 10-60 seconds
-- 100 papers: 20-60 minutes
-
-Factors affecting speed:
-- Paper complexity (bibliography size, figure count)
-- Number of compilation passes (1-3)
-- TeX Live version detection
+- **RAM Disk**: Enabled by default on systems with `/dev/shm`
+- **Parallelism**: Scale workers to CPU cores (e.g., `--workers 128` on 256-core machines)
+- **Throughput**: ~30-60 seconds per paper depending on complexity

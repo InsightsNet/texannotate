@@ -55,6 +55,7 @@ docker run --rm -v "$(pwd)":/workdir -w /workdir lpsb-texlive:latest \
 pdflatex document.tex
 ```
 
+
 ### 3. View Output
 
 The compilation produces:
@@ -65,6 +66,25 @@ The compilation produces:
 # View structure
 cat document.lpsb.json | python -m json.tool | head -20
 ```
+
+## Automated Compilation (Recommended)
+
+The **LPSB Compiler** script automates the entire pipeline with a **two-stage** approach:
+
+1. **Stage A (pdflatex)**: Generates the "Gold Standard" PDF + structure JSON
+2. **Stage B (lualatex)**: Extracts MathML and table data
+3. **Merge & Enrich**: Combines data and adds PDF coordinates
+
+```bash
+# Single paper
+python3 script/lpsb_compiler.py --single path/to/paper --output results/
+
+# Batch processing (arXiv dump)
+python3 script/lpsb_compiler.py --batch data/arxiv/ --output results/ --workers 64
+```
+
+See [Batch Processing](BATCH_PROCESSING.md) for detailed configuration options.
+
 
 ## Adding Math Extraction
 
