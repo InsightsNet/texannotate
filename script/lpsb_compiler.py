@@ -452,49 +452,55 @@ def _inject_bbl_underscore_catcode_fix(tex_file: Path) -> None:
     snippet = (
         "% LPSB_BBL_UNDERSCORE_FIX" + newline +
         "\\makeatletter" + newline +
-        "\\providecommand\\lpsb@olduscat{}" + newline +
-        "\\let\\lpsb@orig@input\\@input" + newline +
-        "\\@ifundefined{@input@}{}{\\let\\lpsb@orig@inputat\\@input@}" + newline +
-        "\\def\\lpsb@catcode@underscore@do#1#2{%" + newline +
-        "  \\begingroup\\xdef\\lpsb@olduscat{\\the\\catcode`\\_}\\endgroup" + newline +
-        "  \\catcode`\\_=12\\relax" + newline +
-        "  #1{#2}%" + newline +
-        "  \\catcode`\\_=\\lpsb@olduscat\\relax" + newline +
-        "}"+ newline +
-        "% Only enable underscore-catcode fix for bibliography-like inputs." + newline +
-        "\\edef\\lpsb@jobnamebbl{\\jobname.bbl}" + newline +
-        "\\edef\\lpsb@jobnameaux{\\jobname.aux}" + newline +
-        "\\def\\lpsb@bbltex{bbl.tex}" + newline +
-        "\\def\\lpsb@bbl{bbl}" + newline +
-        "\\def\\lpsb@maybe@fix@file#1#2{%" + newline +
-        "  \\edef\\lpsb@tmp{#2}%" + newline +
-        "  \\ifx\\lpsb@tmp\\lpsb@jobnamebbl" + newline +
-        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
-        "  \\else\\ifx\\lpsb@tmp\\lpsb@jobnameaux" + newline +
-        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
-        "  \\else\\ifx\\lpsb@tmp\\lpsb@bbltex" + newline +
-        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
-        "  \\else\\ifx\\lpsb@tmp\\lpsb@bbl" + newline +
-        "    \\lpsb@catcode@underscore@do#1{#2}%" + newline +
-        "  \\else" + newline +
+        "% Delay file-input hooking until \\begin{document}." + newline +
+        "% Babel (and other core packages) use scratch macros like \\reserved@c while" + newline +
+        "% loading language files in the preamble; hooking too early can break that" + newline +
+        "% path and manifest as \"I can't find file `}'\" in babel.def." + newline +
+        "\\AtBeginDocument{%" + newline +
+        "  \\providecommand\\lpsb@olduscat{}" + newline +
+        "  \\let\\lpsb@orig@input\\@input" + newline +
+        "  \\@ifundefined{@input@}{}{\\let\\lpsb@orig@inputat\\@input@}" + newline +
+        "  \\def\\lpsb@catcode@underscore@do#1#2{%" + newline +
+        "    \\begingroup\\xdef\\lpsb@olduscat{\\the\\catcode`\\_}\\endgroup" + newline +
+        "    \\catcode`\\_=12\\relax" + newline +
         "    #1{#2}%" + newline +
-        "  \\fi\\fi\\fi\\fi" + newline +
-        "}"+ newline +
-        "\\def\\@input#1{\\lpsb@maybe@fix@file\\lpsb@orig@input{#1}}" + newline +
-        "\\@ifundefined{@input@}{}{\\def\\@input@#1{\\lpsb@maybe@fix@file\\lpsb@orig@inputat{#1}}}" + newline +
-        "% Wrap plain \\input *safely*: only intercept the braced form \\input{...}." + newline +
-        "% Many packages use the unbraced form (e.g. \\input xstring.tex); a naive" + newline +
-        "% \\def\\input#1{...} would only capture the first token ('x'), breaking them." + newline +
-        "\\let\\lpsb@orig@plaininput\\input" + newline +
-        "\\def\\input{\\futurelet\\lpsb@next\\lpsb@input@maybe@fix}" + newline +
-        "\\def\\lpsb@input@maybe@fix{%" + newline +
-        "  \\ifx\\lpsb@next\\bgroup" + newline +
-        "    \\expandafter\\lpsb@input@maybe@fix@braced" + newline +
-        "  \\else" + newline +
-        "    \\lpsb@orig@plaininput" + newline +
-        "  \\fi" + newline +
+        "    \\catcode`\\_=\\lpsb@olduscat\\relax" + newline +
+        "  }"+ newline +
+        "  % Only enable underscore-catcode fix for bibliography-like inputs." + newline +
+        "  \\edef\\lpsb@jobnamebbl{\\jobname.bbl}" + newline +
+        "  \\edef\\lpsb@jobnameaux{\\jobname.aux}" + newline +
+        "  \\def\\lpsb@bbltex{bbl.tex}" + newline +
+        "  \\def\\lpsb@bbl{bbl}" + newline +
+        "  \\def\\lpsb@maybe@fix@file#1#2{%" + newline +
+        "    \\edef\\lpsb@tmp{#2}%" + newline +
+        "    \\ifx\\lpsb@tmp\\lpsb@jobnamebbl" + newline +
+        "      \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "    \\else\\ifx\\lpsb@tmp\\lpsb@jobnameaux" + newline +
+        "      \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "    \\else\\ifx\\lpsb@tmp\\lpsb@bbltex" + newline +
+        "      \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "    \\else\\ifx\\lpsb@tmp\\lpsb@bbl" + newline +
+        "      \\lpsb@catcode@underscore@do#1{#2}%" + newline +
+        "    \\else" + newline +
+        "      #1{#2}%" + newline +
+        "    \\fi\\fi\\fi\\fi" + newline +
+        "  }"+ newline +
+        "  \\def\\@input#1{\\lpsb@maybe@fix@file\\lpsb@orig@input{#1}}" + newline +
+        "  \\@ifundefined{@input@}{}{\\def\\@input@#1{\\lpsb@maybe@fix@file\\lpsb@orig@inputat{#1}}}" + newline +
+        "  % Wrap plain \\input *safely*: only intercept the braced form \\input{...}." + newline +
+        "  % Many packages use the unbraced form (e.g. \\input xstring.tex); a naive" + newline +
+        "  % \\def\\input#1{...} would only capture the first token ('x'), breaking them." + newline +
+        "  \\let\\lpsb@orig@plaininput\\input" + newline +
+        "  \\def\\input{\\futurelet\\lpsb@next\\lpsb@input@maybe@fix}" + newline +
+        "  \\def\\lpsb@input@maybe@fix{%" + newline +
+        "    \\ifx\\lpsb@next\\bgroup" + newline +
+        "      \\expandafter\\lpsb@input@maybe@fix@braced" + newline +
+        "    \\else" + newline +
+        "      \\lpsb@orig@plaininput" + newline +
+        "    \\fi" + newline +
+        "  }" + newline +
+        "  \\def\\lpsb@input@maybe@fix@braced#1{\\lpsb@maybe@fix@file\\lpsb@orig@plaininput{#1}}" + newline +
         "}" + newline +
-        "\\def\\lpsb@input@maybe@fix@braced#1{\\lpsb@maybe@fix@file\\lpsb@orig@plaininput{#1}}" + newline +
         "\\makeatother" + newline
     )
     lines.insert(docclass_end_idx + 1, snippet)
@@ -809,7 +815,7 @@ def extract_archive(src_file, dst_dir):
     except Exception as e:
         return False
 
-def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
+def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_bbl_underscore_fix=False):
     """Process a single paper directory or file."""
     src_path = Path(src_path).resolve()
     out_dir = Path(out_dir).resolve()
@@ -1011,29 +1017,30 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                         pass
                     return 124
 
-        # Preflight: some papers ship a pre-generated .bbl that is read on the *first* pdflatex pass.
-        # If it contains raw '_' in \\bibitem keys, pdflatex can fail before we get a chance to
-        # detect and inject a workaround. Detect early and inject before the first run.
-        pre_bbl = pd_tex_dir / f"{main_base}.bbl"
-        pre_bbltex = pd_tex_dir / "bbl.tex"
-        pre_any_bbl = []
-        try:
-            pre_any_bbl = sorted(pd_tex_dir.glob("*.bbl"))[:5]
-        except Exception:
+        if not disable_bbl_underscore_fix:
+            # Preflight: some papers ship a pre-generated .bbl that is read on the *first* pdflatex pass.
+            # If it contains raw '_' in \\bibitem keys, pdflatex can fail before we get a chance to
+            # detect and inject a workaround. Detect early and inject before the first run.
+            pre_bbl = pd_tex_dir / f"{main_base}.bbl"
+            pre_bbltex = pd_tex_dir / "bbl.tex"
             pre_any_bbl = []
-        preflight_underscore = False
-        if (pre_bbl.exists() and _bbl_has_unsafe_bibitem_key(pre_bbl)) or _tex_has_unsafe_bibitem_key(pre_bbltex):
-            preflight_underscore = True
-        else:
-            for b in pre_any_bbl:
-                if _bbl_has_unsafe_bibitem_key(b):
-                    preflight_underscore = True
-                    break
-        if preflight_underscore:
-            _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
-            _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
-            with open(log_file, "a") as log:
-                log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
+            try:
+                pre_any_bbl = sorted(pd_tex_dir.glob("*.bbl"))[:5]
+            except Exception:
+                pre_any_bbl = []
+            preflight_underscore = False
+            if (pre_bbl.exists() and _bbl_has_unsafe_bibitem_key(pre_bbl)) or _tex_has_unsafe_bibitem_key(pre_bbltex):
+                preflight_underscore = True
+            else:
+                for b in pre_any_bbl:
+                    if _bbl_has_unsafe_bibitem_key(b):
+                        preflight_underscore = True
+                        break
+            if preflight_underscore:
+                _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
+                _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+                with open(log_file, "a") as log:
+                    log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         # Stage A: pdflatex gold (3 passes)
         with open(log_file, "a") as log:
@@ -1053,16 +1060,17 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             rc = _run(pdflatex_dir, pd_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
             had_rc_error |= (rc != 0)
 
-        # If the bibliography includes raw underscores in \bibitem keys, TeX will
-        # throw "Missing $ inserted." when reading the .bbl. Mitigate by applying a
-        # localized catcode fix for '_' only while inputting \jobname.bbl.
-        bbl = pd_tex_dir / f"{main_base}.bbl"
-        bbltex = pd_tex_dir / "bbl.tex"
-        if (bbl.exists() and _bbl_has_unsafe_bibitem_key(bbl)) or _tex_has_unsafe_bibitem_key(bbltex):
-            _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
-            _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
-            with open(log_file, "a") as log:
-                log.write("\nInfo: Detected '_' in .bbl \\\\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
+        if not disable_bbl_underscore_fix:
+            # If the bibliography includes raw underscores in \bibitem keys, TeX will
+            # throw "Missing $ inserted." when reading the .bbl. Mitigate by applying a
+            # localized catcode fix for '_' only while inputting \jobname.bbl.
+            bbl = pd_tex_dir / f"{main_base}.bbl"
+            bbltex = pd_tex_dir / "bbl.tex"
+            if (bbl.exists() and _bbl_has_unsafe_bibitem_key(bbl)) or _tex_has_unsafe_bibitem_key(bbltex):
+                _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
+                _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+                with open(log_file, "a") as log:
+                    log.write("\nInfo: Detected '_' in .bbl \\\\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
         had_rc_error |= (rc != 0)
