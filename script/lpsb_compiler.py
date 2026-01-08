@@ -917,22 +917,28 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             if src.exists():
                 shutil.copy(src, dst_dir / name)
 
-        def _copy_arxiv_stub_if_missing(name: str, dst_dir: Path) -> None:
+        def _copy_arxiv_stub_if_missing(name: str, dst_dir: Path, alt_names=None) -> None:
             # Some arXiv sources rely on template/class files that are present on arXiv
             # but not shipped in TeX Live images (e.g., jheppub.sty, aastex.cls).
-            # Provide minimal stubs so compilation can proceed for structure extraction.
+            # Users may populate arxiv_stubs/ with official upstream files; we only copy
+            # if the source tree does not already provide the file.
             try:
                 if (dst_dir / name).exists():
                     return
             except Exception:
                 return
-            stub = lpsb_root / "arxiv_stubs" / name
-            if not stub.exists():
-                stub = lpsb_root.parent / "arxiv_stubs" / name
-            if stub.exists():
-                try:
-                    shutil.copy(stub, dst_dir / name)
-                except Exception:
+            if alt_names is None:
+                alt_names = []
+            candidates = [name] + list(alt_names)
+            for cand in candidates:
+                stub = lpsb_root / "arxiv_stubs" / cand
+                if not stub.exists():
+                    stub = lpsb_root.parent / "arxiv_stubs" / cand
+                if stub.exists():
+                    try:
+                        shutil.copy(stub, dst_dir / name)
+                    except Exception:
+                        return
                     return
 
         # Like batch_compile_all.sh: pdflatex needs only lpsb.sty.
@@ -945,20 +951,44 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         _copy_if_exists("lpsb-table.lua", lua_tex_dir)
 
         # Minimal arXiv template stubs (only if missing in source tree).
-        for fn in (
+        stub_files = (
             "jheppub.sty",
             "aastex.cls",
             "aastex6.cls",
+            "aastex61.cls",
+            "aastex62.cls",
+            "aastex63.cls",
             "iopart.cls",
+            "iopart12.clo",
             "tcilatex.tex",
             "diagrams.sty",
             "picins.sty",
+            "slashbox.sty",
             "aa.cls",
             "svmult.cls",
+            "svjour3.cls",
+            "svglov3.clo",
+            "llncs.cls",
             "PoS.cls",
-        ):
-            _copy_arxiv_stub_if_missing(fn, pd_tex_dir)
-            _copy_arxiv_stub_if_missing(fn, lua_tex_dir)
+            # BibTeX styles frequently shipped with official template bundles:
+            "aasjournal.bst",
+            "aasjournalv7.bst",
+            "psj.bst",
+            "spmpsci.bst",
+            "splncs04.bst",
+        )
+
+        # Filename aliases: some upstream bundles use patch-level filenames (e.g. aastex631.cls),
+        # while sources expect the shorter historic name (aastex63.cls). Allow a controlled rename.
+        stub_aliases = {
+            "aastex63.cls": ["aastex631.cls"],
+            "aastex7.cls": ["aastex701.cls"],
+        }
+
+        for fn in stub_files:
+            alts = stub_aliases.get(fn, [])
+            _copy_arxiv_stub_if_missing(fn, pd_tex_dir, alt_names=alts)
+            _copy_arxiv_stub_if_missing(fn, lua_tex_dir, alt_names=alts)
 
         pd_main_tex_full = pdflatex_dir / main_tex
         lua_main_tex_full = lualatex_dir / main_tex

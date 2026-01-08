@@ -35,6 +35,14 @@ All notable changes to LPSB are documented here.
 
 ---
 
+## 2026-01-08
+
+### Fixed
+- `I can't find file \`}'` failures (often triggered in `babel.def`) by delaying `LPSB_BBL_UNDERSCORE_FIX` input-hooking until `\AtBeginDocument`
+- Expanded `arxiv_stubs/` fallback copy list (including LNCS `llncs.cls` and `splncs04.bst`) and added safe filename aliasing (e.g. `aastex631.cls` → `aastex63.cls`) to match legacy arXiv expectations
+
+---
+
 ## 2026-01-06
 
 ### Added

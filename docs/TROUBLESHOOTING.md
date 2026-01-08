@@ -17,9 +17,14 @@ Some arXiv sources rely on template/class files that are available in arXiv's bu
 but are not included in the submission tarball and may not exist in your TeX Live image.
 
 **Solution (LPSB default)**:
-The compiler will copy minimal compatibility stubs from `arxiv_stubs/` into the build directory
-**only if the source tree does not already provide that file**. This unblocks compilation for
-structure extraction.
+The compiler will copy files from `arxiv_stubs/` into the build directory **only if the source tree
+does not already provide that file**. This unblocks compilation for structure extraction.
+
+**Important**:
+- Put **official upstream files** into `arxiv_stubs/` (CTAN / publisher / project homepages). Do not
+  “hand-roll” replacement `.cls/.sty` unless you fully control licensing and behavior.
+- LPSB will not overwrite author-provided files; `arxiv_stubs/` is only a fallback when the source
+  package is incomplete.
 
 ### Crash around `\documentclass` (e.g. `\@fileswith@pti@ns has an extra }`)
 
