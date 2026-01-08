@@ -860,10 +860,18 @@
             }%
         }%
     \fi
-    % Hook \bibitem to track individual bibliography entries (without interfering with numbering)
+    % Hook \bibitem to track individual bibliography entries
+    % IMPORTANT: Must support optional argument for natbib author-year mode: \bibitem[Author(Year)]{key}
     \@ifundefined{bibitem}{}{%
         \let\lpsb@origbibitem\bibitem
-        \renewcommand{\bibitem}[1]{%
+        \def\bibitem{%
+            \@ifnextchar[{\lpsb@bibitem@opt}{\lpsb@bibitem@noopt}%
+        }%
+        \def\lpsb@bibitem@opt[#1]#2{%
+            \lpsbWriteEntry{{"role": "BibEntry", "event": "item", "key": "#2", "page": "\thepage"}}%
+            \lpsb@origbibitem[#1]{#2}%
+        }%
+        \def\lpsb@bibitem@noopt#1{%
             \lpsbWriteEntry{{"role": "BibEntry", "event": "item", "key": "#1", "page": "\thepage"}}%
             \lpsb@origbibitem{#1}%
         }%
@@ -1232,37 +1240,32 @@
     % even though minimal tests work. Skip cite hook for amsrefs documents.
     \@ifpackageloaded{amsrefs}{\lpsb@skipcitehooktrue}{}%
     % Note: achemso and revtex load natbib internally, so natbib hook will work for them
-    % Check for natbib - use specialized hook for natbib's complex cite handling
+    % Check for natbib - skip cite hook for now as it interferes with natbib's
+    % complex citation processing (especially author-year mode)
+    % TODO: Find a way to hook that doesn't break natbib's format detection
     \@ifpackageloaded{natbib}{%
-        % Hook natbib's internal \@citex command which has signature [#1][#2]#3
-        % where #1=pre-note, #2=post-note, #3=keys
-        \typeout{LPSB Info: Using natbib-compatible cite hook}%
-        \let\lpsb@orig@citex\@citex
-        \def\@citex[#1][#2]#3{%
-            \global\advance\lpsbCiteCount by 1%
-            \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#3}", "page": "\thepage"}}%
-            \lpsb@orig@citex[#1][#2]{#3}%
-        }%
-    }{%
-        % Non-natbib documents: use simple hook or skip if incompatible
-        \iflpsb@skipcitehook
-            \typeout{LPSB Info: Skipping cite hook (known conflict with document class/packages)}%
-        \else
-            \@ifundefined{lpsb@origcite}{%
-                \let\lpsb@origcite\cite
-                \renewcommand{\cite}[2][]{%
-                    \global\advance\lpsbCiteCount by 1%
-                    \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
-                    \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
-                    \if\relax\detokenize{#1}\relax
-                        \lpsb@origcite{#2}%
-                    \else
-                        \lpsb@origcite[#1]{#2}%
-                    \fi
-                }%
-            }{}%
-        \fi
-    }%
+        \typeout{LPSB Info: natbib detected - skipping cite hook to preserve citation display}%
+        \lpsb@skipcitehooktrue
+    }{}%
+    %
+    % Non-natbib documents: use simple hook or skip if incompatible
+    \iflpsb@skipcitehook
+        \typeout{LPSB Info: Skipping cite hook (known conflict with document class/packages)}%
+    \else
+        \@ifundefined{lpsb@origcite}{%
+            \let\lpsb@origcite\cite
+            \renewcommand{\cite}[2][]{%
+                \global\advance\lpsbCiteCount by 1%
+                \zsavepos{lpsb-Cite-\the\lpsbCiteCount-start}%
+                \lpsbWriteEntry{{"id": "Cite-\the\lpsbCiteCount", "role": "Reference", "key": "\lpsb@escapeJSON{#2}", "page": "\thepage"}}%
+                \if\relax\detokenize{#1}\relax
+                    \lpsb@origcite{#2}%
+                \else
+                    \lpsb@origcite[#1]{#2}%
+                \fi
+            }%
+        }{}%
+    \fi
     %
     % Hook \ref (basic version)
     \@ifundefined{lpsb@origref}{%

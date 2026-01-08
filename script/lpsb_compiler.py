@@ -32,11 +32,81 @@ TIMEOUT_SEC = 300  # 5 mins per paper
 import re
 import json
 from typing import Tuple
+from typing import Dict
 
 # arXiv currently supports TeX Live 2023 and TeX Live 2025, with 2025 being the default.
 ARXIV_TEXLIVE_DEFAULT = "2025"
 # LPSB requires a modern LaTeX kernel (hooks). Clamp very old arXiv papers up to a minimum.
 TEXLIVE_MIN_DEFAULT = "2020"
+
+def _scan_compile_log_for_issues(log_path: Path) -> Dict[str, bool]:
+    """Best-effort scan for errors that still allow a PDF to be produced.
+
+    This repo historically treated 'PDF exists' as success, but LaTeX can keep going
+    under -interaction=nonstopmode and still emit a PDF with broken citations/refs.
+    """
+    issues = {
+        "fatal": False,
+        "undef_citation": False,
+        "undef_reference": False,
+        "bibtex_problem": False,
+        "biber_seen": False,
+    }
+    try:
+        with open(log_path, "r", errors="replace") as f:
+            for line in f:
+                # Fatal-ish: LaTeX continues but output is not trustworthy.
+                if line.startswith("! LaTeX Error:") or line.startswith("! Emergency stop."):
+                    issues["fatal"] = True
+                elif "! Package" in line and " Error:" in line:
+                    issues["fatal"] = True
+                elif "Fatal error occurred" in line or "==> Fatal error" in line:
+                    issues["fatal"] = True
+
+                # Undefined citations typically render as '?' in PDF.
+                if ("Citation `" in line and "undefined" in line) or ("There were undefined citations" in line):
+                    issues["undef_citation"] = True
+
+                # Undefined cross-refs typically render as '??' in PDF.
+                if ("LaTeX Warning: Reference `" in line and "undefined" in line) or ("There were undefined references" in line):
+                    issues["undef_reference"] = True
+
+                # BibTeX problems strongly correlate with broken bibliography output.
+                if (
+                    "I found no \\bibdata command" in line
+                    or "I found no \\bibstyle command" in line
+                    or "I found no \\citation commands" in line
+                    or "couldn't open database file" in line
+                    or "couldn't open style file" in line
+                    or ("No file " in line and line.rstrip().endswith(".bbl"))
+                ):
+                    issues["bibtex_problem"] = True
+
+                if "biber" in line.lower():
+                    issues["biber_seen"] = True
+
+                if issues["fatal"] and issues["undef_citation"] and issues["undef_reference"] and issues["bibtex_problem"]:
+                    break
+    except Exception:
+        # If we cannot read the log, do not block compilation; caller can still use file presence checks.
+        return issues
+    return issues
+
+def _aux_mentions_bibdata(aux_file: Path) -> bool:
+    try:
+        if not aux_file.exists():
+            return False
+        # Read a bounded prefix; we only care about control lines.
+        data = aux_file.read_text(errors="ignore")[:200000]
+        return "\\bibdata" in data
+    except Exception:
+        return False
+
+def _bcf_exists(tex_dir: Path, jobname: str) -> bool:
+    try:
+        return (tex_dir / f"{jobname}.bcf").exists()
+    except Exception:
+        return False
 
 def _require_docker() -> None:
     try:
@@ -911,6 +981,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             
             with open(log_file, "a") as log:
                 try:
+                    log.write("\n=== RUN: " + " ".join(cmd) + " ===\n")
                     docker_cmd = [
                         "docker", "run", "--rm",
                         "--name", container_name,
@@ -923,6 +994,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                         docker_image
                     ] + cmd
                     r = subprocess.run(docker_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+                    log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
                     return r.returncode
                 except subprocess.TimeoutExpired:
                     log.write("\nError: TIMEOUT - killing container\n")
@@ -964,15 +1036,22 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                 log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         # Stage A: pdflatex gold (3 passes)
-        _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        with open(log_file, "a") as log:
+            log.write("\n=== Stage A: pdflatex (gold) ===\n")
+        had_rc_error = False
+        rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error |= (rc != 0)
 
-        # Bibliography for gold (best effort, like batch script)
+        # Bibliography for gold: detect from generated aux/bcf, not by grepping the source.
+        aux0 = pd_tex_dir / f"{main_base}.aux"
         if (pd_tex_dir / f"{main_base}.bbl").exists():
             pass
-        elif _file_mentions(pd_main_tex_full, "biblatex"):
-            _run(pdflatex_dir, pd_container_wd, ["biber", main_base], TIMEOUT_SEC)
-        elif _file_mentions(pd_main_tex_full, "bibliography") or _find_any_bib_files(pd_tex_dir):
-            _run(pdflatex_dir, pd_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
+        elif _bcf_exists(pd_tex_dir, main_base) or _file_mentions(pd_main_tex_full, "biblatex"):
+            rc = _run(pdflatex_dir, pd_container_wd, ["biber", main_base], TIMEOUT_SEC)
+            had_rc_error |= (rc != 0)
+        elif _aux_mentions_bibdata(aux0):
+            rc = _run(pdflatex_dir, pd_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
+            had_rc_error |= (rc != 0)
 
         # If the bibliography includes raw underscores in \bibitem keys, TeX will
         # throw "Missing $ inserted." when reading the .bbl. Mitigate by applying a
@@ -985,8 +1064,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             with open(log_file, "a") as log:
                 log.write("\nInfo: Detected '_' in .bbl \\\\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
-        _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error |= (rc != 0)
+        rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error |= (rc != 0)
 
         aux_file = pd_tex_dir / f"{main_base}.aux"
         pdf_file = pd_tex_dir / f"{main_base}.pdf"
@@ -1010,16 +1091,31 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
                 log.write("\nError: COMPILATION_FAILED (missing gold artifacts)\n")
             return "FAIL"
 
+        # If pdflatex returned non-zero at any point, this is a hard failure even if a PDF exists.
+        if had_rc_error:
+            with open(log_file, "a") as log:
+                log.write("\nError: NONZERO_RETURN_CODE (gold stage)\n")
+            return "FAIL_LATEX_RC"
+
         # Stage B: lualatex enrichment (3 passes)
-        _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        with open(log_file, "a") as log:
+            log.write("\n=== Stage B: lualatex (enrichment) ===\n")
+        had_rc_error_lua = False
+        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error_lua |= (rc != 0)
+        aux1 = lua_tex_dir / f"{main_base}.aux"
         if (lua_tex_dir / f"{main_base}.bbl").exists():
             pass
-        elif _file_mentions(lua_main_tex_full, "biblatex"):
-            _run(lualatex_dir, lua_container_wd, ["biber", main_base], TIMEOUT_SEC)
-        elif _file_mentions(lua_main_tex_full, "bibliography") or _find_any_bib_files(lua_tex_dir):
-            _run(lualatex_dir, lua_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
-        _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        elif _bcf_exists(lua_tex_dir, main_base) or _file_mentions(lua_main_tex_full, "biblatex"):
+            rc = _run(lualatex_dir, lua_container_wd, ["biber", main_base], TIMEOUT_SEC)
+            had_rc_error_lua |= (rc != 0)
+        elif _aux_mentions_bibdata(aux1):
+            rc = _run(lualatex_dir, lua_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
+            had_rc_error_lua |= (rc != 0)
+        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error_lua |= (rc != 0)
+        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+        had_rc_error_lua |= (rc != 0)
 
         math_json = lua_tex_dir / f"{main_base}.lpsb-math.json"
         table_json = lua_tex_dir / f"{main_base}.lpsb-table.json"
@@ -1048,6 +1144,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
             with open(log_file, 'a') as log:
                 log.write("\nError: COMPILATION_FAILED (missing artifacts)\n")
             return "FAIL"
+
+        if had_rc_error_lua:
+            with open(log_file, "a") as log:
+                log.write("\nWarning: NONZERO_RETURN_CODE (lua stage) - continuing with gold artifacts\n")
             
         final_json = res_dir / f"{paper_id}.json"
         
@@ -1085,6 +1185,28 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False):
         # Cleanup (optional, keeping build for debug)
         # shutil.rmtree(work_dir)
         
+        # Final sanity: if log indicates fatal errors or broken citations, do not claim success.
+        issues = _scan_compile_log_for_issues(log_file)
+        # Undefined references may require one more LaTeX pass, but in batch mode we already did 3 passes.
+        # Treat undefined citations and fatal errors as hard failures; refs can be made strict via env var.
+        strict_refs = os.environ.get("LPSB_STRICT_UNDEF_REFS", "").strip() not in ("", "0", "false", "False")
+        if issues["fatal"]:
+            with open(log_file, "a") as log:
+                log.write("\nError: LOG_DETECTED_FATAL_LATEX_ERROR\n")
+            return "FAIL_LATEX_LOG"
+        if issues["undef_citation"]:
+            with open(log_file, "a") as log:
+                log.write("\nError: LOG_DETECTED_UNDEFINED_CITATIONS\n")
+            return "FAIL_UNDEF_CIT"
+        if issues["bibtex_problem"]:
+            with open(log_file, "a") as log:
+                log.write("\nError: LOG_DETECTED_BIBTEX_PROBLEM\n")
+            return "FAIL_BIB"
+        if strict_refs and issues["undef_reference"]:
+            with open(log_file, "a") as log:
+                log.write("\nError: LOG_DETECTED_UNDEFINED_REFERENCES (strict)\n")
+            return "FAIL_UNDEF_REF"
+
         return "SUCCESS"
         
     except subprocess.TimeoutExpired:

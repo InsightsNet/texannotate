@@ -79,3 +79,4 @@ script/archive/
 archive/
 _*/
 compile_test*
+script/cluster/
