@@ -509,6 +509,101 @@ def _inject_bbl_underscore_catcode_fix(tex_file: Path) -> None:
     except Exception:
         return
 
+
+def _inject_natbib_numbers_fix(tex_file: Path) -> None:
+    """Inject a natbib compatibility workaround.
+
+    Some papers ship a bibliography that natbib cannot parse in author-year mode, causing:
+      Package natbib Error: Bibliography not compatible with author-year citations.
+
+    For structure extraction, switching natbib to numeric mode is usually sufficient.
+    We do this conservatively:
+    - only if natbib is loaded
+    - only if \\setcitestyle exists
+    - delayed to \\AtBeginDocument (safe around package preamble loading)
+    """
+    try:
+        content = tex_file.read_text(errors="ignore")
+    except Exception:
+        return
+    if "LPSB_NATBIB_NUMBERS_FIX" in content:
+        return
+
+    newline = "\r\n" if "\r\n" in content else "\n"
+    lines = content.splitlines(keepends=True)
+
+    # Find insertion index: end of \documentclass{...}
+    in_docclass = False
+    saw_open_brace = False
+    brace_depth = 0
+    docclass_end_idx = -1
+
+    def _strip_tex_comment(s: str) -> str:
+        out = []
+        esc = False
+        for ch in s:
+            if esc:
+                out.append(ch)
+                esc = False
+                continue
+            if ch == "\\":
+                out.append(ch)
+                esc = True
+                continue
+            if ch == "%":
+                break
+            out.append(ch)
+        return "".join(out)
+
+    for i, raw in enumerate(lines):
+        stripped = raw.lstrip()
+        if stripped.startswith("%"):
+            continue
+        line = _strip_tex_comment(raw)
+        if not in_docclass:
+            if "\\documentclass" not in line:
+                continue
+            in_docclass = True
+        if in_docclass:
+            for ch in line:
+                if not saw_open_brace:
+                    if ch == "{":
+                        saw_open_brace = True
+                        brace_depth = 1
+                    continue
+                if ch == "{":
+                    brace_depth += 1
+                elif ch == "}":
+                    brace_depth -= 1
+                    if brace_depth == 0:
+                        docclass_end_idx = i
+                        break
+            if docclass_end_idx >= 0:
+                break
+
+    if docclass_end_idx < 0:
+        return
+
+    snippet = (
+        "% LPSB_NATBIB_NUMBERS_FIX" + newline +
+        "\\makeatletter" + newline +
+        "\\AtBeginDocument{%" + newline +
+        "  \\@ifpackageloaded{natbib}{%" + newline +
+        "    \\@ifundefined{setcitestyle}{}{\\setcitestyle{numbers}}%" + newline +
+        "  }{}%" + newline +
+        "}" + newline +
+        "\\makeatother" + newline
+    )
+    lines.insert(docclass_end_idx + 1, snippet)
+    try:
+        tex_file.write_text("".join(lines))
+    except Exception:
+        return
+
+def _env_truthy(name: str) -> bool:
+    val = os.environ.get(name, "").strip().lower()
+    return val in ("1", "true", "yes", "y", "on")
+
 def _find_any_bib_files(tex_dir: Path) -> bool:
     try:
         return any(tex_dir.glob("*.bib"))
@@ -1124,10 +1219,47 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             except Exception:
                 pass
 
+        # If gold artifacts are missing, try targeted retries for known high-impact, fixable errors.
         if not (aux_file.exists() and pdf_file.exists() and json_file.exists()):
-            with open(log_file, 'a') as log:
-                log.write("\nError: COMPILATION_FAILED (missing gold artifacts)\n")
-            return "FAIL"
+            natbib_err = "Package natbib Error: Bibliography not compatible with author-year citations."
+            try:
+                log_txt = Path(log_file).read_text(errors="ignore")
+            except Exception:
+                log_txt = ""
+
+            if natbib_err in log_txt:
+                # Off by default: this injects code into the staged main .tex, which some users
+                # consider too invasive. Enable explicitly via env var.
+                if _env_truthy("LPSB_ENABLE_NATBIB_NUMBERS_FIX"):
+                    _inject_natbib_numbers_fix(pd_main_tex_full)
+                    _inject_natbib_numbers_fix(lua_main_tex_full)
+                    with open(log_file, "a") as log:
+                        log.write("\nInfo: Detected natbib author-year incompatibility; enabled LPSB_NATBIB_NUMBERS_FIX and retrying gold passes\n")
+                    rc1 = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+                    rc2 = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+                    # If the retry succeeded cleanly, treat earlier RCs as superseded by the fix.
+                    if rc1 == 0 and rc2 == 0:
+                        had_rc_error = False
+
+                    # Re-check artifacts and re-copy outputs for users.
+                    if pdf_file.exists():
+                        try:
+                            shutil.copy(pdf_file, final_pdf)
+                        except Exception:
+                            pass
+                    if json_file.exists():
+                        try:
+                            shutil.copy(json_file, gold_json)
+                        except Exception:
+                            pass
+                else:
+                    with open(log_file, "a") as log:
+                        log.write("\nInfo: Detected natbib author-year incompatibility; LPSB_NATBIB_NUMBERS_FIX is disabled (set LPSB_ENABLE_NATBIB_NUMBERS_FIX=1 to enable)\n")
+
+            if not (aux_file.exists() and pdf_file.exists() and json_file.exists()):
+                with open(log_file, 'a') as log:
+                    log.write("\nError: COMPILATION_FAILED (missing gold artifacts)\n")
+                return "FAIL"
 
         # If pdflatex returned non-zero at any point, this is a hard failure even if a PDF exists.
         if had_rc_error:

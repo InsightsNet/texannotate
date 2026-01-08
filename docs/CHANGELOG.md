@@ -40,6 +40,9 @@ All notable changes to LPSB are documented here.
 ### Fixed
 - `I can't find file \`}'` failures (often triggered in `babel.def`) by delaying `LPSB_BBL_UNDERSCORE_FIX` input-hooking until `\AtBeginDocument`
 - Expanded `arxiv_stubs/` fallback copy list (including LNCS `llncs.cls` and `splncs04.bst`) and added safe filename aliasing (e.g. `aastex631.cls` → `aastex63.cls`) to match legacy arXiv expectations
+- natbib author-year incompatibility (`Bibliography not compatible with author-year citations.`): auto-inject numeric citation style and retry gold pdflatex passes
+- (now opt-in) natbib numeric-mode fallback is disabled by default; enable with `LPSB_ENABLE_NATBIB_NUMBERS_FIX=1`
+- `Argument of \lpsbWriteEntry has an extra }.` hard failures on Wiley templates by hooking the correct `\@ssect` signature for `WileyNJD-v2` (6-arg variant); prevents runaway-argument cascades in starred sections / bibliography headings
 
 ---
 

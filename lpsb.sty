@@ -93,7 +93,7 @@
 \newif\iflpsbFirstEntry
 \lpsbFirstEntrytrue
 
-\def\lpsbWriteEntry#1{%
+\long\def\lpsbWriteEntry#1{%
     \iflpsbFirstEntry
         \immediate\write\lpsbout{#1}%
         \global\lpsbFirstEntryfalse
@@ -802,9 +802,13 @@
     % When hyperref processes section titles for PDF bookmarks, it expands many commands
     % This can cause conflicts with LPSB hooks that write to files or use special catcodes
     \@ifpackageloaded{hyperref}{%
+        % hyperref's pdfstringdef context may include \par tokens. Also, our probe has 3 args.
+        % Use long gobblers with the correct arity.
+        \long\def\lpsb@pdfstring@gobbleone#1{}%
+        \long\def\lpsb@pdfstring@gobblethree#1#2#3{}%
         \pdfstringdefDisableCommands{%
-            \let\lpsbWriteEntry\@gobble
-            \let\lpsbProbe\@gobbletwo
+            \let\lpsbWriteEntry\lpsb@pdfstring@gobbleone
+            \let\lpsbProbe\lpsb@pdfstring@gobblethree
             \let\zsavepos\@gobble
             \let\zposx\@gobble
             \let\zposy\@gobble
@@ -835,6 +839,21 @@
     \@ifpackageloaded{NJDnatbib}{\lpsb@skipbiblhooktrue}{}%  % WileyNJD-v2 class
     \iflpsb@skipbiblhook
         \typeout{LPSB Info: Skipping thebibliography hook (known conflict detected)}%
+        % Still mark bibliography scope so other hooks can stay out of the way.
+        % (Without this, paragraph/section hooks can fire inside bibliography and
+        % interact badly with hyperref/bookmark PDF-string processing.)
+        \@ifundefined{thebibliography}{}{%
+            \let\lpsb@origthebibliography\thebibliography
+            \let\lpsb@origendthebibliography\endthebibliography
+            \renewcommand{\thebibliography}[1]{%
+                \lpsb@inbibtrue%
+                \lpsb@origthebibliography{#1}%
+            }%
+            \renewcommand{\endthebibliography}{%
+                \lpsb@origendthebibliography%
+                \lpsb@inbibfalse%
+            }%
+        }%
     \else
         \@ifundefined{thebibliography}{}{%
             \let\lpsb@origthebibliography\thebibliography
@@ -901,6 +920,9 @@
         \iflpsb@skipsect
             % Skip JSON output, just call original
             \lpsb@origsect{#1}{#2}{#3}{#4}{#5}{#6}[{#7}]{#8}%
+        \else\iflpsb@inbib
+            % Don't emit structure entries while in bibliography.
+            \lpsb@origsect{#1}{#2}{#3}{#4}{#5}{#6}[{#7}]{#8}%
         \else
             \lpsbParaEnd% Close any open paragraph before section starts
             % Always increment heading counter (used for H-* IDs)
@@ -929,29 +951,51 @@
             % Save position AFTER heading (for end/dimension calculation)
             \zsavepos{lpsb-H-\the\lpsbSectionNum-end}%
             \lpsbWriteEntry{{"id": "H-\the\lpsbSectionNum", "role": "\lpsb@levelToH{#2}", "event": "end", "page": "\thepage", "x": \zposx{lpsb-H-\the\lpsbSectionNum-end}, "y": \zposy{lpsb-H-\the\lpsbSectionNum-end}}}%
-        \fi
+        \fi\fi
     }%
     %
-    % Hook \@ssect for starred sections (e.g., \section*)
-    % Skip if already handled by template-specific hooks OR if title looks like internal macro
-    \let\lpsb@origssect\@ssect
-    \def\@ssect#1#2#3#4#5{%
-        \iflpsb@skipsect
-            % Skip JSON output
-            \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
-        \else
-            % Check if title starts with backslash (likely internal macro like \contentsname)
-            \edef\lpsb@temp{\detokenize{#5}}%
-            \expandafter\lpsb@checkfirstchar\lpsb@temp\relax\relax
-            \iflpsb@internalcontent
-                % Skip internal sections like \tableofcontents heading
+    % Hook \@ssect for starred sections (e.g., \section*).
+    % NOTE: Some classes (e.g., WileyNJD-v2 + NJDnatbib) define \@ssect with 6 args:
+    %   \@ssect{level}{indent}{beforeskip}{afterskip}{style}{title}
+    % while the LaTeX kernel uses 5 args. Hook the correct signature.
+    \@ifclassloaded{WileyNJD-v2}{%
+        \let\lpsb@origssect\@ssect
+        \def\@ssect#1#2#3#4#5#6{%
+            \iflpsb@skipsect
+                \lpsb@origssect{#1}{#2}{#3}{#4}{#5}{#6}%
+            \else\iflpsb@inbib
+                \lpsb@origssect{#1}{#2}{#3}{#4}{#5}{#6}%
+            \else
+                \edef\lpsb@temp{\detokenize{#6}}%
+                \expandafter\lpsb@checkfirstchar\lpsb@temp\relax\relax
+                \iflpsb@internalcontent
+                    \lpsb@origssect{#1}{#2}{#3}{#4}{#5}{#6}%
+                \else
+                    \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "start", "title": "\lpsb@escapeJSON{#6}", "page": "\thepage"}}%
+                    \lpsb@origssect{#1}{#2}{#3}{#4}{#5}{#6}%
+                    \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "end", "page": "\thepage"}}%
+                \fi
+            \fi\fi
+        }%
+    }{%
+        \let\lpsb@origssect\@ssect
+        \def\@ssect#1#2#3#4#5{%
+            \iflpsb@skipsect
+                \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
+            \else\iflpsb@inbib
                 \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
             \else
-                \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "start", "title": "\lpsb@escapeJSON{#5}", "page": "\thepage"}}%
-                \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
-                \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "end", "page": "\thepage"}}%
-            \fi
-        \fi
+                \edef\lpsb@temp{\detokenize{#5}}%
+                \expandafter\lpsb@checkfirstchar\lpsb@temp\relax\relax
+                \iflpsb@internalcontent
+                    \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
+                \else
+                    \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "start", "title": "\lpsb@escapeJSON{#5}", "page": "\thepage"}}%
+                    \lpsb@origssect{#1}{#2}{#3}{#4}{#5}%
+                    \lpsbWriteEntry{{"id": "H-starred-\the\lpsbEnvDepth", "role": "H", "event": "end", "page": "\thepage"}}%
+                \fi
+            \fi\fi
+        }%
     }%
     % Helper to detect if first char is backslash (internal macro indicator)
     \newif\iflpsb@internalcontent

@@ -101,6 +101,44 @@ underscore catcode workaround that only applies while reading bibliography/aux/t
 This is done *before the first `pdflatex` pass* to handle shipped `.bbl` files that would otherwise
 crash immediately.
 
+### natbib: `Bibliography not compatible with author-year citations.`
+
+**Symptom**:
+- `! Package natbib Error: Bibliography not compatible with author-year citations.`
+
+**Cause**:
+The document (or template) loads `natbib` in author-year mode, but the shipped/generated bibliography
+does not contain author-year metadata in the format natbib expects. natbib then prompts to switch
+to numeric citations.
+
+**Solution**:
+- **Preferred**: Fix it at the source/template level (use the correct official `.bst` / template
+  bundle so natbib gets compatible author-year metadata).
+- **Optional LPSB fallback (disabled by default)**: Set `LPSB_ENABLE_NATBIB_NUMBERS_FIX=1`.
+  When enabled, LPSB detects this failure pattern and injects `LPSB_NATBIB_NUMBERS_FIX` into the
+  **staged** main `.tex` (not your original arXiv source), which switches natbib to numeric mode via
+  `\\setcitestyle{numbers}` (only if natbib is loaded). LPSB then retries the gold pdflatex passes.
+
+### `Argument of \lpsbWriteEntry has an extra }.` (often followed by `HyPsd...` / bookmark errors)
+
+**Symptom**:
+- `! Argument of \lpsbWriteEntry has an extra }.`
+- `Runaway argument?`
+- `! Paragraph ended before \lpsbWriteEntry was complete.`
+- Often cascades into hyperref/bookmark internals (`HyPsd@...`, `BKM@title -> \par`, etc.)
+
+**Cause**:
+Some templates redefine internal sectioning commands with **non-standard signatures**. A concrete
+example is `WileyNJD-v2.cls`, which defines `\@ssect` with **6 arguments**:
+`\\@ssect{level}{indent}{beforeskip}{afterskip}{style}{title}`.
+If LPSB wraps `\@ssect` assuming the LaTeX-kernel 5-argument form, TeX argument scanning breaks and
+the first `\lpsbWriteEntry{...}` emitted by the hook can fail with an “extra }” runaway.
+
+**Solution (LPSB default)**:
+`lpsb.sty` detects `WileyNJD-v2` and hooks the correct 6-argument `\@ssect` signature. After this,
+affected papers compile and produce PDF/JSON (remaining issues, if any, are usually just undefined
+citations).
+
 ### inputenc error with LuaLaTeX
 
 **Symptom**: `Package inputenc Error: inputenc is not designed for use with xetex/luatex`
