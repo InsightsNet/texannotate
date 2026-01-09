@@ -1,6 +1,4 @@
 # Core dependencies
-requests>=2.28.0
-pebble>=5.0.0
 docker>=6.0.0
 
 # For memory-optimized temp files on Linux
