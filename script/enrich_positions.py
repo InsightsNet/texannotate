@@ -73,8 +73,9 @@ def enrich_from_aux(entries: list, positions: dict, page_height_pt: float = 794.
     enriched_count = 0
     
     for entry in entries:
-        # Enriched start events OR single-point events (like Reference)
-        if entry.get('event') != 'start' and 'event' in entry:
+        # Enriched start events OR single-point events (like Reference, InlineMath atom)
+        event = entry.get('event', '')
+        if event not in ('start', 'atom') and 'event' in entry:
             if entry.get('role') != 'Reference':
                 continue
         
@@ -85,6 +86,10 @@ def enrich_from_aux(entries: list, positions: dict, page_height_pt: float = 794.
         if role == 'Document':
             start_label = "lpsb-Document-start"
             end_label = "lpsb-Document-end"
+        elif role == 'InlineMath' and event == 'atom':
+            # InlineMath uses single-point label without -start/-end suffix
+            start_label = f"lpsb-{entry_id}"
+            end_label = None  # No end label for atoms
         else:
             start_label = f"lpsb-{entry_id}-start"
             end_label = f"lpsb-{entry_id}-end"
@@ -108,7 +113,7 @@ def enrich_from_aux(entries: list, positions: dict, page_height_pt: float = 794.
             enriched_count += 1
             
             # If we have end position, calculate width/height
-            if end_label in positions:
+            if end_label and end_label in positions:
                 end_pos = positions[end_label]
                 end_x_pt = sp_to_pt(end_pos['x_sp'])
                 end_y_pt = sp_to_pt(end_pos['y_sp'])
@@ -996,10 +1001,29 @@ def main():
         print(f"Error: Failed to load JSON file {args.json}: {e}")
         sys.exit(1)
     
+    # Get PDF page height for correct Y-coordinate conversion
+    page_height_pt = 794.97  # Default A4 height
+    if Path(args.pdf).exists():
+        if HAS_PYMUPDF:
+            try:
+                doc = fitz.open(args.pdf)
+                if len(doc) > 0:
+                    page_height_pt = doc[0].rect.height
+                doc.close()
+            except:
+                pass
+        elif HAS_PDFPLUMBER:
+            try:
+                with pdfplumber.open(args.pdf) as pdf:
+                    if pdf.pages:
+                        page_height_pt = pdf.pages[0].height
+            except:
+                pass
+    
     # Enrich from aux
-    aux_count = enrich_from_aux(entries, positions)
+    aux_count = enrich_from_aux(entries, positions, page_height_pt)
     if args.verbose:
-        print(f"Enriched {aux_count} entries from .aux")
+        print(f"Enriched {aux_count} entries from .aux (page height: {page_height_pt:.2f}pt)")
     
     # Enrich from PDF
     pdf_count = 0

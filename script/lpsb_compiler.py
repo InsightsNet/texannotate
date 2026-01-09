@@ -39,11 +39,15 @@ ARXIV_TEXLIVE_DEFAULT = "2025"
 # LPSB requires a modern LaTeX kernel (hooks). Clamp very old arXiv papers up to a minimum.
 TEXLIVE_MIN_DEFAULT = "2020"
 
-def _scan_compile_log_for_issues(log_path: Path) -> Dict[str, bool]:
+def _scan_compile_log_for_issues(log_path: Path):
     """Best-effort scan for errors that still allow a PDF to be produced.
 
     This repo historically treated 'PDF exists' as success, but LaTeX can keep going
     under -interaction=nonstopmode and still emit a PDF with broken citations/refs.
+    
+    IMPORTANT: Only scans Stage A (pdflatex gold) for fatal errors. Stage B (lualatex
+    enrichment) errors are recorded but do not cause failure, since Stage B is optional
+    enhancement and the gold PDF was already produced by Stage A.
     """
     issues = {
         "fatal": False,
@@ -51,10 +55,22 @@ def _scan_compile_log_for_issues(log_path: Path) -> Dict[str, bool]:
         "undef_reference": False,
         "bibtex_problem": False,
         "biber_seen": False,
+        "stage_b_errors": 0,  # Count of errors in Stage B (for informational purposes)
     }
     try:
         with open(log_path, "r", errors="replace") as f:
+            in_stage_b = False
             for line in f:
+                # Detect Stage B section - errors here are non-fatal
+                if "=== Stage B:" in line or "Stage B: lualatex" in line:
+                    in_stage_b = True
+                
+                # Count Stage B errors but don't treat as fatal
+                if in_stage_b:
+                    if line.startswith("! ") or ("! Package" in line and " Error:" in line):
+                        issues["stage_b_errors"] += 1
+                    continue  # Skip Stage B errors for fatal/undef checks
+                
                 # Fatal-ish: LaTeX continues but output is not trustworthy.
                 if line.startswith("! LaTeX Error:") or line.startswith("! Emergency stop."):
                     issues["fatal"] = True
@@ -1204,7 +1220,21 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 
         aux_file = pd_tex_dir / f"{main_base}.aux"
         pdf_file = pd_tex_dir / f"{main_base}.pdf"
+        dvi_file = pd_tex_dir / f"{main_base}.dvi"
         json_file = pd_tex_dir / f"{main_base}.lpsb.json"
+        
+        # DVI-to-PDF fallback: some legacy documents produce DVI instead of PDF
+        # (e.g., using dvips.def or explicit DVI mode). Convert using dvipdf.
+        if not pdf_file.exists() and dvi_file.exists():
+            with open(log_file, "a") as log:
+                log.write("\nInfo: DVI file detected, converting to PDF with dvipdf\n")
+            rc_dvipdf = _run(pdflatex_dir, pd_container_wd, 
+                            ["dvipdf", f"{main_base}.dvi", f"{main_base}.pdf"], 
+                            TIMEOUT_SEC)
+            if rc_dvipdf != 0:
+                with open(log_file, "a") as log:
+                    log.write(f"Warning: dvipdf returned {rc_dvipdf}\n")
+        
         # Expose gold artifacts early: RAM-disk workdir will be cleaned, but users still need outputs.
         final_pdf = res_dir / f"{paper_id}.pdf"
         gold_json = res_dir / f"{paper_id}.lpsb.json"
@@ -1261,11 +1291,17 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                     log.write("\nError: COMPILATION_FAILED (missing gold artifacts)\n")
                 return "FAIL"
 
-        # If pdflatex returned non-zero at any point, this is a hard failure even if a PDF exists.
+        # If pdflatex returned non-zero at any point but we have valid artifacts, continue with enrichment.
+        # Many LaTeX runs return rc=1 due to warnings (undefined refs, hyperref issues) but still produce
+        # valid PDF and JSON. We should not skip enrichment for these cases.
         if had_rc_error:
-            with open(log_file, "a") as log:
-                log.write("\nError: NONZERO_RETURN_CODE (gold stage)\n")
-            return "FAIL_LATEX_RC"
+            if aux_file.exists() and pdf_file.exists() and json_file.exists():
+                with open(log_file, "a") as log:
+                    log.write("\nWarning: pdflatex had non-zero return code but artifacts exist; continuing with enrichment\n")
+            else:
+                with open(log_file, "a") as log:
+                    log.write("\nError: NONZERO_RETURN_CODE (gold stage) and missing artifacts\n")
+                return "FAIL_LATEX_RC"
 
         # Stage B: lualatex enrichment (3 passes)
         with open(log_file, "a") as log:
@@ -1376,6 +1412,11 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             with open(log_file, "a") as log:
                 log.write("\nError: LOG_DETECTED_UNDEFINED_REFERENCES (strict)\n")
             return "FAIL_UNDEF_REF"
+
+        # Log Stage B errors count (informational, not a failure)
+        if issues.get("stage_b_errors", 0) > 0:
+            with open(log_file, "a") as log:
+                log.write(f"\nInfo: Stage B (lualatex enrichment) had {issues['stage_b_errors']} errors (non-fatal, gold PDF already produced)\n")
 
         return "SUCCESS"
         

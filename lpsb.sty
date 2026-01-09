@@ -76,6 +76,13 @@
 \newif\iflpsb@infigure  % Flag to track if we're inside a figure environment
 \lpsb@infigurefalse
 
+% ACM template detection - skip certain hooks to prevent blank first page
+% acmart.cls uses abstract and other environments inside \maketitle,
+% which conflicts with LPSB's \lpsbParaEnd calls
+\newif\iflpsb@isacmart
+\lpsb@isacmartfalse
+% Detection happens inside main \AtBeginDocument (line ~850) before any conditional checks
+
 % Figure counter (for standalone figures like tikzpicture outside figure env)
 \newcount\lpsbFigureCount
 \lpsbFigureCount=0
@@ -129,6 +136,7 @@
 % Prefer LaTeX paragraph hooks (para/begin, para/end) over \everypar.
 % \everypar gets overwritten in many environments (lists, minipage, etc).
 \def\lpsb@ParaBegin{%
+    \iflpsbActive  % Only track if LPSB is active (delayed for acmart)
     \iflpsb@intikz\else  % Skip paragraph tracking inside TikZ/PGF
     \iflpsb@inbib\else  % Skip paragraph tracking inside bibliography
         \iflpsbInPara\else
@@ -139,13 +147,16 @@
         \fi
     \fi
     \fi
+    \fi
 }
 
 \def\lpsb@ParaEnd{%
+    \iflpsbActive  % Only track if LPSB is active (delayed for acmart)
     \iflpsbInPara
         \zsavepos{lpsb-P-\the\lpsbParaCount-end}%
         \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "end", "page": "\thepage"}}%
         \global\lpsbInParafalse
+    \fi
     \fi
 }
 
@@ -178,7 +189,21 @@
 
 % Hook standard environments with PDF 2.0 roles
 \lpsbHookEnv{document}{Document}
-\lpsbHookEnv{abstract}{Sect}
+% Abstract hook - skip for ACM templates to prevent blank first page
+% acmart uses abstract inside \maketitle, and \lpsbParaEnd there causes issues
+\AtBeginEnvironment{abstract}{%
+    \iflpsb@isacmart\else
+        \lpsbParaEnd%
+        \global\advance\lpsbEnvDepth by 1%
+        \lpsbWriteEntry{{"id": "abstract-\the\lpsbEnvDepth", "role": "Sect", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+    \fi
+}%
+\AtEndEnvironment{abstract}{%
+    \iflpsb@isacmart\else
+        \lpsbWriteEntry{{"id": "abstract-\the\lpsbEnvDepth", "role": "Sect", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+        \global\advance\lpsbEnvDepth by -1%
+    \fi
+}%
 % Figure environments: use shared FigureCount for consistent IDs across figure/figure*/tikzpicture/pgfpicture
 \AtBeginEnvironment{figure}{%
     \lpsbParaEnd%
@@ -703,51 +728,76 @@
 \newcount\lpsbEmCount \lpsbEmCount=0
 
 % Hook \textbf for strong emphasis
-% NOTE: Check lpsbActive to avoid logging before \begin{document} (e.g., authblk author setup)
+% Conditional tracking: \ifmmode checks if we're in math mode
+% - Text mode: full zsavepos coordinates
+% - Math mode (like \bm{\textbf{...}}): skip zsavepos to avoid ZREF conflict,
+%   but record inMathMode:true for coordinate inheritance from parent Math
+% NOTE: Check lpsbActive to avoid logging before \begin{document}
 \let\lpsb@origtextbf\textbf
 \renewcommand{\textbf}[1]{%
     \iflpsbActive
         \ifvmode\leavevmode\fi% Ensure paragraph starts first
         \global\advance\lpsbStrongCount by 1%
-        \zsavepos{lpsb-Strong-\the\lpsbStrongCount-start}%
-        \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "start", "page": "\thepage"}}%
-        \lpsb@origtextbf{#1}%
-        \zsavepos{lpsb-Strong-\the\lpsbStrongCount-end}%
-        \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "end", "page": "\thepage"}}%
+        \ifmmode
+            % In math mode (e.g., inside \bm{}) - skip zsavepos to avoid ZREF conflict
+            \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "atom", "inMathMode": true, "page": "\thepage"}}%
+            \lpsb@origtextbf{#1}%
+        \else
+            % Normal text mode - record full coordinates
+            \zsavepos{lpsb-Strong-\the\lpsbStrongCount-start}%
+            \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "start", "page": "\thepage"}}%
+            \lpsb@origtextbf{#1}%
+            \zsavepos{lpsb-Strong-\the\lpsbStrongCount-end}%
+            \lpsbWriteEntry{{"id": "Strong-\the\lpsbStrongCount", "role": "Strong", "event": "end", "page": "\thepage"}}%
+        \fi
     \else
         \lpsb@origtextbf{#1}%
     \fi
 }
 
 % Hook \textit for italic
-% NOTE: Check lpsbActive to avoid logging before \begin{document}
+% Same conditional tracking as \textbf
 \let\lpsb@origtextit\textit
 \renewcommand{\textit}[1]{%
     \iflpsbActive
         \ifvmode\leavevmode\fi% Ensure paragraph starts first
         \global\advance\lpsbEmCount by 1%
-        \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
-        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
-        \lpsb@origtextit{#1}%
-        \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
-        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+        \ifmmode
+            % In math mode - skip zsavepos, record inMathMode:true
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "atom", "inMathMode": true, "page": "\thepage"}}%
+            \lpsb@origtextit{#1}%
+        \else
+            % Normal text mode - record full coordinates
+            \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
+            \lpsb@origtextit{#1}%
+            \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+        \fi
     \else
         \lpsb@origtextit{#1}%
     \fi
 }
 
 % Hook \emph - shares counter with \textit
-% NOTE: Check lpsbActive to avoid logging before \begin{document}
+% Same conditional tracking
 \let\lpsb@origemph\emph
 \renewcommand{\emph}[1]{%
     \iflpsbActive
         \ifvmode\leavevmode\fi% Ensure paragraph starts first
         \global\advance\lpsbEmCount by 1%
-        \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
-        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
-        \lpsb@origemph{#1}%
-        \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
-        \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+        \ifmmode
+            % In math mode - skip zsavepos, record inMathMode:true
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "atom", "inMathMode": true, "page": "\thepage"}}%
+            \lpsb@origemph{#1}%
+        \else
+            % Normal text mode - record full coordinates
+            \zsavepos{lpsb-Em-\the\lpsbEmCount-start}%
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "start", "page": "\thepage"}}%
+            \lpsb@origemph{#1}%
+            \zsavepos{lpsb-Em-\the\lpsbEmCount-end}%
+            \lpsbWriteEntry{{"id": "Em-\the\lpsbEmCount", "role": "Em", "event": "end", "page": "\thepage"}}%
+        \fi
     \else
         \lpsb@origemph{#1}%
     \fi
@@ -798,6 +848,9 @@
 % Label Hooks and Section Hooks (After Package Loading)
 % ===================================================================
 \AtBeginDocument{%
+    % ACM template detection - must happen first, before any conditional checks below
+    \@ifclassloaded{acmart}{\global\lpsb@isacmarttrue\typeout{LPSB: Detected acmart class}}{}%
+    %
     % Hyperref compatibility: disable LPSB commands during PDF bookmark generation
     % When hyperref processes section titles for PDF bookmarks, it expands many commands
     % This can cause conflicts with LPSB hooks that write to files or use special catcodes
@@ -817,7 +870,30 @@
     }{}%
     %
     % Mark LPSB as active - inline formatting hooks will only log after this point
-    \lpsbActivetrue
+    % For ACM templates (acmart), we delay activation until after \maketitle
+    % because ACM's title page construction triggers para hooks prematurely
+    \iflpsb@isacmart
+        \lpsbActivefalse% Stay inactive until maketitle completes
+        % Hook into \maketitle to activate afterward AND capture abstract
+        \let\lpsb@orig@maketitle\maketitle
+        \renewcommand{\maketitle}{%
+            % Hook @mkabstract to capture abstract at render time (inside maketitle)
+            % This avoids the blank page issue caused by hooks during abstract definition
+            \let\lpsb@orig@mkabstract\@mkabstract
+            \def\@mkabstract{%
+                \lpsbActivetrue% Temporarily activate for abstract capture
+                \global\advance\lpsbEnvDepth by 1%
+                \lpsbWriteEntry{{"id": "abstract-\the\lpsbEnvDepth", "role": "Sect", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+                \lpsb@orig@mkabstract
+                \lpsbWriteEntry{{"id": "abstract-\the\lpsbEnvDepth", "role": "Sect", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+                \global\advance\lpsbEnvDepth by -1%
+            }%
+            \lpsb@orig@maketitle
+            \lpsbActivetrue% Now activate LPSB for rest of document
+        }%
+    \else
+        \lpsbActivetrue
+    \fi
     %
     % Paragraph hooks (kernel-level, robust across environments)
     \AddToHook{para/begin}{\lpsb@ParaBegin}%

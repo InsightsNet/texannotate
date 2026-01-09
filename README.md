@@ -240,6 +240,55 @@ Optional MathML track (LuaLaTeX):
    - `longtable` is especially fragile; hooks are disabled to preserve rendering.
    - Recommended: PDF-side cell extraction (`extract_cells.py`) for reliable TD/row/col/span.
 5. **Weird macros win**: heavily customized macros/classes/packages can bypass hooks or reorder output in ways that break event nesting.
+6. **Coordinate sources**: All position coordinates come **exclusively from pdfLaTeX (Stage A)**. LuaLaTeX (Stage B) is used **only for MathML enrichment**, never for coordinates, because LuaLaTeX can produce slightly different page layouts that would cause coordinate drift.
+7. **Strong/Em in math mode**: When `\textbf`/`\textit` is used inside math mode (e.g., `\bm{\textbf{...}}`), coordinates are skipped to avoid `\bm` package conflicts. These entries have `"inMathMode": true` in JSON and can inherit coordinates from their parent InlineMath/DisplayMath events.
+8. **ACM templates (`acmart.cls`)**: LPSB delays activation until `\maketitle` to prevent blank first page issues. Abstract events are captured by hooking into ACM's internal `\@mkabstract` command during rendering. All elements work normally.
+
+### Recent Fixes (2026-01)
+
+#### LuaTeX Compatibility (`lpsb.sty`)
+
+The LuaLaTeX enrichment pass (Stage B) now includes several compatibility fixes to handle older arXiv papers:
+
+- **pdfTeX primitive compatibility**: Defines `\pdfoutput`, `\pdfminorversion`, `\pdfcompresslevel`, `\pdfpagewidth`, `\pdfpageheight` when running under LuaTeX to prevent "Missing \begin{document}" errors.
+- **xypdf package compatibility**: Provides `\pdftexversion` and `\pdfsave`/`\pdfrestore` definitions to satisfy xypdf's version check (`! Package xypdf Error: pdfTeX version 1.40.0 or higher is needed`).
+- **`\savepos` protection**: Saves and restores the original LuaTeX `\savepos` definition to prevent conflicts with packages like xypdf that incorrectly redefine it.
+- **inputenc compatibility**: Defines a no-op `\inputencoding` for LuaTeX to prevent `! Package inputenc Error: inputenc is not designed for xetex or luatex`.
+
+#### Stage B Error Handling (`lpsb_compiler.py`)
+
+- **Non-fatal Stage B errors**: LuaLaTeX compilation errors in Stage B (enrichment) are now treated as **warnings**, not hard failures. The gold PDF from Stage A is preserved, and the pipeline continues to produce enriched JSON output.
+- **Log scanning improvements**: The `_scan_compile_log_for_issues` function now only considers Stage A errors as fatal. Stage B error counts are logged informatively but don't block success.
+- **Tolerant artifact handling**: Papers with non-zero pdflatex return codes but valid output files (PDF, JSON, AUX) now proceed to enrichment instead of failing early.
+
+#### Coordinate Enrichment (`enrich_positions.py`)
+
+- **InlineMath handling**: Extended `enrich_from_aux` to handle InlineMath labels that don't use `-start/-end` suffix.
+- **Dynamic page height**: Extracts actual PDF page height for correct Y-coordinate conversion instead of using a fixed constant.
+- **Abstract environment coordinates**: Added `\zsavepos` calls to the `lpsbHookEnv` macro for abstract and other environments.
+
+#### bm Package Compatibility (`lpsb.sty`)
+
+- **Problem**: Papers using `\bm{\textbf{...}}` (bold/italic inside bold math) trigger "Argument of \ZREF@temp has an extra }" errors when `\zsavepos` is called during `\bm`'s argument expansion.
+- **Solution**: Conditional tracking using `\ifmmode`:
+  - **Text mode**: Full `\zsavepos` coordinates recorded
+  - **Math mode**: Skip `\zsavepos`, record `"inMathMode": true` in JSON
+- **Coordinate inheritance**: Math-mode Strong/Em entries can inherit coordinates from their parent InlineMath/DisplayMath events during post-processing.
+- **Verification**: Paper 2509.00074 (uses `\bm{T_\textbf{s-1}}`) compiles successfully with 113 `inMathMode` entries and 113 text-mode Strong coordinates preserved.
+
+#### DVI-to-PDF Conversion (`lpsb_compiler.py`)
+
+- **Problem**: Some legacy documents produce DVI files instead of PDF (using `latex`/`dvips` workflow or `dvips.def`).
+- **Solution**: Automatic fallback conversion using `dvipdf` in the Docker container when DVI is detected but PDF is missing.
+- **Impact**: Recovers ~3 additional papers that would otherwise fail compilation.
+
+#### ACM Template Support (`lpsb.sty`)
+
+- **Problem**: ACM papers using `acmart.cls` produced a blank first page due to LPSB hooks triggering during title page construction.
+- **Solution**: 
+  - Detect `acmart.cls` at `\AtBeginDocument` and delay LPSB activation until after `\maketitle`
+  - Hook into ACM's internal `\@mkabstract` to capture abstract events during rendering (not definition)
+- **Result**: ACM papers compile correctly with all elements captured including abstract.
 
 ---
 
