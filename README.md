@@ -290,6 +290,12 @@ The LuaLaTeX enrichment pass (Stage B) now includes several compatibility fixes 
   - Hook into ACM's internal `\@mkabstract` to capture abstract events during rendering (not definition)
 - **Result**: ACM papers compile correctly with all elements captured including abstract.
 
+#### Package Auto-Collection (`lpsb_compiler.py`)
+
+- **Feature**: Automatically harvests `.sty`, `.cls`, and `.bst` files from successfully compiled papers.
+- **Storage**: Packages are stored in `arxiv_stubs/collected/TL{version}/` (e.g., `TL2025`), organized by TeX Live version.
+- **Reuse**: When compiling subsequent papers, the compiler injects these collected packages if they are missing from the source tree. This creates a self-improving package library that covers obscure or custom author packages not found in standard TeX Live.
+
 ---
 
 ## Repo Layout / Tools

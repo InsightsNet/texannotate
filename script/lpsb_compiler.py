@@ -32,7 +32,6 @@ TIMEOUT_SEC = 300  # 5 mins per paper
 import re
 import json
 from typing import Tuple
-from typing import Dict
 
 # arXiv currently supports TeX Live 2023 and TeX Live 2025, with 2025 being the default.
 ARXIV_TEXLIVE_DEFAULT = "2025"
@@ -123,19 +122,6 @@ def _bcf_exists(tex_dir: Path, jobname: str) -> bool:
         return (tex_dir / f"{jobname}.bcf").exists()
     except Exception:
         return False
-
-def _require_docker() -> None:
-    try:
-        r = subprocess.run(
-            ["docker", "version"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if r.returncode != 0:
-            raise RuntimeError("docker version failed")
-    except Exception as e:
-        raise RuntimeError(f"Docker is required but not available: {e}")
 
 def _docker_image_exists(img: str) -> bool:
     try:
@@ -1028,29 +1014,133 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             if src.exists():
                 shutil.copy(src, dst_dir / name)
 
-        def _copy_arxiv_stub_if_missing(name: str, dst_dir: Path, alt_names=None) -> None:
-            # Some arXiv sources rely on template/class files that are present on arXiv
-            # but not shipped in TeX Live images (e.g., jheppub.sty, aastex.cls).
-            # Users may populate arxiv_stubs/ with official upstream files; we only copy
-            # if the source tree does not already provide the file.
+        def _collect_successful_packages(work_dir: Path, tl_version: str):
+            """Collect custom .sty/.cls/.bst files from successful compilations."""
+            # Define collection root (organized by TL version + extension)
+            collect_root = lpsb_root / "arxiv_stubs" / "collected" / f"TL{tl_version}"
             try:
-                if (dst_dir / name).exists():
-                    return
+                collect_root.mkdir(parents=True, exist_ok=True)
             except Exception:
                 return
-            if alt_names is None:
-                alt_names = []
-            candidates = [name] + list(alt_names)
-            for cand in candidates:
-                stub = lpsb_root / "arxiv_stubs" / cand
-                if not stub.exists():
-                    stub = lpsb_root.parent / "arxiv_stubs" / cand
-                if stub.exists():
+
+            # Extensions to collect
+            exts = {".sty", ".cls", ".bst", ".clo"}
+            
+            # Files to ignore (standard or very common files we don't want to pollute with)
+            ignore_files = {"lpsb.sty", "lpsb-luamath.sty", "lpsb-luatable.sty"}
+            
+            # Traverse work_dir and copy interesting files
+            for root, dirs, files in os.walk(work_dir):
+                # Skip hidden dirs
+                dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
+                
+                for f in files:
+                    if Path(f).suffix.lower() in exts and f not in ignore_files:
+                        src = Path(root) / f
+                        subdir = src.suffix.lower().lstrip(".")
+                        dst = collect_root / subdir / f
+                        # Only copy if not already in collection (first come first served, or overwrite?)
+                        # Let's overwrite to get latest versions found from papers
+                        try:
+                            (collect_root / subdir).mkdir(parents=True, exist_ok=True)
+                            # Check if file is non-standard (heuristic: don't copy if it's potentially huge or irrelevant)
+                            if src.stat().st_size < 1024 * 1024: # Limit to 1MB
+                                shutil.copy2(src, dst)
+                        except Exception:
+                            pass
+
+        def _copy_collected_packages(dst_dir: Path, tl_version: str):
+            """Copy previously collected packages to the build directory.
+            
+            Search order:
+            1. Own TL version (arxiv_stubs/collected/TL{tl_version}/)
+            2. All other TL versions (newest first)
+            3. arxiv_stubs/manual/ (manual stubs)
+            """
+            stubs_root = lpsb_root / "arxiv_stubs"
+            if not stubs_root.exists():
+                stubs_root = lpsb_root.parent / "arxiv_stubs"
+
+            collected_root = stubs_root / "collected"
+            if not collected_root.exists():
+                # Legacy layout (pre-2026-01): top-level collected dir.
+                legacy = lpsb_root / "arxiv_stubs_collected"
+                if not legacy.exists():
+                    legacy = lpsb_root.parent / "arxiv_stubs_collected"
+                if legacy.exists():
+                    collected_root = legacy
+
+            manual_root = stubs_root / "manual"
+            if not manual_root.exists():
+                # Legacy layout: curated files lived directly under arxiv_stubs/.
+                manual_root = stubs_root
+            
+            tl_dirs = []
+            if tl_version and re.fullmatch(r"\d{4}", tl_version):
+                # Get all TL version dirs, prioritize own version then sort descending
+                own_dir = collected_root / f"TL{tl_version}"
+                if own_dir.exists():
+                    tl_dirs.append(own_dir)
+
+                # Add other TL versions (newest first)
+                if collected_root.exists():
+                    for d in sorted(collected_root.iterdir(), reverse=True):
+                        if d.is_dir() and d.name.startswith("TL") and d != own_dir:
+                            tl_dirs.append(d)
+
+                # Collect all available packages from collected dirs
+                for tl_dir in tl_dirs:
+                    for root, dirs, files in os.walk(tl_dir):
+                        # Skip hidden dirs
+                        dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
+                        for f in files:
+                            src = Path(root) / f
+                            if src.suffix.lower() not in ('.sty', '.cls', '.bst', '.clo'):
+                                continue
+                            try:
+                                target = dst_dir / src.name
+                                if not target.exists():
+                                    shutil.copy2(src, target)
+                            except Exception:
+                                pass
+            
+            # Also copy from arxiv_stubs/manual/ (manual stubs, lower priority)
+            if manual_root.exists():
+                for root, dirs, files in os.walk(manual_root):
+                    # Skip hidden dirs
+                    dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
+                    for f in files:
+                        src = Path(root) / f
+                        if src.suffix.lower() not in ('.sty', '.cls', '.bst', '.clo', '.tex'):
+                            continue
+                        try:
+                            target = dst_dir / src.name
+                            if not target.exists():
+                                shutil.copy2(src, target)
+                        except Exception:
+                            pass
+
+            # Filename aliases: some upstream bundles use patch-level filenames (e.g. aastex631.cls),
+            # while sources expect the shorter historic name (aastex63.cls). Allow a controlled rename.
+            stub_aliases = {
+                "aastex63.cls": ["aastex631.cls"],
+                "aastex7.cls": ["aastex701.cls"],
+            }
+            for target, candidates in stub_aliases.items():
+                try:
+                    target_path = dst_dir / target
+                    if target_path.exists():
+                        continue
+                except Exception:
+                    continue
+                for cand in candidates:
                     try:
-                        shutil.copy(stub, dst_dir / name)
+                        cand_path = dst_dir / cand
+                        if cand_path.exists():
+                            shutil.copy2(cand_path, target_path)
+                            break
                     except Exception:
-                        return
-                    return
+                        pass
 
         # Like batch_compile_all.sh: pdflatex needs only lpsb.sty.
         _copy_if_exists("lpsb.sty", pd_tex_dir)
@@ -1061,46 +1151,6 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         _copy_if_exists("lpsb-luatable.sty", lua_tex_dir)
         _copy_if_exists("lpsb-table.lua", lua_tex_dir)
 
-        # Minimal arXiv template stubs (only if missing in source tree).
-        stub_files = (
-            "jheppub.sty",
-            "aastex.cls",
-            "aastex6.cls",
-            "aastex61.cls",
-            "aastex62.cls",
-            "aastex63.cls",
-            "iopart.cls",
-            "iopart12.clo",
-            "tcilatex.tex",
-            "diagrams.sty",
-            "picins.sty",
-            "slashbox.sty",
-            "aa.cls",
-            "svmult.cls",
-            "svjour3.cls",
-            "svglov3.clo",
-            "llncs.cls",
-            "PoS.cls",
-            # BibTeX styles frequently shipped with official template bundles:
-            "aasjournal.bst",
-            "aasjournalv7.bst",
-            "psj.bst",
-            "spmpsci.bst",
-            "splncs04.bst",
-        )
-
-        # Filename aliases: some upstream bundles use patch-level filenames (e.g. aastex631.cls),
-        # while sources expect the shorter historic name (aastex63.cls). Allow a controlled rename.
-        stub_aliases = {
-            "aastex63.cls": ["aastex631.cls"],
-            "aastex7.cls": ["aastex701.cls"],
-        }
-
-        for fn in stub_files:
-            alts = stub_aliases.get(fn, [])
-            _copy_arxiv_stub_if_missing(fn, pd_tex_dir, alt_names=alts)
-            _copy_arxiv_stub_if_missing(fn, lua_tex_dir, alt_names=alts)
-
         pd_main_tex_full = pdflatex_dir / main_tex
         lua_main_tex_full = lualatex_dir / main_tex
         _inject_pkg_after_documentclass(pd_main_tex_full, "lpsb")
@@ -1109,6 +1159,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb-luatable")
 
         docker_image, selected_tl, selected_reason = _select_docker_image(work_dir, tex_dir_rel, main_base, paper_id)
+
+        # Try to reuse previously collected packages from other papers (and manual arXiv stubs).
+        _copy_collected_packages(pd_tex_dir, selected_tl)
+        _copy_collected_packages(lua_tex_dir, selected_tl)
 
         with open(log_file, "w") as log:
             log.write(f"Docker image: {docker_image}\n")
@@ -1418,6 +1472,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             with open(log_file, "a") as log:
                 log.write(f"\nInfo: Stage B (lualatex enrichment) had {issues['stage_b_errors']} errors (non-fatal, gold PDF already produced)\n")
 
+        # Success! Collect any custom packages for future reuse
+        if selected_tl:
+            _collect_successful_packages(work_dir, selected_tl)
+
         return "SUCCESS"
         
     except subprocess.TimeoutExpired:
@@ -1444,7 +1502,7 @@ def main():
     parser.add_argument('--batch', help="Compile all subdirectories in this path")
     parser.add_argument('--output', '-o', required=True, help="Output directory")
     parser.add_argument('--no-ramdisk', action='store_true', help="Disable RAM disk workspace (default: enabled if /dev/shm exists)")
-    parser.add_argument('--workers', type=int, default=1, help="Number of parallel workers")
+    parser.add_argument('--workers', type=int, default=16, help="Number of parallel workers")
     
     args = parser.parse_args()
     

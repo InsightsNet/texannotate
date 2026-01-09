@@ -1,0 +1,122 @@
+\ProvidesPackage{sleek-theorems}[2020/10/28 v1.0 Sleek Theorems]
+
+%%%%%%%%%%%%%%%%
+% Requirements %
+%%%%%%%%%%%%%%%%
+
+\RequirePackage{amsthm}
+\RequirePackage{thmtools}
+\RequirePackage[framemethod=TikZ]{mdframed}
+
+%%%%%%%%%%%%
+% Settings %
+%%%%%%%%%%%%
+
+% Setup
+
+\define@key{thmdef}{mdthm}[{}]{
+    \thmt@trytwice{\def\thmt@theoremdefiner{\mdtheorem[#1]}}{}
+}
+
+\begingroup
+\@for\theoremstyle:=plain,definition,remark\do{
+    \expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{
+        \addtolength\thm@preskip\parskip
+    }
+}
+\endgroup
+
+% QED symbol
+
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\newcommand\qedadd{\pushQED{\qed}\popQED}
+
+% Languages
+
+\def\lgthm{Theorem}
+\def\lgprf{Proof}
+\def\lglem{Lemma}
+\def\lgprop{Proposition}
+\def\lgdefn{Definition}
+\def\lghyp{Hypothesis}
+\def\lgmeth{Method}
+\def\lgquest{Question}
+\def\lgansw{Answer}
+\def\lgexpl{Example}
+\def\lgrmk{Remark}
+\def\lgnote{Note}
+\def\lgtip{Tip}
+
+\DeclareOption{french}{
+    \def\lgthm{Théorème}
+    \def\lgprf{Preuve}
+    \def\lglem{Lemme}
+    \def\lgprop{Proposition}
+    \def\lgdefn{Définition}
+    \def\lghyp{Hypothèse}
+    \def\lgmeth{Méthode}
+    \def\lgquest{Question}
+    \def\lgansw{Réponse}
+    \def\lgexpl{Exemple}
+    \def\lgrmk{Remarque}
+    \def\lgnote{Note}
+    \def\lgtip{Conseil}
+}
+
+%%%%%%%%%%%%%%%%
+% Environments %
+%%%%%%%%%%%%%%%%
+
+% Environments
+
+\theoremstyle{plain}
+\newtheorem{thm}{\lgthm}
+\newtheorem{lem}[thm]{\lglem}
+\newtheorem{prop}[thm]{\lgprop}
+
+\theoremstyle{definition}
+\newtheorem{defn}{\lgdefn}
+\newtheorem{hyp}{\lghyp}
+\newtheorem{meth}{\lgmeth}
+\newtheorem{quest}{\lgquest}
+
+\theoremstyle{remark}
+\newtheorem{answ}{\lgansw}[quest]
+\newtheorem{expl}{\lgexpl}
+\newtheorem*{rmk}{\lgrmk}
+\newtheorem*{note}{\lgnote}
+\newtheorem*{tip}{\lgtip}
+
+% Framed environments
+
+\mdfdefinestyle{thicc}{
+    nobreak=true,
+    skipabove=\topskip,
+    skipbelow=\topskip,
+    innerleftmargin=0.5em,
+    innerrightmargin=0.5em,
+    innerbottommargin=0.5em,
+    innertopmargin=0.5em,
+    linewidth=0.25em,
+    roundcorner=0.15em,
+    linecolor=black!10,
+    frametitlebackgroundcolor=black!10,
+    theoremseparator={.}
+}
+
+\declaretheorem[mdthm={style=thicc, linecolor=red!20, frametitlebackgroundcolor=red!20}, sibling=thm, name=\lgthm]{framedthm}
+\declaretheorem[mdthm={style=thicc, linecolor=red!20, frametitlebackgroundcolor=red!20}, sibling=thm, name=\lglem]{framedlem}
+\declaretheorem[mdthm={style=thicc, linecolor=blue!20, frametitlebackgroundcolor=blue!20}, sibling=thm, name=\lgprop]{framedprop}
+\declaretheorem[mdthm={style=thicc, nobreak=false}, parent=thm, name=\lgprf]{framedprf}
+
+\declaretheorem[mdthm={style=thicc, linecolor=black!20!green!20, frametitlebackgroundcolor=black!20!green!20}, sibling=defn, name=\lgdefn]{frameddefn}
+\declaretheorem[mdthm={style=thicc, linecolor=blue!20, frametitlebackgroundcolor=blue!20}, sibling=hyp, name=\lghyp]{framedhyp}
+\declaretheorem[mdthm={style=thicc, nobreak=false}, name=\lgmeth]{framedmeth}
+\declaretheorem[mdthm={style=thicc, linecolor=orange!20, frametitlebackgroundcolor=orange!20}, sibling=quest, name=\lgquest]{framedquest}
+
+\declaretheorem[mdthm={style=thicc, nobreak=false}, sibling=answ, name=\lgansw]{framedansw}
+\declaretheorem[mdthm={style=thicc, nobreak=false}, sibling=expl, name=\lgexpl]{framedexpl}
+
+\ProcessOptions\relax
+
+\endinput

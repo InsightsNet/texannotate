@@ -1,0 +1,134 @@
+\ProvidesPackage{preamble}
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+%commutative diagramm
+\usepackage{tikz-cd} 
+%\usepackage[dutch]{babel}
+\usepackage{amsmath, amssymb}
+%clickable links
+\usepackage{hyperref}
+% figure support
+\usepackage{import}
+\usepackage{xifthen}
+\pdfminorversion=7
+\usepackage{pdfpages}
+
+%Factor for math formulas
+\usepackage{faktor}
+%superior to amsmath
+\usepackage{mathtools}
+
+
+
+%todonotes
+\usepackage{todonotes}
+
+\usepackage{transparent}
+
+\numberwithin{equation}{section}
+%Command to include pdf_tex figures
+\newcommand{\incfig}[2][1]{%
+    \def\svgwidth{#1\columnwidth}
+    \import{./figures/}{#2.pdf_tex}
+}
+%new symbols for tikcd
+%[symbol = your symbol]
+\tikzset{
+    symbol/.style={
+        draw=none,
+        every to/.append style={
+        edge node= { node [sloped,allow upside down, auto = false]{$#1$}}}
+    }
+}
+%circle symbol
+\makeatletter
+\newcommand\mathcircled[1]{%
+  \mathpalette\@mathcircled{#1}%
+}
+\newcommand\@mathcircled[2]{%
+  \tikz[baseline=(math.base)] \node[draw,circle,inner sep=1pt] (math) {$\m@th#1#2$};%
+}
+\makeatother
+
+%bibl
+\usepackage[maxbibnames = 8, style=alphabetic,backend=biber,sorting= nty]{biblatex}
+\addbibresource{biblio.bib}
+%Wick
+\usepackage{simpler-wick}
+%phys braket and so on
+\usepackage{physics}
+
+%Some math stuff?
+\usepackage{mathtools}
+%sfrac
+\usepackage{xfrac}
+
+%=
+\usepackage{stackengine}
+
+\def\defequal{\mathrel{\ensurestackMath{\stackon[2pt]{=}{\scriptscriptstyle \operatorname{def}}}}}
+%% affiliation
+\usepackage{authblk}
+% theorem
+\usepackage{amsthm}
+\renewcommand\qedsymbol{$\blacksquare$}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+
+%Dimensions
+%\topmargin=-24pt
+%\oddsidemargin=-6pt
+%\textwidth=16.5cm
+%\textheight=23cm
+
+
+\pdfsuppresswarningpagegroup=1
+
+\def\cA{{\mathcal A}}
+\def\cB{{\mathcal B}}
+\def\cC{{\mathcal C}}
+\def\cD{{\mathcal D}}
+\def\cE{{\mathcal E}}
+\def\cF{{\mathcal F}}
+\def\cG{{\mathcal G}}
+\def\cH{{\mathcal H}}
+\def\cI{{\mathcal I}}
+\def\cJ{{\mathcal J}}
+\def\cK{{\mathcal K}}
+\def\cL{{\mathcal L}}
+\def\cM{{\mathcal M}}
+\def\cN{{\mathcal N}}
+\def\cO{{\mathcal O}}
+\def\cP{{\mathcal P}}
+\def\cQ{{\mathcal Q}}
+\def\cR{{\mathcal R}}
+\def\cS{{\mathcal S}}
+\def\cT{{\mathcal T}}
+\def\cU{{\mathcal U}}
+\def\cV{{\mathcal V}}
+\def\cW{{\mathcal W}}
+\def\cX{{\mathcal X}}
+\def\cY{{\mathcal Y}}
+\def\cZ{{\mathcal Z}}
+
+\newcommand{\Z}{{\mathbb Z}}
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\C}{{\mathbb C}}
+\newcommand{\Q}{{\mathbb Q}}
+
+\def\tilde{\widetilde}
+\def\hat{\widehat}
+\def\bar{\overline}
+\renewcommand{\bar}{\overline}
+\renewcommand{\hat}{\widehat}
+\newcommand{\MD}[1]{{\bf {\color{blue}[#1]}}}
+\renewcommand{\cp}{{\mathbb{C}}{\mathbf{P}}}

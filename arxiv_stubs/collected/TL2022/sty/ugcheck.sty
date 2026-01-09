@@ -1,0 +1,61 @@
+% Historically a small number of students change the page layout,
+% often accidentally by including a package like geometry or fullpage.
+% Here we check if the basic page setup is correct. It does not
+% check all aspects of the style guide, or any page limits.
+%
+% Changing the style in a way that fools these simple checks is still not ok!
+% 
+\RequirePackage{printlen}
+\AtBeginDocument{%
+% To get the numbers below, include printlen package above and see lengths like this:
+%\printlength\oddsidemargin\\
+%\printlength\headheight\\
+%\printlength\textheight\\
+%\printlength\marginparsep\\
+%\printlength\footskip\\
+%\printlength\hoffset\\
+%\printlength\paperwidth\\
+%\printlength\topmargin\\
+%\printlength\headsep\\
+%\printlength\textwidth\\
+%\printlength\marginparwidth\\
+%\printlength\marginparpush\\
+%\printlength\voffset\\
+%\printlength\paperheight\\
+%\baselinestretch\\
+%\@thesispoints\\
+%
+\newif\ifmarginsmessedwith
+\marginsmessedwithfalse
+\ifdim\oddsidemargin=41.54103pt      \else oddsidemargin has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\headheight=12.0pt             \else headheight has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\textheight=674.33032pt        \else textheight has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\marginparsep=10.0pt           \else marginparsep has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\footskip=30.0pt               \else footskip has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\hoffset=0.0pt                 \else hoffset has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\paperwidth=597.50787pt        \else paperwidth has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\topmargin=-52.36449pt         \else topmargin has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\headsep=25.0pt                \else headsep has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\textwidth=412.56497pt         \else textwidth has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\marginparwidth=35.0pt         \else marginparwidth has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\marginparpush=7.0pt           \else marginparpush has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\voffset=0.0pt                 \else voffset has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\paperheight=845.04684pt       \else paperheight has been altered.\\ \marginsmessedwithtrue\fi
+\newcommand{\pts}[1]{#1pt}
+\ifdim\pts\baselinestretch = 1pt     \else linespacing has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\@thesispoints=12pt            \else font size has been altered.\\ \marginsmessedwithtrue\fi
+\ifmarginsmessedwith
+
+\textbf{\large \em The required page layout has been changed.}
+
+Please set up your document as in the example skeleton thesis document.
+Do not change the page layout, or include packages like geometry,
+savetrees, or fullpage, which change it for you.
+
+We're not able to reliably undo arbitrary changes to the style. Please remove
+the offending package(s), or layout-changing commands and try again. If you
+can't figure out the problem, try adding your \LaTeX\ code a part at a time
+to the example document.
+
+\fi}
+

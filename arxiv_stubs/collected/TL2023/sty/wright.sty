@@ -1,0 +1,369 @@
+\usepackage[utf8]{inputenc} % (sort of) use utf-8 encoding
+\usepackage[english]{babel} % indication of language being used
+\usepackage[T1]{fontenc} % guarantee encoding stuff
+\usepackage{amsmath} % Useful AMS-provided structure
+\usepackage{amssymb}
+\usepackage{amsthm}
+%\usepackage{algorithm}
+%\usepackage{algpseudocode}
+\usepackage[commentColor=darkgray,indLines=false]{algpseudocodex}
+\usepackage{bbding}
+\usepackage{bbm} % blackboard bold (but not type 1)
+\usepackage[style=alphabetic,backref=true,maxnames=99,maxalphanames=6]{biblatex}
+\setcounter{biburlnumpenalty}{7000} % Helps with overfull-ness in the bibliography https://tex.stackexchange.com/questions/134191/line-breaks-of-long-urls-in-biblatex-bibliography
+\usepackage{bm} % better bolding
+\usepackage{booktabs} % better tables
+\usepackage{braket}
+%\usepackage{cite} %simple citations
+\usepackage{csquotes}
+\usepackage{enumitem} % helps configure lists
+\usepackage{etoolbox}
+\usepackage{eucal} %j better calligraphic script
+\usepackage[
+    top=1in,
+    bottom=1in,
+    left=1in,
+    right=1in
+]{geometry}
+\usepackage{inconsolata}
+%\usepackage[scale=0.9]{FiraMono}
+%\renewcommand*\ttdefault{cmvtt}
+\usepackage{mathtools} % expands mathtools
+%\usepackage[protrusion=true,expansion=true]{microtype}   % slows compilation a lot
+\usepackage{microtype} % fixes small typographic errors
+\usepackage{mleftright}\mleftright % improves behavior of \left( and \right) (and other delimiters)
+\usepackage{multirow}
+%\usepackage{natbib}
+\usepackage{mathrsfs}
+\usepackage{qcircuit}
+%\usepackage{stmaryrd}
+%\usepackage{tcolorbox}
+%\usepackage{tikz-cd} % making arrow diagrams
+\usepackage{thmtools}
+%\usepackage{thm-restate} % restatable environment
+\usepackage{xcolor} % color, load before tikz
+\usepackage{ninecolors}\NineColors{saturation=high}
+%\usepackage{xspace}
+%\usepackage{xparse}
+%\usepackage[normalem]{ulem}
+\usepackage{verbatim}  % verbatim environment + comment environment
+%\usepackage{tabu}
+
+%\usepackage[T1]{fontenc}
+%\usepackage{fouriernc}
+%\usepackage[mathscr]{euscript}
+
+%\usepackage[colorinlistoftodos]{todonotes}
+%\hfuzz2pt % Don't bother to report over-full boxes if over-edge is < 2pt
+
+
+\DefineBibliographyStrings{english}{%
+    backrefpage = {page},% originally "cited on page"
+    backrefpages = {pages},% originally "cited on pages"
+}
+
+%\allowdisplaybreaks
+
+\definecolor{diffcolor}{HTML}{ed4245}
+
+\usepackage[hypertexnames=false]{hyperref}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=blue3,
+    linkcolor=green3,
+    citecolor=red3,
+    bookmarks=true,
+}
+\usepackage[nameinlink,capitalize]{cleveref} % automatically resolve references to include environment name
+
+% mostly copied from odonnell.sty and a paper of James R. Lee from the arXiv source
+
+% environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{problem}[theorem]{Problem}
+%\newtheorem*{namedtheorem}{\theoremname}
+%\newcommand{\theoremname}{testing}
+%\newenvironment{named}[1]{ \renewcommand{\theoremname}{#1} \begin{namedtheorem}} {\end{namedtheorem}}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{proposition}[theorem]{Proposition}
+%\newtheorem{fact}[theorem]{Fun Fact}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{infthm}[theorem]{Informal Theorem}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{infdef}[theorem]{Informal Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{examples}[theorem]{Examples}
+
+% Comments
+\definecolor{todopink}{HTML}{A75E81}
+\definecolor{todoorange}{HTML}{c27c0e}
+\newcommand{\ewin}[1]{\textcolor{diffcolor}{[[ Ewin: #1 ]]}}
+\newcommand{\john}[1]{{\color{violet} John: #1}}
+\newcommand{\diffy}[1]{\textcolor{diffcolor}{#1}}
+
+% Global parameters
+\newcommand{\ii}{\mathrm{i}} % imaginary unit
+\newcommand{\controlled}{{\mathrm{c}}}
+\newcommand{\reg}[1]{\mathsf{#1}}
+\newcommand{\cyc}{\operatorname{C}}
+\newcommand{\alg}{\mathrm{alg}}
+\newcommand{\circuit}{\mathrm{Circ}}
+\newcommand{\err}{\mathrm{err}}
+\newcommand{\feyn}{\mathrm{FP}}
+\newcommand{\good}{\mathrm{good}}
+\newcommand{\bad}{\mathrm{bad}}
+\newcommand{\trans}{\mathrm{T}}
+\DeclareMathOperator{\ntr}{\overline{tr}}
+\DeclareMathOperator{\SWAP}{SWAP}
+\newcommand{\tmpop}{\mathord{?}}
+\newcommand{\unctrl}{\mathcal{S}}
+\DeclareMathOperator{\Add}{Add}
+
+
+% Defining paired delimiters
+% \norm, \abs, \iprod, \paren, \braces, \bracks, \floor, \ceil, \over
+% \fnorm, \expec
+% \littleo, \bigO, \bigOmega, \bigTheta
+% capitalizing the first letter gets the \left \right version of the delimiter
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter\iprod{\langle}{\rangle}
+\DeclarePairedDelimiter\angles{\langle}{\rangle}
+\DeclarePairedDelimiter\paren{\lparen}{\rparen}
+\DeclarePairedDelimiter\parens{\lparen}{\rparen}
+\DeclarePairedDelimiter\braces{\lbrace}{\rbrace}
+\DeclarePairedDelimiter\bracks{\lbrack}{\rbrack}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\iver{\llbracket}{\rrbracket}
+\DeclarePairedDelimiterXPP{\fnorm}[1]{}{\lVert}{\rVert}{_{\textup{F}}}{#1}
+\DeclarePairedDelimiterXPP{\trnorm}[1]{}{\lVert}{\rVert}{_1}{#1}
+\DeclarePairedDelimiterXPP{\dnorm}[1]{}{\lVert}{\rVert}{_{\diamondsuit}}{#1}
+\DeclarePairedDelimiterXPP{\infnorm}[1]{}{\lVert}{\rVert}{_\infty}{#1}
+\DeclarePairedDelimiterXPP{\opnorm}[1]{}{\lVert}{\rVert}{_{\textup{op}}}{#1}
+\DeclarePairedDelimiterXPP{\expec}[2]{\E_{#1}\,}{\lbrack}{\rbrack}{}{#2}
+\DeclarePairedDelimiterXPP{\pexpec}[2]{\widetilde{\E}_{#1}\,}{\lbrack}{\rbrack}{}{#2}
+\DeclarePairedDelimiterXPP{\littleO}[1]{o}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigO}[1]{\mathcal{O}}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigOmega}[1]{\Omega}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigOt}[1]{\widetilde{\mathcal{O}}}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigOmegat}[1]{\widetilde{\Omega}}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigTheta}[1]{\Theta}{\lparen}{\rparen}{}{#1}
+\DeclarePairedDelimiterXPP{\bigThetat}[1]{\widetilde{\Theta}}{\lparen}{\rparen}{}{#1}
+
+% ewin: redefining macros with my preferred notions
+\newcommand{\Norm}[1]{\norm[\Big]{#1}}
+\newcommand{\NORM}[1]{\norm*{#1}}
+\newcommand{\Abs}[1]{\abs[\Big]{#1}}
+\newcommand{\ABS}[1]{\abs*{#1}}
+\newcommand{\Inner}[1]{\iprod*{#1}}
+\newcommand{\Angles}[1]{\angles*{#1}}
+\newcommand{\Paren}[1]{\paren[\Big]{#1}}
+\newcommand{\PAREN}[1]{\paren*{#1}}
+\newcommand{\Braces}[1]{\braces*{#1}}
+\newcommand{\BRAC}[1]{\bracks*{#1}}
+\newcommand{\Iver}[1]{\iver*{#1}}
+
+%\DeclarePairedDelimiterX\ketbra[1]{\lvert}{\rvert}{#1\delimsize\rangle\!\delimsize\langle#1}%
+\let\ketbra\undefined
+\DeclarePairedDelimiterX\ketbra[2]{\lvert}{\rvert}{#1\delimsize\rangle\!\delimsize\langle#2}%
+\newcommand{\proj}[1]{\ketbra{#1}{#1}}
+%\newcommand{\ketbra}[2]{\ket{#1}\!\!\bra{#2}}
+\let\braket\undefined
+\DeclarePairedDelimiterX\braket[2]{\langle}{\rangle}{#1\delimsize \vert \delimsize #2}%
+\let\mod\undefined
+\DeclareMathOperator{\mod}{mod}
+
+%\newcommand{\dtv}[2]{\mathrm{d}_{\mathrm{TV}}(#1,#2)}            % not really a wrapper
+%\newcommand{\dkl}[2]{d_{KL}(#1,#2)}           % not really a wrapper
+%\newcommand{\dchi}[2]{d_{\chi^2}(#1,#2)}           % not really a wrapper
+
+\usepackage[framemethod=TikZ]{mdframed}
+\mdfsetup{%
+  skipabove=\baselineskip plus 2pt minus 1pt,
+  skipbelow=\baselineskip plus 2pt minus 1pt,
+  %leftmargin=0.05\textwidth,
+  %rightmargin=0.05\textwidth,
+  linewidth=1.0pt,
+  %frametitlerule=true,
+  %nobreak=true
+}
+
+%%%%%%%%%%%% Generic math macros %%%%%%%%%%%%
+
+% probability and other mathops
+\DeclareMathOperator*{\E}{{\bm{E}}}
+\DeclareMathOperator*{\Var}{\bm{Var}}
+%\renewcommand{\Pr}{\mathop{\bf Pr\/}}
+%\newcommand{\E}{\mathop{\bf E\/}}
+%\newcommand{\Ex}{\mathop{\bf E\/}}
+%\newcommand{\Es}[1]{\mathop{\bf E\/}_{{\substack{#1}}}}            % any reason not to just shove this directly into \Ex?
+%\newcommand{\Var}{\mathop{\bf Var\/}}
+%\newcommand{\Cov}{\mathop{\bf Cov\/}}
+%% I don't think this should be a mathop, since otherwise 
+%% things like Inf_i will typeset the i below the Inf, rather
+%% than next to and below
+%\newcommand{\Inf}{{\bf Inf\/}}
+%\newcommand{\stddev}{\mathop{\bf stddev\/}}
+%\newcommand{\littlesum}{\mathop{{\textstyle \sum}}}
+%\newcommand{\littleprod}{\mathop{{\textstyle \prod}}}
+%\newcommand{\apx}{\mathop{\approx}}
+
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\poly}{poly}
+\DeclareMathOperator{\polylog}{polylog}
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+
+% number systems
+\newcommand{\R}{\mathbb R}
+\newcommand{\C}{\mathbb C}
+\newcommand{\N}{\mathbb N}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\F}{\mathbb F}
+\newcommand{\Q}{\mathbb Q}
+
+% short forms
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\eps}{\epsilon}
+\newcommand{\wh}[1]{\widehat{#1}}
+\newcommand{\wt}[1]{\widetilde{#1}}
+\newcommand{\ul}[1]{\underline{#1}}
+\newcommand{\ol}[1]{\overline{#1}}
+\newcommand*{\diff}{\mathop{}\!\mathrm{d}}
+
+% more symbols
+%\newcommand{\indic}[1]{1_{#1}}   %\dsmath, \mathbbmm other possibilities here
+%\newcommand{\simplex}{\triangle}
+%\newcommand{\grad}{\nabla}
+%\newcommand{\symmdiff}{\triangle} \newcommand{\symdiff}{\symmdiff}
+%\newcommand{\dotcup}{\ensuremath{\mathaccent\cdot\cup}}
+%\newcommand{\qLRq}{\quad \Leftrightarrow \quad}
+%\newcommand{\qRq}{\quad \Rightarrow \quad}
+%\newcommand{\normal}{\mathrm{N}}
+%\newcommand{\true}{\mathsf{True}}       \newcommand{\True}{\true}
+%\newcommand{\false}{\mathsf{False}}     \newcommand{\False}{\false}
+%\newcommand{\sumS}{\sum_{S \subseteq [n]}}
+
+
+
+% calligraphic letters
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calI}{\mathcal{I}}
+\newcommand{\calJ}{\mathcal{J}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calO}{\mathcal{O}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calQ}{\mathcal{Q}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\calV}{\mathcal{V}}
+\newcommand{\calW}{\mathcal{W}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calY}{\mathcal{Y}}
+\newcommand{\calZ}{\mathcal{Z}}
+
+% bold
+\renewcommand{\bold}[1]{\boldsymbol{#1}}
+\newcommand{\bone}{\boldsymbol{1}}
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+\newcommand{\bbeta}{\boldsymbol{\beta}}
+\newcommand{\bdelta}{\boldsymbol{\delta}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\bomega}{\boldsymbol{\omega}}
+\newcommand{\bPi}{\boldsymbol{\Pi}}
+\newcommand{\bpi}{\boldsymbol{\pi}}
+\newcommand{\bphi}{\boldsymbol{\phi}}
+\newcommand{\bvphi}{\boldsymbol{\varphi}}
+\newcommand{\blambda}{\boldsymbol{\lambda}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bnu}{\boldsymbol{\nu}}
+\newcommand{\bpsi}{\boldsymbol{\psi}}
+\newcommand{\brho}{\boldsymbol{\rho}}
+\newcommand{\bsigma}{\boldsymbol{\sigma}}
+\newcommand{\btau}{\boldsymbol{\tau}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bxi}{\boldsymbol{\xi}}
+\newcommand{\bzeta}{\boldsymbol{\zeta}}
+\newcommand{\ba}{\boldsymbol{a}}
+\newcommand{\bb}{\boldsymbol{b}}
+\newcommand{\bc}{\boldsymbol{c}}
+\newcommand{\boldf}{\boldsymbol{f}}
+\newcommand{\bg}{\boldsymbol{g}}
+\newcommand{\bh}{\boldsymbol{h}}
+\newcommand{\bi}{\boldsymbol{i}}
+\newcommand{\bj}{\boldsymbol{j}}
+\newcommand{\bk}{\boldsymbol{k}}
+\newcommand{\bell}{\boldsymbol{\ell}}
+\newcommand{\boldm}{\boldsymbol{m}}
+\newcommand{\bn}{\boldsymbol{n}}
+\newcommand{\bp}{\boldsymbol{p}}
+\newcommand{\bq}{\boldsymbol{q}}
+\newcommand{\br}{\boldsymbol{r}}
+\newcommand{\bs}{\boldsymbol{s}}
+\newcommand{\bt}{\boldsymbol{t}}
+\newcommand{\bu}{\boldsymbol{u}}
+\newcommand{\bv}{\boldsymbol{v}}
+\newcommand{\bw}{\boldsymbol{w}}
+\newcommand{\bx}{{\boldsymbol{x}}}
+\newcommand{\by}{\boldsymbol{y}}
+\newcommand{\bz}{\boldsymbol{z}}
+\newcommand{\bA}{\boldsymbol{A}}
+\newcommand{\bB}{\boldsymbol{B}}
+\newcommand{\bC}{\boldsymbol{C}}
+\newcommand{\bD}{\boldsymbol{D}}
+\newcommand{\bE}{\boldsymbol{E}}
+\newcommand{\bF}{\boldsymbol{F}}
+\newcommand{\bG}{\boldsymbol{G}}
+\newcommand{\bH}{\boldsymbol{H}}
+\newcommand{\bI}{\boldsymbol{I}}
+\newcommand{\bJ}{\boldsymbol{J}}
+\newcommand{\bL}{\boldsymbol{L}}
+\newcommand{\bM}{\boldsymbol{M}}
+\newcommand{\bN}{\boldsymbol{N}}
+\newcommand{\bP}{\boldsymbol{P}}
+\newcommand{\bQ}{\boldsymbol{Q}}
+\newcommand{\bR}{\boldsymbol{R}}
+\newcommand{\bS}{\boldsymbol{S}}
+\newcommand{\bT}{\boldsymbol{T}}
+\newcommand{\bU}{\boldsymbol{U}}
+\newcommand{\bV}{\boldsymbol{V}}
+\newcommand{\bW}{\boldsymbol{W}}
+\newcommand{\bX}{\boldsymbol{X}}
+\newcommand{\bY}{\boldsymbol{Y}}
+\newcommand{\bZ}{\boldsymbol{Z}}
+
+% bold calligraphic
+\newcommand{\bcalG}{\boldsymbol{\calG}} \newcommand{\calbG}{\bcalG}
+\newcommand{\bcalX}{\boldsymbol{\calX}} \newcommand{\calbX}{\bcalX}
+\newcommand{\bcalY}{\boldsymbol{\calY}} \newcommand{\calbY}{\bcalY}
+\newcommand{\bcalZ}{\boldsymbol{\calZ}} \newcommand{\calbZ}{\bcalZ}
+
+% barred letters
+\newcommand{\barJ}{{\overline{J}}}
+\newcommand{\barT}{{\overline{T}}}
+
+%%%%%%%%%%%% document-writing macros %%%%%%%%%%%%
+
+%\newcommand{\ignore}[1]{*\marginpar{\tiny \em ignored part}}
+\newcommand{\ignore}[1]{}
+
+\newcommand{\myfig}[4]{\begin{figure}[H] \centering \includegraphics[width=#1\textwidth]{#2} \caption{#3} \label{#4} \end{figure}}

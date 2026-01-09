@@ -1,0 +1,139 @@
+%-------------------------------------------------------------------------------
+% Steer usage of physics style files for ATLAS documents.
+%
+% See ChangeLog or Git log for history of changes.
+% Responsible: Ian Brock (ian.brock@cern.ch)
+%
+% Note that this file can be overwritten when atlaslatex is updated.
+%
+% Copyright (C) 2002-2024 CERN for the benefit of the ATLAS collaboration.
+%-------------------------------------------------------------------------------
+\ProvidesPackage{latex/atlasphysics}[2024/10/09 v15.7.0 ATLAS physics macros]
+\NeedsTeXFormat{LaTeX2e}
+
+%-------------------------------------------------------------------------------
+% xspace is always needed
+\RequirePackage{xspace}
+% More advanced if syntax
+\RequirePackage{ifthen}
+% Use kvoptions package to set options
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{
+  family=APHY,
+  prefix=APHY@
+}
+\DeclareBoolOption[false]{BSM}
+\DeclareBoolOption[false]{bsm}
+\DeclareBoolOption[false]{hion}
+\DeclareBoolOption[false]{jetetmiss}
+\DeclareBoolOption[true]{journal}
+\DeclareBoolOption[false]{math}
+\DeclareBoolOption[true]{misc}
+\DeclareBoolOption[false]{other}
+\DeclareBoolOption[true]{hepitalic}
+\DeclareBoolOption[false]{hepparticle}
+\DeclareBoolOption[false]{hepprocess}
+\DeclareBoolOption[true]{particle}
+\DeclareBoolOption[false]{process}
+\DeclareBoolOption[false]{snippets}
+\DeclareBoolOption[true]{unit}
+\DeclareBoolOption[true]{xref}
+\DeclareStringOption[0]{texlive}
+\DeclareBoolOption[false]{eVkern}
+\DeclareBoolOption[true]{numpmcorr}
+\DeclareBoolOption[true]{texmf}
+\ProcessKeyvalOptions*
+
+% \typeout{atlasphysics: APHY@texlive is [\APHY@texlive]}
+\ifthenelse{\equal{\APHY@texlive}{0}}{%
+  \PackageInfo{atlasdoc}{No texlive option given - good!}
+}{
+  \PackageWarningNoLine{atlasphysics}{%
+    You have passed the option texlive to atlasphysics\MessageBreak
+    This option is no longer used and will be ignored%
+  }%
+}
+% \typeout{atlasphysics: APHY@texlive is [\APHY@texlive]}
+
+% math and other options no longer used.
+\ifthenelse{\boolean{APHY@math}}{%
+  \PackageWarningNoLine{atlasphysics}{%
+    You have passed the option math to atlasphysics\MessageBreak
+    This option is no longer used and will be ignored%
+  }
+}{}
+\ifthenelse{\boolean{APHY@other}}{%
+  \PackageWarningNoLine{atlasphysics}{%
+    You have passed the option other to atlasphysics\MessageBreak
+    This option is no longer used and will be ignored%
+  }
+}{}
+
+
+\ifthenelse{\boolean{APHY@eVkern}}{%
+  \PackageInfo{atlasphysics}{APHY@eVkern is true}
+}{%
+  \PackageInfo{atlasphysics}{APHY@eVkern is false}
+}
+
+\ifthenelse{\boolean{APHY@numpmcorr}}{%
+  \PackageInfo{atlasphysics}{APHY@numpmcorr is true}
+}{%
+  \PackageInfo{atlasphysics}{APHY@numpmcorr is false}
+}
+
+% BSM particles including SUSY - also allow option bsm!
+\ifthenelse{\boolean{APHY@BSM}}{\RequirePackage{atlasbsm}}{}
+\ifthenelse{\boolean{APHY@bsm}}{\RequirePackage{atlasbsm}}{}
+
+% Heavy ion physics
+\ifthenelse{\boolean{APHY@hion}}{\RequirePackage{atlasheavyion}}{}
+
+% Jet/ETmiss group abbreviations
+\ifthenelse{\boolean{APHY@jetetmiss}}{\RequirePackage{atlasjetetmiss}}{}
+
+% Journal abbreviations
+\ifthenelse{\boolean{APHY@journal}}{\RequirePackage{atlasjournal}}{}
+
+% Useful math related definitions
+% \ifthenelse{\boolean{APHY@math}}{\RequirePackage{atlasmath}}{}
+
+% Miscellaneous useful definitions
+\ifthenelse{\boolean{APHY@misc}}{\RequirePackage{atlasmisc}}{}
+
+% Other maybe useful definitions
+% \ifthenelse{\boolean{APHY@other}}{\RequirePackage{atlasother}}{}
+
+% Text snippets
+\ifthenelse{\boolean{APHY@snippets}}{\RequirePackage{atlassnippets}}{}
+
+% Particles and processes.
+% Load either atlasparticle or atlashepparticle, but not both.
+% Priority given to atlashepprocess and atlashepparticle
+\ifthenelse{\boolean{APHY@hepprocess}}{%
+  \RequirePackage[hepparticle, hepprocess]{atlasparticle}
+}{%
+  \ifthenelse{\boolean{APHY@hepparticle}}{%
+    \RequirePackage[hepparticle]{atlasparticle}
+  }{%
+    \ifthenelse{\boolean{APHY@process}}{%
+      \RequirePackage[process]{atlasparticle}
+    }{
+      \RequirePackage{atlasparticle}
+    }
+  }
+}
+
+% Units
+\ifthenelse{\boolean{APHY@unit}}{%
+  \ifthenelse{\boolean{APHY@eVkern}}{%
+    \RequirePackage[eVkern]{atlasunit}
+  }{%
+    \RequirePackage{atlasunit}
+  }
+}{}
+
+% Abbreviations when cross referencing
+\ifthenelse{\boolean{APHY@xref}}{\RequirePackage{atlasxref}}{}
+
+\endinput

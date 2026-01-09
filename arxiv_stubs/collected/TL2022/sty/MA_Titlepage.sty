@@ -1,0 +1,76 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{MA_Titlepage}[2010/04/25]
+
+%%%%%%%%%%%%%%%%
+% Titelseite:
+%%%%%%%%%%%%%%%%
+\newcommand*{\betreuer}[1]{\def\@betreuer{#1}}
+\betreuer{}
+\newcommand*{\zweitgutachter}[1]{\def\@zweitgutachter{#1}}
+\zweitgutachter{}
+\newcommand*{\ausarbeitungstyp}[1]{\def\@ausarbeitungstyp{#1}}
+\ausarbeitungstyp{}
+\newcommand*{\geburtsdatum}[1]{\def\@geburtsdatum{#1}}
+\geburtsdatum{}
+\newcommand*{\geburtsort}[1]{\def\@geburtsort{#1}}
+\geburtsort{}
+\newcommand*{\institut}[1]{\def\@institut{#1}}
+\institut{}
+\newcommand*{\authornew}[1]{\def\@authornew{#1}}
+\authornew{}
+
+\renewcommand\maketitle{\begin{titlepage}
+  \let\footnotesize\small
+  \let\footnoterule\relax
+  \let \footnote \thanks
+  \null\vfil
+
+\begin{center}%
+
+\parbox{10cm}{\centering\huge\bfseries \@title \par}\\
+\vspace{1em}
+{\Large
+\vspace{1em}
+\@authornew}\\
+\vspace{1em}
+Born   \@geburtsdatum \ in \@geburtsort\\
+\vspace{1em}
+{\large \@date}
+\vspace{10em}
+
+{\large \@ausarbeitungstyp}\\
+\vspace{1em}
+{\large \@betreuer}\\
+\vspace{1em}
+{\large \@zweitgutachter}\\
+\vspace{1em}
+\centerline{{\large\scshape \@institut}}
+\vspace{10em}
+
+\centerline{{\large\scshape Mathematisch-Naturwissenschaftliche Fakult\"at der}}
+\vspace{1em}
+\centerline{{\large\scshape Rheinischen Friedrich-Wilhelms-Universit\"at Bonn}}
+
+\end{center}
+
+\vfil\null
+\clearpage
+\thispagestyle{empty}\mbox{}
+\clearpage
+\pagenumbering{arabic}
+
+\end{titlepage}
+
+  \setcounter{footnote}{0}%
+  \global\let\maketitle\relax
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+  \global\let\and\relax
+}
+% END Titelseite
+
+\endinput

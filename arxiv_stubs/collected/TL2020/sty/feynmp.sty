@@ -1,0 +1,338 @@
+%%
+%% This is file `feynmp.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% feynmf.dtx  (with options: `style,mp')
+%% 
+%% Copyright (C) 1989, 1990, 1992-1995 by Thorsten.Ohl@Physik.TH-Darmstadt.de
+%% 
+%% This file is NOT the source for feynmf, because almost all comments
+%% have been stripped from it.  It is NOT the preferred form of feynmf
+%% for making modifications to it.
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file.  You can
+%% however redistribute the complete source (feynmf.dtx and feynmf.ins)
+%% and/or modify it under the terms of the GNU General Public License as
+%% published by  the Free Software Foundation; either version 2, or (at
+%% your option) any later version.
+%% 
+%% As a special exception, you can redistribute parts of this file for
+%% the electronic distribution of scientific papers, provided that you
+%% include a short note pointing to the complete source.
+%% 
+%% Feynmf is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program; if not, write to the Free Software
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{924}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{v1.08}
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6 #7$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\filerevision{#3}%
+   \gdef\filedate{#4}%
+   \gdef\filemaintainer{#6}}%
+\RCS $Id: feynmf.dtx,v 1.30 1996/12/02 09:20:36 ohl Exp $ \endRCS}%
+\ProvidesPackage{feynmp}[\filedate\space\fileversion\space
+  LaTeX/MetaPost Feynman Diagram Package (\filemaintainer)]
+\let\fmf@noexpandoff\relax
+\DeclareOption{pre-1.03}{%
+  \PackageWarning{feynmf}{%
+    Pre v1.03 compatibility can clash with font loading}
+  \def\fmf@noexpandoff{\let\noexpand\relax}}
+\DeclareOption{errorstop}{\let\@interactionmode\errorstopmode}
+\DeclareOption{scroll}{\let\@interactionmode\scrollmode}
+\DeclareOption{nonstop}{\let\@interactionmode\nonstopmode}
+\DeclareOption{batch}{\let\@interactionmode\batchmode}
+\let\@interactionmode\errorstopmode
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphics}}
+\ProcessOptions
+\RequirePackage{graphics}[1994/12/15]
+\let\mdqrestore\relax
+\@ifundefined{mdqoff}{}{%
+  \mdqoff
+  \let\mdqrestore\mdqon}
+\def\fmfcmd#1{%
+  \if@fmfio
+    \immediate\write\@outfmf{#1}%
+  \fi
+  \ignorespaces}
+\newif\if@fmfio
+\@fmfiotrue
+\newwrite\@outfmf
+\newtoks\fmfbuf@
+{\catcode`\%=11\gdef\p@rcent{%}}
+\edef\fmf@revision{\filerevision}
+\def\fmffile#1{%
+  \def\thefmffile{#1}%
+  \equaltojobname{\thefmffile}{%
+    \errhelp={The argument of \fmffile MUST NOT be identical to the^^J%
+              name of your main input file!  I will use fmfdefault.mf^^J%
+              this time around, but you'd better fix your code now!}%
+    \errmessage{Invalid arument of \string\fmffile!}%
+    \def\thefmffile{fmfdefault}}{}%
+  \if@fmfio
+    \@ifundefined{ifmeasuring@}%
+      {}%
+      {\def\if@fmfio{\ifmeasuring@\else}}%
+    \immediate\openout\@outfmf=\thefmffile.mp\relax
+    \fmfcmd{\p@rcent\space \thefmffile.mp -- do not edit, %
+            generated automatically by \jobname.tex^^J%
+            input feynmp^^J%
+            require_RCS_revision "\fmf@revision";}%
+  \fi
+  \setcounter{fmfgraph}{0}}
+\let\thefmffile\relax
+\newcounter{fmfgraph}
+\def\equaltojobname#1#2#3{%
+  \edef\@tempa{#1}%
+  \edef\@tempa{\meaning\@tempa}%
+  \edef\@tempb{\jobname}%
+  \edef\@tempb{\meaning\@tempb}%
+  \ifx\@tempa\@tempb
+    #2
+  \else
+    #3
+  \fi}
+\def\endfmffile{%
+  \fmfcmd{\p@rcent\space the end.^^J%
+          end.^^J%
+          endinput;}%
+  \let\thefmffile\relax
+  \if@fmfio
+    \immediate\closeout\@outfmf
+  \fi}
+{\catcode`\#=11\gdef\sh@rp{#}%
+ \catcode`\"=11\gdef\dqu@te{"}}
+\def\fmf@graph#1#2{%
+  \ifx\thefmffile\relax
+    \errhelp={Outside a fmffile environment, I have no clue as to where^^J%
+              the METAFONT commands should go.   I will use fmfdefault.mf^^J%
+              for this graph, but you'd better fix your code!}%
+    \errmessage{I detected a fmfgraph environment outside of fmffile}%
+    \fmffile{fmfdefault}
+  \fi
+  \global\expandafter\advance\csname c@fmfgraph\endcsname \@ne
+  \fmfcmd{beginchar(\thefmfgraph, #1*\the\unitlength\sh@rp, %
+                                 #2*\the\unitlength\sh@rp, 0);^^J%
+            \dqu@te feynmf: \thefmfgraph\dqu@te;}%
+  \fmfcmd{LaTeX_unitlength:=\the\unitlength;}%
+  \begin{fmfsubgraph}(0,0)(w,h)
+    \fmfinit
+    \fmfpen{thin}}
+\def\fmfgraph(#1,#2){%
+  \fmf@graph{#1}{#2}%
+  \def\fmfkeep##1{\fmf@keep{#1}{#2}{##1}}%
+  \leavevmode
+  \IfFileExists{\thefmffile.\thefmfgraph}%
+    {\includegraphics{\thefmffile.\thefmfgraph}}%
+    {\typeout{%
+      feynmp: File \thefmffile.\thefmfgraph\space not found:^^J%
+      feynmp: Process \thefmffile.mp with MetaPost and then %
+              reprocess this file.}}%
+  \ignorespaces}
+\def\endfmfgraph{%
+    \fmffreeze
+    \fmfdraw
+  \end{fmfsubgraph}
+  \fmfcmd{endchar;}%
+  \def\fmfkeep##1{\fmf@nokeep}}
+\def\fmfchar{\@nameuse{fmfgraph}}
+\def\endfmfchar{\@nameuse{endfmfgraph}}
+\@namedef{fmfgraph*}(#1,#2){%
+  \begin{picture}(#1,#2)
+    \fmf@graph{#1}{#2}%
+    \def\fmfkeep##1{\fmf@keepstar{#1}{#2}{##1}}%
+  \IfFileExists{\thefmffile.\thefmfgraph}%
+    {\put(0,0){\includegraphics{\thefmffile.\thefmfgraph}}}%
+    {\typeout{%
+      feynmp: File \thefmffile.\thefmfgraph\space not found:^^J%
+      feynmp: Process \thefmffile.mp with MetaPost and then %
+              reprocess this file.}}%
+      \ignorespaces}
+\@namedef{endfmfgraph*}{%
+    \endfmfgraph
+    \if@fmfio
+      {\catcode`\%=14\relax
+       \fmf@noexpandoff
+        \InputIfFileExists{\thefmffile.t\thefmfgraph}{}{%
+          \typeout{%
+            feynmf: Label file \thefmffile.t\thefmfgraph\space not found:^^J%
+       feynmf: Process \thefmffile.mp with MetaPost and then %
+                    reprocess this file.}}}%
+    \fi
+  \end{picture}}
+\@namedef{fmfchar*}{\@nameuse{fmfgraph*}}
+\@namedef{endfmfchar*}{\@nameuse{endfmfgraph*}}
+\def\fmfkeep#1{\fmf@nokeep}
+\def\fmf@nokeep{%
+  \errhelp={There's nothing to \string\fmfkeep!}%
+  \errmessage{feynmf: \string\fmfkeep\space outside of `fmfgraph'!}}
+\def\fmf@keep#1#2#3{%
+  \global\@namedef{fmf@k:e:#3}{\begin{fmfgraph}(#1,#2)\end{fmfgraph}}%
+  \global\e@namedef{fmf@k:f:#3}{\thefmffile}%
+  \global\e@namedef{fmf@k:c:#3}{\thefmfgraph}}
+\def\fmf@keepstar#1#2#3{%
+  \global\@namedef{fmf@k:e:#3}{\begin{fmfgraph*}(#1,#2)\end{fmfgraph*}}%
+  \global\e@namedef{fmf@k:f:#3}{\thefmffile}%
+  \global\e@namedef{fmf@k:c:#3}{\thefmfgraph}}
+\def\e@namedef#1{\expandafter\edef\csname #1\endcsname}
+\def\fmfreuse#1{%
+  \@ifundefined{fmf@k:e:#1}%
+   {\typeout{%
+      feynmf: \string\fmfreuse: %
+      missing \string\fmfkeep\space for `#1'!}}%
+   {\edef\thefmffile{\@nameuse{fmf@k:f:#1}}%
+    \@nameuse{c@fmfgraph}\@nameuse{fmf@k:c:#1}%
+    \advance\@nameuse{c@fmfgraph}-1%
+    \def\fmfcmd##1{}%
+    \@nameuse{fmf@k:e:#1}}}
+\def\fmfframe(#1,#2)(#3,#4)#5{%
+  \leavevmode
+  \hbox{\vbox{\vskip#2\unitlength\par
+              \hbox{\hskip#1\unitlength#5\hskip#3\unitlength}\par
+              \vskip#4\unitlength}}}
+\def\fmfpen#1{\fmfcmd{pickup pencircle scaled #1;}}
+\def\fmfsubgraph(#1,#2)(#3,#4){\fmfcmd{subgraph (#1, #2, #3, #4);}}
+\def\endfmfsubgraph{\fmfcmd{endsubgraph;}}
+\def\Compose#1#2#3{#1{#2{#3}}}
+\def\gobblefalse\else\gobbletrue\fi#1#2{\fi#1}
+\def\gobbletrue\fi#1#2{\fi#2}
+\def\TeXif#1{#1\gobblefalse\else\gobbletrue\fi}
+\def\Nil#1#2{#2}
+\def\Cons#1#2#3#4{#3{#1}{#2}}
+\def\Singleton#1{\Cons{#1}\Nil}
+\def\Foldr#1#2#3{#3{\Foldr@{#1}{#2}}{#2}}
+\def\Foldr@#1#2#3#4{#1{#3}{\Foldr{#1}{#2}{#4}}}
+\def\Map#1{\Foldr{\Compose\Cons{#1}}\Nil}
+\def\Unlistize#1{#1\Unlistize@{}}
+\def\Unlistize@#1{#1\Foldr\Commaize{}}
+\def\Commaize#1#2{, #1#2}
+\def\Listize#1{\Listize@#1,\relax @@@}
+\def\Listize@#1,#2@@@{%
+   \TeXif{\ifx\relax#2}%
+     {\Singleton{#1}}%
+     {\Cons{#1}{\Listize@#2@@@}}}
+\def\fmfpfx@#1{__#1}
+\def\fmfpfx#1{\Unlistize{\Map\fmfpfx@{\Listize{#1}}}}
+\def\fmfwizard{\fmfcmd{feynmfwizard := true;}}
+\def\fmfnowizard{\fmfcmd{feynmfwizard := false;}}
+\def\fmfshrink#1{\fmfcmd{shrink (#1);}}
+\def\endfmfshrink{\fmfcmd{endshrink;}}
+\def\fmfinit{\fmfcmd{vinit;}}
+\def\fmf#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vconnect ("\the\fmfbuf@", \fmfpfx{#2});}}
+\def\fmfn#1#2#3{
+  \fmfbuf@={#1}%
+  \fmfcmd{vconnectn ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmfcyclen#1#2#3{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vcyclen ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmfrcyclen#1#2#3{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vrcyclen ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmfforce#1#2{\fmfcmd{vforce ((#1), \fmfpfx{#2});}}
+\def\fmfshift#1#2{\fmfcmd{vshift ((#1), \fmfpfx{#2});}}
+\def\fmffixed#1#2{\fmfcmd{vconstraint ((#1), \fmfpfx{#2});}}
+\def\fmffixedx#1#2{\fmfcmd{vconstraint (((#1),whatever), \fmfpfx{#2});}}
+\def\fmffixedy#1#2{\fmfcmd{vconstraint ((whatever,(#1)), \fmfpfx{#2});}}
+\def\fmfpoly#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vpolygon ("\the\fmfbuf@", \fmfpfx{#2});}}
+\def\fmfpolyn#1#2#3{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vpolygonn ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmfrpolyn#1#2#3{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vrpolygonn ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmflabel#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vlabel ("\the\fmfbuf@", \fmfpfx{#2});}}
+\def\fmfv#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vvertex ("\the\fmfbuf@", \fmfpfx{#2});}}
+\def\fmfvn#1#2#3{%
+  \fmfbuf@={#1}%
+  \fmfcmd{vvertexn ("\the\fmfbuf@", \fmfpfx{#2}, #3);}}
+\def\fmfblob#1#2{\fmfcmd{vblob ((#1), \fmfpfx{#2});}}
+\def\fmfdot#1{\fmfcmd{vdot (\fmfpfx{#1});}}
+\def\fmfct#1{\fmfcmd{vvertex ("decoration.shape=cross,decoration.width=thick", \fmfpfx{#1});}}
+\def\fmfblobn#1#2{\fmfcmd{vblobn (\fmfpfx{#1}, #2);}}
+\def\fmfdotn#1#2{\fmfcmd{vdotn (\fmfpfx{#1}, #2);}}
+\def\fmfleft#1{\fmfcmd{vleft (\fmfpfx{#1});}}
+\def\fmfright#1{\fmfcmd{vright (\fmfpfx{#1});}}
+\def\fmfbottom#1{\fmfcmd{vbottom (\fmfpfx{#1});}}
+\def\fmftop#1{\fmfcmd{vtop (\fmfpfx{#1});}}
+\let\fmfincoming\fmfleft
+\let\fmfoutgoing\fmfright
+\def\fmfsurround#1{\fmfcmd{vsurround (\fmfpfx{#1});}}
+\def\fmfcurved{\fmfcmd{curved_galleries;}}
+\def\fmfstraight{\fmfcmd{straight_galleries;}}
+\let\fmfcurvedgalleries\fmfcurved
+\let\fmfstraightgalleries\fmfstraight
+\def\fmfleftn#1#2{\fmfcmd{vleftn (\fmfpfx{#1}, #2);}}
+\def\fmfrightn#1#2{\fmfcmd{vrightn (\fmfpfx{#1}, #2);}}
+\def\fmfbottomn#1#2{\fmfcmd{vbottomn (\fmfpfx{#1}, #2);}}
+\def\fmftopn#1#2{\fmfcmd{vtopn (\fmfpfx{#1}, #2);}}
+\let\fmfincomingn\fmfleftn
+\let\fmfoutgoingn\fmfrightn
+\def\fmfsurroundn#1#2{\fmfcmd{vsurroundn (\fmfpfx{#1}, #2);}}
+\def\fmffor#1#2#3#4{\fmfcmd{for #1 = #2 step #3 until #4:}}
+\def\endfmffor{\fmfcmd{endfor}}
+\def\fmfgroup{\fmfcmd{begingroup}}
+\def\endfmfgroup{\fmfcmd{endgroup;}}
+\def\fmfset#1#2{\fmfcmd{save #1; #1:=#2;}}
+\def\fmffreeze{\fmfcmd{vfreeze;}}
+\let\fmfposition\fmffreeze
+\def\fmfi#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{idraw ("\the\fmfbuf@", #2);}}
+\def\fmfiv#1#2{%
+  \fmfbuf@={#1}%
+  \fmfcmd{ivertex ("\the\fmfbuf@", #2);}}
+\def\fmfipath#1{\fmfcmd{path #1;}}
+\def\fmfipair#1{\fmfcmd{pair #1;}}
+\def\fmfiset#1#2{\fmfcmd{#1:=#2;}}
+\def\fmfiequ#1#2{\fmfcmd{#1=#2;}}
+\def\fmfdraw{\fmfcmd{vdraw;}}
+\def\fmfL(#1,#2,#3)#4{\put(#1,#2){\makebox(0,0)[#3]{#4}}}
+\def\fmfdisplay{\fmfcmd{show_all_diagrams (100,100);}}
+\def\fmfstopdisplay{\fmfcmd{showstopping:=1;}\fmfdisplay}
+\def\fmftrace{\fmfcmd{vtracing:=true;}}
+\def\fmfnotrace{\fmfcmd{vtracing:=false;}}
+\mdqrestore
+\endinput
+%%
+%% End of file `feynmp.sty'.

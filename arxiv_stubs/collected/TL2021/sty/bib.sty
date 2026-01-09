@@ -1,0 +1,51 @@
+% Formatierungen der Bibliography
+
+%%% Bibliographie %%%
+
+% biblatex: Ausgabe-Formatierung fuer das Literaturverzeichnis
+
+\DeclareFieldFormat[article]{title}{#1} % Titel ohne Anführungszeichen
+\DeclareFieldFormat[book]{title}{\itshape #1}
+\DeclareFieldFormat[thesis]{title}{#1}
+\DeclareFieldFormat[incollection]{title}{\itshape #1}
+\DeclareFieldFormat[inproceedings]{title}{\itshape #1}
+\DeclareFieldFormat[article]{author}{\color{blue} #1}
+\DeclareFieldFormat[article]{pages}{#1.}
+\DeclareFieldFormat[incollection]{pages}{#1.} % Seitenzahlen ohne pp. und Abschluss durch Punkt
+% \DeclareFieldFormat{labelnumberwidth}{#1}
+
+% bei Artikeln vor dem Namen der Zeitschrift kein 'In: '
+\renewbibmacro{in:}{%
+	\ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}}
+
+\DeclareNameAlias{sortname}{last-first}
+\DeclareNameAlias{default}{last-first}
+
+\renewbibmacro*{volume+number+eid}{%
+	\printfield{volume}%
+	%  \setunit*{\adddot}% DELETED
+	\setunit*{\addnbthinspace}% NEW (optional); there's also \addnbthinspace
+	\printfield{number}%
+	\setunit{\addcomma\space}%
+	\printfield{eid}}
+\DeclareFieldFormat[article]{number}{\mkbibparens{#1}}
+
+\renewbibmacro*{publisher+location+date}{%
+	\printlist{publisher}%
+	\iflistundef{location}
+	{\setunit*{\addcomma\space}}
+	{\setunit*{\addcomma\space}}%
+	\printlist{location}%
+	\setunit*{\addcomma\space}%
+	\usebibmacro{date}%
+	\newunit}
+
+\renewcommand*{\multicitedelim}{\addcomma\space} % wenn cite mehrere Referenzen enthält werden diese durch Komma und nicht Semikolon (default) getrennt
+\DeclareFieldFormat[article]{number}{} % keine Journal number erst hier einfuegen, damit nicht wieder von anderen einstellungen ueberschrieben
+
+%prints author names as small caps
+%\renewcommand{\mkbibnamefamily}[1]{\textsc{#1}} 
+% \renewcommand{\mkbibnamefirst}[1]{\textsc{#1}}
+% \renewcommand{\mkbibnamelast}[1]{\textsc{#1}}
+% \renewcommand{\mkbibnameprefix}[1]{\textsc{#1}}
+% \renewcommand{\mkbibnameaffix}[1]{\textsc{#1}}

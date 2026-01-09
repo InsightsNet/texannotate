@@ -1,0 +1,730 @@
+
+\def\geant{\textsc{Geant4}}
+\def\ctten{\textsc{CT10}}
+%\def\ctten6l{\textsc{CT10+CTEQ6L}}
+\def\ct6l{\textsc{CTEQ6L}}
+\def\nnpdf{\textsc{NNPDF3.0}}
+\def\mstw{\textsc{MSTW2008nlo}}
+\def\mstwlo{\textsc{MSTW2008lo}}
+\def\sherpa{\textsc{Sherpa}}
+\def\nnlops{\textsc{NNLOPS}}
+\def\alpgen{\textsc{Alpgen}}
+\def\madgraph{\textsc{Madgraph}}
+\def\herwig{\textsc{Herwig}}
+\def\herwigpp{\textsc{Herwig++}}
+\def\jimmy{\textsc{Jimmy}}
+\def\meps{\textsc{Meps@Nlo}}
+\def\hres{\textsc{Hres2.3}}
+\def\minlo{\textsc{Minlo}}
+\def\minlohj{\textsc{Minlo~HJ}}
+\def\minlohjj{\textsc{Minlo~HJJ}}
+\def\powhegpyt{\textsc{Powheg+Pythia}}
+\def\powhegher{\textsc{Powheg-Herwig}}
+\def\powhegbox{\textsc{Powheg Box}}
+\def\pythia{\textsc{Pythia8}}
+\def\amc{\textsc{MadGraph5\textrm{\_}aMC@NLO}}
+\def\nnpdflo{\textsc{NNPDF2.3LO}}
+\def\pythiasix{\textsc{Pythia6}}
+\def\gosam{\textsc{GoSam}}
+\def\minlo{\textsc{MiNLO}}
+
+
+% comments
+\newcommand{\JQ}[1]{{\color{magenta} JQ: #1}}
+\newcommand{\SG}[1]{{\color{lime} SG: #1}}
+
+% miscellaneous
+\newcommand{\hsa}{\hspace*{0.2cm}}
+\newcommand{\hsb}{\hspace*{0.4cm}}
+\newcommand{\hsc}{\hspace*{0.6cm}}
+\newcommand{\hsd}{\hspace*{0.8cm}}
+
+\newcommand{\Nbjets}{N_{\text{bjets}}}
+
+\newcommand{\tsp}{\rule{0pt}{2.5ex}}
+\newcommand{\tspp}{\rule{0pt}{3.0ex}}
+
+\newcommand{\abs}[1]{|\,{#1}\,|}            % absolute value
+
+\newcommand{\AtlasCoordFootnote}{%
+ATLAS uses a right-handed coordinate system with its origin at the nominal interaction point (IP)
+in the center of the detector and the $z$-axis along the beam pipe.
+The $x$-axis points from the IP to the center of the LHC ring,
+and the $y$-axis points upwards.
+Cylindrical coordinates $(r,\phi)$ are used in the transverse plane,
+$\phi$ being the azimuthal angle around the $z$-axis.
+The pseudorapidity is defined in terms of the polar angle $\theta$ as $\eta = -\ln \tan(\theta/2)$.
+Angular distance is measured in units of $\Delta R \equiv \sqrt{(\Delta\eta)^{2} + (\Delta\phi)^{2}}$.}
+
+
+% production process
+% \newcommand{\ggF}{\ensuremath{gg\to H}}
+% \newcommand{\VBF}{\ensuremath{qq'\to qq'H}}
+%\newcommand{\VH}{\ensuremath{q\bar{q}'\to WH/ZH}}
+% \newcommand{\VH}{\ensuremath{q\bar{q}'\to VH}}
+% \newcommand{\WH}{\ensuremath{q\bar{q}'\to WH}}
+% \newcommand{\ZH}{\ensuremath{q\bar{q}/gg \to ZH}}
+\newcommand{\ggZH}{\ensuremath{gg\to ZH}}
+\newcommand{\qqZH}{\ensuremath{qq/qg \to ZH}}
+% \newcommand{\ttH}{\ensuremath{q\bar{q}/gg \to t\bar{t}H}}
+% \newcommand{\bbH}{\ensuremath{q\bar{q}/gg \to b\bar{b}H}}
+% \newcommand{\tH}{\ensuremath{tHX}}
+% \newcommand{\tHq}{\ensuremath{qg \to tbHq'}}
+% \newcommand{\WtH}{\ensuremath{gg\to tbHW}}
+
+%% Text for each process
+\newcommand{\ggF}{\ensuremath{\text{ggF}}}
+\newcommand{\VBF}{\ensuremath{\text{VBF}}}
+\newcommand{\VH}{\ensuremath{VH}}
+\newcommand{\VHlep}{\ensuremath{V\text{(lep)}H}}
+\newcommand{\WH}{\ensuremath{WH}}
+\newcommand{\WlnuH}{\ensuremath{W(\\to ell\nu)H}}
+\newcommand{\ZH}{\ensuremath{ZH}}
+\newcommand{\ZllH}{\ensuremath{Z(\to \ell\ell)H}}
+\newcommand{\ZnunuH}{\ensuremath{Z(\to \nu\nu)H}}
+\newcommand{\VqqH}{\ensuremath{V(\to qq)H}}
+\newcommand{\VllH}{\ensuremath{V(\to \ell\ell)H}}
+\newcommand{\ttH}{\ensuremath{\ttbar H}}
+\newcommand{\tH}{\ensuremath{tH}}
+\newcommand{\tHW}{\ensuremath{tHW}}
+\newcommand{\tHqb}{\ensuremath{tHqb}}
+\newcommand{\bbH}{\ensuremath{\bbbar H}}
+\newcommand{\qqH}{\ensuremath{qqH}}
+\newcommand{\tHq}{\ensuremath{tHq}}
+\newcommand{\WtH}{\ensuremath{tHW}}
+\newcommand{\ggtoH}{\ensuremath{gg \to H}}
+\newcommand{\qqtoHqq}{\ensuremath{qq \to Hqq}}
+\newcommand{\ggtoHll}{\ensuremath{gg \to H\ell\ell}}
+\newcommand{\qqtoHll}{\ensuremath{qq \to H\ell\ell}}
+\newcommand{\pptoHll}{\ensuremath{gg/qq \to H\ell\ell}}
+\newcommand{\qqtoHln}{\ensuremath{qq \to H\ell\nu}}
+\newcommand{\ggtoZH}{\ensuremath{gg \to ZH}}
+\newcommand{\qqtoZH}{\ensuremath{qq \to ZH}}
+\newcommand{\qqtoWH}{\ensuremath{qq \to WH}}
+\newcommand{\qqtoVH}{\ensuremath{qq \to VH}}
+\newcommand{\pptoZH}{\ensuremath{pp \to ZH}}
+\newcommand{\qqptoqqpH}{\ensuremath{qq'\to qq'H}}
+\newcommand{\qqptoWHZH}{\ensuremath{q\bar{q}'\to WH/ZH}}
+\newcommand{\pptottH}{\ensuremath{pp \to \ttH}}
+\newcommand{\pptobbH}{\ensuremath{pp \to \bbH}}
+
+% Higgs decay
+\newcommand{\yy}{\ensuremath{\gamma\gamma}}
+\newcommand{\Hyy}{\ensuremath{H\to\gamma\gamma}}
+\newcommand{\Hzz}{\ensuremath{H\to ZZ^*}}
+\newcommand{\Hww}{\ensuremath{H\to WW^*}}
+\newcommand{\Htt}{\ensuremath{H\to\tau\tau}}
+%\newcommand{\Hbb}{\ensuremath{H\to b\bar{b}}}
+\newcommand{\Hcc}{\ensuremath{H\to c\bar{c}}}
+\newcommand{\Hss}{\ensuremath{H\to s\bar{s}}}
+%\newcommand{\Hgg}{\ensuremath{H\to \gamma\gamma}}
+\newcommand{\Hmm}{\ensuremath{H\to \mu\mu}}
+\newcommand{\Hzg}{\ensuremath{H\to Z\gamma}}
+%\newcommand{\Hllll}{\ensuremath{H\to ZZ^*\to 4\ell}}
+\newcommand{\Hllvv}{\ensuremath{H\to ZZ^*\to 2\ell 2\nu}}
+\newcommand{\Hvvvv}{\ensuremath{H\to ZZ^*\to 4\nu}}
+\newcommand{\Hlvlv}{\ensuremath{H\to WW^*\to \ell\nu\ell\nu}}
+
+\newcommand{\ttll}{\ensuremath{\tlep\tlep}}
+\newcommand{\ttlh}{\ensuremath{\tlep\thad}}
+\newcommand{\tthh}{\ensuremath{\thad\thad}}
+
+\newcommand{\BBSM}{\ensuremath{\BR_{\text{BSM}}}}
+
+% generators
+\newcommand{\Powheg}{{\sc Powheg}}
+%\newcommand{\Pythia}{{\sc Pythia}}
+\newcommand{\Powhel}{{\sc Powhel}}
+
+% Units
+%\newcommand{\invpb}{\ensuremath{\mathrm{pb^{-1}}}}
+%\newcommand{\invfb}{\ensuremath{\mathrm{fb^{-1}}}}
+%\renewcommand{\ifb}{\invfb}
+%\renewcommand{\tev}{\ensuremath{\text{~TeV}}}
+\newcommand{\ilumi}{\ensuremath{\mathrm{cm}^{-2}~\mathrm{s}^{-1}}}
+
+
+% Lumi
+
+
+\newcommand{\combmass}{\ensuremath{125.4}}
+
+\newcommand{\combmassname}{value of the Higgs boson mass measured by ATLAS}
+
+\newcommand{\lumieight}{20.3}
+\newcommand{\lumiseven}{4.5}
+
+\newcommand{\cmsmass}{\ensuremath{125.03^{+0.26}_{-0.27}\mathrm{(stat.)} ^{+0.13}_{-0.15}\mathrm{(syst.) }}} % https://cds.cern.ch/record/1728249/files/HIG-14-009-pas.pdf
+\newcommand{\atlasmass}{\ensuremath{125.36\pm 0.37\mathrm{(stat.)}\pm 0.18\mathrm{(syst.)}}}
+
+
+%preliminary from Hongtao
+
+\newcommand{\kv}{\ensuremath{\kappa_{\mathrm{V}}}}
+\newcommand{\kf}{\ensuremath{\kappa_{\mathrm{F}}}}
+\newcommand{\ky}{\ensuremath{\kappa_{\gamma}}}
+\newcommand{\kg}{\ensuremath{\kappa_g}}
+\newcommand{\ki}{\ensuremath{\kappa_{\mathrm{i}}}}
+
+% MC generators
+% \newcommand{\pythia}{\progname{Pythia}}
+% \newcommand{\pythiaSix}{\progname{Pythia6}}
+% \newcommand{\pythiaEight}{\progname{Pythia8}}
+% \newcommand{\powheg}{\progname{Powheg}}
+% \newcommand{\powpyt}{\progname{Powheg+Pythia8}}
+
+
+% Misc
+
+% Variables
+% Inclusive
+\newcommand{\mgg}{\ensuremath{m_{\gamma\gamma}}}
+\newcommand{\ptleadl}{\ensuremath{p_{\mathrm{T}}^{\ell_1}}}
+\newcommand{\ptsubleadl}{\ensuremath{p_{\mathrm{T}}^{\ell_2}}}
+\newcommand{\ptH}{\ensuremath{p_{\mathrm{T}}^H}}
+\newcommand{\pTgg}{\ensuremath{p_{\mathrm{T}}^{\gamma\gamma}}}
+\newcommand{\ptgg}{\pTgg}
+\newcommand{\pTV}{\ensuremath{p_{\mathrm{T}}^{V}}}
+\newcommand{\ptV}{\ensuremath{p_{\mathrm{T}}^{V}}}
+\newcommand{\yabsgg}{\ensuremath{|y_{\gamma\gamma}|}}
+\newcommand{\cosTS}{\ensuremath{|\cos{\theta^{*}}|}}
+\newcommand{\pTt}{\ensuremath{p_{\mathrm{Tt}}}}
+\newcommand{\Dygg}{\ensuremath{\Delta y_{\mathrm{\gamma\gamma}}}}
+\newcommand{\Dphigg}{\ensuremath{\Delta \phi_{\mathrm{\gamma\gamma}}}}
+\newcommand{\phistar}{\ensuremath{\phi^{*}}}
+
+\newcommand{\Njets}{\ensuremath{N_{\text{jets}}}}
+\newcommand{\jetVeto}{\ensuremath{\sigma_i/\sigma_{\geq i}}}
+
+% 1-jet
+\newcommand{\pTj}[1]{\ensuremath{p_{\mathrm{T,jet#1}}}}
+\newcommand{\yj}[1]{\ensuremath{|y_{\mathrm{jet#1}}|}}
+\newcommand{\taujet}{\ensuremath{\tau_{\mathrm{jet1}}}}
+\newcommand{\ptggj}{\ensuremath{p_{\mathrm{T},\gamma\gamma \mathrm{j}}}}
+\newcommand{\mggj}{\ensuremath{M_{\gamma\gamma \mathrm{j}}}}
+
+% 2-jet
+
+\newcommand{\mjj}{\ensuremath{m_{jj}}}
+\newcommand{\Detajj}{\ensuremath{\Delta\eta_{jj}}}
+\newcommand{\Dyjj}{\ensuremath{\Delta y_{jj}}}
+\newcommand{\Dphiggjj}{\ensuremath{\Delta\phi_{\gamma\gamma,jj}}}
+\newcommand{\pTggjj}{\ensuremath{p_{\mathrm{T}}^{\gamma\gamma jj}}}
+\newcommand{\Zeppetagamgam}{\ensuremath{\eta_{\gamma\gamma}^\mathrm{Zepp}}}
+\newcommand{\Zeppgg}{\Zeppetagamgam}
+\newcommand{\Dphijj}{\ensuremath{\Delta\phi_{jj}}}
+
+% Other
+\newcommand{\pTexclj}[1]{\ensuremath{p_{\mathrm{T}\gamma\gamma}(N_{\mathrm{jets}}=#1)}}
+\newcommand{\pTinclj}[1]{\ensuremath{p_{\mathrm{T}\gamma\gamma}(N_{\mathrm{jets}}\geq#1)}}
+\newcommand{\ETmiss}{\ensuremath{E_{\text{T}}^{\text{miss}}}}
+\newcommand{\ETmissvec}{\ensuremath{\mathbf{E}_{\text{T}}^{\text{miss}}}}
+
+
+\newcommand{\thetaspurc}{\ensuremath{\theta_{\mathrm{spur},c}}}
+
+
+
+
+
+\newcommand{\Httc}{\ensuremath{H\to\tau^+\tau^-}\,}
+\newcommand{\Hwwsll}{\mbox{$H \to  W W^{(*)} \rightarrow \ell \nu \ell \nu $}}
+\newcommand{\thad}{\ensuremath{\tau_\text{had}}}
+\newcommand{\tlep}{\ensuremath{\tau_\text{lep}}}
+\newcommand{\Ztautau}{\ensuremath{Z\to\tau\tau}}
+\newcommand{\Zmumu}{\ensuremath{Z\to\mu\mu}}
+
+
+\newcommand{\BR}{\ensuremath{B}\xspace}
+
+\newcommand{\Hinv}{\ensuremath{H\to inv}\xspace}
+\newcommand{\Binv}{\ensuremath{\BR_\text{inv.}}\xspace}
+\newcommand{\Bund}{\ensuremath{\BR_\text{u.}}\xspace}
+\newcommand{\Gammainv}{\ensuremath{\Gamma_\mathrm{{inv.,undet.}}}\xspace}
+\newcommand{\kV}{\ensuremath{\kappa_{V}}}
+\newcommand{\kF}{\ensuremath{\kappa_{F}}}
+\newcommand{\Ccinv}{\ensuremath{\Cc_\mathrm{{inv.,undet.}}}\xspace}
+% \newcommand{\Rr}{\ensuremath{\uplambda}}
+\newcommand{\Rr}{\ensuremath{\lambda}}
+
+\newcommand{\MyggH}{\ensuremath{\Pg\Pg\PH}}
+\newcommand{\MyttH}{\ensuremath{\PQt\PAQt\PH}}
+
+\DeclareRobustCommand{\PV}{\HepParticle{V}{}{}\Xspace} % vector
+\DeclareRobustCommand{\Pf}{\HepParticle{f}{}{}\Xspace} % fermion (generic)
+\DeclareRobustCommand{\PAf}{\HepAntiParticle{\Pf}{}{}\Xspace} % anti-quark (generic)
+
+% 125.392 +/- 0.385164
+\newcommand{\masspeak}{125.5}
+\newcommand{\massresult}{\masspeak\pm 0.4~\mathrm{GeV}}
+\newcommand{\massresultStatSys}{\mbox{\ensuremath{\masspeak \; \pm 0.3 \;\textrm{(stat)} \; \pm 0.3\; \textrm{(sys)}~\mathrm{GeV}}}}
+
+%\newcommand{\hWWlnln}{\ensuremath{H \rightarrow WW^{*} \rightarrow \ell^+\nu\ell^-\overline{\nu}}}
+%\newcommand{\hZZllll}{\ensuremath{H \rightarrow ZZ^{*}\rightarrow \ell^+\ell^-\ell^+\ell^-}}
+
+
+\newcommand{\bb}{\ensuremath{b\bar{b}}}
+%\def\imb{\mbox{$\mu$b$^{-1}$}}%  Inverse pficobarns.
+%\def\mt{\ensuremath{m_{\mathrm{T}}}} % Subscript roman not italic (EE)
+%\def\mT{\ensuremath{m_{\mathrm{T}}}} % Subscript roman not italic (EE)
+\newcommand{\ggttH}{\ensuremath{gg \to t\bar{t}H}}
+\newcommand{\Zgjets}{$Z/\gamma^{*}$+jets}
+\newcommand{\Zjets}{$Z$+jets}
+\newcommand{\mll}{\ensuremath{m_{\ell\ell}}}
+\newcommand{\dphill}{\ensuremath{\Delta\phi_{\ell\ell}}}
+\newcommand{\dphillMET}{\ensuremath{\Delta\phi_{\ell\ell,\text{MET}}}}
+
+\newcommand{\pttautau}{\ensuremath{p_{\mathrm{T}}^{\tau\tau}}}
+\newcommand{\drtt}{\ensuremath{\Delta R_{\tau\tau}}}
+\newcommand{\pttt}{\ensuremath{p_{\mathrm{Tt}}}}
+\newcommand{\ptt}{\ensuremath{p_{\mathrm{Tt}}}}
+\newcommand{\hgg}{\ensuremath{H{\rightarrow\,}\gamma\gamma}}
+\pdfstringdefDisableCommands{%
+  \def\hgg{H -> yy}%
+}
+\newcommand{\hvv}{\ensuremath{H \rightarrow VV}}
+\newcommand{\hww}{\ensuremath{H \rightarrow WW}}
+\newcommand{\ggWW}{\ensuremath{gg{\rightarrow\,}WW}}
+\newcommand{\hWWlnln}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}\ell\nu\ell\nu}}
+\newcommand{\hWWlvlv}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}\ell\nu\ell\nu}}
+\newcommand{\hwwlnln}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}\ell\nu\ell\nu}}
+
+\newcommand{\hWWenmun}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}e\nu\mu\nu}}
+
+\newcommand{\hWWevmuv}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}e\nu\mu\nu}}
+\newcommand{\hwwenmun}{\ensuremath{H{\rightarrow\,}WW^{*}{\rightarrow\,}e\nu\mu\nu}}
+\pdfstringdefDisableCommands{%
+  \def\hwwenmun{H -> WW* -> enu munu}%
+}
+\newcommand{\lnln}{\ensuremath{\ell\nu\ell\nu}}
+\newcommand{\enmun}{\ensuremath{e\nu\mu\nu}}
+
+\newcommand{\hWWlnqq}{\ensuremath{H \rightarrow WW \rightarrow \ell\nu q\overline{q}'}}
+\newcommand{\lnqq}{\ensuremath{\ell\nu q\overline{q}'}}
+\newcommand{\hzg}{\ensuremath{H \rightarrow Z \gamma}}
+\newcommand{\hzz}{\ensuremath{H \rightarrow ZZ}}
+\newcommand{\hZZ}{\ensuremath{H \rightarrow ZZ}}
+\newcommand{\hZZllnn}{\ensuremath{H \rightarrow ZZ\rightarrow \ell^+\ell^-\nu\overline{\nu}}}
+\newcommand{\hZZllqq}{\ensuremath{H \rightarrow ZZ\rightarrow \ell^+\ell^- q\overline{q}}}
+\newcommand{\hZZllll}{\ensuremath{H{\rightarrow\,}ZZ^{*}{\rightarrow\,}4\ell}}
+\pdfstringdefDisableCommands{%
+  \def\hZZllll{H -> ZZ* -> 4l}%
+}
+\newcommand{\hzzllnn}{\ensuremath{H \rightarrow ZZ\rightarrow \ell^+\ell^-\nu\overline{\nu}}}
+\newcommand{\hzzllqq}{\ensuremath{H \rightarrow ZZ\rightarrow \ell^+\ell^- q\overline{q}}}
+\newcommand{\hzzllll}{\ensuremath{H \rightarrow ZZ^{*}\rightarrow 4\ell}}
+\newcommand{\hzzmmmm}{\ensuremath{H \rightarrow ZZ^{*}\rightarrow 4\mu}}
+\newcommand{\hzzeemm}{\ensuremath{H \rightarrow ZZ^{*}\rightarrow 2e\,2\mu}}
+\newcommand{\htt}{\ensuremath{H \rightarrow \tau\tau}}
+\newcommand{\hmm}{\ensuremath{H \rightarrow \mu\mu}}
+%\newcommand{\htt}{\ensuremath{H \rightarrow \tau^+\tau^-}}
+\newcommand{\hbb}{\ensuremath{H \rightarrow b\bar{b}}}
+\newcommand{\llnn}{\ensuremath{\ell^+\ell^-\nu\bar{\nu}}}
+\newcommand{\hllnn}{\ensuremath{H \rightarrow ZZ \rightarrow \llnn}}
+\newcommand{\zzllnn}{\ensuremath{ZZ \rightarrow \llnn}}
+\newcommand{\llll}{\ensuremath{\ell^+\ell^-\ell^+\ell^-}}
+\newcommand{\fourl}{\ensuremath{4\ell}}
+\newcommand{\mfourl}{\ensuremath{m_{4\ell}}}
+\newcommand{\hllll}{\ensuremath{H{\rightarrow\,}ZZ^{*}{\rightarrow\,}\llll}}
+\newcommand{\hfourl}{\ensuremath{H{\rightarrow\,}ZZ^{*}{\rightarrow\,}\fourl}}
+\newcommand{\llbb}{\ensuremath{\ell^+\ell^-b\bar{b}}}
+\newcommand{\lvbb}{\ensuremath{\ell\nu b\bar{b}}}
+\newcommand{\Hllbb}{\ensuremath{ZH{\rightarrow\,}\ell^+\ell^-b\bar{b}}}
+\newcommand{\Hvvbb}{\ensuremath{ZH{\rightarrow\,}\nu\nu b\bar{b}}}
+\newcommand{\Hlvbb}{\ensuremath{WH{\rightarrow\,}\ell\nu b\bar{b}}}
+\newcommand{\wbb}{\ensuremath{Wb\bar{b}}}
+\newcommand{\Zbb}{\ensuremath{Zb\bar{b}}}
+\newcommand{\Zjj}{\ensuremath{Zq\bar{q}}}
+\newcommand{\hllbb}{\ensuremath{H \rightarrow ZZ \rightarrow \llbb}}
+\newcommand{\heenn}{\ensuremath{H \rightarrow ZZ \rightarrow e^+e^-\nu\bar{\nu}}}
+\newcommand{\hmmnn}{\ensuremath{H \rightarrow ZZ \rightarrow \mu^+\mu^-\nu\bar{\nu}}}
+\renewcommand{\mh}{\ensuremath{m_{H}}}
+\newcommand{\wtolv}{\ensuremath{W{\rightarrow\,}\ell\nu}}
+\newcommand{\vtolvvv}{\ensuremath{V{\rightarrow\,}\ell\nu,\nu\nu}}
+\newcommand{\wtotv}{\ensuremath{W{\rightarrow\,}\tau\nu}}
+\newcommand{\ztoll}{\ensuremath{Z{\rightarrow\,}\ell\ell}}
+\newcommand{\ztott}{\ensuremath{Z{\rightarrow\,}\tau\tau}}
+\newcommand{\ztovv}{\ensuremath{Z{\rightarrow\,}\nu\nu}}
+\newcommand{\ztoee}{\ensuremath{Z{\rightarrow\,}e^+e^-}}
+\newcommand{\tthbb}{\ensuremath{t\overline{t}}\hbb}
+\newcommand{\htollbb}{\hllbb}
+\newcommand{\htollnunu}{\hllnn}
+\newcommand{\zztollnunu}{\zzllnn}
+\newcommand{\htollll}{$H{\rightarrow\,}ZZ^{*}{\rightarrow\,}4\ell$}
+\newcommand{\htoeenunu}{\heenn}
+\newcommand{\htomumununu}{\hmmnn}
+\newcommand{\lumiuncertainty}{$\pm3.7$\%}
+\newcommand{\lhood}{\ensuremath{{\cal L}}}
+\newcommand{\gaussprob}{\ensuremath{\textrm{Norm}(\delta_i|\bar{\delta}_i)}}
+\newcommand{\nuisance}{\ensuremath{m_{\delta_i}}}
+\newcommand{\ZZbkg}{\ensuremath{ZZ^{*}}}
+\newcommand{\zz}{\ensuremath{ZZ}}
+\newcommand{\ww}{\ensuremath{WW}}
+\newcommand{\wz}{\ensuremath{WZ}}
+\newcommand{\zzstar}{\ensuremath{ZZ^{*}}}
+\newcommand{\wwstar}{\ensuremath{WW^{*}}}
+\newcommand{\wgamma}{\ensuremath{W\gamma}}
+\newcommand{\wgammastar}{\ensuremath{W\gamma^{*}}}
+\newcommand{\Wjets}{$W$+jets}
+\newcommand{\SM}{Standard Model}
+\newcommand{\expect}{^{\text{exp}}}
+\newcommand{\httlh}{\ensuremath{H\rightarrow \tau\tau \rightarrow \ell \tau_{had} 3 \nu }}
+\newcommand{\httllj}{\ensuremath{H\rightarrow \tau\tau \rightarrow \ell^+\ell^-4\nu }}
+\newcommand{\lh}{\ensuremath{\ell\tau_{had} 3 \nu}}
+\newcommand{\llj}{\ensuremath{\tau_{\ell} \tau_{\ell} + jet}}
+\newcommand{\ttoWb}{t{\rightarrow\,}Wb}
+
+%\newcommand{\gaussprob}{\ensuremath{N(\delta_i| 0)}}
+
+%\newcommand\htollll{$H\to ZZ\to\ell^+\ell^-\ell^+\ell^-$\ }
+\newcommand{\htollvv}{$H\to ZZ\to\ell^+\ell^-\nu\bar{\nu}$\ }
+\newcommand{\htollqq}{$H\to ZZ\to\ell^+\ell^- q \bar{q}$\ }
+%\newcommand\htollbb{$H\to ZZ\to\ell^+\ell^- b\bar{b}$\ }
+\newcommand{\htoeevv}{$H\to ZZ\to ee\nu\nu$\ }
+\newcommand{\htoeeqq}{$H\to ZZ\to eeq \bar{q}$\ }
+\newcommand{\htouuvv}{$H\to ZZ\to\mu\mu\nu\nu$\ }
+\newcommand{\htouuqq}{$H\to ZZ\to\mu\mu q \bar{q}$\ }
+\newcommand{\inpb}{pb$^{-1}$}
+\newcommand{\infb}{fb$^{-1}$}
+
+\def\vec#1{{\mbox{$\boldsymbol{#1}$}}}
+
+\renewcommand{\ttbar}{\ensuremath{t\overline{t}}}
+\pdfstringdefDisableCommands{%
+  \def\ttbar{ttbar}%
+}
+
+%--- Statistics section
+\def\half{\mbox{\small $\frac{1}{2}$}}
+\newcommand{\onehalf}{\nicefrac{1}{2}}
+
+\newcommand{\Pois}{{\ensuremath{\textrm{Pois}}}}
+\newcommand{\LN}{{\ensuremath{P_{\textrm{LN}}}}}
+\newcommand{\Gauss}{{\ensuremath{\textrm{Gauss}}}}
+\newcommand{\PGamma}{{\ensuremath{P_{\;\Gamma}}}}
+\newcommand{\data}{{\ensuremath{\mathcal{D}}}}
+\newcommand{\globs}{{\ensuremath{\mathcal{G}}}}
+\newcommand{\datasim}{{\ensuremath{\mathcal{D}_{\textrm{sim}}}}}
+\newcommand{\F}{{\ensuremath{\mathbf{f}}}}
+\newcommand{\f}{{\ensuremath{\mathbf{f}}}}
+\newcommand{\nuisObs}{\ensuremath{\vec\theta_{\textrm{obs}}}}
+
+\newcommand{\hathatthetamu}{\ensuremath{\hat{\hat{\vec\theta}}(\mu)}}
+\newcommand{\hathatthetao}{\ensuremath{\hat{\hat{\vec\theta}}(\mu=0)}}
+\newcommand{\hathatthetamuobs}{\ensuremath{\hat{\hat{\vec\theta}}(\mu=0)}}
+\newcommand{\ptfourl}{\ensuremath{p_{\mathrm{T}}^{\fourl}}}
+\newcommand{\ptll}{\ensuremath{p_{\mathrm{T}}^{\ell\ell}}}
+\newcommand{\ptlmet}{\ensuremath{p_{\mathrm{T}}^{\ell+\MET}}}
+\newcommand{\ptleadingj}{\ensuremath{p_{\mathrm{T}}^{j1}}}
+
+\def\roofit{\texttt{RooFit}}
+\def\roostats{\texttt{RooStats}}
+\newcommand{\HistFactory}{\texttt{HistFactory}}
+\newcommand{\NormFactor}{\texttt{NormFactor}}
+\newcommand{\OS}{\texttt{OverallSys}}
+\newcommand{\HS}{\texttt{HistoSys}}
+\newcommand{\SF}{\texttt{ShapeFactor}}
+\renewcommand{\SS}{\texttt{ShapeSys}}
+
+\newcommand{\seventev}{{\ensuremath{\sqrt{s}=7~\TeV}}}
+\newcommand{\eighttev}{{\ensuremath{\sqrt{s}=8~\TeV}}}
+\newcommand{\thirteentev}{{\ensuremath{\sqrt{s}=13~\TeV}}}
+
+\newcommand{\fixme}[1]{\textbf{\textcolor{red}{FIXME: #1}}}
+\newcommand{\fixch}[1]{\textbf{\textcolor{blue}{CH: #1}}}
+\newcommand{\fixhy}[1]{\textbf{\textcolor{red}{HY: #1}}}
+
+
+% 5XS
+\newcommand{\XSggF}{48.5\,\pm 5.8}
+\newcommand{\XSVBF}{3.52\,\pm 1.4}
+\newcommand{\XSWH}{1.37\,\pm 1.56}
+\newcommand{\XSZH}{0.88\,\pm 1.33}
+\newcommand{\XSttH}{0.51\,\pm 0.34}
+
+\newcommand{\XSggFSM}{44.5\pm 2.3}
+\newcommand{\XSVBFSM}{3.52\pm 0.07}
+\newcommand{\XSWHSM}{1.37\pm 0.03}
+\newcommand{\XSZHSM}{0.88\pm 0.02}
+\newcommand{\XSttHSM}{0.51\pm 0.06}
+
+% Model3
+\newcommand{\RESULTggFZZ}{1.67\,^{+0.41}_{-0.37}}
+\newcommand{\RESULTggFZZErr}{^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}}
+\newcommand{\RESULTggFZZSM}{1.18\pm 0.07}
+
+\newcommand{\RESULTNewRVBF}{0.25\,^{+0.15}_{-0.10}}
+\newcommand{\RESULTNewRVBFErr}{^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}}
+\newcommand{\RESULTNewRVBFSM}{0.079\pm 0.004}
+
+\newcommand{\RESULTNewRyy}{0.041\,^{+0.015}_{-0.013}}
+\newcommand{\RESULTNewRyyErr}{^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}\,^{+xxx}_{-xxx}}
+\newcommand{\RESULTNewRyySM}{0.086\pm 0.003}
+
+\newcommand{\ps}{\ensuremath{\text{{ps}}}}
+
+% For table spacing
+\newcommand{\0}{\phantom{0}}
+\newcommand{\dpt}{\phantom{.}}
+
+\newcommand{\mssmMh}{\ensuremath{M_h^{125}}\xspace}
+\newcommand{\mssmMhchi}{\ensuremath{M_h^{125}(\tilde{\chi})}\xspace}
+\newcommand{\mssmMhtau}{\ensuremath{M_h^{125}(\tilde\tau)}\xspace}      
+\newcommand{\mssmMhalign}{\ensuremath{M_h^{125}}\textrm{(alignment)}\xspace}
+\newcommand{\mssmMhCPV}{\ensuremath{M_{h_1}^{125}}\textrm{(CPV)}\xspace}
+\newcommand{\mssmMhEFT}{\ensuremath{M_{h,\text{EFT}}^{125}}\xspace}
+\newcommand{\mssmMhEFTchi}{\ensuremath{M_{h,\text{EFT}}^{125}(\tilde \chi)}\xspace}
+
+
+
+\newcommand{\cG}{\ensuremath{c_{G}}\xspace}
+\newcommand{\cGtil}{\ensuremath{c_{Gtil}}\xspace}
+\newcommand{\cW}{\ensuremath{c_{W}}\xspace}
+\newcommand{\cWtil}{\ensuremath{c_{Wtil}}\xspace}
+\newcommand{\cH}{\ensuremath{c_{H}}\xspace}
+\newcommand{\cHbox}{\ensuremath{c_{H\Box}}\xspace}
+\newcommand{\cHDD}{\ensuremath{c_{H\!D\!D}}\xspace}
+\newcommand{\cHG}{\ensuremath{c_{H\!G}}\xspace}
+\newcommand{\cHGtil}{\ensuremath{c_{HGtil}}\xspace}
+\newcommand{\cHW}{\ensuremath{c_{H\!W}}\xspace}
+\newcommand{\cHWtil}{\ensuremath{c_{HWtil}}\xspace}
+\newcommand{\cHB}{\ensuremath{c_{H\!B}}\xspace}
+\newcommand{\cHBtil}{\ensuremath{c_{HBtil}}\xspace}
+\newcommand{\cHWB}{\ensuremath{c_{HW\!B}}\xspace}
+\newcommand{\cHWBtil}{\ensuremath{c_{HWBtil}}\xspace}
+\newcommand{\ceHAbs}{\ensuremath{c_{eH}}\xspace}
+\newcommand{\cuHAbs}{\ensuremath{c_{uH}}\xspace}
+\newcommand{\cdHAbs}{\ensuremath{c_{dH}}\xspace}
+\newcommand{\ceWAbs}{\ensuremath{c_{eW}}\xspace}
+\newcommand{\ceBAbs}{\ensuremath{c_{eB}}\xspace}
+\newcommand{\cuGAbs}{\ensuremath{c_{uG}}\xspace}
+\newcommand{\cuWAbs}{\ensuremath{c_{uW}}\xspace}
+\newcommand{\cuBAbs}{\ensuremath{c_{uB}}\xspace}
+\newcommand{\cdGAbs}{\ensuremath{c_{dG}}\xspace}
+\newcommand{\cdWAbs}{\ensuremath{c_{dW}}\xspace}
+\newcommand{\cdBAbs}{\ensuremath{c_{dB}}\xspace}
+\let\ceHabs\ceHAbs
+\let\cuHabs\cuHAbs
+\let\cdHabs\cdHAbs
+\let\ceWabs\ceWAbs
+\let\ceBabs\ceBAbs
+\let\cuGabs\cuGAbs
+\let\cuWabs\cuWAbs
+\let\cuBabs\cuBAbs
+\let\cdGabs\cdGAbs
+\let\cdWabs\cdWAbs
+\let\cdBabs\cdBAbs
+\newcommand{\cHud}{\ensuremath{c_{Hud}}\xspace}
+\newcommand{\ceH}{\ensuremath{c_{eH}}\xspace}
+\newcommand{\cuH}{\ensuremath{c_{uH}}\xspace}
+\newcommand{\cdH}{\ensuremath{c_{dH}}\xspace}
+\newcommand{\ceW}{\ensuremath{c_{eW}}\xspace}
+\newcommand{\ceB}{\ensuremath{c_{eB}}\xspace}
+\newcommand{\cuG}{\ensuremath{c_{uG}}\xspace}
+\newcommand{\cuW}{\ensuremath{c_{uW}}\xspace}
+\newcommand{\cuB}{\ensuremath{c_{uB}}\xspace}
+\newcommand{\cdG}{\ensuremath{c_{dG}}\xspace}
+\newcommand{\cdW}{\ensuremath{c_{dW}}\xspace}
+\newcommand{\cdB}{\ensuremath{c_{dB}}\xspace}
+\newcommand{\cHe}{\ensuremath{c_{He}}\xspace}
+\newcommand{\cHu}{\ensuremath{c_{Hu}}\xspace}
+\newcommand{\cHd}{\ensuremath{c_{Hd}}\xspace}
+\newcommand{\coefIndexNotPrime}[1]{\if#1\empty\else{\ifthenelse{\equal{#1}{1}}{\prime}{\ifthenelse{\equal{#1}{31}}{\coefIndexNot{3}\prime}{\scalebox{0.5}{(#1)}}}}\fi}
+\newcommand{\coefIndexNot}[1]{\if#1\empty\else{\scalebox{0.5}{(#1)}}\fi}
+
+\newcommand{\cHl}[1]{\ensuremath{c_{Hl}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cHq}[1]{\ensuremath{c_{Hq}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cll}[1]{\ensuremath{c_{ll}^{\protect\coefIndexNotPrime{#1}}}\xspace}
+\newcommand{\cqq}[1]{\ensuremath{c_{qq}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\clq}[1]{\ensuremath{c_{lq}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cuu}[1]{\ensuremath{c_{uu}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cud}[1]{\ensuremath{c_{ud}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cqu}[1]{\ensuremath{c_{qu}^{\protect\coefIndexNot{#1}}}\xspace}
+\newcommand{\cqd}[1]{\ensuremath{c_{qd}^{\protect\coefIndexNot{#1}}}\xspace}
+
+\newcommand{\idxcG}{\ensuremath{{G}}\xspace}
+\newcommand{\idxcGtil}{\ensuremath{{Gtil}}\xspace}
+\newcommand{\idxcW}{\ensuremath{{W}}\xspace}
+\newcommand{\idxcWtil}{\ensuremath{{Wtil}}\xspace}
+\newcommand{\idxcH}{\ensuremath{{H}}\xspace}
+\newcommand{\idxcHbox}{\ensuremath{{H\Box}}\xspace}
+\newcommand{\idxcHDD}{\ensuremath{{H\!D\!D}}\xspace}
+\newcommand{\idxcHG}{\ensuremath{{H\!G}}\xspace}
+\newcommand{\idxcHGtil}{\ensuremath{{HGtil}}\xspace}
+\newcommand{\idxcHW}{\ensuremath{{H\!W}}\xspace}
+\newcommand{\idxcHWtil}{\ensuremath{{HWtil}}\xspace}
+\newcommand{\idxcHB}{\ensuremath{{H\!B}}\xspace}
+\newcommand{\idxcHBtil}{\ensuremath{{HBtil}}\xspace}
+\newcommand{\idxcHWB}{\ensuremath{{HW\!B}}\xspace}
+\newcommand{\idxcHWBtil}{\ensuremath{{HWBtil}}\xspace}
+\newcommand{\idxceHAbs}{\ensuremath{{eH}}\xspace}
+\newcommand{\idxcuHAbs}{\ensuremath{{uH}}\xspace}
+\newcommand{\idxcdHAbs}{\ensuremath{{dH}}\xspace}
+\newcommand{\idxceWAbs}{\ensuremath{{eW}}\xspace}
+\newcommand{\idxceBAbs}{\ensuremath{{eB}}\xspace}
+\newcommand{\idxcuGAbs}{\ensuremath{{uG}}\xspace}
+\newcommand{\idxcuWAbs}{\ensuremath{{uW}}\xspace}
+\newcommand{\idxcuBAbs}{\ensuremath{{uB}}\xspace}
+\newcommand{\idxcdGAbs}{\ensuremath{{dG}}\xspace}
+\newcommand{\idxcdWAbs}{\ensuremath{{dW}}\xspace}
+\newcommand{\idxcdBAbs}{\ensuremath{{dB}}\xspace}
+\newcommand{\idxcHud}{\ensuremath{{Hud}}\xspace}
+\newcommand{\idxceH}{\ensuremath{{eH}}\xspace}
+\newcommand{\idxcuH}{\ensuremath{{uH}}\xspace}
+\newcommand{\idxcdH}{\ensuremath{{dH}}\xspace}
+\newcommand{\idxceW}{\ensuremath{{eW}}\xspace}
+\newcommand{\idxceB}{\ensuremath{{eB}}\xspace}
+\newcommand{\idxcuG}{\ensuremath{{uG}}\xspace}
+\newcommand{\idxcuW}{\ensuremath{{uW}}\xspace}
+\newcommand{\idxcuB}{\ensuremath{{uB}}\xspace}
+\newcommand{\idxcdG}{\ensuremath{{dG}}\xspace}
+\newcommand{\idxcdW}{\ensuremath{{dW}}\xspace}
+\newcommand{\idxcdB}{\ensuremath{{dB}}\xspace}
+\newcommand{\idxcHe}{\ensuremath{{He}}\xspace}
+\newcommand{\idxcHu}{\ensuremath{{Hu}}\xspace}
+\newcommand{\idxcHd}{\ensuremath{{Hd}}\xspace}
+\newcommand{\idxcHl}[1]{\ensuremath{{Hl}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcHq}[1]{\ensuremath{{Hq}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcll}[1]{\ensuremath{{ll}^{\coefIndexNotPrime{#1}}}\xspace}
+\newcommand{\idxcqq}[1]{\ensuremath{{qq}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxclq}[1]{\ensuremath{{lq}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcuu}[1]{\ensuremath{{uu}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcud}[1]{\ensuremath{{ud}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcqu}[1]{\ensuremath{{qu}^{\coefIndexNot{#1}}}\xspace}
+\newcommand{\idxcqd}[1]{\ensuremath{{qd}^{\coefIndexNot{#1}}}\xspace}
+
+%\newcommand\cHBWD[1]{\ensuremath{c_{\begin{adjustbox}{scale=0.7,minipage=8em}\idxcHW,\idxcHB,\idxcHWB,\linebreak\idxcHDD,\idxcuWAbs,\idxcuBAbs\end{adjustbox}}^{\textrm{EV}#1}}}
+\newcommand\cHBWD[1]{\ensuremath{c_{\idxcHW,\idxcHB,\idxcHWB,\idxcHDD,\idxcuWAbs,\idxcuBAbs}^{\ensuremath{\left[#1\right]}}}}
+%\newcommand\cggHtop[1]{\ensuremath{c_{\begin{adjustbox}{scale=0.7,minipage=16em}\idxcHG,\idxcuGAbs,\idxcuHAbs,\idxcqq1,\idxcqq{11},\idxcqq3,\idxcqq{31},\linebreak\idxcuu{},\idxcuu1,\idxcud8,\idxcqu1,\idxcqu8,\idxcqd8,\idxcG\end{adjustbox}}^{\textrm{EV}#1}}}
+\newcommand\cggHtop[1]{\ensuremath{c_{\idxcHG,\idxcuGAbs,\idxcuHAbs,\textrm{top}}^{\ensuremath{\left[#1\right]}}}}
+\newcommand\cHle[1]{\ensuremath{c_{\idxcHl1,\idxcHe}^{\ensuremath{\left[#1\right]}}}}
+\newcommand\cHudq[1]{\ensuremath{c_{\idxcHu,\idxcHd,\idxcHq1}^{\ensuremath{\left[#1\right]}}}}
+\newcommand\cHlll[1]{\ensuremath{c_{\idxcHl3,\idxcll1}^{\ensuremath{\left[#1\right]}}}}
+
+\newcommand\multilepopOne  [6]{\ensuremath{(\bar #1_{#3} \gamma_\mu        #1_{#4})(\bar #2_{#5} \gamma^\mu        #2_{#6})}}
+\newcommand\multilepopThree[6]{\ensuremath{(\bar #1_{#3} \gamma_\mu \tau^I #1_{#4})(\bar #2_{#5} \gamma^\mu \tau^I #2_{#6})}}
+\newcommand\multilepopEight[6]{\ensuremath{(\bar #1_{#3} \gamma_\mu T^A #1_{#4})(\bar #2_{#5} \gamma^\mu T^A #2_{#6})}}   
+
+\newcommand\opHbox       {\ensuremath{(H^\dag H)\Box(H^\dag H)}}
+\newcommand\opHDD        {\ensuremath{\left(H^\dag D^\mu H\right)^* \left(H^\dag D_\mu H\right)}}
+\newcommand\opHG         {\ensuremath{H^\dag H\, G^A_{\mu\nu} G^{A\mu\nu}  }}
+\newcommand\opHB         {\ensuremath{H^\dag H\, B_{\mu\nu} B^{\mu\nu}}}
+\newcommand\opHW         {\ensuremath{H^\dag H\, W^I_{\mu\nu} W^{I\mu\nu}}}
+\newcommand\opHWB        {\ensuremath{H^\dag \tau^I H\, W^I_{\mu\nu} B^{\mu\nu}}}
+\newcommand\opeHAbs      {\ensuremath{(H^\dag H)(\bar l_p e_r H)}}
+\newcommand\opHlOne      {\ensuremath{(H^\dag i\overleftrightarrow{D}_\mu H)(\bar l_p \gamma^\mu l_r)}}
+\newcommand\opHlThree    {\ensuremath{(H^\dag i\overleftrightarrow{D}^I_\mu H)(\bar l_p \tau^I \gamma^\mu l_r)}}
+\newcommand\opHe         {\ensuremath{(H^\dag i\overleftrightarrow{D}_\mu H)(\bar e_p \gamma^\mu e_r)}}
+\newcommand\opHqOne      {\ensuremath{(H^\dag i\overleftrightarrow{D}_\mu H)(\bar q_p \gamma^\mu q_r)}}
+\newcommand\opHqThree    {\ensuremath{(H^\dag i\overleftrightarrow{D}^I_\mu H)(\bar q_p \tau^I \gamma^\mu q_r)}}
+\newcommand\opHu         {\ensuremath{(H^\dag i\overleftrightarrow{D}_\mu H)(\bar u_p \gamma^\mu u_r)}}
+\newcommand\opuHAbs      {\ensuremath{(H^\dag H)(\bar q_p u_r  \widetilde H)}}
+\newcommand\opdHAbs      {\ensuremath{(H^\dag H)(\bar q_p d_r  \widetilde H)}}
+\newcommand\opHd         {\ensuremath{(H^\dag i\overleftrightarrow{D}_\mu H)(\bar d_p \gamma^\mu d_r)}}
+\newcommand\opuGAbs      {\ensuremath{(\bar q_p \sigma^{\mu\nu} T^A u_r) \widetilde H \, G^A_{\mu\nu} }}
+\newcommand\opuWAbs      {\ensuremath{(\bar q_p \sigma^{\mu\nu} u_r) \tau^I \widetilde H \, W^I_{\mu\nu} }}
+\newcommand\opuBAbs      {\ensuremath{(\bar q_p \sigma^{\mu\nu} u_r) \widetilde H \, B_{\mu\nu} }}
+\newcommand\opllOne      {\ensuremath{\multilepopOne{l}{l}{p}{t}{r}{s}    }}
+\newcommand\opqqOne      {\ensuremath{\multilepopOne{q}{q}{p}{t}{r}{s}    }}
+\newcommand\opqqThree    {\ensuremath{\multilepopThree{q}{q}{p}{r}{s}{t}    }}
+\newcommand\opqqOneOne   {\ensuremath{\multilepopOne{q}{q}{p}{t}{r}{s}    }}
+\newcommand\opqqThreone  {\ensuremath{\multilepopThree{q}{q}{p}{t}{r}{s}    }}
+\newcommand\opuu         {\ensuremath{\multilepopOne{u}{u}{p}{r}{s}{t}    }}
+\newcommand\opuuOne      {\ensuremath{\multilepopOne{u}{u}{p}{t}{r}{s}    }}
+\newcommand\opquOne      {\ensuremath{\multilepopOne{q}{u}{p}{t}{r}{s}    }}
+\newcommand\opudEight    {\ensuremath{\multilepopEight{u}{d}{p}{r}{s}{t}    }}
+\newcommand\opquEight    {\ensuremath{\multilepopEight{q}{u}{p}{r}{s}{t}    }}
+\newcommand\opqdEight    {\ensuremath{\multilepopEight{q}{d}{p}{r}{s}{t}    }}
+\newcommand\opG          {\ensuremath{f^{ABC} G^{A\nu}_\mu G^{B\rho}_\nu G^{C\mu}_\rho}}
+\newcommand\opW          {\ensuremath{\epsilon^{IJK} W^{I\nu}_\mu W^{J\rho}_\nu W^{K\mu}_\rho}}
+
+\def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
+
+%SOME DEFINITIONS FROM THE INTERNAL NOTE
+%%% 2HDM %%
+\newcommand{\cbma}{\ensuremath{\cos(\beta-\alpha)}\xspace}
+\newcommand{\cbpa}{\ensuremath{\cos(\beta+\alpha)}\xspace}
+\newcommand{\sbma}{\ensuremath{\sin(\beta-\alpha)}\xspace}
+\newcommand{\cba}{\ensuremath{c_{\beta-\alpha}}\xspace}
+\newcommand{\sba}{\ensuremath{s_{\beta-\alpha}}\xspace}
+\newcommand{\tb}{\ensuremath{\tan\beta}\xspace}
+
+\def\powhegbox{\textsc{Powheg Box}}
+\def\hres{\textsc{Hres2.3}}
+\def\amc{\textsc{MadGraph5\textrm{\_}aMC@NLO}}
+\def\nnpdf{\textsc{NNPDF3.0}}
+\def\nnpdflo{\textsc{NNPDF2.3LO}}
+\def\nnpdfnlo{\textsc{NNPDF3.0NLO}}
+\def\ctten{\textsc{CT10}}
+\def\pythia{\textsc{Pythia8}}
+\def\herwigpp{\textsc{Herwig++}}
+\def\sherpa{\textsc{Sherpa}}
+
+%EFT parameters
+\newcommand{\cuGRe}{\ensuremath{c_{uG}}\xspace}
+\newcommand{\cuHRe}{\ensuremath{c_{uH}}\xspace}
+\newcommand{\ceHRe}{\ensuremath{c_{eH}}\xspace}
+\newcommand{\cdHRe}{\ensuremath{c_{dH}}\xspace}
+\newcommand{\ceWRe}{\ensuremath{c_{eW}}\xspace}
+\newcommand{\ceBRe}{\ensuremath{c_{eB}}\xspace}
+\newcommand{\cuWRe}{\ensuremath{c_{uW}}\xspace}
+\newcommand{\cuBRe}{\ensuremath{c_{uB}}\xspace}
+\newcommand{\cdGRe}{\ensuremath{c_{dG}}\xspace}
+\newcommand{\cdWRe}{\ensuremath{c_{dW}}\xspace}
+\newcommand{\cdBRe}{\ensuremath{c_{dB}}\xspace}
+\newcommand{\cHudRe}{\ensuremath{|c_{Hud}|}\xspace}
+
+\newcommand\cEW[1]{\ensuremath{c_{\idxcHW,\idxcHB,\idxcHWB,\idxcHDD,\idxcuWRe,\idxcuBRe,\idxcW}^{\ensuremath{\left[#1\right]}}}}
+\newcommand\cggH[1]{\ensuremath{c_{\idxcHG,\idxcuGRe,\idxcuHRe}^{\ensuremath{\left[#1\right]}}}}
+\newcommand\ctop[1]{\ensuremath{c_{top}^{\ensuremath{\left[#1\right]}}}}
+
+\newcommand{\idxceHRe}{\ensuremath{{eH}}\xspace}
+\newcommand{\idxcuHRe}{\ensuremath{{uH}}\xspace}
+\newcommand{\idxcdHRe}{\ensuremath{{dH}}\xspace}
+\newcommand{\idxceWRe}{\ensuremath{{eW}}\xspace}
+\newcommand{\idxceBRe}{\ensuremath{{eB}}\xspace}
+\newcommand{\idxcuGRe}{\ensuremath{{uG}}\xspace}
+\newcommand{\idxcuWRe}{\ensuremath{{uW}}\xspace}
+\newcommand{\idxcuBRe}{\ensuremath{{uB}}\xspace}
+\newcommand{\idxcdGRe}{\ensuremath{{dG}}\xspace}
+\newcommand{\idxcdWRe}{\ensuremath{{dW}}\xspace}
+\newcommand{\idxcdBRe}{\ensuremath{{dB}}\xspace}
+
+\makeatletter
+\newcommand{\overleftrightsmallarrow}{\mathpalette{\overarrowsmall@\leftrightarrowfill@}}
+\newcommand{\overrightsmallarrow}{\mathpalette{\overarrowsmall@\rightarrowfill@}}
+\newcommand{\overleftsmallarrow}{\mathpalette{\overarrowsmall@\leftarrowfill@}}
+\newcommand{\overarrowsmall@}[3]{%
+  \vbox{%
+    \ialign{%
+      ##\crcr
+      #1{\smaller@style{#2}}\crcr
+      \noalign{\nointerlineskip}%
+      $\m@th\hfil#2#3\hfil$\crcr
+    }%
+  }%
+}
+\def\smaller@style#1{%
+  \ifx#1\displaystyle\scriptstyle\else
+    \ifx#1\textstyle\scriptstyle\else
+      \scriptscriptstyle
+    \fi
+  \fi
+}
+\makeatother
+\newcommand{\te}[1]{\ensuremath\overleftrightsmallarrow{#1}}
+
+%----------------------------------------------------
+% HERE WE ADD THE RESULTS
+%\newcommand{\muresultobs}{\mbox{\ensuremath{\mu = 1.06\pm 0.06 }}}
+%\newcommand{\muresultobssplit}{\mbox{\ensuremath{\mu = 1.06^{+0.06}_{-0.06}\, (\text{stat})\, {}^{+0.03}_{-0.03}\, (\text{exp})\, {}^{+0.04}_{-0.04}\, (\text{theoSig})\, {}^{0.02}_{-0.02}\, (\text{theoBkg})}}}
+
+%\newcommand{\muresultobs}{\mbox{\ensuremath{1.057^{+0.064}_{-0.062}} }}
+\newcommand{\muresultobs}{\mbox{\ensuremath{1.06\pm 0.06} }}
+\newcommand{\muresultexp}{\mbox{\ensuremath{1.00\pm 0.06} }}
+
+%\newcommand{\muresultobssplit}{\mbox{\ensuremath{1.057\pm 0.030\, (\text{stat.})\, ^{+0.032}_{-0.034}\, (\text{exp.})\, ^{+0.039}_{-0.042}\, (\text{sig.\ th.})\, ^{+0.018}_{-0.019}\, (\text{bkg.\ th.})}}}
+\newcommand{\muresultobssplit}{\mbox{\ensuremath{1.06\pm 0.03\, (\text{stat.})\, \pm 0.03\, (\text{exp.})\, \pm 0.04\, (\text{sig.\ th.})\, \pm 0.02\, (\text{bkg.\ th.})}}}
+\newcommand{\muresultexpsplit}{\mbox{\ensuremath{1.00 \pm 0.03 \,
+(\text{stat.}) \, \pm 0.03 \, (\text{exp.}) \, \pm 0.04 \, (\text{sig.\ th.})\, \pm 0.02\, (\text{bkg.\ th.})}}}
+

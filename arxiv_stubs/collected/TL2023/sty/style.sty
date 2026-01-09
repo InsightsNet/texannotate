@@ -1,0 +1,74 @@
+
+\usepackage{graphicx}
+\usepackage{framed}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{amsmath}
+\usepackage[doublespacing]{setspace}
+\usepackage{appendix}
+\usepackage{textgreek}
+\usepackage{blindtext}
+\usepackage{lscape}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{ragged2e}
+\usepackage[bottom]{footmisc}
+\usepackage[style=authoryear, autocite=footnote, doi=false, isbn = false, maxbibnames=100, natbib]{biblatex}
+\addbibresource{ai.lit.bib}
+\setlength{\parindent}{3em}
+
+\usepackage[linktocpage=true, linktoc=all, hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage[super]{nth}
+\usepackage{fancyref}
+
+\usepackage[table]{xcolor} 
+\usepackage{soul} 
+\sethlcolor{orange}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyheadoffset{0cm}
+
+\makeatletter
+\renewcommand{\sectionmark}[1]{%
+\markboth{
+\ \thesection\ #1}{}}
+
+\lhead{\footnotesize }
+\chead{}
+\rhead{\footnotesize Language Bias in ChatGPT}
+\renewcommand{\headrulewidth}{0pt} 
+
+\lfoot{}
+\cfoot{}
+\rfoot{\normalsize \thepage\ }
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{ 
+\fancyhf{}
+\lhead{}
+\rhead{}
+\fancyfoot[R]{} 
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+\makeatother
+
+
+\usepackage{geometry}
+\geometry{%text={16cm,22.5cm},
+					left=3cm,
+					right=3cm,
+					top=3.5cm,
+					bottom=3.5cm,
+					%includehead, includefoot,
+					headheight=2.7cm, 
+					headsep=1.25cm, 
+					footskip=1.5cm,
+					footnotesep=0.4cm}
+
+% For row colouring:
+\newcommand\setrow[1]{\gdef\rowmac{#1}#1\ignorespaces}
+\newcommand\clearrow{\global\let\rowmac\relax}
+\clearrow

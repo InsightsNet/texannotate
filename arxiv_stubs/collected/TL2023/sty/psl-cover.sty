@@ -1,0 +1,319 @@
+% LaTeX PSL thesis cover template
+% Copyright (c) 2016, Pierre Guillou
+% All rights reserved.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% See the GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.
+% If not, see <http://www.gnu.org/licenses/>.
+
+\NeedsTeXFormat{LaTeX2e}
+
+\ProvidesPackage{psl-cover}
+
+\RequirePackage{xcolor}
+\RequirePackage{iftex}
+\RequirePackage{tikz}
+\usetikzlibrary{backgrounds}
+
+\definecolor{pslpurple}{RGB}{62, 55, 134}
+
+\newcommand*{\institute}[1]{\gdef\@institute{#1}}
+\newcommand*{\@institute}{l'Observatoire de Paris}
+
+\newcommand*{\specialty}[1]{\gdef\@specialty{#1}}
+\newcommand*{\@specialty}{Indiquez votre sp\'{e}cialit\'{e}}
+
+\newcommand*{\doctoralschool}[2]{\gdef\@doctoralschoolname{#1}%
+  \gdef\@doctoralschoolnumber{#2}}
+\newcommand*{\@doctoralschoolname}{Nom d'\'{e}cole doctorale nom
+  d'\'{e}cole doctorale}
+\newcommand*{\@doctoralschoolnumber}{NNN}
+
+\newcommand*{\supervisor}[2][]{\gdef\@supervisor{#2}%
+  \gdef\@manager{#1}}
+\newcommand*{\@supervisor}{Pr\'{e}nom Nom}
+
+\newcommand{\jury}[1]{\long\gdef\@jury{#1}}
+\newcommand*{\@jury}{}
+
+\newcommand*{\logopath}[1]{\gdef\@logopath{#1}}
+\newcommand*{\@logopath}{./Figures/}
+
+\newcommand{\frabstract}[1]{\long\gdef\@frabstract{#1}}
+\newcommand*{\@frabstract}{}
+\newcommand{\thefrabstract}{\@frabstract}
+\newcommand{\enabstract}[1]{\long\gdef\@enabstract{#1}}
+\newcommand*{\@enabstract}[1]{}
+\newcommand{\theenabstract}{\@enabstract}
+\newcommand*{\frkeywords}[1]{\gdef\@frkeywords{#1}}
+\newcommand*{\@frkeywords}{\par}
+\newcommand{\thefrkeywords}{\@frkeywords}
+\newcommand{\enkeywords}[1]{\gdef\@enkeywords{#1}}
+\newcommand*{\@enkeywords}[1]{\par}
+\newcommand{\theenkeywords}{\@enkeywords}
+
+\ifLuaTeX{}
+\newfontfamily\pslfont{arial}
+\newenvironment{pslfontenv}{\pslfont}{\par}
+\else
+\fi
+\ifXeTeX{}
+\newfontfamily\pslfont{arial}
+\newenvironment{pslfontenv}{\pslfont}{\par}
+\else
+\fi
+\ifPDFTeX{}
+\newenvironment{pslfontenv}{\fontfamily{phv}\selectfont}{\par}
+\else
+\fi
+
+\newif\if@nomaketitle\@nomaketitlefalse
+
+\DeclareOption{nomaketitle}{
+  \@nomaketitletrue
+}
+\ProcessOptions{}\relax{}
+
+\if@nomaketitle
+\else
+%% Override \maketitle to directly insert cover
+\renewcommand*{\maketitle}{
+  \pslcover{}
+}
+\fi
+
+%% Whole PSL cover, front + back
+\newcommand*{\pslcover}{
+  \pslfrontcover{}
+  \AtEndDocument{\pslbackcover{}}
+}
+
+%% Front PSL cover
+\newcommand*{\pslfrontcover}{
+  \begin{pslfontenv}
+    \thispagestyle{empty}
+    \begin{tikzpicture}[overlay, remember picture,
+      text centered, align=center]
+
+      %% scaled PSL logo
+      \node[on background layer, xshift=12.5cm, yshift=-3.5cm]
+      at (current page.center) {\scalebox{6.25}{\psllogo}};
+
+      %% node origin
+      \coordinate (o) at (current page.center);
+
+      %% header
+      \node[xshift=-85mm, yshift=128.5mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{pslpurple}
+          {\fontsize{18}{21}\selectfont
+            \textbf{TH\`{E}SE DE DOCTORAT}\unskip\strut\par}
+          \vspace{.5cm}
+          {\fontsize{17}{20}\selectfont de l'Universit\'{e} de recherche
+            Paris Sciences et Lettres\\
+            PSL Research University\unskip\strut\par
+          }
+          \vspace{1.8cm}
+          {\fontsize{15}{18}\selectfont
+            \textbf{Pr\'{e}par\'{e}e \`{a} \@institute{}}\unskip\strut\par
+          }
+        \end{minipage}
+      };
+
+      %% thesis title
+      \node[xshift=-82mm, yshift=49mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{.85\paperwidth}
+          \color{white}\fontsize{16}{19}\selectfont
+          \@title{}\unskip\strut\par
+        \end{minipage}
+      };
+
+      %% doctoral school
+      \node[xshift=-70mm, yshift=24mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white} \textbf{\fontsize{16}{19}\selectfont \'{E}cole doctorale
+            n\textsuperscript{o}\@doctoralschoolnumber{}}\unskip\strut\par
+          \vspace{.4cm}
+          {\fontsize{12}{14}\selectfont
+            \expandafter\MakeUppercase\expandafter{\@doctoralschoolname{}}}
+          \unskip\strut\par
+        \end{minipage}
+      };
+
+      %% doctoral specialty
+      \node[xshift=-55mm, yshift=2mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white}
+          \textbf{\fontsize{16}{19}\selectfont Sp\'{e}cialit\'{e}}\quad
+          {\fontsize{11}{13}\selectfont
+            \expandafter\MakeUppercase\expandafter{\@specialty{}}}
+        \end{minipage}
+      };
+
+      %% author and supervisor
+      \node[xshift=-86mm, yshift=-75mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \fontsize{15}{18}\selectfont\color{pslpurple}
+          Soutenue par \textbf{\fontsize{16}{19}\selectfont\@author{}}\\
+          le \@date{}\unskip\strut\par
+          \vspace{1cm}
+          {\fontsize{14}{17}\selectfont
+            Dirig\'{e}e par \textbf{\@supervisor{}}
+            \ifx\@manager\empty
+            \else
+            
+            \hspace{1.85cm} et \hspace{0.2cm} \textbf{\@manager{}}
+            \fi
+            \unskip\strut\par
+          }
+        \end{minipage}
+      };
+
+      %% jury
+      \node[xshift=28mm, yshift=-18.5mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white}
+          \fontsize{11}{13}\selectfont
+          \expandafter\MakeUppercase\expandafter{\textbf{Composition
+              du jury :}}\unskip\strut\par
+          \vspace{.6cm}
+          \setlength{\parskip}{.4cm}
+          \@jury{}
+        \end{minipage}
+      };
+
+      %% logos
+      \coordinate[xshift=-64.3mm, yshift=-118.5mm] (vt0) at (o);
+      \coordinate[xshift=-64.3mm, yshift=-136.5mm] (vt1) at (o);
+      \draw[darkgray] (vt0) -- (vt1);
+      \node[xshift=-75mm, yshift=-126.5mm] at (o) {
+        \includegraphics[width=2cm]{\@logopath/LESIA.png}
+      };
+      \node[xshift=-50mm, yshift=-126.5mm] at (o) {
+        \includegraphics[width=2cm]{\@logopath/logo-psl}
+      };
+
+    \end{tikzpicture}
+  \end{pslfontenv}
+  \clearpage
+  \mbox{}
+  \thispagestyle{empty}
+  \clearpage
+  \setcounter{page}{1}
+}
+
+%% Back PSL cover
+\newcommand*{\pslbackcover}{
+  \pagestyle{empty}
+  \cleardoublepage{}
+  \ifodd\value{page}\hbox{}\newpage\fi
+  \begin{pslfontenv}
+    \begin{tikzpicture}[overlay, remember picture,
+      text centered, align=center]
+
+      %% node origin
+      \coordinate (o) at (current page.center);
+
+      %% scaled PSL logo
+      \node[on background layer, xshift=-10.5cm, yshift=-5cm]
+      at (current page.center) {\scalebox{5}{\psllogo}};
+
+      %% white rectangle
+      \coordinate[xshift=-70mm, yshift=-122mm] (r0) at (o);
+      \coordinate[xshift=70mm, yshift=122mm] (r1) at (o);
+      \fill[white] (r0) rectangle (r1);
+
+      \fontsize{11}{13}\selectfont
+      %% french abstract
+      \node[xshift=-68mm, yshift=+122mm, anchor=north west] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont R\'{e}sum\'{e}}\unskip\strut\par
+          \vspace{.5cm}
+          \@frabstract{}
+        \end{minipage}
+      };
+      %% french keywords
+      \node[xshift=-68mm, yshift=-122mm, anchor=south west] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Mots Cl\'{e}s}\unskip\strut\par
+          \vspace{.5cm}
+          \@frkeywords{}
+          \vspace{.5cm}
+        \end{minipage}
+      };
+      %% english abstract
+      \node[xshift=+69mm, yshift=+122mm, anchor=north east] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Abstract}\unskip\strut\par
+          \vspace{.5cm}
+          \@enabstract{}
+        \end{minipage}
+      };
+      %% english keywords
+      \node[xshift=+69mm, yshift=-122mm, anchor=south east] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Keywords}\unskip\strut\par
+          \vspace{.5cm}
+          \@enkeywords{}
+          \vspace{.5cm}
+        \end{minipage}
+      };
+    \end{tikzpicture}
+  \end{pslfontenv}
+}
+
+%% Simplified PSL logo
+\newcommand*{\psllogo}{
+  \begin{tikzpicture}[text centered, align=center,
+    squarecircle/.style={line width=3, pslpurple},
+    diagonals/.style={pslpurple, line width=1.1},
+    smallcircle/.style={line width=1.3},
+    wcircle/.style={smallcircle, white},
+    pcircle/.style={smallcircle, pslpurple},
+    ]
+
+    \def\hwidth{5}
+    \def\gratio{(1 + sqrt(5))/2}
+    \def\swidth{\hwidth / (\gratio * \gratio)}
+
+    %% main square, circle
+    \draw[squarecircle]
+    (-\hwidth, -\hwidth) rectangle +(2*\hwidth, 2*\hwidth);
+    \draw[squarecircle] (0, 0) circle (\hwidth);
+
+    %% secondary lines
+    \draw[diagonals] (-\hwidth, -\hwidth) -- (\hwidth, \hwidth);
+    \draw[diagonals] (0, 0) -- (\hwidth, -\hwidth);
+    \draw[diagonals] (0, 0) -- (\hwidth, 0);
+    \draw[diagonals] (0, \hwidth) -- (0, -\hwidth);
+
+    %% pentagon, five-branch star
+    \coordinate (a) at (90:\hwidth);
+    \coordinate (b) at (18:\hwidth);
+    \coordinate (c) at (-54:\hwidth);
+    \coordinate (d) at (-126:\hwidth);
+    \coordinate (e) at (162:\hwidth);
+    \coordinate (a') at (54:{\swidth} );
+    \coordinate (b') at (-18:{\swidth} );
+    \coordinate (c') at (-90:{\swidth} );
+    \coordinate (d') at (-162:{\swidth} );
+    \coordinate (e') at (126:{\swidth} );
+    \fill[pslpurple] (a) -- (a') -- (b) -- (b') -- (c)
+    -- (d) -- (d') -- (e) -- (e') -- (a) ;
+  \end{tikzpicture}
+}
+\endinput

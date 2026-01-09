@@ -1,0 +1,858 @@
+%% This is file `spr-astr-addons.sty'
+%%
+%% LaTeX 2e style file for the processing of LaTeX2e files
+%% of the ASTR journal (Springer)
+%%
+%%
+%% Macros written by Deimantas Galcius, VTeX, Lithuania
+%% Please submit bugs or your comments to deimi@vtex.lt
+%%
+%% The original distribution is located at:
+%% http://www.e-publications.org/springer/support/
+%%
+%% This style file contains additional macros and is designed to use
+%% with class  "aastex.cls"
+%%
+%% You are free to use this style file as you see fit, provided 
+%% that you do not make changes to the file. 
+%% If you DO make changes, you are required to rename this file.
+%%
+%% It may be distributed under the terms of the LaTeX Project Public
+%% License, as described in lppl.txt in the base LaTeX distribution.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%
+\NeedsTeXFormat{LaTeX2e}
+\def\get@CVSdate#1Id: #2,v #3 #4 #5 #6 #7${#4}%$
+\def\file@version{\get@CVSdate$Id: spr-astr-addons.sty,v 1.1 2007/03/05 08:17:07 deimi Exp $}
+\ProvidesPackage{spr-astr-addons}
+             [\file@version
+                 Springer style for ASTR journal (DG)]
+
+
+
+
+%\RequirePackage[T1]{fontenc}
+%\RequirePackage{times}
+
+
+\rightskip\z@
+\@rightskip\z@
+\leftskip\z@
+% Dimensions
+\setlength\parindent    {12\p@}
+\setlength\textwidth    {495\p@}% 174mm
+\setlength\textheight   {234mm} 
+\setlength\columnwidth  {239\p@}% 84mm
+\setlength\columnsep    {17\p@}%  6mm
+
+
+
+\setlength\headheight{12\p@}
+\setlength\headsep   {9\p@}
+\setlength\topskip   {10\p@}
+\setlength\footskip  {30\p@}
+\setlength\maxdepth  {.5\topskip}
+
+\setlength\topmargin       {12mm}
+\advance\topmargin by-7pt
+
+\setlength\oddsidemargin   {18mm}% gutter margin
+\setlength\evensidemargin  {18mm}% outer
+
+\if@twocolumn
+ \setlength\marginparsep {10\p@}
+\else
+  \setlength\marginparsep{7\p@}
+\fi
+\setlength\marginparpush {5\p@}
+
+% TEXT PARAMETERS
+\setlength\lineskip{1\p@}
+\setlength\normallineskip{1\p@}
+\renewcommand\baselinestretch{}
+\setlength\parskip{0\p@}
+
+% BREAKS
+\setlength\smallskipamount{6\p@ \@plus 1\p@ \@minus 1\p@}
+\setlength\medskipamount  {12.5\p@ \@plus 3\p@ \@minus 3\p@}
+\setlength\bigskipamount  {25\p@ \@plus 6\p@ \@minus 3\p@}
+
+% PAGE-BREAKING PENALTIES
+%\showthe\@secpenalty
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=50
+\predisplaypenalty=10000   % Breaking before a math display.
+\pretolerance=100          % Badness tolerance for the first pass (before hyphenation)
+\tolerance=800             % Badness tolerance after hyphenation
+\hbadness=800              % Badness above which bad hboxes will be shown
+\emergencystretch=3\p@
+\hfuzz=1\p@                % do not be to critical about boxes
+
+
+\def\trim@width   {210mm}
+\def\trim@height  {279mm}
+\def\paper@width  {210mm}
+\def\paper@height {290mm}
+
+\AtBeginDvi{\special{papersize=\trim@width, \trim@height}}
+% CENTER ON PAGE
+\@tempdima=\paper@width \advance\@tempdima by-\trim@width
+\divide\@tempdima by2   \advance\@tempdima by-1in
+\hoffset=\@tempdima
+
+\@tempdima=\paper@height \advance\@tempdima by-\trim@height
+\divide\@tempdima by2    \advance\@tempdima by-1in
+\voffset=\@tempdima
+
+% koreguojame
+\advance\voffset by5mm
+
+\renewcommand\normalsize{%
+   \@setfontsize\normalsize\@xpt{12.5\p@ plus .3\p@ minus .3\p@}%
+   \abovedisplayskip 10\p@ \@plus2\p@ \@minus2\p@
+   \abovedisplayshortskip 6\p@ \@plus2\p@
+   \belowdisplayshortskip 6\p@ \@plus2\p@
+   \belowdisplayskip \abovedisplayskip}
+
+\renewcommand\small{%
+   \@setfontsize\small\@ixpt{11\p@ plus .2\p@ minus .2\p@}%
+   \abovedisplayskip 7.5\p@ \@plus4\p@ \@minus1\p@
+   \belowdisplayskip \abovedisplayskip
+   \abovedisplayshortskip \abovedisplayskip
+   \belowdisplayshortskip \abovedisplayskip}
+
+\renewcommand\footnotesize{%
+   \@setfontsize\footnotesize\@viiipt{10\p@ plus .1pt minus .1pt}%%
+   \abovedisplayskip 6\p@ \@plus4\p@ \@minus1\p@
+   \belowdisplayskip \abovedisplayskip
+   \abovedisplayshortskip \abovedisplayskip
+   \belowdisplayshortskip \abovedisplayskip}
+
+\renewcommand\scriptsize{\@setfontsize\scriptsize\@viipt\@viiipt}
+
+\let\footnote@size\footnotesize
+
+
+
+% FOOTNOTES
+\setlength\footnotesep   {10\p@}% 
+\setlength{\skip\footins}{18\p@ \@plus 4\p@ \@minus 2\p@}
+\skip\@mpfootins = \skip\footins
+%
+\def\footnoterule{\kern-3\p@ \hrule \@width 108\p@ \kern 2.6\p@} % the \hrule is .4pt high
+\renewcommand\@makefntext[1]{\bgroup\@makefnmark\egroup\bgroup\footnotesize #1\egroup}
+\def\@makefnmark{\@textsuperscript{\normalfont\@thefnmark}}%
+
+
+
+%  sectioning
+%  skiemenavimo isjungimas
+%\showthe\pretolerance
+%\showthe\tolerance
+%\showthe\hyphenpenalty
+%\showthe\exhyphenpenalty
+\def\nohyphen{\pretolerance=\@M \tolerance=\@M \hyphenpenalty=\@M \exhyphenpenalty=\@M}
+\def\hyphen{\pretolerance=100\tolerance=800\hyphenpenalty=50\exhyphenpenalty=50}
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-\bigskipamount}%
+                                   {\medskipamount}%
+                                   {\normalsize\bfseries\mathversion{bold}\raggedright\nohyphen}}
+
+
+\renewcommand\subsection{\@startsection {subsection}{2}{\z@}%
+                                   {-\medskipamount}%
+                                   {\medskipamount}%
+                                   {\normalsize\nohyphen\raggedright\nohyphen}}
+
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                   {-\medskipamount}%
+                                   {\medskipamount}%
+                                   {\itshape\raggedright}}
+
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                   {\medskipamount}%
+                                   {-10pt}%
+                                   {\itshape}}
+
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                   {0.1pt}%
+                                   {-1em}%
+                                   {\itshape}}
+
+
+% Format for the counter:
+  \def\section@numbersep{}
+  \def\subsection@numbersep{}
+  \def\subsubsection@numbersep{}
+  \def\paragraph@numbersep{.}
+  \def\subparagraph@numbersep{.}
+
+% Format for the counter:
+\def\@seccntformat#1{{\csname #1@prefix\endcsname\csname the#1\endcsname\csname#1@numbersep\endcsname\enspace}}
+
+% misc
+\overfullrule=5pt
+
+% Abstract
+
+% slugcomment removed
+
+
+% Title
+\def\raggedrightmargin#1{%
+  \let\\\@centercr\@rightskip #1 plus 1fil  \rightskip\@rightskip
+  \leftskip\z@skip
+  \parindent\z@\nohyphen}
+%
+\let\@@@title\relax
+\def\@@@title@fmt#1{\raggedrightmargin{15mm}\vskip21\p@\bgroup\fontsize{18}{18}\bfseries\raggedright#1\par\egroup}
+\def\title#1{\markright{#1}\gdef\@@@title{\@@@title@fmt{#1}}}
+\def\runningtitle#1{\markright{#1}}%
+\let\shorttitle\runningtitle
+\let\@@@author\relax
+\def\@@@author@fmt#1{\raggedrightmargin{84mm}\vskip17\p@\bgroup\normalsize\bfseries#1
+\egroup%
+}
+\let\@@@author\relax
+\def\author#1{%
+\freefootnotetext[]{#1}%
+\advance\n@author by\@ne
+\ifnum\n@author=1
+ \add@xtok@rh{#1}\else%
+   \add@xtok@rh{\space\raise1.5pt\hbox{\tiny\textbullet}\space\allowbreak\hbox{#1}}%
+\fi%
+}
+\def\@@@author{\the\rh@authors@list}
+%
+\newtoks\rh@authors@list
+\newcount\n@author\n@author=0
+\def\n@author@{0}
+\def\no@harm{\let\thanks=\@gobble\let\thanksref=\@gobble\let~\space \let\\=\space \def\protect{\noexpand\protect\noexpand}}
+\def\add@xtok@rh#1{\begingroup
+  \no@harm  
+  \def\altaffilmark##1{\textsuperscript{##1}}%
+  \xdef\@act{\global\noexpand\rh@authors@list{\the\rh@authors@list#1}}\@act
+\endgroup}
+\def\shortauthor#1{\markboth{#1}{#1}}
+
+
+\def\@@@copyright{\vfill\bgroup\footnotesize\space\space\egroup\vskip1pc}
+
+%% First page 
+\newdimen\@@@firstpageskip
+\newdimen\@@@topboxheight
+\@@@topboxheight=68mm
+\@@@firstpageskip=\@@@topboxheight\relax\advance\@@@firstpageskip by-.5\baselineskip
+\AtBeginDocument{\enlargethispage{-\@@@firstpageskip}}
+\def\@texttop{{\thispagestyle{copyright}\twocolumn[\vtop to\@@@topboxheight{\@@@title\par\@@@author@fmt{\expandafter\@@@author}\par\@@@copyright}]}\relax\global\let\@texttop\relax}
+
+
+
+
+\def\authorskip{\vskip0pt}
+% Author
+\def\make@author#1{% 
+ {\topsep\z@\normalsize#1}% 
+}% 
+
+
+% Affilation
+%
+\def\freefootnotetext[#1]{%
+       \begingroup\unrestored@protected@xdef\@thefnmark{#1}\endgroup\@footnotetext}
+
+\def\affil{\freefootnotetext[]}
+
+%% Abstract
+\def\normaltext{\normalfont\normalsize}
+\def\abstract@style{\normaltext}
+\def\abstract@size{\normalsize}
+\def\abstract@skip{\z@}
+\def\abstractname@size{\bfseries}
+\def\abstractname{Abstract}
+\def\abstract{%
+     \leavevmode
+     \setbox\z@=\lastbox
+     \abstract@style%
+     \abstract@size%
+     \noindent{\abstractname@size\abstractname}\enskip\ignorespaces}
+
+\def\endabstract{\par}
+
+
+
+%% Keywords 
+\def\keyword@skip{\medskipamount}
+\def\keyword@style{\normaltext\raggedright}
+\def\keyword@size{\normalsize\raggedright}
+\def\keyword@postfix{\unskip.}
+\def\keywordname@size{\bfseries}
+\def\keyword@name{Keywords}
+\def\keywords#1{%
+\bgroup
+  \vskip\keyword@skip
+%
+  \keyword@style%
+  \keyword@size%
+  \noindent{\keywordname@size\keyword@name}\enspace#1\egroup\par}
+
+
+% Footnote rule
+\def\footnoterule@width{\columnwidth}
+\def\footnoterule{\kern-3\p@ \hrule \@width \footnoterule@width \kern 2.6\p@} % the \hrule is .4pt high
+%
+\let\maketitle@runin\relax
+\let\maketitle\relax
+\def\altaffiltext#1#2{\freefootnotetext[#1]{#2}}
+
+% Figure
+\def\fnum@figure{{\bfseries Fig.~\thefigure\enskip}}
+\def\figure@size{\small}
+\let\caption@size\figure@size
+\long\def\@makecaption#1#2{\bgroup\csname caption@size\endcsname\vskip
+  2ex\noindent#1\ #2\par\egroup\expandafter\csname \@captype captionskip\endcsname}%
+\long\def\@maketablecaption#1#2{\bgroup\csname
+  caption@size\endcsname\vskip 2ex\noindent#1\
+  #2\par\egroup \expandafter\csname \caption@type captionskip\endcsname}%
+\def\tablecaptionskip{\vskip4pt}
+\def\figurecaptionskip{\vskip0pt}
+
+% Table 
+\def\fnum@table{{\bfseries Table \thetable}\enskip}
+\def\fnum@ptable@aj{{\bfseries Table \thetable}\enskip}%
+\def\fnum@ptable{{\bfseries Table \thetable}\enskip}%
+\def\fnum@ptablecont{{\bfseries Table \thetable}---{\rmfamily Continued}}%
+\long\def\@make@caption@text#1#2{
+ \center\rmfamily#1\enskip#2\endcenter
+}%
+
+
+\def\@tablenotetext#1#2{%
+ \vspace{.5ex}%
+ {\noindent{$^{#1}$}#2\par}%
+}%
+\def\@tablenotes#1{%
+ \par
+ \vspace{4.5ex}\@gobble{\footnoterule\vspace{.5ex}}%
+ {\footnotesize#1}%
+}%
+\def\@tablenotes@pptt#1{%
+ \par
+ \vspace{3.2ex}\@gobble{\footnoterule\vspace{.4ex}}%
+ {\footnotesize#1}%
+}%
+
+\renewcommand\tablecomments[1]{\ifdim\@abovenoteskip=0pt\global\@abovenoteskip=10pt\fi
+\appgdef\tblnote@list{\hsize\pt@width\leftskip\z@\rightskip\z@%
+\@tablecom{\parfillskip\z@ plus1fil#1\endgraf}}}%
+\def\@tablecom#1{%
+ \par
+ \vspace*{3ex}%
+ {%\parbox{\pt@width} %%%
+{\hskip0em\rmfamily\textit{Note}:\enskip\enskip #1}\par}%
+}%
+\def\@tableref@pptt#1{%
+ \par
+ \vspace*{3ex}%
+ {%\parbox{\pt@width} %%%
+ {\hskip0em{\textit{References}:\enskip\enskip #1}\par}%
+}%
+\def\@tablecom@pptt#1{%
+ \vspace*{3ex}{%
+  %\parbox{\pt@width} %%%
+  {\hskip1em{\textit{Note}:\enskip\enskip #1\par}%
+}%
+}}
+}
+% Math
+% flushleft
+\IfFileExists{amsmath.sty}{\RequirePackage[fleqn]{amsmath}%
+\setlength\mathindent\z@}%
+
+\setlength\mathindent\z@
+
+%% Snippet from vsfleqn2.sty
+\def\mathtrivlist{\parsep\parskip\topsep\abovedisplayskip
+  \ifnum\@listdepth>0 \advance\mathindent by-\leftmargin\fi%
+  \@trivlist \labelwidth\z@ \leftmargin\z@
+  \itemindent\z@ \def\makelabel##1{##1}}
+
+\def\endmathtrivlist{\endtrivlist}
+% \[ \]
+\renewcommand\[{\relax
+                \ifmmode\@badmath
+                \else
+                  \begin{mathtrivlist}%
+                    \@beginparpenalty\predisplaypenalty
+                    \@endparpenalty\postdisplaypenalty
+                    \item[]\leavevmode
+                    \hb@xt@\linewidth\bgroup $\m@th\displaystyle %$
+                      \hskip\mathindent\bgroup
+                \fi}
+\renewcommand\]{\relax
+                \ifmmode
+                      \egroup $\hfil% $
+                    \egroup
+                  \end{mathtrivlist}%
+                \else \@badmath
+                \fi}
+
+%%
+
+% EQNARRAY
+\renewenvironment{eqnarray}{%
+    \stepcounter{equation}%
+    \def\@currentlabel{\p@equation\theequation}%
+    \global\@eqnswtrue\m@th
+    \global\@eqcnt\z@
+    \tabskip\mathindent
+    \let\\=\@eqncr
+%    \setlength\abovedisplayskip{\topsep}%
+%    \ifvmode
+%      \addtolength\abovedisplayskip{\partopsep}%
+%    \fi
+%    \addtolength\abovedisplayskip{\parskip}%
+%    \setlength\belowdisplayskip{\abovedisplayskip}%
+    \setlength\belowdisplayshortskip{\abovedisplayskip}%
+    \setlength\abovedisplayshortskip{\abovedisplayskip}%
+    $$\everycr{}\halign to\linewidth% $$
+    \bgroup
+      \hskip\@centering
+      $\displaystyle\tabskip\z@skip{##}$\@eqnsel&%
+      \global\@eqcnt\@ne \hskip \tw@\arraycolsep \hfil${##}$\hfil&%
+      \global\@eqcnt\tw@ \hskip \tw@\arraycolsep
+        $\displaystyle{##}$\hfil \tabskip\@centering&%
+      \global\@eqcnt\thr@@
+        \hb@xt@\z@\bgroup\hss##\egroup\tabskip\z@skip\cr}%
+      {\@@eqncr
+    \egroup
+    \global\advance\c@equation\m@ne$$% $$
+    \@ignoretrue
+    }
+
+
+%% Lists
+
+\def\list@parindent{1pc}
+
+% enumerate
+\def\enumerate@indent{\z@}
+\def\enumerate@parindent{\list@parindent}
+\def\enumerate@labelsep{.5em}
+\def\enumerate@firsttopsep{\smallskipamount}
+\def\enumerate@topsep{\z@}
+\def\enumerate@rightskip{\z@}% {\z@ plus 1fill}
+\let\enumerate@hook\relax
+
+% description
+\def\description@indent{\list@parindent}
+\let\description@topsep\smallskipamount
+\let\description@hook\relax
+
+% quotation
+\let\quotation@size\footnotesize
+\def\quotation@itemindent{\list@parindent}
+\def\quotation@parindent{\list@parindent}
+\def\quotation@leftmargin{\list@parindent}
+\def\quotation@rightmargin{\z@}
+\let\quotation@topsep\smallskipamount
+
+
+% quote
+\let\quote@size\footnotesize
+\def\quote@indent{\z@}
+\def\quote@leftmargin{0pc}
+\def\quote@rightmargin{0pc}
+\let\quote@topsep\smallskipamount
+
+
+
+%%%%%%%%%%%%%% Parameters
+\@lowpenalty   51
+\@medpenalty  151
+\@highpenalty 301
+\@beginparpenalty -\@lowpenalty
+\@endparpenalty   -\@lowpenalty
+\@itempenalty     -\@lowpenalty
+
+
+%%%%%%%%%%%%%% General list parameters (not important}
+
+\parsep\z@
+\topsep\z@
+\partopsep\z@
+\itemsep\z@
+\labelsep.5em
+
+\def\@listi  {\leftmargin\leftmargini}
+
+\def\@listii {\leftmargin\leftmarginii%
+             \labelwidth\leftmarginii%
+             \advance\labelwidth-\labelsep}%
+
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep}
+
+\def\@listiv {\leftmargin\leftmarginiv
+              \labelwidth\leftmarginiv
+              \advance\labelwidth-\labelsep}
+
+\def\@listvi {\leftmargin\leftmarginvi
+              \labelwidth\leftmarginvi
+              \advance\labelwidth-\labelsep}
+
+\setlength\leftmargini   {2em}
+\setlength\leftmarginii  {2.2em}
+\setlength\leftmarginiii {1.87em}
+\setlength\leftmarginiv  {1.7em}
+\setlength\leftmarginv   {1em}
+\setlength\leftmarginvi  {1em}
+
+\@listi
+\def\enumerate{\@ifnextchar[{\@enumerate}{\@enumerate[]}}
+
+\def\@enumerate[#1]{%
+    \ifnum \@enumdepth >\thr@@ \@toodeep\else
+    \advance\@enumdepth \@ne 
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+    \list {\csname label\@enumctr\endcsname}%
+       {\usecounter{\@enumctr}
+        \def\makelabel##1{{\hfill\normalfont ##1}}
+%
+        \ifx.#1.%
+           \setcounter{\@enumctr}{3}% 
+           \expandafter\settowidth\expandafter\labelwidth\expandafter{\csname label\@enumctr\endcsname}%
+           \setcounter{\@enumctr}{0}%
+        \else%
+           \settowidth{\labelwidth}{#1}
+        \fi%
+        \labelsep=\enumerate@labelsep%
+        \itemindent=\labelwidth \advance\itemindent\labelsep%
+        \ifnum \@enumdepth=1\advance\itemindent by\enumerate@indent\fi%
+        \leftmargin=\the\itemindent%
+        \itemindent\z@%
+        \partopsep\z@  \parsep\z@ \itemsep\z@ \rightmargin\z@
+        \ifnum \@enumdepth=1 \topsep\enumerate@firsttopsep \else \topsep\enumerate@topsep\fi%
+        \listparindent\enumerate@parindent%        
+        \@rightskip\enumerate@rightskip%
+        \enumerate@hook% 
+        }\fi}
+
+\let\endenumerate =\endlist
+
+
+% itemize
+\def\itemize@indent{\z@}
+\def\itemize@parindent{\list@parindent}
+\def\itemize@labelsep{.5em}
+\def\itemize@firsttopsep{\smallskipamount}
+\def\itemize@topsep{\z@}
+\def\itemize@rightskip{\z@}% {\z@ plus 1fill}
+\let\itemize@hook\relax
+
+\def\labelitemi  {\textbullet}
+\def\labelitemii {\textendash}
+\def\labelitemiii{\textasteriskcentered} 
+\def\labelitemiv {{\footnotesize +}}
+
+\def\itemize{\@ifnextchar[{\@itemize}{\@itemize[]}}
+
+\def\@itemize[#1]{%
+    \ifnum \@itemdepth >\thr@@ \@toodeep\else
+    \advance\@itemdepth \@ne 
+    \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+    \list {\csname\@itemitem\endcsname}%
+       {\def\makelabel##1{{\hfill\normalfont ##1}}        
+%
+        \ifx.#1.%
+           \settowidth\labelwidth{\csname\@itemitem\endcsname}%
+        \else%
+           \settowidth{\labelwidth}{#1}
+        \fi%
+        \labelsep=\itemize@labelsep%
+        \itemindent=\labelwidth \advance\itemindent\labelsep%
+        \ifnum \@itemdepth=1\advance\itemindent by\itemize@indent\fi%
+        \leftmargin=\the\itemindent%
+        \itemindent\z@%
+        \partopsep\z@  \parsep\z@ \itemsep\z@ \rightmargin\z@
+        \ifnum \@itemdepth=1 \topsep\itemize@firsttopsep \else \topsep\itemize@topsep\fi%
+        \listparindent\itemize@parindent%        
+        \@rightskip\itemize@rightskip%
+        \itemize@hook% 
+        }\fi}
+
+\let\enditemize =\endlist
+
+
+%%%%%%%%%%%%%%  description
+
+\def\description{%
+         \list{}{\labelwidth\z@ \labelsep\z@  \rightmargin\z@
+         \leftmargin\z@ \advance\leftmargin by\description@indent
+         \itemindent-\description@indent
+         \partopsep\z@ \topsep\description@topsep \parsep\z@
+         \itemsep\z@ \listparindent\z@
+         \description@hook%
+         \let\makelabel\descriptionlabel}}
+
+\def\enddescription{\endlist}
+
+\def\descriptionlabel#1{\if.#1.\else\bfseries #1\hskip.5em\fi}
+
+%%%%%%%%%%%%%%  quotation
+
+\def\quotation{%
+        \list{}{\quotation@size%
+        \listparindent\quotation@parindent%
+        \itemindent   \quotation@itemindent%
+        \rightmargin\quotation@rightmargin
+        \leftmargin\quotation@leftmargin%
+        \setlength\rightmargin{0pt}
+        \partopsep\z@ \topsep\quotation@topsep \parsep\z@%
+         \itemsep\z@
+                        }%
+        \item[\Q@strut]\relax}
+
+\def\endquotation{\endlist}
+
+\def\Q@strut{\leavevmode\hbox{\vrule height9pt depth1pt width0pt}}
+
+%%%%%%%%%%%%%%  quote
+
+\def\quote{%
+        \list{}{\quote@size%
+        \listparindent\quote@indent%
+        \itemindent \listparindent%
+        \rightmargin\quote@rightmargin   \leftmargin\quote@leftmargin%
+        \partopsep\z@ \topsep\quote@topsep \parsep\z@%
+                       }%
+        \item\relax}
+
+\def\endquote{\endlist}
+
+
+
+
+% Acknowledgements
+\def\acknowledgments{\medskip\noindent\bgroup\bfseries Acknowledgements\egroup\quad\ignorespaces}
+\def\acknowledgment{\medskip\noindent\bgroup\bfseries Acknowledgement\egroup\quad\ignorespaces}
+
+% Running head'ai
+% Normalus RH
+\let\headline@hook\relax
+\def\rh@rule{\leavevmode\lower6pt\hbox to0pt{\vrule height1pt width\textwidth\hss}}
+\def\rh@rule@{\leavevmode\lower18pt\hbox to0pt{\vrule height1pt width\textwidth\hss}}
+\def\thepage@fmt#1{#1}
+\def\runninghead@size {\footnotesize}
+\def\pagenumber@size {\footnotesize}
+\def\ps@headings{%
+      \def\@evenfoot{\@empty}%
+      \def\@oddfoot{\@empty}%
+      \def\@evenhead{\headline@hook\rh@rule\runninghead@size\llap{\pagenumber@size\thepage@fmt{\thepage}}\hfill\leftmark}%
+      \def\@oddhead{\headline@hook\rh@rule\runninghead@size\llap{\pagenumber@size\thepage@fmt{\thepage}}}%
+}
+% Copyright RH
+\def\ps@copyright{%
+      \def\@evenfoot{\@empty}%
+      \def\@oddfoot{\@empty}%
+      \def\@evenhead{\headline@hook\rh@rule@\runninghead@size\llap{\pagenumber@size\thepage@fmt{\@gobble\thepage}}\hfill\leftmark}%
+      \def\@evenhead{\headline@hook\rh@rule@\runninghead@size\llap{\pagenumber@size\thepage@fmt{\@gobble\thepage}}\hfill\leftmark}%
+      \def\@oddhead{\headline@hook\rh@rule@\runninghead@size\llap{\pagenumber@size\thepage@fmt{\@gobble\thepage}}}%
+}
+
+\pagestyle{headings}
+% % pirmas puslapis
+\def\@jname{}
+\def\@doi{\@doihead \@thedoi}
+\def\@doihead{DOI:\space}
+
+%
+
+% References
+\def\refname{References}
+\renewenvironment{thebibliography}[1]{% 
+ \clear@thebibliography@page 
+ \section*{\refname}% 
+ \thebib@list 
+ \def\refpar{\relax}% 
+ \def\newblock{\hskip .11em\@plus.33em\@minus.07em}% 
+ \clubpenalty4000 
+ \widowpenalty4000 
+ \sfcode`\.=1000\relax 
+}{% 
+ \endlist 
+ \revtex@pageid 
+}% 
+
+\def\thebib@list{% 
+ \list{\null}{% 
+   \small
+  \leftmargin 1em\labelwidth\z@\labelsep\z@\itemindent-\leftmargin 
+ \global\setlength\bibsep\z@ 
+ \global\itemsep=\z@ \@plus1\p@ \@minus1\p@
+ \global\parsep=\z@ \@plus1\p@ \@minus1\p@
+  \usecounter{enumi}% 
+ }% 
+}% 
+
+
+\def\@coprtyear{\textbullet\textbullet\textbullet\textbullet} 
+\def\@volume{0}
+\def\@@firstpage{\textbullet}
+\def\@@lastpage{\textbullet}
+\def\mymyleftmark{\@jname\@gobble{\ (\@coprtyear) \@volume:\@firstpage--\@lastpage}}
+
+
+% Springer Copyright
+\def\sprcopyright{\gdef\@copyright{\copyright@size\copyright@text\vskip2\baselineskip}}
+\def\copyright@text{\textcopyright\ Springer Science+Business
+  Media B.V. \textbullet\textbullet\textbullet\textbullet}
+\let\copyright@size\footnotesize
+
+% Twoside printing
+\@twosidetrue\@mparswitchtrue
+\twocolumn
+
+% Redefining Journal Acronyms
+\renewcommand\aj{\ref@jnl{Astron.~J.}}%
+          % Astronomical Journal
+\renewcommand\actaa{\ref@jnl{Acta Astron.}}%
+          % Acta Astronomica
+\renewcommand\araa{\ref@jnl{Annu. Rev. Astron. Astrophys.}}%
+          % Annual Review of Astron and Astrophys
+\renewcommand\apj{\ref@jnl{Astrophys.~J.}}%
+          % Astrophysical Journal
+\renewcommand\apjl{\ref@jnl{Astrophys. J. Lett.}}%
+          % Astrophysical Journal, Letters
+\renewcommand\apjs{\ref@jnl{Astrophys. J. Suppl. Ser.}}%
+          % Astrophysical Journal, Supplement
+\renewcommand\ao{\ref@jnl{Appl. Opt.}}%
+          % Applied Optics
+\renewcommand\apss{\ref@jnl{Astrophys. Space Sci.}}%
+          % Astrophysics and Space Science
+\renewcommand\aap{\ref@jnl{Astron. Astrophys.}}%
+          % Astronomy and Astrophysics
+\renewcommand\aapr{\ref@jnl{Astron. Astrophys. Rev.}}%
+          % Astronomy and Astrophysics Reviews
+\renewcommand\aaps{\ref@jnl{Astron. Astrophys. Suppl. Ser.}}%
+          % Astronomy and Astrophysics, Supplement
+\renewcommand\azh{\ref@jnl{Astron. Zh.}}%
+          % Astronomicheskii Zhurnal
+\renewcommand\baas{\ref@jnl{Bull. Am. Astron. Soc.}}%
+          % Bulletin of the AAS
+\renewcommand\caa{\ref@jnl{Chin. Astron. Astrophys.}}%
+  % Chinese Astronomy and Astrophysics
+\renewcommand\cjaa{\ref@jnl{Chin. J. Astron. Astrophys.}}%
+  % Chinese Journal of Astronomy and Astrophysics
+\renewcommand\icarus{\ref@jnl{Icarus}}%
+  % Icarus
+\renewcommand\jcap{\ref@jnl{J. Cosmol. Astropart. Phys.}}%
+  % Journal of Cosmology and Astroparticle Physics
+\renewcommand\jrasc{\ref@jnl{J.~R. Astron. Soc. Can.}}%
+          % Journal of the RAS of Canada
+\renewcommand\memras{\ref@jnl{Mem. R. Astron. Soc.}}%
+          % Memoirs of the RAS
+\renewcommand\mnras{\ref@jnl{Mon. Not. R. Astron. Soc.}}%
+          % Monthly Notices of the RAS
+\renewcommand\na{\ref@jnl{New Astron.}}%
+  % New Astronomy
+\renewcommand\nar{\ref@jnl{New Astron. Rev.}}%
+  % New Astronomy Review
+\renewcommand\pra{\ref@jnl{Phys. Rev.~A}}%
+          % Physical Review A: General Physics
+\renewcommand\prb{\ref@jnl{Phys. Rev.~B}}%
+          % Physical Review B: Solid State
+\renewcommand\prc{\ref@jnl{Phys. Rev.~C}}%
+          % Physical Review C
+\renewcommand\prd{\ref@jnl{Phys. Rev.~D}}%
+          % Physical Review D
+\renewcommand\pre{\ref@jnl{Phys. Rev.~E}}%
+          % Physical Review E
+\renewcommand\prl{\ref@jnl{Phys. Rev. Lett.}}%
+          % Physical Review Letters
+\renewcommand\pasa{\ref@jnl{Proc. Astron. Soc. Aust.}}%
+  % Publications of the Astron. Soc. of Australia
+\renewcommand\pasp{\ref@jnl{Publ. Astron. Soc. Pac.}}%
+          % Publications of the ASP
+\renewcommand\pasj{\ref@jnl{Publ. Astron. Soc. Jpn.}}%
+          % Publications of the ASJ
+\renewcommand\qjras{\ref@jnl{Q. J. R. Astron. Soc.}}%
+          % Quarterly Journal of the RAS
+\renewcommand\rmxaa{\ref@jnl{Rev. Mexicana Astron. Astrofis.}}%
+  % Revista Mexicana de Astronomia y Astrofisica
+\renewcommand\skytel{\ref@jnl{Sky Telesc.}}%
+          % Sky and Telescope
+\renewcommand\solphys{\ref@jnl{Sol. Phys.}}%
+          % Solar Physics
+\renewcommand\sovast{\ref@jnl{Soviet Astron.}}%
+          % Soviet Astronomy
+\renewcommand\ssr{\ref@jnl{Space Sci. Rev.}}%
+          % Space Science Reviews
+\renewcommand\zap{\ref@jnl{Z. Astrophys.}}%
+          % Zeitschrift fuer Astrophysik
+\renewcommand\nat{\ref@jnl{Nature}}%
+          % Nature
+\renewcommand\iaucirc{\ref@jnl{IAU Circ.}}%
+          % IAU Cirulars
+\renewcommand\aplett{\ref@jnl{Astrophys. Lett.}}%
+          % Astrophysics Letters and Communications
+\renewcommand\apspr{\ref@jnl{Astrophys. Space Phys. Res.}}%
+          % Astrophysics Space Physics Research
+\renewcommand\bain{\ref@jnl{Bull. Astron. Inst. Neth.}}%
+          % Bulletin Astronomical Institute of the Netherlands
+\renewcommand\fcp{\ref@jnl{Fundam. Cosmic Phys.}}%
+          % Fundamental Cosmic Physics
+\renewcommand\gca{\ref@jnl{Geochim. Cosmochim. Acta}}%
+          % Geochimica Cosmochimica Acta
+\renewcommand\grl{\ref@jnl{Geophys. Res. Lett.}}%
+          % Geophysics Research Letters
+\renewcommand\jcp{\ref@jnl{J. Chem. Phys.}}%
+          % Journal of Chemical Physics
+\renewcommand\jgr{\ref@jnl{J. Geophys. Res.}}%
+          % Journal of Geophysical Research
+\renewcommand\jqsrt{\ref@jnl{J. Quant. Spec. Radiat. Transf.}}%
+          % Journal of Quantitiative Spectroscopy and Radiative Trasfer
+\renewcommand\memsai{\ref@jnl{Mem. Soc. Astron. Italiana}}%
+          % Mem. Societa Astronomica Italiana
+\renewcommand\nphysa{\ref@jnl{Nucl. Phys.~A}}%
+          % Nuclear Physics A
+\renewcommand\physrep{\ref@jnl{Phys. Rep.}}%
+          % Physics Reports
+\renewcommand\physscr{\ref@jnl{Phys. Scr.}}%
+          % Physica Scripta
+\renewcommand\planss{\ref@jnl{Planet. Space Sci.}}%
+          % Planetary Space Science
+\renewcommand\procspie{\ref@jnl{Proc. SPIE}}%
+          % Proceedings of the SPIE
+\let\astap=\aap
+\let\apjlett=\apjl
+\let\apjsupp=\apjs
+\let\applopt=\ao
+
+%% vtexfix
+\DeclareFontShape{OMS}{cmsy}{b}{n}{%
+      <-6> cmbsy5 <6-8> cmbsy7 <8-> cmbsy10%
+      }{}
+
+
+\endinput

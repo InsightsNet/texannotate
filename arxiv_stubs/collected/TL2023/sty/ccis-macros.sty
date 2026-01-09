@@ -1,0 +1,48 @@
+\ProvidesPackage{ccis-macros}[2011/02/23 v1.0 Northeastern CCIS Macros]
+
+%\documentclass{sigchi}
+\RequirePackage{graphicx,comment,longtable,multirow,microtype}
+\RequirePackage{booktabs,color,subcaption,xspace,balance}
+\RequirePackage[flushleft]{threeparttable}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[draft,inline,nomargin,index]{fixme}
+%\RequirePackage[pdflang={en-US},pdftex]{hyperref}
+%\RequirePackage{epstopdf}
+%\RequirePackage[hyphens]{url}
+%\PassOptionsToPackage{hyphens}{url}
+
+\clubpenalty=10000
+\widowpenalty=10000
+
+\fxsetup{theme=colorsig,mode=multiuser,inlineface=\itshape,envface=\itshape}
+\FXRegisterAuthor{cw}{acw}{Christo}
+\FXRegisterAuthor{rr}{arr}{Ronald}
+\FXRegisterAuthor{dl}{adl}{David}
+\FXRegisterAuthor{sj}{asj}{Shan}
+
+\newcommand{\para}[1]{{\vspace{7pt} \bf \noindent #1 \hspace{10pt}}}
+\newcommand{\revised}[1]{{\color{blue} #1}}
+\newcommand{\fixthis}[1]{{\color{red} #1}}
+
+\newenvironment{packed_itemize}{
+\begin{itemize}
+  \setlength{\itemsep}{2pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+  \setlength{\topsep}{2pt}
+}{\end{itemize}}
+
+\newenvironment{packed_enumerate}{
+\begin{enumerate}
+  \setlength{\itemsep}{2pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+  \setlength{\topsep}{2pt}
+}{\end{enumerate}}
+
+\newcommand{\cf}{\textit{c.f.\ }}
+\newcommand{\eg}{\textit{e.g.,\ }}
+\newcommand{\etal}{\textit{et~al.}\xspace}
+\newcommand{\ie}{\textit{i.e.,\ }}
+\newcommand{\re}{\textit{r.e.\ }}
+\newcommand{\aka}{\textit{a.k.a.\ }}

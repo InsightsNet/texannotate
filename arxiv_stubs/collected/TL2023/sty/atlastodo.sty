@@ -1,0 +1,101 @@
+%-------------------------------------------------------------------------------
+% This file uses the todonotes package to define commands for inline notes.
+%
+% See ChangeLog or Git log for history of changes.
+% Responsible: Ian Brock (ian.brock@cern.ch)
+%
+% Note that this file can be overwritten when atlaslatex is updated.
+%
+% Copyright (C) 2002-2024 CERN for the benefit of the ATLAS collaboration.
+%-------------------------------------------------------------------------------
+\ProvidesPackage{latex/atlastodo}[2024/10/09 v15.7.0 ATLAS to-do notes]
+\NeedsTeXFormat{LaTeX2e}
+
+%-------------------------------------------------------------------------------
+% More advanced if syntax.
+\RequirePackage{ifthen}
+% ToDo-note macros need xspace.
+\RequirePackage{xspace}
+% Process option. Use kvoptions package.
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{
+  family=ANOTE,
+  prefix=ANOTE@
+}
+\DeclareBoolOption[true]{output}
+\DeclareBoolOption[true]{shift}
+\DeclareStringOption[2]{version}
+\ProcessKeyvalOptions*
+
+% Print the notes.
+\ifthenelse{\boolean{ANOTE@output}}{%
+  \typeout{ATLAS document: showing notes}
+  \ifthenelse{\boolean{ANOTE@shift}}{%
+    \typeout{atlastodo: applying shift to document margins.}
+    \KOMAoptions{BCOR=-5mm}
+    \KOMAoptions{DIV=last}
+    \addtolength{\marginparwidth}{10mm}
+    \addtolength{\textwidth}{-7.86mm}
+  }{}
+  \RequirePackage[colorinlistoftodos]{todonotes}
+  % \typeout{Check version: \ANOTE@version}
+  % \presetkeys{todonotes}{color=cyan!20, linecolor=cyan}{}
+  % \typeout{ATLnote: 1=#1; 2=#2; 3=#3; 4=#4; 5=#5}
+  \ifthenelse{\ANOTE@version = 1}{%
+    % \typeout{Old note <#1>, <#2>, <#3>, <#4>, <#5>.}%
+    \newcommand{\ATL@inote}[5]{%
+      \textcolor{#5}{#1}\todo[author=#3, color=#4, inline]{#2}%
+    }
+    \newcommand{\ATL@note}[5]{%
+      \textcolor{#5}{#1}\todo[author=#3, color=#4, linecolor=#5]{#2}\xspace%
+    }
+  }{%
+    % \typeout{New note <#1>, <#2>, <#3>, <#4>, >#5>.}%
+    \newcommand{\ATL@inote}[5][]{%
+      % \typeout{New note: <#1>, <#2>, ,<#3>, <#4>, <#5>}
+      \textcolor{#5}{#1}\todo[author=#3, color=#4, inline]{#2}%
+    }
+    % \NewDocumentCommand {\ATL@note} {o m m m m} {%
+    \newcommand{\ATL@note}[5][]{%
+      % \typeout{New inote: <#1>, <#2>, ,<#3>, <#4>, <#5>}
+      \textcolor{#5}{#1}\todo[author=#3, color=#4, linecolor=#5]{#2}\xspace%
+    }
+  }
+}{%
+  \typeout{ATLAS document: not showing notes}
+  \RequirePackage[disable]{todonotes}
+  % \typeout{ATLnote: 1:#1; 2:#2; 3:#3; 4=#4; 5=#5.}
+  \ifthenelse{\ANOTE@version = 1}{%
+    \newcommand{\ATL@inote}[5]{%
+      #1%
+    }
+    \newcommand{\ATL@note}[5]{%
+      #1\xspace%
+    }
+  }{
+    \newcommand{\ATL@inote}[5][]{%
+      \ifthenelse{\equal{#1}{}}{\relax}{#1}%
+      % #1%
+    }
+    \newcommand{\ATL@note}[5][]{%
+      \ifthenelse{\equal{#1}{}}{\relax}{#1\xspace}%
+      % #1\xspace%
+    }
+  }
+}
+
+% Macro to set up a note command
+\newcommand{\ATLnote}[4]{%
+  % \typeout{Defining a note #1, #2, #3, #4.}%
+  % \@namedef{#1note}{\ATL@note{#2}{}}
+  % \typeout{Defining #1note and #1inote}
+  \ifthenelse{\ANOTE@version = 1}{%
+    % \typeout{atlastodo: Version check should be 1: <\ANOTE@version>}
+    \expandafter\newcommand\csname #1note\endcsname[2]{\ATL@note{##1}{##2}{#2}{#3}{#4}}%
+    \expandafter\newcommand\csname #1inote\endcsname[2]{\ATL@inote{##1}{##2}{#2}{#3}{#4}}%
+  }{%
+    % \typeout{atlastodo: Version check should be 2: <\ANOTE@version>}
+    \expandafter\newcommand\csname #1note\endcsname[2][]{\ATL@note[##1]{##2}{#2}{#3}{#4}}%
+    \expandafter\newcommand\csname #1inote\endcsname[2][]{\ATL@inote[##1]{##2}{#2}{#3}{#4}}%
+  }%
+}

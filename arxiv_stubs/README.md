@@ -1,7 +1,12 @@
 # `arxiv_stubs/`
 
-This directory contains **template / class / style files** that some arXiv submissions rely on but do not ship in their source archives.
-LPSB can copy these files into a paper’s build directory **only when the paper source tree does not already provide them**, to unblock compilation for structure extraction.
+This directory is LPSB's **fallback TeX file library** for arXiv sources that rely on template/class/style files but do not ship them in the source archive.
+LPSB copies these files into a paper’s build directory **only when the paper source tree does not already provide them**, to unblock compilation for structure extraction.
+
+## Directory layout
+
+- `manual/`: hand-curated, official upstream template files (grouped by extension: `manual/cls/`, `manual/sty/`, `manual/bst/`, `manual/clo/`, `manual/tex/`)
+- `collected/`: automatically harvested files from successful compilations (grouped by TeX Live version: `collected/TL2025/sty/…`, etc.)
 
 ## Licensing / copyright notice
 
@@ -18,13 +23,13 @@ We will promptly review the request and **remove the file(s)** if needed.
 
 ## How LPSB uses these files
 
-- LPSB copies a stub/template file into the build directory **only if** the paper does not already provide the same filename.
+- LPSB copies stub/template files into the build directory **only if** the paper does not already provide the same filename.
 - Author-provided files take precedence; LPSB does **not** overwrite them.
+- When available, `collected/` takes precedence over `manual/` (first-hit wins per filename).
 - Some files may be used as **filename aliases** (e.g., copying `aastex631.cls` as `aastex63.cls`) to match legacy expectations.
 
 ## What should be placed here
 
-Prefer adding **official upstream distributions** (from the publisher or project homepage, or CTAN where appropriate).
+Prefer adding **official upstream distributions** under `manual/` (from the publisher or project homepage, or CTAN where appropriate).
 Avoid hand-written replacements unless you fully control the licensing and semantics.
-
 

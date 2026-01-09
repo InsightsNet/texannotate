@@ -1,0 +1,391 @@
+%-------------------------------------------------------------------------------
+% Useful particle and process definitions.
+% Include with particle/hepparticle/process/hepprocess options in atlasphysics.sty.
+% The particle option is the default.
+% hepprocess option without hepparticle makes no sense.
+%
+% Note that this file can be overwritten when atlaslatex is updated.
+%
+% This package is usually loaded by atlasphysics.sty.
+%
+% Copyright (C) 2002-2024 CERN for the benefit of the ATLAS collaboration.
+%-------------------------------------------------------------------------------
+\ProvidesPackage{latex/atlasparticle}[2024/10/09 v15.7.0 ATLAS particle definitins]
+\NeedsTeXFormat{LaTeX2e}
+
+%-------------------------------------------------------------------------------
+% xspace is always needed
+\RequirePackage{xspace}
+% More advanced if syntax
+\RequirePackage{ifthen}
+
+% Use kvoptions package to set options
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{
+  family=APTCL,
+  prefix=APTCL@
+}
+\DeclareBoolOption[true]{hepitalic}
+\DeclareBoolOption[false]{hepparticle}
+\DeclareBoolOption[false]{hepprocess}
+\DeclareBoolOption[false]{process}
+\ProcessKeyvalOptions*
+
+% Make sure heppennames is loaded.
+\ifthenelse{\boolean{APTCL@hepparticle} \OR \boolean{APTCL@hepprocess}}{%
+  \ifthenelse{\boolean{APHY@hepitalic}}{%
+    \RequirePackage[italic]{heppennames}
+  }{%
+    \RequirePackage{heppennames}
+  }
+  % Adjust the kerning for bar over particles with narrow glyphs (from Andy Buckley)
+  \def\@shiftlen@anti@gen@bar{0mu}
+}{}
+
+% +--------------------------------------------------------------------+
+% |  Particle-antiparticle pair notations                              |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\pp}{\Pp{}\Pp}
+  %\newcommand*{\antibar}[1]{\ensuremath{#1\bar{#1}}\xspace}
+  \newcommand*{\pbar}{\Pap}
+  \newcommand*{\ppbar}{\Pp{}\Pap}
+  \newcommand*{\tbar}{\Paqt}
+  \newcommand*{\ttbar}{\Pqt{}\Paqt}
+  % SIunits already defines \bbar - supersede the definition
+  \@ifpackageloaded{SIunits}{%
+    \renewcommand*{\bbar}{\Paqb}
+  }{%
+    \newcommand*{\bbar}{\Paqb}
+  }
+  \newcommand*{\bbbar}{\Pqb{}\Paqb}
+  \newcommand*{\cbar}{\Paqc}
+  \newcommand*{\ccbar}{\Pqc{}\Paqc}
+  \newcommand*{\sbar}{\Paqs}
+  \newcommand*{\ssbar}{\Pqs{}\Paqs}
+  \newcommand*{\ubar}{\Paqu}
+  \newcommand*{\uubar}{\Pqu{}\Paqu}
+  \newcommand*{\dbar}{\Paqd}
+  \newcommand*{\ddbar}{\Pqd{}\Paqd}
+  \newcommand*{\fbar}{\Paf}
+  \newcommand*{\ffbar}{\Pf{}\Paf}
+  \newcommand*{\qbar}{\Paq}
+  \newcommand*{\qqbar}{\Pq{}\Paq}
+  \newcommand*{\nbar}{\Pagn}
+  \newcommand*{\nnbar}{\Pgn{}\Pagn}
+}{%
+  \newcommand*{\pp}{\ensuremath{pp}\xspace}
+  \newcommand*{\antibar}[1]{\ensuremath{#1\bar{#1}}\xspace}
+  \newcommand*{\pbar}{\ensuremath{\bar{p}}\xspace}
+  \newcommand*{\ppbar}{\antibar{p}}
+  \newcommand*{\tbar}{\ensuremath{\bar{t}}\xspace}
+  \newcommand*{\ttbar}{\antibar{t}}
+  % SIunits already defines \bbar - supersede the definition
+  \@ifpackageloaded{SIunits}{%}
+    \renewcommand*{\bbar}{\ensuremath{\bar{b}}\xspace}
+  }{%
+    \newcommand*{\bbar}{\ensuremath{\bar{b}}\xspace}
+  }
+  \newcommand*{\bbbar}{\antibar{b}}
+  \newcommand*{\cbar}{\ensuremath{\bar{c}}\xspace}
+  \newcommand*{\ccbar}{\antibar{c}}
+  \newcommand*{\sbar}{\ensuremath{\bar{s}}\xspace}
+  \newcommand*{\ssbar}{\antibar{s}}
+  \newcommand*{\ubar}{\ensuremath{\bar{u}}\xspace}
+  \newcommand*{\uubar}{\antibar{u}}
+  \newcommand*{\dbar}{\ensuremath{\bar{d}}\xspace}
+  \newcommand*{\ddbar}{\antibar{d}}
+  \newcommand*{\fbar}{\ensuremath{\bar{f}}\xspace}
+  \newcommand*{\ffbar}{\antibar{f}}
+  \newcommand*{\qbar}{\ensuremath{\bar{q}}\xspace}
+  \newcommand*{\qqbar}{\antibar{q}}
+  \newcommand*{\nbar}{\ensuremath{\bar{\nu}}\xspace}
+  \newcommand*{\nnbar}{\antibar{\nu}}
+}
+
+% +--------------------------------------------------------------------+
+% |  e+e-, etc.                                                        |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\ee}{\Pep{}\Pem}
+  \newcommand*{\epm}{\Pepm}
+  \newcommand*{\epem}{\Pep{}\Pem}
+  \newcommand*{\mumu}{\Pgmp{}\Pgmm}
+  \newcommand*{\tautau}{\Pgtp{}\Pgtm}
+  \newcommand*{\leplep}{\Plp{}\Plm}
+  \newcommand*{\ellell}{\Plp{}\Plm}
+  \newcommand*{\enu}{\Pe{}\Pgn}
+  \newcommand*{\munu}{\Pgm{}\Pgn}
+  \newcommand*{\lnu}{\Pl{}\Pgn}
+}{%
+  \newcommand*{\ee}{\ensuremath{e^{+} e^{-}}\xspace}
+  \newcommand*{\epm}{\ensuremath{e^{\pm}}\xspace}
+  \newcommand*{\epem}{\ensuremath{e^{+} e^-}\xspace}
+  \newcommand*{\mumu}{\ensuremath{\mu^{+} \mu^{-}}\xspace}
+  \newcommand*{\tautau}{\ensuremath{\tau^{+} \tau^{-}}\xspace}
+  \newcommand*{\leplep}{\ensuremath{\ell^{+} \ell^{-}}\xspace}
+  \newcommand*{\ellell}{\ensuremath{\ell^{+} \ell^{-}}\xspace}
+  \newcommand*{\enu}{\ensuremath{e \nu}\xspace}
+  \newcommand*{\munu}{\ensuremath{\mu \nu}\xspace}
+  \newcommand*{\lnu}{\ensuremath{\ell \nu}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  Tau leptons                                                       |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\taulep}{\ensuremath{\Pgt_{\text{lep}}}\xspace}
+  \newcommand*{\tauhad}{\ensuremath{\Pgt_{\text{had}}}\xspace}
+  \newcommand*{\tauhadvis}{\ensuremath{\Pgt_{\text{had-vis}}}\xspace}
+  \newcommand*{\taup}[1]{\ensuremath{\Pgt_{\text{#1-prong}}}\xspace}
+}{%
+  \newcommand*{\taulep}{\ensuremath{\tau_{\text{lep}}}\xspace}
+  \newcommand*{\tauhad}{\ensuremath{\tau_{\text{had}}}\xspace}
+  \newcommand*{\tauhadvis}{\ensuremath{\tau_{\text{had-vis}}}\xspace}
+  \newcommand*{\taup}[1]{\ensuremath{\tau_{\text{#1-prong}}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  Vector bosons                                                     |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\Zzero}{\PZ}
+  \newcommand*{\Zboson}{\PZ}
+  \newcommand*{\Wplus}{\PWp}
+  \newcommand*{\Wminus}{\PWm}
+  \newcommand*{\Wboson}{\PW}
+  \newcommand*{\Wpm}{\PWpm}
+  \newcommand*{\Wmp}{\PWmp}
+}{%
+  \newcommand*{\Zzero}{\ensuremath{Z}\xspace}
+  \newcommand*{\Zboson}{\ensuremath{Z}\xspace}
+  \newcommand*{\Wplus}{\ensuremath{W^{+}}\xspace}
+  \newcommand*{\Wminus}{\ensuremath{W^{-}}\xspace}
+  \newcommand*{\Wboson}{\ensuremath{W}\xspace}
+  \newcommand*{\Wpm}{\ensuremath{W^{\pm}}\xspace}
+  \newcommand*{\Wmp}{\ensuremath{W^{\mp}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  pi, pi0, pi+, pi-, pi+-, eta, eta1, etc.                          |
+% +--------------------------------------------------------------------+
+%\let\pii=\pi
+%\renewcommand*{\pi}{\ensuremath{\pii}\xspace}
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\pizero}{\Pgpz}
+  \newcommand*{\piplus}{\Pgpp}
+  \newcommand*{\piminus}{\Pgpm}
+  \newcommand*{\pipm}{\Pgppm}
+  \newcommand*{\pimp}{\Pgpmp}
+  %\let\etaa=\eta
+  %\renewcommand*{\eta}{\ensuremath{\etaa}\xspace}
+  \newcommand*{\etaprime}{\Pghpr}
+}{%
+  \newcommand*{\pizero}{\ensuremath{\pi^{0}}\xspace}
+  \newcommand*{\piplus}{\ensuremath{\pi^{+}}\xspace}
+  \newcommand*{\piminus}{\ensuremath{\pi^{-}}\xspace}
+  \newcommand*{\pipm}{\ensuremath{\pi^{\pm}}\xspace}
+  \newcommand*{\pimp}{\ensuremath{\pi^{\mp}}\xspace}
+  %\let\etaa=\eta
+  %\renewcommand*{\eta}{\ensuremath{\etaa}\xspace}
+  \newcommand*{\etaprime}{\ensuremath{\eta^{\scriptscriptstyle\prime}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  K0, K+, K-, K0L, K0S                                              |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\Kzero}{\PKz}
+  \newcommand*{\Kzerobar}{\PaKz}
+  \newcommand*{\kaon}{\PK}
+  \newcommand*{\Kplus}{\PKp}
+  \newcommand*{\Kminus}{\PKm}
+  \newcommand*{\KzeroL}{\PKzL}
+  \newcommand*{\Kzerol}{\PKzL}
+  \newcommand*{\Klong}{\PKzL}
+  \newcommand*{\KzeroS}{\PKzS}
+  \newcommand*{\Kzeros}{\PKzS}
+  \newcommand*{\Kshort}{\PKzS}
+  \newcommand*{\Kstar}{\PKst}
+}{%
+  \newcommand*{\Kzero}{\ensuremath{K^{0}}\xspace}
+  \newcommand*{\Kzerobar}{\ensuremath{\overline{K}\vphantom{K}^{0}}\xspace}
+  \newcommand*{\kaon}{\ensuremath{K}\xspace}
+  \newcommand*{\Kplus}{\ensuremath{K^{+}}\xspace}
+  \newcommand*{\Kminus}{\ensuremath{K^{-}}\xspace}
+  \newcommand*{\KzeroL}{\ensuremath{K^{0}_{\text{L}}}\xspace}
+  \newcommand*{\Kzerol}{\ensuremath{K^{0}_{\text{L}}}\xspace}
+  \newcommand*{\Klong}{\ensuremath{K^{0}_{\text{L}}}\xspace}
+  \newcommand*{\KzeroS}{\ensuremath{K^{0}_{\text{S}}}\xspace}
+  \newcommand*{\Kzeros}{\ensuremath{K^{0}_{\text{S}}}\xspace}
+  \newcommand*{\Kshort}{\ensuremath{K^{0}_{\text{S}}}\xspace}
+  \newcommand*{\Kstar}{\ensuremath{K^{*}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  J/psi, psi prime, etc.                                            |
+% +--------------------------------------------------------------------+
+%\let\psii=\psi  %  Save normal "\psi" definition, since I redefine it.
+%\renewcommand*{\psi}{\ensuremath{\psii}\xspace}
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\jpsi}{\PJgy}
+  \newcommand*{\Jpsi}{\PJgy}
+  \newcommand*{\psip}{\Pgyii}
+  \newcommand*{\chic}{\Pcgc}
+}{%
+  \newcommand*{\jpsi}{\ensuremath{J/\psi}\xspace}
+  \newcommand*{\Jpsi}{\ensuremath{J/\psi}\xspace}
+  %\newcommand*{\psip}{\ensuremath{\psi^{\scriptscriptstyle\prime}}\xspace}
+  \newcommand*{\psip}{\ensuremath{\psi(\text{2S})}\xspace}
+  \newcommand*{\chic}{\ensuremath{\raise.4ex\hbox{\(\chi\)}_{{c}}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  Upsilons of various sorts                                         |
+% +--------------------------------------------------------------------+
+% \newcommand*{\Ups}{\ensuremath{\mit\Upsilon}\xspace}
+% \newcommand*{\Upsp}{\ensuremath{\mit\Upsilon^{\scriptscriptstyle\prime}}\xspace}
+% \newcommand*{\Upspp}{\ensuremath{\mit\Upsilon^{\scriptscriptstyle\prime\prime}}\xspace}
+% \newcommand*{\Upsppp}{\ensuremath{\mit\Upsilon^{\scriptscriptstyle\prime\prime\prime}}\xspace}
+% \newcommand*{\Upspppp}{\ensuremath{\mit\Upsilon^{\scriptscriptstyle\prime\prime\prime\prime}}\xspace}
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\UoneS}{\PgUi}
+  \newcommand*{\Ups}[1]{\ensuremath{\PgU(\text{#1S})}\xspace}
+  \DeclareRobustCommand{\Pbgc}{\HepParticle{\chi}{b}{}\xspace}
+  \newcommand*{\chib}{\Pbgc}
+}{%
+  \newcommand*{\UoneS}{\ensuremath{\mit\Upsilon(\text{1S})}\xspace}
+  \newcommand*{\Ups}[1]{\ensuremath{\mit{\Upsilon}(\text{#1S})}\xspace}
+  \newcommand*{\Pbgc}{\ensuremath{\raise.4ex\hbox{\(\chi\)}_{{b}}}\xspace}
+  \newcommand*{\chib}{\ensuremath{\raise.4ex\hbox{\(\chi\)}_{{b}}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% |  C physics                                                         |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\Dstar}{\PDst}
+}{%
+  \newcommand*{\Dstar}{\ensuremath{D^{*}}\xspace}
+}
+% \newcommand*{\Dsstar}{\ensuremath{D^{**}}\xspace}
+
+% +--------------------------------------------------------------------+
+% |  B physics                                                         |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepparticle}}{%
+  \newcommand*{\Bd}{\PdB}
+  \newcommand*{\Bs}{\PsB}
+  \newcommand*{\Bu}{\ensuremath{\PB_{\Pqu}}}
+  \newcommand*{\Bc}{\ensuremath{\PB_{\Pqc}}}
+  \newcommand*{\Lb}{\PbgL}
+  \newcommand*{\Bstar}{\PBst}
+  \newcommand*{\BoBo}{\PBz{}\mbox{--}\PaBz}
+  \newcommand*{\BodBod}{\PdB{}\mbox{--}\PadB}
+  \newcommand*{\BosBos}{\PsB{}\mbox{--}\PasB}
+}{%
+  \newcommand*{\Bd}{\ensuremath{B_{d}^{0}}\xspace}
+  \newcommand*{\Bs}{\ensuremath{B_{s}^{0}}\xspace}
+  \newcommand*{\Bu}{\ensuremath{B_{u}}\xspace}
+  \newcommand*{\Bc}{\ensuremath{B_{c}}\xspace}
+  \newcommand*{\Lb}{\ensuremath{\Lambda_{b}}\xspace}
+  \newcommand*{\Bstar}{\ensuremath{B^{*}}\xspace}
+  \newcommand*{\BoBo}{\ensuremath{B^{0}\mbox{--}\bar{B}^{0}}\xspace}
+  \newcommand*{\BodBod}{\ensuremath{B^{0}_{d}\mbox{--}\bar{B}^{0}_{d}}\xspace}
+  \newcommand*{\BosBos}{\ensuremath{B^{0}_{s}\mbox{--}\bar{B}^{0}_{s}}\xspace}
+}
+
+% +--------------------------------------------------------------------+
+% | Processes - hepprocess has priority.                               |
+% +--------------------------------------------------------------------+
+\ifthenelse{\boolean{APTCL@hepprocess}}{%
+  \newcommand*{\btol}{\ensuremath{\Pqb \rightarrow \Pl}\xspace}
+  \newcommand*{\ctol}{\ensuremath{\Pqc \rightarrow \Pl}\xspace}
+  \newcommand*{\btoctol}{\ensuremath{\Pqb \rightarrow \Pqc \rightarrow \Pl}\xspace}
+  \newcommand*{\Jee}{\ensuremath{\PJgy \rightarrow \Pep{}\Pem}\xspace}
+  \newcommand*{\Jmm}{\ensuremath{\PJgy \rightarrow \Pgmp{}\Pgmm}\xspace}
+  \newcommand*{\Jmumu}{\ensuremath{\PJgy \rightarrow \Pgmp{}\Pgmm}\xspace}
+  \newcommand*{\Wjj}{\ensuremath{\PW \rightarrow jj}\xspace}
+  \newcommand*{\tjjb}{\ensuremath{\Pqt \rightarrow jj\Pqb}\xspace}
+  \newcommand*{\Hbb}{\ensuremath{\PH \rightarrow \Pqb{}\Paqb}\xspace}
+  \newcommand*{\Hgg}{\ensuremath{\PH \rightarrow \Pgg{}\Pgg}\xspace}
+  \newcommand*{\Hll}{\ensuremath{\PH \rightarrow \Pl{}\Pl}\xspace}
+  \newcommand*{\Hllll}{\ensuremath{\PH \rightarrow \Pl{}\Pl{}\Pl{}\Pl}\xspace}
+  \newcommand*{\Hmmmm}{\ensuremath{\PH \rightarrow \Pgm{}\Pgm{}\Pgm{}\Pgm}\xspace}
+  \newcommand*{\Heeee}{\ensuremath{\PH \rightarrow \Pe{}\Pe{}\Pe{}\Pe}\xspace}
+  \newcommand*{\Zll}{\ensuremath{\PZ \rightarrow \Pl{}\Pl}\xspace}
+  \newcommand*{\Zlplm}{\ensuremath{\PZ \rightarrow \Plp{}\Plm}\xspace}
+  \newcommand*{\Zee}{\ensuremath{\PZ \rightarrow \Pe{}\Pe}\xspace}
+  \newcommand*{\Zepem}{\ensuremath{\PZ \rightarrow \Pep{}\Pem}\xspace}
+  \newcommand*{\Zmm}{\ensuremath{\PZ \rightarrow \Pgm{}\Pgm}\xspace}
+  \newcommand*{\Zmpmm}{\ensuremath{\PZ \rightarrow \Pgmp{}\Pgmm}\xspace}
+  \newcommand*{\Ztt}{\ensuremath{\PZ \rightarrow \Pgt{}\Pgt}\xspace}
+  \newcommand*{\Ztptm}{\ensuremath{\PZ \rightarrow \Pgtp{}\Pgtm}\xspace}
+  \newcommand*{\Zbb}{\ensuremath{\PZ \rightarrow \Pqb{}\Paqb}\xspace}
+  \newcommand*{\Wln}{\ensuremath{\PW \rightarrow \Pl{}\Pgn}\xspace}
+  \newcommand*{\Wen}{\ensuremath{\PW \rightarrow \Pe{}\Pgn}\xspace}
+  \newcommand*{\Wmn}{\ensuremath{\PW \rightarrow \Pgm{}\Pgn}\xspace}
+  \newcommand*{\Wlnu}{\ensuremath{\PW \rightarrow \Pl{}\Pgn}\xspace}
+  \newcommand*{\Wenu}{\ensuremath{\PW \rightarrow \Pe{}\Pgn}\xspace}
+  \newcommand*{\Wmunu}{\ensuremath{\PW \rightarrow \Pgm{}\Pgn}\xspace}
+  \newcommand*{\Wqqbar}{\ensuremath{\PW \rightarrow \Pq{}\Paq}\xspace}
+  \newcommand*{\Amm}{\ensuremath{\PA \rightarrow \Pgm{}\Pgm}\xspace}
+  \newcommand*{\Ztautau}{\ensuremath{\PZ \rightarrow \Pgt{}\Pgt}\xspace}
+  \newcommand*{\Wtaunu}{\ensuremath{\PW \rightarrow \Pgt{}\Pgn}\xspace}
+  \newcommand*{\Atautau}{\ensuremath{\PA \rightarrow \Pgt{}\Pgt}\xspace}
+  \newcommand*{\Htautau}{\ensuremath{\PH \rightarrow \Pgt{}\Pgt}\xspace}
+
+  \newcommand*{\tWb}{\ensuremath{\Pqt \rightarrow \PW{}\Pqb}\xspace}
+
+  % W+jets without the \, before the + looks a bit better
+  \newcommand*{\Wjets}{\ensuremath{\PW\text{+\,jets}}\xspace}
+  \newcommand*{\Zjets}{\ensuremath{\PZ\text{\,+\,jets}}\xspace}
+
+  \newcommand*{\Brjl}{\ensuremath{\mathrm{Br}(\Jpsi \rightarrow \Plp{}\Plm)}}
+}{%
+  \ifthenelse{\boolean{APTCL@process}}{%
+    \newcommand*{\btol}{\ensuremath{b \rightarrow \ell}\xspace}
+    \newcommand*{\ctol}{\ensuremath{c \rightarrow \ell}\xspace}
+    \newcommand*{\btoctol}{\ensuremath{b \rightarrow c \rightarrow \ell}\xspace}
+    \newcommand*{\Jee}{\ensuremath{\Jpsi \rightarrow \epem}\xspace}
+    \newcommand*{\Jmm}{\ensuremath{\Jpsi \rightarrow \mumu}\xspace}
+    \newcommand*{\Jmumu}{\ensuremath{\Jpsi \rightarrow \mumu}\xspace}
+    \newcommand*{\Wjj}{\ensuremath{W \rightarrow jj}\xspace}
+    \newcommand*{\tjjb}{\ensuremath{t \rightarrow jjb}\xspace}
+    \newcommand*{\Hbb}{\ensuremath{H \rightarrow b\bar b}\xspace}
+    \newcommand*{\Hgg}{\ensuremath{H \rightarrow \gamma\gamma}\xspace}
+    \newcommand*{\Hll}{\ensuremath{H \rightarrow \ell\ell}\xspace}
+    \newcommand*{\Hllll}{\ensuremath{H \rightarrow \ell\ell\ell\ell}\xspace}
+    \newcommand*{\Hmmmm}{\ensuremath{H \rightarrow \mu\mu\mu\mu}\xspace}
+    \newcommand*{\Heeee}{\ensuremath{H \rightarrow eeee}\xspace}
+    \newcommand*{\Zll}{\ensuremath{Z \rightarrow \ell\ell}\xspace}
+    \newcommand*{\Zlplm}{\ensuremath{Z \rightarrow \leplep}\xspace}
+    \newcommand*{\Zee}{\ensuremath{Z \rightarrow ee}\xspace}
+    \newcommand*{\Zepem}{\ensuremath{Z \rightarrow \epem}\xspace}
+    \newcommand*{\Zmm}{\ensuremath{Z \rightarrow \mu\mu}\xspace}
+    \newcommand*{\Zmpmm}{\ensuremath{Z \rightarrow \mumu}\xspace}
+    \newcommand*{\Ztt}{\ensuremath{Z \rightarrow \tau\tau}\xspace}
+    \newcommand*{\Ztptm}{\ensuremath{Z \rightarrow \tautau}\xspace}
+    \newcommand*{\Zbb}{\ensuremath{Z \rightarrow \bbbar}\xspace}
+    \newcommand*{\Wln}{\ensuremath{W \rightarrow \ell\nu}\xspace}
+    \newcommand*{\Wen}{\ensuremath{W \rightarrow e\nu}\xspace}
+    \newcommand*{\Wmn}{\ensuremath{W \rightarrow \mu\nu}\xspace}
+    \newcommand*{\Wlnu}{\ensuremath{W \rightarrow \lnu}\xspace}
+    \newcommand*{\Wenu}{\ensuremath{W \rightarrow \enu}\xspace}
+    \newcommand*{\Wmunu}{\ensuremath{W \rightarrow \munu}\xspace}
+    \newcommand*{\Wqqbar}{\ensuremath{W \rightarrow \qqbar}\xspace}
+    \newcommand*{\Amm}{\ensuremath{A \rightarrow \mu\mu}\xspace}
+    \newcommand*{\Ztautau}{\ensuremath{Z \rightarrow \tau\tau}\xspace}
+    \newcommand*{\Wtaunu}{\ensuremath{W \rightarrow \tau\nu}\xspace}
+    \newcommand*{\Atautau}{\ensuremath{A \rightarrow \tau\tau}\xspace}
+    \newcommand*{\Htautau}{\ensuremath{H \rightarrow \tau\tau}\xspace}
+
+    \newcommand*{\tWb}{\ensuremath{t \rightarrow Wb}\xspace}
+
+    % W+jets without the \, before the + looks a bit better
+    \newcommand*{\Wjets}{\ensuremath{\Wboson\text{+\,jets}}\xspace}
+    \newcommand*{\Zjets}{\ensuremath{\Zboson\text{\,+\,jets}}\xspace}
+
+    \newcommand*{\Brjl}{\ensuremath{\mathcal{B}(\Jpsi \rightarrow \leplep)}}
+  }{}
+}

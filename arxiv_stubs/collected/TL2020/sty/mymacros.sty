@@ -1,0 +1,199 @@
+\ProvidesPackage{mymacros}[2015/08/25 v1.0 My own macros]
+
+
+\newcounter{subeq}
+\renewcommand{\thesubeq}{\theequation\alph{subeq}}
+\newcommand{\newsubeqblock}{\setcounter{subeq}{0}\refstepcounter{equation}}
+\newcommand{\mysubeq}{\refstepcounter{subeq}\tag{\thesubeq}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{example}{Example}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{proof}{Proof}
+%\newtheorem{remark}[theorem]{Remark}
+
+
+\def\a{\alpha}      \def\b{\beta}     \def\g{\gamma}   \def\d{\delta}
+\def\th{\theta}     \def\lm{\lambda}  \def\sg{\sigma}
+\def\lmone{\lambda_{1n}}
+ \def\lmtwo{\lambda_{2n}}
+
+
+\def\Xbar{{\overline X}}        \def\Fbar{{\overline F}}
+\def\Nbar{ {\overline N}}       \def\Ybar{{\overline Y}}
+\def\Hbar{{\overline H}}
+\def\Lbar{{\overline L}}
+\def\qed{\ \rule{1.5mm}{3mm}}
+\def\no{\nonumber}
+
+\def\oo{\infty}  \def\no{\nonumber}
+
+
+\def\bzero{{\mathbf 0}}  \def\bone{{\mathbf 1}} \def\btwo{{\mathbf 2}}
+
+\def\bB{{\mathbf B}}
+\def\bA{{\mathbf A}} \def\bC{{\mathbf C}} \def\bD{{\mathbf D}} \def\bE{{\mathbf E}}
+\def\bF{{\mathbf F}} \def\bS{{\mathbf S}} \def\bT{{\mathbf T}}
+\def\bG{{\mathbf G}} \def\bH{{\mathbf H}} \def\bK{{\mathbf K}} \def\bI{{\mathbf I}}
+\def\bL{{\mathbf L}} \def\bN{{\mathbf N}} \def\bP{{\mathbf P}} \def\bQ{{\mathbf Q}}
+\def\bR{{\mathbf R}} \def\bS{{\mathbf S}} \def\bT{{\mathbf T}} \def\bU{{\mathbf U}}
+\def\bV{{\mathbf V}} \def\bW{{\mathbf W}} \def\bX{{\mathbf X}} \def\bY{{\mathbf Y}}
+\def\bZ{{\mathbf Z}}
+\def\bM{\boldsymbol M}
+\def\bPi{{\mathbf \Pi}}
+
+
+\def\tbM{\widetilde{\boldsymbol M}}
+\def\tT{\widetilde{T}}
+
+\def\ba{{\mathbf a}} \def\bb{{\mathbf b}} \def\bd{{\mathbf d}} \def\be{{\mathbf e}}
+\def\bdf{{\mathbf f}} \def\bg{{\mathbf g}} \def\bh{{\mathbf h}}
+
+\def\bell{{\mathbf l}} \def\bp{{\mathbf p}} \def\bq{{\mathbf q}}
+\def\br{{\mathbf r}} \def\bs{{\mathbf s}} \def\bt{{\mathbf t}}
+\def\bu{{\mathbf u}} \def\bv{{\mathbf v}} 
+\def\bw{{\mathbf w}}
+
+\def\bx{{\mathbf x}} \def\by{{\mathbf y}} \def\bz{{\mathbf z}}
+
+\def\bbeta{{\boldsymbol{\beta}}}
+\def\bgamma{{\boldsymbol{\gamma}}}
+\def\bUpsilon{{\boldsymbol{\Upsilon}}}
+\def\bOmega{{\boldsymbol{\Omega}}}
+\def\hbu{\widehat{\boldsymbol u}}
+
+ \def\hw{\widehat{w}}
+ \def\hbw{\widehat{\mathbf w}}   \def\tbw{\widetilde{\mathbf w}}
+\def\bmu{{\mathbf \mu}}  \def\hbmu{\widehat{\boldsymbol \mu}}
+\def\bvartheta{\mathbf \vartheta}
+\def\hmu{\widehat \mu}
+\def\tbmu{\widetilde{\boldsymbol \mu}}
+\def\tmu{\widetilde \mu}
+
+\def\bnu{{\mathbf \nu}}  \def\hbnu{\widehat{\boldsymbol \nu}}
+\def\tbnu{\widetilde{\boldsymbol \nu}} \def\tnu{\widetilde{\nu}}
+\def\hnu{\widehat \nu}
+
+\def\bchi{{\boldsymbol{\chi}}} \def\bdelta{{\boldsymbol{\delta}}}
+\def\bdeta{{\boldsymbol{\eta}}} \def\bgamma{{\boldsymbol{\gamma}}}
+\def\bLambda{{\boldsymbol{\Lambda}}}   \def\bmu{{\boldsymbol{\mu}}}
+\def\bDelta{{\boldsymbol{\Delta}}}
+ \def\bGamma{{\boldsymbol{\Gamma}}}
+\def\lamn{\lambda_n}
+\def\bnu{{\boldsymbol{\nu}}}   \def\bomega{{\boldsymbol{\omega}}}
+\def\bphi{{\boldsymbol{\phi}}} \def\bpsi{{\boldsymbol{\psi}}}
+\def\bTheta{{\boldsymbol{\Theta}}}  \def\bveps{{\boldsymbol{\varepsilon}}}
+\def\bvarpi{{\boldsymbol{\varpi}}}  \def\bxi{{\boldsymbol{\xi}}}
+\def\bzeta{\boldsymbol \zeta}       \def\brho{{\boldsymbol{\rho}}}
+\def\bSigma{{\boldsymbol{\Sigma}}}
+\def\bPsi{{\boldsymbol{\Psi}}}
+\def\hbSigma{\widehat{{\boldsymbol{\Sigma}}}}
+
+ \def\btheta{{\boldsymbol{\theta}}}
+\def\bvarpi{{\boldsymbol{\varpi}}}
+\def\eps{\epsilon} \def\veps{\varepsilon} \def\balpha{{\boldsymbol{\alpha}}}
+\def\tbeta{\widetilde{\beta}} \def\tbbeta{\widetilde{\boldsymbol \beta}}
+
+\def\hbbeta{\widehat{\boldsymbol \beta}}
+\def\hbgamma{\widehat{\boldsymbol \gamma}}
+\def\hsigma{\widehat{\sigma}}
+\def\hbtheta{\widehat{\boldsymbol \theta}}  \def\tbtheta{\widetilde{\boldsymbol \theta}}
+\def\wt{\widetilde}
+\def\hs{\widehat{ s}}  \def\tw{\tilde{w}}
+\def\Fhat{ {\widehat F}} \def\Ghat{\widehat{G}}
+\def\Jhat{ {\widehat J}} \def\Khat{ {\widehat K}}
+\def\hcB{ {\widehat {\cal B}} }
+\def\hcBJhat{ {\widehat {\cal B}}_{\widehat J} }
+
+\def\tX{\widetilde{X}}  \def\byhat{{\widehat {\mathbf y}}}
+\def\tY{\widetilde{Y}}
+\def\tb{\widetilde{b}} \def\hbb{\widehat{\mathbf b}}
+
+\def\cY{{\cal Y}}  \def\tZ{\widetilde{Z}} \def\cZ{{\mathcal Z}}
+ \def\cI{{\cal I}}
+ \def\cM{{\cal M}} \def\cN{{\cal N}} \def\cA{{\cal A}}
+ \def\cB{{\cal B}}  \def\cJ{{\cal J}}
+  \def\cD{{\cal D}}
+\def\cX{{\cal X}}
+\def\cE{{\cal E}} \def\cF{{\mathcal F}}     \def\cK{{\mathcal K}}
+\def\cL{{\cal L}}  \def\cR{{\cal R}}  \def\cS{{\cal S}}
+ \def\rE{{\mathrm E}} \def\rI{{\rm I}}
+ \def\rN{{\mathrm N}}  \def\rP{{\mathrm P}}
+
+
+\def\bbP{{\mathbb P}}
+
+
+\def\II{I\!I}   \def\III{I\!I\!I}
+\def\sgn{\mbox{sgn}}  \def\argmax{\mathop{\rm arg\, max}}
+\def\argmin{\mathop{\rm arg\, min}}
+\def\allsum{{\sum_{i=1}^n}}
+
+\def\diag{\hbox{diag}}
+\def\Var{\hbox{Var}}  \def\GCV{\hbox{GCV}}  \def\Cov{\hbox{Cov}}
+\def\Rem{\hbox{Rem}} \def\hbeta{\widehat{\beta}} \def\htheta{\widehat{\theta}}
+\def\hF{\widehat{F}} \def\Dnu{\Delta_{\nu}}
+\def\hg{\widehat{g}}
+\def\median{\mbox{median}}  \def\sign{\mbox{sign}} \def\trace{\mbox{trace}}
+\def\real{\mathop{{\rm I}\kern-.2em\hbox{\rm R}}\nolimits}
+
+\def\1overn{\frac{1}{n}}
+
+\def\hbthetaUE{\bm{\widehat\theta}^{\textrm{UE}}}
+\def\hbthetaRE{\bm{\widehat\theta}^{\textrm{RE}}}
+\def\hbthetaSE{\bm{\widehat\theta}^{\textrm{SE}}}
+\def\hbthetaPT{\bm{\widehat\theta}^{\textrm{PT}}}
+\def\hbthetaPSE{\bm{\widehat\theta}^{\textrm{PSE}}}
+
+\def\hbbetaTPT{\bm{\widehat\beta}^{\textrm{PT}}}
+\def\hbbetaTRE{\bm{\widehat\beta}^{\textrm{RE}}}
+
+\def\hbetaUE{\widehat\beta^{\textrm{UE}}}
+\def\hbbetaUE{\bm{\widehat\beta}^{\textrm{UE}}}
+\def\hbetaWR{\widehat\beta^{\textrm{WR}}}
+\def\hbbetaWR{\bm{\widehat\beta}^{\textrm{WR}}}
+\def\hbbetaRE{\bm{\widehat\beta}^{\textrm{RE}}}
+\def\hbbetaPT{\bm{\widehat\beta}^{\textrm{PT}}}
+\def\hbbetaSE{\bm{\widehat\beta}^{\textrm{SE}}}
+\def\hbbetaPSE{\bm{\widehat\beta}^{\textrm{PSE}}}
+\def\hbbetaCSE{\bm{\widehat\beta}^{\textrm{CSE}}}
+\def\hbbetaPCSE{\bm{\widehat\beta}^{\textrm{PCSE}}}
+\def\hbbetaIPT{\bm{\widehat\beta}^{\textrm{IPT}}}
+
+\def\hbbetaUEr{\bm{\widehat\beta}^{\textrm{UE}_{\rm r}}}
+\def\hbbetaREr{\bm{\widehat\beta}^{\textrm{RE}_{\rm r}}}
+\def\hbbetaPTr{\bm{\widehat\beta}^{\textrm{PT}_{\rm r}}}
+\def\hbbetaSEr{\bm{\widehat\beta}^{\textrm{SE}_{\rm r}}}
+\def\hbbetaPSEr{\bm{\widehat\beta}^{\textrm{PSE}_{\rm r}}}
+\def\hbbetaCSEr{\bm{\widehat\beta}^{\textrm{CSE}_{\rm r}}}
+\def\hbbetaPCSEr{\bm{\widehat\beta}^{\textrm{PCSE}_{\rm r}}}
+\def\hbbetaIPTr{\bm{\widehat\beta}^{\textrm{IPT}_{\rm r}}}
+
+\def\hbbetaUEg{\bm{\widehat\beta}^{\textrm{UE}_{\rm g}}}
+\def\hbbetaREg{\bm{\widehat\beta}^{\textrm{RE}_{\rm g}}}
+\def\hbbetaPTg{\bm{\widehat\beta}^{\textrm{PT}_{\rm g}}}
+\def\hbbetaSEg{\bm{\widehat\beta}^{\textrm{SE}_{\rm g}}}
+\def\hbbetaPSEg{\bm{\widehat\beta}^{\textrm{PSE}_{\rm g}}}
+\def\hbbetaCSEg{\bm{\widehat\beta}^{\textrm{CSE}_{\rm g}}}
+\def\hbbetaPCSEg{\bm{\widehat\beta}^{\textrm{PCSE}_{\rm g}}}
+\def\hbbetaIPTg{\bm{\widehat\beta}^{\textrm{IPT}_{\rm g}}}
+
+\def\hcO{{\widehat {\cal O}}}
+\def\hcB{{\widehat {\cal B}}}
+\def\hbW{\bm{\widehat W}}
+\def\tbW{\bm{\widetilde W}}
+\def\hbg{\bm{\widehat g}}
+\def\hw{\widehat w}
+\def\hb{\widehat b}
+\def\hbb{\bm{\widehat b}}
+
+\def\tbbetaUE{\bm{\widetilde\beta}^{\textrm{UE}_{\rm r}}}
+\def\GDF{{\rm GDF}}
+\def\cov{{\rm cov}}
+\def\tbH{ {\widetilde {\bf H}} }
+
+\def\bel{\begin{eqnarray}\label}  \def\eel{\end{eqnarray}}
+\def\bes{\begin{eqnarray*}}  \def\ees{\end{eqnarray*}}
+
+\usepackage{footnote}

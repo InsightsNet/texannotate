@@ -1,0 +1,130 @@
+\usepackage{datetime}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+% \usepackage{marginnote}
+
+\usepackage{mathrsfs}
+\usepackage{bbm}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor   = blue %Colour of citations
+}
+
+% Bibliography related
+\usepackage[
+            hyperref=true,
+            url=false,
+            isbn=false,
+            backref=true,
+            style=alphabetic,
+            block=none
+]{biblatex}
+\addbibresource{references.bib}
+
+% Only while writing
+% \usepackage[inline]{showlabels}
+
+% Only sections appear in TOC
+\setcounter{tocdepth}{1}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem*{untheorem}{Theorem}
+
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem*{fact}{Fact}
+
+\theoremstyle{definition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem*{unquestion}{Question}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{proofsketch}{Outline of proof}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newtheorem{manualtheoreminner}{Theorem}
+\newenvironment{manualtheorem}[1]{%
+  \renewcommand\themanualtheoreminner{#1}%
+  \manualtheoreminner
+}{\endmanualtheoreminner}
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{enumerate}
+\usepackage{xcolor}
+
+\usepackage{import}
+\usepackage{xifthen}
+\usepackage{pdfpages}
+\usepackage{transparent}
+
+\usepackage[textwidth=25mm]{todonotes}
+\newcommand{\marginremark}[3][]{\todo[#2,color=blue!40]{#1: #3}}
+
+\newcommand*{\incfig}[2][1]{%
+    \def\svgscale{#1}
+    \import{./images/}{#2.pdf_tex}
+}
+
+
+
+% To be uncommented if we need autorefnames
+% \def\sectionautorefname{Section}
+% \def\thmautorefname{Theorem}
+% \def\lemautorefname{Lemma}
+
+%% this code removes 0 subsection numbers
+%% so you get Definition 1.1 instead of Definition 1.0.1
+\makeatletter
+\renewcommand{\thesubsection}{%
+  \ifnum\c@subsection<1 \@arabic\c@section
+  \else \thesection.\@arabic\c@subsection
+  \fi
+}
+\makeatother
+
+% \newcommand{\pml}{\mathbb{P}\mathcal{ML}}
+% \newcommand{\ml}{\mathcal{ML}}
+\newcommand{\pmf}{\mathbb{P}\mathcal{MF}}
+\newcommand{\mf}{\mathcal{MF}}
+\newcommand{\systole}{\mathcal{T}_{\varepsilon}^{-}}
+\newcommand{\mcg}{\mathrm{MCG}}
+\newcommand{\os}{\mathcal{S}}
+\newcommand{\no}{\mathcal{N}}
+\newcommand{\teich}{\mathcal{T}}
+\newcommand{\mg}{\mathcal{M}}
+\newcommand{\pslr}{\mathrm{PSL}(2, \mathbb{R})}
+\newcommand{\scc}{\mathscr{S}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\wt}{\widetilde}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\dynlim}{\Lambda_{\mathrm{dyn}}}
+\newcommand{\geolim}{\Lambda_{\mathrm{geo}}}
+\newcommand{\HH}{\mathbb{H}}
+\newcommand{\expansion}{\mathrm{Sat}}
+\newcommand{\err}[1]{\mathrm{err}_{#1}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\dd}{\mathrm{\,d}}
+\newcommand{\lhyp}{\ell_{\mathrm{hyp}}}
+\newcommand{\lflat}{\ell_{\mathrm{flat}}}
