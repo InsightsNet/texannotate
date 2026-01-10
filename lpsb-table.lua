@@ -12,7 +12,9 @@
 --
 -- NOTE:
 -- This is an MVP. It emits TR/TD with row/col/text and box dimensions (w/h/d in sp).
--- It emits absolute bboxes (x0,y0,x1,y1). Coordinates are converted to PDF bp (1/72in).
+-- IMPORTANT: LuaTeX-derived absolute positions can be offset/drifty across engines.
+-- We therefore do NOT emit absolute bboxes (x0/y0/x1/y1) by default; gold positions
+-- should come from the pdfLaTeX aux/PDF enrichment stage.
 
 local M = {}
 
@@ -503,10 +505,6 @@ function M.end_table()
                 h = sp_to_bp(rh.h or 0),
                 d = sp_to_bp(rh.d or 0),
                 page = tr_page,
-                x0 = sp_to_bp(x0i),
-                y0 = sp_to_bp(y0i),
-                x1 = sp_to_bp(x1i),
-                y1 = sp_to_bp(y1i),
             }))
             write_event(ev_to_json({ id = td_id, role = "TD", event = "end" }))
         end

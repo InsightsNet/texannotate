@@ -5,6 +5,12 @@
 
 local M = {}
 
+-- Coordinates from LuaTeX are *not* gold. They can drift/offset across engines,
+-- so by default we do NOT capture/emit them. If you really want Lua-side coords
+-- for debugging, set environment variable:
+--   LPSB_LUA_MATH_CAPTURE_POS=1
+local CAPTURE_POS = os.getenv("LPSB_LUA_MATH_CAPTURE_POS") == "1"
+
 -- State
 local section_num = 0
 local display_in_section = 0
@@ -284,6 +290,7 @@ end
 
 -- Pre-shipout callback
 local function capture_positions(box)
+    if not CAPTURE_POS then return box end
     if not lpsb_math_attr then return box end
     
     local page_num = tex.count[0] or 1
@@ -338,8 +345,6 @@ function M.close_file()
         local entry = math_entries[i]
         if entry then
             count = count + 1
-            local x_val = entry.x or 0
-            local y_val = entry.y or 0
             
             local type_str = entry.type or (entry.display and "display" or "inline")
             local extra = ""
@@ -348,12 +353,12 @@ function M.close_file()
             end
             
             write_event(string.format(
-                '{"id": "%s", "role": "Math", "event": "start", "type": "%s", "display": %s, "page": %d, "x": %.2f, "y": %.2f, "width": %.2f, "height": %.2f, "depth": %.2f%s, "mathml": "%s"}',
+                -- Intentionally do NOT emit x/y from LuaTeX (not gold).
+                '{"id": "%s", "role": "Math", "event": "start", "type": "%s", "display": %s, "page": %d, "width": %.2f, "height": %.2f, "depth": %.2f%s, "mathml": "%s"}',
                 entry.id,
                 type_str,
                 entry.display and "true" or "false",
                 entry.page,
-                x_val, y_val,
                 entry.width, entry.height, entry.depth,
                 extra,
                 entry.mathml
@@ -376,7 +381,10 @@ function M.init()
         -- luatexbase exists in older TeX Live too, but some callback plumbing differs.
         -- Be defensive: if luatexbase rejects registration, fall back to raw callback.register.
         local ok1, err1 = pcall(luatexbase.add_to_callback, "mlist_to_hlist", process_math, "lpsb_math_capture")
-        local ok2, err2 = pcall(luatexbase.add_to_callback, "pre_shipout_filter", capture_positions, "lpsb_math_positions")
+        local ok2, err2 = true, nil
+        if CAPTURE_POS then
+            ok2, err2 = pcall(luatexbase.add_to_callback, "pre_shipout_filter", capture_positions, "lpsb_math_positions")
+        end
         if not (ok1 and ok2) then
             if texio and texio.write_nl then
                 texio.write_nl("term and log", "LPSB-Math: luatexbase.add_to_callback failed; falling back to callback.register")
@@ -388,11 +396,15 @@ function M.init()
                 texio.write_nl("term and log", "LPSB-Math: callback error (pre_shipout_filter): " .. tostring(err2))
             end
             callback.register("mlist_to_hlist", process_math)
-            callback.register("pre_shipout_filter", capture_positions)
+            if CAPTURE_POS then
+                callback.register("pre_shipout_filter", capture_positions)
+            end
         end
     else
         callback.register("mlist_to_hlist", process_math)
-        callback.register("pre_shipout_filter", capture_positions)
+        if CAPTURE_POS then
+            callback.register("pre_shipout_filter", capture_positions)
+        end
     end
     texio.write_nl("term and log", "LPSB-Math: Initialized with align grouping")
 end
