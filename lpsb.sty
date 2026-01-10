@@ -5,9 +5,26 @@
 % USAGE: \usepackage{lpsb} (after \documentclass)
 % ===================================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{lpsb}[2026/01/05 LPSB Package - PDF 2.0 Structure Elements]% Engine detection and primitive compatibility
+\ProvidesPackage{lpsb}[2026/01/05 LPSB Package - PDF 2.0 Structure Elements]%
+
+% Engine detection and primitive compatibility
 \RequirePackage{iftex}
 \RequirePackage[savepos]{zref}
+
+% Compatibility fix for older TeX Live versions (e.g., TL2020)
+% Problem: When the .aux file is read (before \begin{document}),
+% \zref@newlabel may not be defined in older zref versions,
+% causing "Undefined control sequence" errors on the second pass.
+% Solution: Provide an immediate fallback no-op definition.
+% zref will overwrite this with the real definition if it initializes properly.
+\@ifundefined{zref@newlabel}{%
+    \typeout{LPSB: Defining fallback zref@newlabel for old zref compatibility}%
+    \long\def\zref@newlabel#1#2{}%
+}{}
+% Also handle posx/posy which appear inside zref labels
+\@ifundefined{posx}{\def\posx#1{}}{}
+\@ifundefined{posy}{\def\posy#1{}}{}
+
 \ifLuaTeX
     \let\lpsb@savepos\savepos
     \let\lpsb@lastxpos\lastxpos
@@ -18,6 +35,50 @@
     \let\lpsb@lastypos\pdflastypos
 \fi
 
+
+% ===================================================================
+% Package Compatibility Detection
+% ===================================================================
+% Some packages use internal macros that conflict with LPSB hooks.
+% We detect these packages and COMPLETELY disable LPSB to avoid errors.
+
+% Flag for disabled mode (completely disables ALL LPSB functionality)
+\newif\iflpsb@disabled
+\lpsb@disabledfalse
+
+% Alias for backward compatibility
+\let\iflpsb@reducedhooks\iflpsb@disabled
+\let\lpsb@reducedhookstrue\lpsb@disabledtrue
+\let\lpsb@reducedhooksfalse\lpsb@disabledfalse
+
+% Detect conflicting packages after \begin{document}
+\AtBeginDocument{%
+    % 'changes' package uses xkeyval internally and LPSB hooks can corrupt
+    % xkeyval's internal parsing state (XKV@resa, etc.)
+    \@ifpackageloaded{changes}{%
+        \typeout{LPSB WARNING: Detected 'changes' package - DISABLING ALL LPSB FUNCTIONALITY}%
+        \global\lpsb@disabledtrue
+    }{}%
+    % 'soul' package can also conflict
+    \@ifpackageloaded{soul}{%
+        \typeout{LPSB WARNING: Detected 'soul' package - DISABLING ALL LPSB FUNCTIONALITY}%
+        \global\lpsb@disabledtrue
+    }{}%
+    % Print final status
+    \iflpsb@disabled
+        \typeout{LPSB: Package DISABLED due to conflicting packages}%
+    \fi
+}
+
+% ===================================================================
+% Protected AddToHook Wrapper
+% ===================================================================
+% This wrapper ensures LPSB hooks are no-ops when disabled.
+% The callback body is wrapped to check disabled flag at EXECUTION time,
+% not at definition time, which prevents argument expansion issues.
+\def\lpsb@AddToHook#1#2{%
+    \AddToHook{#1}{\iflpsb@disabled\else #2\fi}%
+}
 
 % ===================================================================
 % Counters and State
@@ -59,6 +120,16 @@
 \lpsbInlineMathInContext=0
 \newcount\lpsbDisplayMathCount
 \lpsbDisplayMathCount=0
+
+% Explicit ID marker for cross-engine alignment (LaTeXML binding consumes this).
+\providecommand{\lpsbMark}[1]{}%
+\def\lpsb@PendingDisplayMathID{}%
+\def\lpsb@DisplayMathMark{%
+    \ifx\lpsb@PendingDisplayMathID\@empty\else
+        \lpsbMark{\lpsb@PendingDisplayMathID}%
+        \let\lpsb@PendingDisplayMathID\@empty
+    \fi
+}%
 \newcount\lpsbInlineMathCount
 \lpsbInlineMathCount=0
 
@@ -93,21 +164,30 @@
 % ===================================================================
 % Output File (Structure Tree JSON)
 % ===================================================================
+\newif\iflpsbNoIO
+\lpsbNoIOfalse
+
 \newwrite\lpsbout
-\immediate\openout\lpsbout=\jobname.lpsb.json
-\immediate\write\lpsbout{[}
 
 \newif\iflpsbFirstEntry
 \lpsbFirstEntrytrue
 
-\long\def\lpsbWriteEntry#1{%
-    \iflpsbFirstEntry
-        \immediate\write\lpsbout{#1}%
-        \global\lpsbFirstEntryfalse
-    \else
-        \immediate\write\lpsbout{,#1}%
-    \fi
-}
+\iflpsbNoIO
+    \long\def\lpsbWriteEntry#1{}%
+\else
+    \immediate\openout\lpsbout=\jobname.lpsb.json
+    \immediate\write\lpsbout{[}
+    \long\def\lpsbWriteEntry#1{%
+        \iflpsb@reducedhooks\else  % Skip all writes in reduced hooks mode
+        \iflpsbFirstEntry
+            \immediate\write\lpsbout{#1}%
+            \global\lpsbFirstEntryfalse
+        \else
+            \immediate\write\lpsbout{,#1}%
+        \fi
+        \fi
+    }%
+\fi
 
 % ===================================================================
 % PDF 2.0 Role Mapping
@@ -121,9 +201,11 @@
 % Core Probe Command
 % ===================================================================
 \def\lpsbProbe#1#2#3{%
+    \iflpsb@reducedhooks\else  % Skip in reduced hooks mode
     \global\advance\lpsbProbeCount by 1%
     \lpsb@savepos
     \lpsbWriteEntry{{"id": "#1", "role": "#2", "page": "\thepage", "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos #3}}%
+    \fi
 }
 
 % ===================================================================
@@ -136,6 +218,7 @@
 % Prefer LaTeX paragraph hooks (para/begin, para/end) over \everypar.
 % \everypar gets overwritten in many environments (lists, minipage, etc).
 \def\lpsb@ParaBegin{%
+    \iflpsb@reducedhooks\else  % Skip in reduced hooks mode (e.g., changes package)
     \iflpsbActive  % Only track if LPSB is active (delayed for acmart)
     \iflpsb@intikz\else  % Skip paragraph tracking inside TikZ/PGF
     \iflpsb@inbib\else  % Skip paragraph tracking inside bibliography
@@ -148,14 +231,17 @@
     \fi
     \fi
     \fi
+    \fi
 }
 
 \def\lpsb@ParaEnd{%
+    \iflpsb@reducedhooks\else  % Skip in reduced hooks mode
     \iflpsbActive  % Only track if LPSB is active (delayed for acmart)
     \iflpsbInPara
         \zsavepos{lpsb-P-\the\lpsbParaCount-end}%
         \lpsbWriteEntry{{"id": "P-\the\lpsbParaCount", "role": "P", "event": "end", "page": "\thepage"}}%
         \global\lpsbInParafalse
+    \fi
     \fi
     \fi
 }
@@ -243,26 +329,30 @@
     \lpsbParaEnd%
     \global\advance\lpsbEnvDepth by 1%
     \global\advance\lpsbTableCount by 1%
-    \zsavepos{lpsb-Table-\the\lpsbTableCount-start}%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+    \edef\lpsb@TableID{Table-\the\lpsbTableCount}%
+    \lpsbMark{\lpsb@TableID}%
+    \zsavepos{lpsb-\lpsb@TableID-start}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
 }%
 \AtEndEnvironment{table}{%
     \lpsbParaEnd%
-    \zsavepos{lpsb-Table-\the\lpsbTableCount-end}%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+    \zsavepos{lpsb-\lpsb@TableID-end}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
     \global\advance\lpsbEnvDepth by -1%
 }%
 \AtBeginEnvironment{table*}{%
     \lpsbParaEnd%
     \global\advance\lpsbEnvDepth by 1%
     \global\advance\lpsbTableCount by 1%
-    \zsavepos{lpsb-Table-\the\lpsbTableCount-start}%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+    \edef\lpsb@TableID{Table-\the\lpsbTableCount}%
+    \lpsbMark{\lpsb@TableID}%
+    \zsavepos{lpsb-\lpsb@TableID-start}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
 }%
 \AtEndEnvironment{table*}{%
     \lpsbParaEnd%
-    \zsavepos{lpsb-Table-\the\lpsbTableCount-end}%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
+    \zsavepos{lpsb-\lpsb@TableID-end}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
     \global\advance\lpsbEnvDepth by -1%
 }%
 
@@ -274,13 +364,13 @@
 % Trade-off: longtable environments will NOT emit Table start/end events in JSON,
 % but visual rendering is preserved.
 % NOTE: This is a limitation of LaTeX's hook system interaction with longtable.
-%\AddToHook{env/longtable/begin}{%
+%\lpsb@AddToHook{env/longtable/begin}{%
 %    \lpsbParaEnd%
 %    \global\advance\lpsbEnvDepth by 1%
 %    \global\advance\lpsbTableCount by 1%
 %    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "longtable"}}%
 %}%
-%\AddToHook{env/longtable/end}{%
+%\lpsb@AddToHook{env/longtable/end}{%
 %    \lpsbParaEnd%
 %    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "longtable"}}%
 %    \global\advance\lpsbEnvDepth by -1%
@@ -288,15 +378,17 @@
 
 % rotating package: sidewaystable (rotated float)
 % Hook by name; if the environment doesn't exist, the hook is ignored.
-\AddToHook{env/sidewaystable/begin}{%
+\lpsb@AddToHook{env/sidewaystable/begin}{%
     \lpsbParaEnd%
     \global\advance\lpsbEnvDepth by 1%
     \global\advance\lpsbTableCount by 1%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "sidewaystable", "rotated": true}}%
+    \edef\lpsb@TableID{Table-\the\lpsbTableCount}%
+    \lpsbMark{\lpsb@TableID}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "start", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "sidewaystable", "rotated": true}}%
 }%
-\AddToHook{env/sidewaystable/end}{%
+\lpsb@AddToHook{env/sidewaystable/end}{%
     \lpsbParaEnd%
-    \lpsbWriteEntry{{"id": "Table-\the\lpsbTableCount", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "sidewaystable", "rotated": true}}%
+    \lpsbWriteEntry{{"id": "\lpsb@TableID", "role": "Table", "event": "end", "depth": \the\lpsbEnvDepth, "page": "\thepage", "env": "sidewaystable", "rotated": true}}%
     \global\advance\lpsbEnvDepth by -1%
 }%
 
@@ -346,12 +438,14 @@
         \global\lpsb@indisplaytrue% Mark that we're in display math (for everymath filter)
         \global\advance\lpsbDisplayMathCount by 1%
         \global\advance\lpsbDisplayMathInContext by 1%
-        \zsavepos{lpsb-Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext-start}%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "start", "env": "#1", "page": "\thepage"}}%
+        \edef\lpsb@DisplayMathID{Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext}%
+        \edef\lpsb@PendingDisplayMathID{\lpsb@DisplayMathID}%
+        \zsavepos{lpsb-\lpsb@DisplayMathID-start}%
+        \lpsbWriteEntry{{"id": "\lpsb@DisplayMathID", "role": "Formula", "event": "start", "env": "#1", "page": "\thepage"}}%
     }%
     \AtEndEnvironment{#1}{%
-        \zsavepos{lpsb-Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext-end}%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "end", "page": "\thepage"}}%
+        \zsavepos{lpsb-\lpsb@DisplayMathID-end}%
+        \lpsbWriteEntry{{"id": "\lpsb@DisplayMathID", "role": "Formula", "event": "end", "page": "\thepage"}}%
         \global\lpsb@indisplayfalse% Reset display flag
     }%
 }
@@ -366,11 +460,13 @@
     \RenewEnviron{equation}{%
         \global\advance\lpsbDisplayMathCount by 1%
         \global\advance\lpsbDisplayMathInContext by 1%
-        \zsavepos{lpsb-Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext-start}%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "start", "env": "equation", "latex": "\lpsb@escapeJSON{\BODY}", "page": "\thepage"}}%
+        \edef\lpsb@DisplayMathID{Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext}%
+        \edef\lpsb@PendingDisplayMathID{\lpsb@DisplayMathID}%
+        \zsavepos{lpsb-\lpsb@DisplayMathID-start}%
+        \lpsbWriteEntry{{"id": "\lpsb@DisplayMathID", "role": "Formula", "event": "start", "env": "equation", "latex": "\lpsb@escapeJSON{\BODY}", "page": "\thepage"}}%
         \lpsb@orig@equation\BODY\lpsb@orig@endequation%
-        \zsavepos{lpsb-Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext-end}%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext", "role": "Formula", "event": "end", "page": "\thepage"}}%
+        \zsavepos{lpsb-\lpsb@DisplayMathID-end}%
+        \lpsbWriteEntry{{"id": "\lpsb@DisplayMathID", "role": "Formula", "event": "end", "page": "\thepage"}}%
     }%
     \typeout{LPSB Info: equation environment configured with LaTeX source capture}%
 }{%
@@ -402,16 +498,33 @@
 
 % Mark when we enter display math
 \let\lpsb@orig@everydisplay\everydisplay
-\everydisplay\expandafter{\the\everydisplay\global\lpsb@indisplaytrue}
+\everydisplay\expandafter{\the\everydisplay\global\lpsb@indisplaytrue\lpsb@DisplayMathMark}
 
 % Track inline math (only when not in display mode)
+% IMPORTANT:
+% - This is the ONLY robust TeX-side hook that sees both $...$ and \( ... \)
+% - We emit start/end with zref labels so pdfLaTeX(aux) is the gold position source.
+% - IDs use IMath to align with the Lua math pass (Sec-*-IMath-*).
+%
 % (lpsbInlineMathCount defined in Counters section above)
+\def\lpsb@InlineMathEnd#1{%
+    \edef\lpsb@tmpend{lpsb-#1-end}%
+    \expandafter\zsavepos\expandafter{\lpsb@tmpend}%
+    \lpsbWriteEntry{{"id": "#1", "role": "InlineMath", "event": "end", "page": "\thepage"}}%
+}%
 \everymath{%
     \iflpsb@indisplay\else
         \global\advance\lpsbInlineMathCount by 1%
         \global\advance\lpsbInlineMathInContext by 1%
-        \zsavepos{lpsb-Sec-\the\lpsbMathContextNum-InlineMath-\the\lpsbInlineMathInContext}%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-InlineMath-\the\lpsbInlineMathInContext", "role": "InlineMath", "event": "atom", "page": "\thepage"}}%
+        \edef\lpsb@InlineMathID{Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext}%
+        \lpsbMark{\lpsb@InlineMathID}%
+        \edef\lpsb@tmpstart{lpsb-\lpsb@InlineMathID-start}%
+        \expandafter\zsavepos\expandafter{\lpsb@tmpstart}%
+        \lpsbWriteEntry{{"id": "\lpsb@InlineMathID", "role": "InlineMath", "event": "start", "page": "\thepage"}}%
+        % Schedule the end marker right after math mode closes.
+        % Must be global: the math group ends before \aftergroup token executes.
+        \global\edef\lpsb@InlineMathAfter{\noexpand\lpsb@InlineMathEnd{\lpsb@InlineMathID}}%
+        \aftergroup\lpsb@InlineMathAfter
     \fi
 }
 
@@ -433,148 +546,148 @@
 % ===================================================================
 % Theorem-like Environments (amsthm)
 % ===================================================================
-\AddToHook{env/theorem/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "theorem", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/theorem/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "theorem", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/lemma/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "lemma", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/lemma/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "lemma", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/proof/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "proof", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/proof/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "proof", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/definition/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "definition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/definition/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "definition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/corollary/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "corollary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/corollary/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "corollary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/proposition/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "proposition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/proposition/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "proposition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/remark/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "remark", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/remark/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "remark", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/example/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "example", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/example/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "example", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/theorem/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "theorem", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/theorem/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "theorem", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/lemma/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "lemma", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/lemma/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "lemma", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/proof/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "proof", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/proof/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "proof", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/definition/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "definition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/definition/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "definition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/corollary/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "corollary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/corollary/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "corollary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/proposition/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "proposition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/proposition/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "proposition", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/remark/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "remark", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/remark/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "remark", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/example/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "example", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/example/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "example", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Code Block Environments (listings, minted, algorithm)
 % ===================================================================
-\AddToHook{env/lstlisting/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "lstlisting", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/lstlisting/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "lstlisting", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/minted/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "minted", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/minted/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "minted", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/algorithm/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "algorithm", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/algorithm/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "algorithm", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/algorithmic/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "algorithmic", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/algorithmic/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "algorithmic", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/lstlisting/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "lstlisting", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/lstlisting/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "lstlisting", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/minted/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "minted", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/minted/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "minted", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/algorithm/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "algorithm", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/algorithm/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "algorithm", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/algorithmic/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Code", "event": "start", "env": "algorithmic", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/algorithmic/end}{\lpsbWriteEntry{{"role": "Code", "event": "end", "env": "algorithmic", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Additional Float Environments (subfigure, wrapfigure)
 % ===================================================================
-\AddToHook{env/subfigure/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "subfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/subfigure/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "subfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/wrapfigure/begin}{\lpsbParaEnd\global\advance\lpsbFigureCount by 1\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "start", "env": "wrapfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/wrapfigure/end}{\lpsbParaEnd\lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "end", "env": "wrapfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/subfigure/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "subfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/subfigure/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "subfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/wrapfigure/begin}{\lpsbParaEnd\global\advance\lpsbFigureCount by 1\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "start", "env": "wrapfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/wrapfigure/end}{\lpsbParaEnd\lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "end", "env": "wrapfigure", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Multi-column Environments
 % ===================================================================
-\AddToHook{env/multicols/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "multicols", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/multicols/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "multicols", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/multicols/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "multicols", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/multicols/end}{\lpsbParaEnd\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "multicols", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Chemistry Environments (mhchem, chemmacros, chemfig)
 % ===================================================================
 % reaction environment (chemmacros package) - single chemical reaction
-\AddToHook{env/reaction/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Formula", "event": "start", "env": "reaction", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/reaction/end}{\lpsbWriteEntry{{"role": "Formula", "event": "end", "env": "reaction", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/reaction/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Formula", "event": "start", "env": "reaction", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/reaction/end}{\lpsbWriteEntry{{"role": "Formula", "event": "end", "env": "reaction", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % reactions environment (chemmacros package) - multiple reactions
-\AddToHook{env/reactions/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Formula", "event": "start", "env": "reactions", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/reactions/end}{\lpsbWriteEntry{{"role": "Formula", "event": "end", "env": "reactions", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/reactions/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Formula", "event": "start", "env": "reactions", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/reactions/end}{\lpsbWriteEntry{{"role": "Formula", "event": "end", "env": "reactions", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % scheme environment (chemnum/chemmacros) - reaction schemes
-\AddToHook{env/scheme/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "scheme", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/scheme/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "scheme", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/scheme/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "scheme", "subtype": "chemistry", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/scheme/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "scheme", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Music Notation Environments (lilypond, musixtex, abc, etc.)
 % ===================================================================
 % lilypond environment (lilypond-book) - LilyPond music notation
-\AddToHook{env/lilypond/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "lilypond", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/lilypond/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "lilypond", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/lilypond/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "lilypond", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/lilypond/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "lilypond", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % music environment (musixtex) - MusiXTeX notation
-\AddToHook{env/music/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "music", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/music/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/music/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "music", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/music/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % abc environment (abc package) - ABC notation
-\AddToHook{env/abc/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "abc", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/abc/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "abc", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/abc/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "abc", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/abc/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "abc", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % guitar environment (guitar package) - guitar chords and tabs
-\AddToHook{env/guitar/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "guitar", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/guitar/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "guitar", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/guitar/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "guitar", "subtype": "music", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/guitar/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "guitar", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Linguistics Environments (linguex, gb4e, expex)
 % ===================================================================
 % linguex package - linguistic examples
-\AddToHook{env/exe/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "exe", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/exe/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "exe", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/exe/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "exe", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/exe/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "exe", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % gb4e package - linguistic examples
-\AddToHook{env/gb4e/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "gb4e", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/gb4e/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "gb4e", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/gb4e/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "gb4e", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/gb4e/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "gb4e", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % expex package - examples
-\AddToHook{env/lingexample/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "lingexample", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/lingexample/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "lingexample", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/lingexample/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "lingexample", "subtype": "linguistics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/lingexample/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "lingexample", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Circuit Diagrams (circuitikz) - TikZ-based, uses tikzpicture internally
 % ===================================================================
-\AddToHook{env/circuitikz/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "circuitikz", "subtype": "circuit", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/circuitikz/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "circuitikz", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/circuitikz/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "circuitikz", "subtype": "circuit", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/circuitikz/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "circuitikz", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Gantt Charts (pgfgantt)
 % ===================================================================
-\AddToHook{env/ganttchart/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "ganttchart", "subtype": "chart", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/ganttchart/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "ganttchart", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/ganttchart/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "ganttchart", "subtype": "chart", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/ganttchart/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "ganttchart", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Chess/Go Diagrams
 % ===================================================================
 % chessboard package
-\AddToHook{env/chessboard/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "chessboard", "subtype": "game", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/chessboard/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "chessboard", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/chessboard/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "chessboard", "subtype": "game", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/chessboard/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "chessboard", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 % xskak package - chess game notation
-\AddToHook{env/xskakgame/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "xskakgame", "subtype": "game", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/xskakgame/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "xskakgame", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/xskakgame/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "xskakgame", "subtype": "game", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/xskakgame/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "xskakgame", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Beamer Presentation Environments
 % ===================================================================
-\AddToHook{env/frame/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "frame", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/frame/end}{\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "frame", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/block/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "block", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/block/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "block", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/alertblock/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "alertblock", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/alertblock/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "alertblock", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/exampleblock/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "exampleblock", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/exampleblock/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "exampleblock", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/columns/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "columns", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/columns/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "columns", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/column/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "column", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/column/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "column", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/frame/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Sect", "event": "start", "env": "frame", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/frame/end}{\lpsbWriteEntry{{"role": "Sect", "event": "end", "env": "frame", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/block/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "block", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/block/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "block", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/alertblock/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "alertblock", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/alertblock/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "alertblock", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/exampleblock/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "exampleblock", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/exampleblock/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "exampleblock", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/columns/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "columns", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/columns/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "columns", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/column/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Div", "event": "start", "env": "column", "subtype": "beamer", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/column/end}{\lpsbWriteEntry{{"role": "Div", "event": "end", "env": "column", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Glossary and Index
 % ===================================================================
-\AddToHook{env/theglossary/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "theglossary", "subtype": "glossary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/theglossary/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "theglossary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
-\AddToHook{env/theindex/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "theindex", "subtype": "index", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/theindex/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "theindex", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/theglossary/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "theglossary", "subtype": "glossary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/theglossary/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "theglossary", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/theindex/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "L", "event": "start", "env": "theindex", "subtype": "index", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/theindex/end}{\lpsbWriteEntry{{"role": "L", "event": "end", "env": "theindex", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % Feynman Diagrams (tikz-feynman)
 % ===================================================================
-\AddToHook{env/feynman/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "feynman", "subtype": "physics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/feynman/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "feynman", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/feynman/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Figure", "event": "start", "env": "feynman", "subtype": "physics", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/feynman/end}{\lpsbWriteEntry{{"role": "Figure", "event": "end", "env": "feynman", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % ===================================================================
 % TODO Notes
 % ===================================================================
-\AddToHook{env/inlinetodo/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Note", "event": "start", "env": "inlinetodo", "subtype": "todo", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
-\AddToHook{env/inlinetodo/end}{\lpsbWriteEntry{{"role": "Note", "event": "end", "env": "inlinetodo", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
+\lpsb@AddToHook{env/inlinetodo/begin}{\lpsbParaEnd\global\advance\lpsbEnvDepth by 1\lpsbWriteEntry{{"role": "Note", "event": "start", "env": "inlinetodo", "subtype": "todo", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}}%
+\lpsb@AddToHook{env/inlinetodo/end}{\lpsbWriteEntry{{"role": "Note", "event": "end", "env": "inlinetodo", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}\global\advance\lpsbEnvDepth by -1}%
 
 % TikZ/PGF Support (Hybrid Approach)
 % ===================================================================
@@ -584,7 +697,7 @@
 %   2. Disable internal probes (\everypar, etc.) to avoid conflicts
 % This preserves TikZ rendering while capturing structural information.
 
-\AddToHook{env/tikzpicture/begin}{%
+\lpsb@AddToHook{env/tikzpicture/begin}{%
     \lpsbParaEnd% Close any open paragraph
     \global\lpsb@intikztrue% Disable internal probes
     % Only record Figure event if not already inside a figure environment
@@ -594,7 +707,7 @@
         \lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "start", "env": "tikzpicture", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
     \fi
 }%
-\AddToHook{env/tikzpicture/end}{%
+\lpsb@AddToHook{env/tikzpicture/end}{%
     \iflpsb@infigure\else
         \lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "end", "env": "tikzpicture", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
         \global\advance\lpsbEnvDepth by -1%
@@ -603,7 +716,7 @@
 }%
 
 % pgfpicture is the lower-level environment used by TikZ
-\AddToHook{env/pgfpicture/begin}{%
+\lpsb@AddToHook{env/pgfpicture/begin}{%
     \lpsbParaEnd%
     \global\lpsb@intikztrue%
     \iflpsb@infigure\else
@@ -612,7 +725,7 @@
         \lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "start", "env": "pgfpicture", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
     \fi
 }%
-\AddToHook{env/pgfpicture/end}{%
+\lpsb@AddToHook{env/pgfpicture/end}{%
     \iflpsb@infigure\else
         \lpsbWriteEntry{{"id": "Figure-\the\lpsbFigureCount", "role": "Figure", "event": "end", "env": "pgfpicture", "depth": \the\lpsbEnvDepth, "page": "\thepage"}}%
         \global\advance\lpsbEnvDepth by -1%
@@ -896,8 +1009,8 @@
     \fi
     %
     % Paragraph hooks (kernel-level, robust across environments)
-    \AddToHook{para/begin}{\lpsb@ParaBegin}%
-    \AddToHook{para/end}{\lpsb@ParaEnd}%
+    \lpsb@AddToHook{para/begin}{\lpsb@ParaBegin}%
+    \lpsb@AddToHook{para/end}{\lpsb@ParaEnd}%
     %
     % Hook \label for references
     \let\lpsb@origlabel\label
@@ -973,20 +1086,15 @@
     }%
     %
     % Hook inline math \( ... \)
-    % Note: Does NOT catch $ ... $ which requires LuaTeX or dangerous hacks
-    % Uses same Math-N counter as display math for cross-compilation alignment
+    % NOTE:
+    % We deliberately do NOT hook \( \) here.
+    % Inline math is handled centrally via \everymath above, which covers BOTH
+    % $...$ and \( ... \) and emits zref labels for gold (aux) positions.
+    % Keep the original definitions intact.
     \let\lpsb@origopenmath\(
     \let\lpsb@origclosemath\)
-    \def\({%
-        \global\advance\lpsbInlineMathCount by 1%
-        \global\advance\lpsbInlineMathInContext by 1%
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext", "role": "InlineMath", "event": "start", "page": "\thepage"}}%
-        \lpsb@origopenmath
-    }%
-    \def\){%
-        \lpsb@origclosemath
-        \lpsbWriteEntry{{"id": "Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext", "role": "InlineMath", "event": "end", "page": "\thepage"}}%
-    }%
+    \def\({\lpsb@origopenmath}%
+    \def\){\lpsb@origclosemath}%
     % Heading hook
     % - \lpsbSectionNum increments for every heading level (used for heading IDs).
     % - \lpsbMathContextNum increments only for top-level headings (used for math IDs).
@@ -1302,7 +1410,7 @@
         }%
     }%
     % Avoid non-kernel macros (\AtBeginShipoutUpperLeft/\put) which may not exist.
-    \AddToHook{shipout/before}{%
+    \lpsb@AddToHook{shipout/before}{%
         \lpsb@savepos%
         \lpsbWriteEntry{{"role": "Calibration", "page": "\thepage", "x": \the\lpsb@lastxpos, "y": \the\lpsb@lastypos}}%
     }%
@@ -1400,10 +1508,10 @@
 }
 
 % Hook document boundaries for full page bbox
-\AddToHook{env/document/begin}{%
+\lpsb@AddToHook{env/document/begin}{%
     \zsavepos{lpsb-Document-start}%
 }
-\AddToHook{env/document/end}{%
+\lpsb@AddToHook{env/document/end}{%
     \zsavepos{lpsb-Document-end}%
 }
 
@@ -1414,11 +1522,13 @@
 % ===================================================================
 \AtEndDocument{%
     % If the document ends while TeX still considers us in a paragraph,
-    % \AddToHook{para/end} may not have fired. Close it explicitly.
+    % \lpsb@AddToHook{para/end} may not have fired. Close it explicitly.
     \lpsbParaEnd%
     \lpsbWriteEntry{{"role": "Footer", "total_probes": \the\lpsbProbeCount, "total_paragraphs": \the\lpsbParaCount}}%
-    \immediate\write\lpsbout{]}%
-    \immediate\closeout\lpsbout
+    \iflpsbNoIO\else
+        \immediate\write\lpsbout{]}%
+        \immediate\closeout\lpsbout
+    \fi
     \typeout{LPSB Info: Wrote \the\lpsbProbeCount\space probes, \the\lpsbParaCount\space paragraphs}%
 }
 

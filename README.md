@@ -97,7 +97,8 @@ Output: `main.lpsb.json` (Structure only)
 
 `script/lpsb_compiler.py` supports an optional Stage B enrichment engine:
 
-- `LPSB_STAGE_B_ENGINE=lua` (default): LuaLaTeX MathML/table passes
+- `LPSB_STAGE_B_ENGINE=latexml` (default): LaTeXML MathML/table extraction (no coordinates)
+- `LPSB_STAGE_B_ENGINE=lua`: LuaLaTeX MathML/table passes
 - `LPSB_STAGE_B_ENGINE=latexml`: LaTeXML MathML/table extraction (no coordinates)
 - `LPSB_STAGE_B_ENGINE=none`: disable Stage B
 
@@ -307,7 +308,8 @@ The LuaLaTeX enrichment pass (Stage B) now includes several compatibility fixes 
 
 - **Feature**: Automatically harvests `.sty`, `.cls`, and `.bst` files from successfully compiled papers.
 - **Storage**: Packages are stored in `arxiv_stubs/collected/TL{version}/` (e.g., `TL2025`), organized by TeX Live version.
-- **Reuse**: When compiling subsequent papers, the compiler injects these collected packages if they are missing from the source tree. This creates a self-improving package library that covers obscure or custom author packages not found in standard TeX Live.
+- **Reuse (on-demand)**: When compiling subsequent papers, the compiler copies **only the specific missing files** into the build dir (based on `*.log` “File ... not found”), rather than bulk-copying a stub bundle.
+- **Safety**: Core/fragile packages (notably `biblatex*`, `blx-*`, `expl3/xparse`, LaTeX kernel-ish files) are never injected from stubs; they must come from the selected TeX Live image.
 
 ---
 

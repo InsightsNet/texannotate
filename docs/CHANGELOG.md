@@ -44,6 +44,14 @@ All notable changes to LPSB are documented here.
 - (now opt-in) natbib numeric-mode fallback is disabled by default; enable with `LPSB_ENABLE_NATBIB_NUMBERS_FIX=1`
 - `Argument of \lpsbWriteEntry has an extra }.` hard failures on Wiley templates by hooking the correct `\@ssect` signature for `WileyNJD-v2` (6-arg variant); prevents runaway-argument cascades in starred sections / bibliography headings
 
+### Updated (2026-01-10)
+- Batch input discovery: `--batch <DIR>` now prefers directory-per-paper layouts (subdirs like `2202.00012/`) to avoid treating auxiliary `*.tex` as separate papers.
+- Main TeX selection: `find_main_tex()` de-prioritizes common template/demo files (`natbib.tex`, `natnotes.tex`, `aassymbols.tex`) and prefers real manuscripts (title/author/abstract heuristics + size tie-breakers).
+- Stub injection safety: `arxiv_stubs/collected/` and `arxiv_stubs/manual/` are copied **on-demand** based on “File ... not found” in LaTeX logs (no bulk injection); core packages (`biblatex*`, `blx-*`, `expl3/xparse`, kernel-ish) are excluded from injection.
+- LaTeXML bridge robustness: `latexml_to_lpsb.py` tolerates backslashes in structure JSON strings and strips `\\lpsbMark{...}` from MathML attributes (alignment markers don’t leak into exported MathML).
+- Fatal classification: compile-log scanning no longer treats early hard-stops as fatal if a later retry produces a PDF; only the last run’s true hard-stop without PDF is fatal.
+- InlineMath bbox: improved bbox filling for superscript footnote-style markers (e.g. `^{1}`) when TeX-side end markers are missing.
+
 ---
 
 ## 2026-01-06

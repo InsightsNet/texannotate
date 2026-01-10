@@ -72,7 +72,7 @@ cat document.lpsb.json | python -m json.tool | head -20
 The **LPSB Compiler** script automates the entire pipeline with a **two-stage** approach:
 
 1. **Stage A (pdflatex)**: Generates the "Gold Standard" PDF + structure JSON
-2. **Stage B (lualatex)**: Extracts MathML and table data
+2. **Stage B (optional)**: Extracts MathML/table data (LuaLaTeX or LaTeXML)
 3. **Merge & Enrich**: Combines data and adds PDF coordinates
 
 ```bash
@@ -81,6 +81,12 @@ python3 script/lpsb_compiler.py --single path/to/paper --output results/
 
 # Batch processing (arXiv dump)
 python3 script/lpsb_compiler.py --batch data/arxiv/ --output results/ --workers 64
+```
+
+Select the Stage B engine with an environment variable:
+
+```bash
+LPSB_STAGE_B_ENGINE=latexml python3 script/lpsb_compiler.py --single path/to/paper --output results/
 ```
 
 See [Batch Processing](BATCH_PROCESSING.md) for detailed configuration options.

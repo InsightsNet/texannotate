@@ -16,8 +16,7 @@ LPSB uses a **dual-stage** compilation strategy to ensure output fidelity while 
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                    Stage B: Enrichment                       │
-│  Compiler: lualatex (3 passes)                               │
-│  Packages: lpsb.sty + lpsb-luamath.sty + lpsb-luatable.sty   │
+│  Engine:   lualatex (3 passes) OR latexml (single pass)      │
 │  Output:   paper.lpsb-math.json, paper.lpsb-table.json       │
 └─────────────────────────────────────────────────────────────┘
                             ↓
@@ -34,6 +33,9 @@ LPSB uses a **dual-stage** compilation strategy to ensure output fidelity while 
 2. **Data Richness**: lualatex enables MathML extraction (`lpsb-luamath`) and table cell parsing (`lpsb-luatable`) via Lua callbacks.
 3. **Coordinate Consistency**: Position enrichment uses the Gold PDF, ensuring coordinates match the authoritative output.
 
+Stage B can be selected via `LPSB_STAGE_B_ENGINE` (`latexml`/`lua`/`none`). Coordinates are always enriched from the gold PDF/aux, not from Stage B.
+For `latexml`, alignment prefers explicit IDs injected by `lpsb.sty` (`\lpsbMark{...}`); it falls back to order-based pairing if markers are missing.
+
 ## Quick Start
 
 ```bash
@@ -49,7 +51,7 @@ python3 script/lpsb_compiler.py --batch data/arxiv/extracted --output results/ -
 | Argument | Description |
 |----------|-------------|
 | `--single <PATH>` | Process a single paper (directory or `.gz`/`.tex` file) |
-| `--batch <DIR>` | Recursively process all `.gz` and `.tex` files in directory |
+| `--batch <DIR>` | Process a paper corpus directory (see discovery rules below) |
 | `--output <DIR>` | Output directory for results |
 | `--workers <N>` | Number of parallel workers (default: 1) |
 | `--no-ramdisk` | Disable `/dev/shm` acceleration (default: enabled) |
@@ -107,6 +109,20 @@ results/
 | `LPSB_TEXLIVE_MIN` | Minimum TeX Live version (default: 2020) |
 | `LPSB_TEXLIVE_VERSION_OVERRIDE` | Force specific TeX Live version |
 | `LPSB_DOCKER_IMAGE_OVERRIDE` | Force specific Docker image |
+| `LPSB_STAGE_B_ENGINE` | Stage B engine: `latexml` (default), `lua`, or `none` |
+| `LPSB_LATEXML_TIMEOUT_SEC` | LaTeXML Stage B timeout (default: 600) |
+| `LPSB_LATEXML_CACHE` | Enable LaTeXML cache reuse across runs (default: 1) |
+| `LPSB_LATEXML_CACHE_ROOT` | Host cache root dir (default: `latexml_cache/`) |
+
+## Batch input discovery rules
+
+`--batch <DIR>` supports two common corpus layouts:
+
+1. **Directory-per-paper (preferred)**: if `<DIR>` contains subdirectories matching arXiv IDs like `2202.00012/`,
+   each such directory is treated as one paper.
+2. **Archive/file corpus**: otherwise, the compiler recursively processes `*.gz` and `*.tex` under `<DIR>`.
+
+This avoids accidentally treating every auxiliary `*.tex` inside one paper as a separate paper.
 
 ## Performance
 

@@ -19,7 +19,12 @@ but are not included in the submission tarball and may not exist in your TeX Liv
 **Solution (LPSB default)**:
 The compiler will copy files from `arxiv_stubs/manual/` (and the auto-collected library under
 `arxiv_stubs/collected/`) into the build directory **only if the source tree does not already provide
-that file**. This unblocks compilation for structure extraction.
+that file**.
+
+Important details:
+- **On-demand**: stubs are copied only after LaTeX reports the file missing in `*.log` (`File 'X.cls' not found`).
+- **No bulk injection**: LPSB does not dump an entire stub bundle into the build dir.
+- **Core packages excluded**: `biblatex*`, `blx-*`, `expl3/xparse`, and LaTeX-kernel-ish files are never injected from stubs.
 
 **Important**:
 - Put **official upstream files** into `arxiv_stubs/manual/` (CTAN / publisher / project homepages). Do not
@@ -54,6 +59,10 @@ and abort.
 **Solution (LPSB default)**:
 `find_main_tex()` rejects obvious non-LaTeX payloads and will not pick a file as the entrypoint
 unless it contains a real LaTeX marker like `\documentclass` or `\begin{document}`.
+
+If you see the compiler selecting a template/demo file (common examples: `natbib.tex`, `natnotes.tex`,
+`aassymbols.tex` shipped with AASTeX bundles), update to a version of LPSB that de-prioritizes these
+and prefers real manuscripts (title/author/abstract heuristics + size tie-breakers).
 
 ### Undefined control sequence: `\directlua`
 

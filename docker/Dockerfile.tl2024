@@ -5,3 +5,10 @@ WORKDIR /workdir
 # TeX Live 2024 is frozen; point tlmgr at tlnet-final to install extra packages.
 RUN tlmgr option repository https://ftp.tu-chemnitz.de/pub/tug/historic/systems/texlive/2024/tlnet-final && \
     tlmgr install luamml
+
+# Install LaTeXML (GitHub latest by default; override with --build-arg LATEXML_REF=<ref>).
+ARG LATEXML_REPO=https://github.com/brucemiller/LaTeXML.git
+ARG LATEXML_REF=
+COPY install_latexml_github.sh /tmp/install_latexml_github.sh
+RUN LATEXML_REPO="$LATEXML_REPO" LATEXML_REF="$LATEXML_REF" bash /tmp/install_latexml_github.sh && \
+    rm -f /tmp/install_latexml_github.sh

@@ -1,0 +1,187 @@
+% ===================================================================
+% LPSB (LaTeXML-only) marker-only shim
+%
+% Purpose:
+% - Provide ONLY explicit ID markers (\lpsbMark{...}) in places that LaTeXML can
+%   reliably see (inline math, display math, table floats).
+% - Avoid zref/expl3/file-I/O. This file is meant to be loaded ONLY under LaTeXML
+%   via lpsb.sty.ltxml, never under pdflatex.
+% ===================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-latexml}[2026/01/10 LPSB LaTeXML marker-only shim]%
+
+\makeatletter
+
+% \lpsbMark is defined (as a no-op) by lpsb.sty in normal TeX.
+% Under LaTeXML, the binding will redefine it to emit a marker element.
+\providecommand{\lpsbMark}[1]{}%
+
+% Context-aware counters for cross-engine alignment (must match pdflatex IDs).
+\newcount\lpsbMathContextNum
+\lpsbMathContextNum=0
+\newcount\lpsbDisplayMathInContext
+\lpsbDisplayMathInContext=0
+\newcount\lpsbInlineMathInContext
+\lpsbInlineMathInContext=0
+\newcount\lpsbInlineMathCount
+\lpsbInlineMathCount=0
+\newcount\lpsbTableCount
+\lpsbTableCount=0
+
+\newif\iflpsb@indisplay
+\lpsb@indisplayfalse
+
+\def\lpsb@PendingDisplayMathID{}%
+\def\lpsb@DisplayMathMark{%
+  \ifx\lpsb@PendingDisplayMathID\@empty\else
+    \lpsbMark{\lpsb@PendingDisplayMathID}%
+    \let\lpsb@PendingDisplayMathID\@empty
+  \fi
+}%
+\def\lpsb@DisplayMathEnd{%
+  \global\lpsb@indisplayfalse
+}%
+
+% Mark display mode and inject pending display-math marker inside MathML.
+\everydisplay\expandafter{%
+  \the\everydisplay
+  \global\lpsb@indisplaytrue
+  \lpsb@DisplayMathMark
+  \aftergroup\lpsb@DisplayMathEnd
+}%
+
+% Inline math: marker only (no coords).
+\everymath{%
+  \iflpsb@indisplay\else
+    \global\advance\lpsbInlineMathCount by 1%
+    \global\advance\lpsbInlineMathInContext by 1%
+    \edef\lpsb@InlineMathID{Sec-\the\lpsbMathContextNum-IMath-\the\lpsbInlineMathInContext}%
+    \lpsbMark{\lpsb@InlineMathID}%
+  \fi
+}%
+
+% Reset per-context math counters on top-level headings.
+\def\lpsb@NewMathContext{%
+  \global\advance\lpsbMathContextNum by 1%
+  \global\lpsbDisplayMathInContext=0%
+  \global\lpsbInlineMathInContext=0%
+}%
+
+% Patch sectioning + environments after all packages are loaded.
+\AtBeginDocument{%
+  % Standard LaTeX sectioning (\@sect)
+  \@ifundefined{@sect}{}{%
+    \let\lpsb@origsect\@sect
+    \def\@sect##1##2##3##4##5##6[##7]##8{%
+      \ifnum##2<2\relax
+        \lpsb@NewMathContext
+      \fi
+      \lpsb@origsect{##1}{##2}{##3}{##4}{##5}{##6}[{##7}]{##8}%
+    }%
+  }%
+  % titlesec (\ttl@straight@ii)
+  \@ifundefined{ttl@straight@ii}{}{%
+    \let\lpsb@origttlstraight\ttl@straight@ii
+    \def\ttl@straight@ii##1##2##3##4##5##6##7{%
+      \ifnum##2<2\relax
+        \lpsb@NewMathContext
+      \fi
+      \lpsb@origttlstraight{##1}{##2}{##3}{##4}{##5}{##6}{##7}%
+    }%
+  }%
+  % REVTeX (\@sect@ltx)
+  \@ifundefined{@sect@ltx}{}{%
+    \let\lpsb@origsectltx\@sect@ltx
+    \def\@sect@ltx##1##2##3##4##5##6[##7]##8{%
+      \ifnum##2<2\relax
+        \lpsb@NewMathContext
+      \fi
+      \lpsb@origsectltx{##1}{##2}{##3}{##4}{##5}{##6}[{##7}]{##8}%
+    }%
+  }%
+  % book/report/memoir-style chapters (\@chapter)
+  \@ifundefined{@chapter}{}{%
+    \let\lpsb@origchapter\@chapter
+    \def\@chapter[##1]##2{%
+      \lpsb@NewMathContext
+      \lpsb@origchapter[{##1}]{##2}%
+    }%
+  }%
+  % memoir (\M@sect)
+  \@ifundefined{M@sect}{}{%
+    \let\lpsb@origMsect\M@sect
+    \def\M@sect##1##2##3##4##5##6[##7][##8]##9{%
+      \ifnum##2<2\relax
+        \lpsb@NewMathContext
+      \fi
+      \lpsb@origMsect{##1}{##2}{##3}{##4}{##5}{##6}[{##7}][{##8}]{##9}%
+    }%
+  }%
+  % KOMA-Script (\scr@sect)
+  \@ifundefined{scr@sect}{}{%
+    \let\lpsb@origscrsect\scr@sect
+    \def\scr@sect##1##2##3##4##5##6[##7]##8{%
+      \ifnum##2<2\relax
+        \lpsb@NewMathContext
+      \fi
+      \lpsb@origscrsect{##1}{##2}{##3}{##4}{##5}{##6}[{##7}]{##8}%
+    }%
+  }%
+
+  % Hook display-math envs to set pending IDs (so \everydisplay emits markers).
+  \def\lpsb@HookMathEnv##1{%
+    \expandafter\ifx\csname ##1\endcsname\relax\else
+      \expandafter\let\csname lpsb@orig@##1\expandafter\endcsname\csname ##1\endcsname
+      \expandafter\let\csname lpsb@orig@end##1\expandafter\endcsname\csname end##1\endcsname
+      \expandafter\def\csname ##1\endcsname{%
+        \global\advance\lpsbDisplayMathInContext by 1%
+        \edef\lpsb@DisplayMathID{Sec-\the\lpsbMathContextNum-Math-\the\lpsbDisplayMathInContext}%
+        \global\let\lpsb@PendingDisplayMathID\lpsb@DisplayMathID
+        \global\lpsb@indisplaytrue%
+        \csname lpsb@orig@##1\endcsname
+      }%
+      \expandafter\def\csname end##1\endcsname{%
+        \csname lpsb@orig@end##1\endcsname
+        \global\lpsb@indisplayfalse%
+      }%
+    \fi
+  }%
+  \lpsb@HookMathEnv{equation}%
+  \lpsb@HookMathEnv{equation*}%
+  \lpsb@HookMathEnv{align}%
+  \lpsb@HookMathEnv{align*}%
+  \lpsb@HookMathEnv{gather}%
+  \lpsb@HookMathEnv{gather*}%
+  \lpsb@HookMathEnv{multline}%
+  \lpsb@HookMathEnv{multline*}%
+  \lpsb@HookMathEnv{eqnarray}%
+  \lpsb@HookMathEnv{eqnarray*}%
+  \lpsb@HookMathEnv{displaymath}%
+  \lpsb@HookMathEnv{flalign}%
+  \lpsb@HookMathEnv{flalign*}%
+
+  % Table floats: emit a marker with Table-* id at env start.
+  \def\lpsb@HookTableEnv##1{%
+    \expandafter\ifx\csname ##1\endcsname\relax\else
+      \expandafter\let\csname lpsb@orig@##1\expandafter\endcsname\csname ##1\endcsname
+      \expandafter\let\csname lpsb@orig@end##1\expandafter\endcsname\csname end##1\endcsname
+      \expandafter\def\csname ##1\endcsname{%
+        \csname lpsb@orig@##1\endcsname
+        \global\advance\lpsbTableCount by 1%
+        \xdef\lpsb@TableID{Table-\the\lpsbTableCount}%
+        \lpsbMark{\lpsb@TableID}%
+      }%
+      \expandafter\def\csname end##1\endcsname{%
+        \csname lpsb@orig@end##1\endcsname
+      }%
+    \fi
+  }%
+  \lpsb@HookTableEnv{table}%
+  \lpsb@HookTableEnv{table*}%
+  \lpsb@HookTableEnv{sidewaystable}%
+  \lpsb@HookTableEnv{sidewaystable*}%
+}%
+
+\makeatother
+\endinput
+

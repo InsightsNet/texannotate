@@ -87,9 +87,9 @@ def enrich_from_aux(entries: list, positions: dict, page_height_pt: float = 794.
             start_label = "lpsb-Document-start"
             end_label = "lpsb-Document-end"
         elif role == 'InlineMath' and event == 'atom':
-            # InlineMath uses single-point label without -start/-end suffix
+            # Backward compatibility: older runs emitted InlineMath as a single-point atom.
             start_label = f"lpsb-{entry_id}"
-            end_label = None  # No end label for atoms
+            end_label = None
         else:
             start_label = f"lpsb-{entry_id}-start"
             end_label = f"lpsb-{entry_id}-end"
@@ -636,9 +636,16 @@ def refine_inline_math_bboxes(entries: list, words_by_page: dict, tolerance: flo
     Returns count of refined entries.
     """
     refined_count = 0
+
+    # Special-case: very common "author footnote" style markers are inline math like $^{1}$.
+    # These often use text fonts (not math fonts), so font-based detection misses them.
+    # If the MathML alttext indicates a pure superscript number, try to match the tiny-number
+    # span near the aux start position and use its bbox.
+    _alttext_sup_num = re.compile(r'alttext="\^\{(\d+)\}"')
     
     for entry in entries:
-        if entry.get('event') != 'atom':
+        # Backward compat: older runs used event=atom; newer runs use start/end.
+        if entry.get('event') not in ('atom', 'start'):
             continue
         
         role = entry.get('role', '')
@@ -663,6 +670,61 @@ def refine_inline_math_bboxes(entries: list, words_by_page: dict, tolerance: flo
             continue
         
         page_words = words_by_page[page]
+
+        # 0) If bbox is missing or obviously wrong, try superscript-number heuristic first.
+        # (Wrong bboxes typically span the whole line/paragraph due to missing end markers.)
+        want_fix = False
+        try:
+            w = float(entry.get('width', 0) or 0)
+            if w <= 0 or w > 50:
+                want_fix = True
+        except Exception:
+            want_fix = True
+
+        if want_fix:
+            mml = entry.get('mathml') or ""
+            m = _alttext_sup_num.search(mml)
+            if m:
+                target = m.group(1)
+                # Collect candidates near the start position that contain just the number
+                # (often in a smaller font size).
+                cands = []
+                for w in page_words:
+                    txt = (w.get('text') or "").strip()
+                    if not txt:
+                        continue
+                    if txt != target and not txt.startswith(target):
+                        continue
+                    wx0 = float(w.get('x0', 0) or 0)
+                    wy0 = float(w.get('y0', 0) or 0)
+                    wy1 = float(w.get('y1', 0) or 0)
+                    wcy = (wy0 + wy1) / 2.0
+                    if wx0 < start_x - tolerance:
+                        continue
+                    # Must be close in X; otherwise we accidentally grab a later marker.
+                    if abs(wx0 - start_x) > tolerance * 4:
+                        continue
+                    if abs(wcy - start_y) > tolerance * 6:
+                        continue
+                    size = float(w.get('size', 0) or 0)
+                    cands.append((size, abs(wx0 - start_x), w))
+                if cands:
+                    # Prefer smallest font size, then closest x.
+                    cands.sort(key=lambda t: (t[0] if t[0] > 0 else 1e9, t[1]))
+                    best = cands[0][2]
+                    x0 = float(best.get('x0', start_x) or start_x)
+                    y0 = float(best.get('y0', start_y) or start_y)
+                    x1 = float(best.get('x1', start_x) or start_x)
+                    y1 = float(best.get('y1', start_y) or start_y)
+                    entry['x'] = round(x0, 2)
+                    entry['y'] = round(y0, 2)
+                    entry['x_end'] = round(x1, 2)
+                    entry['y_end'] = round(y1, 2)
+                    entry['width'] = round(x1 - x0, 2)
+                    entry['height'] = round(y1 - y0, 2)
+                    entry['coord_source'] = 'pdf_math'
+                    refined_count += 1
+                    continue
         
         # Find characters with math fonts starting near the start position
         # Allow for slight variations in y (for subscripts/superscripts)
@@ -723,6 +785,95 @@ def refine_inline_math_bboxes(entries: list, words_by_page: dict, tolerance: flo
         refined_count += 1
     
     return refined_count
+
+
+def fill_missing_inline_math_widths(entries: list) -> int:
+    """
+    Best-effort bbox completion for InlineMath when we have a start point but no end point.
+
+    In the wild, some templates generate tiny inline-math markers (notably $^{1}$-style
+    author/affiliation footnote marks) where TeX-side end markers may be missing.
+    LuaLaTeX runs often still have other similar markers on the same line, so we can
+    borrow a representative width instead of leaving it empty.
+
+    This is intentionally conservative: only fills missing width/x_end for InlineMath
+    entries and never overwrites an existing bbox.
+    """
+    # alttext="^{1}" style marker (no base).
+    supnum_re = re.compile(r'alttext="\^\{(\d+)\}"')
+
+    # Collect typical widths for superscript-number markers by (page, y-line).
+    by_line = {}  # (page:int, y_round:int) -> [widths]
+    global_widths = []
+
+    for e in entries:
+        if e.get('role') != 'InlineMath':
+            continue
+        if e.get('event') not in ('start', 'atom'):
+            continue
+        if e.get('width') is None:
+            continue
+        try:
+            w = float(e.get('width', 0) or 0)
+        except Exception:
+            continue
+        if w <= 0:
+            continue
+        mml = e.get('mathml') or ""
+        if not supnum_re.search(mml):
+            continue
+        page = e.get('page')
+        try:
+            page_i = int(page) if isinstance(page, str) else int(page)
+        except Exception:
+            continue
+        try:
+            y = float(e.get('y', 0) or 0)
+        except Exception:
+            continue
+        y_round = int(round(y * 10))  # 0.1pt buckets
+        by_line.setdefault((page_i, y_round), []).append(w)
+        global_widths.append(w)
+
+    if not global_widths:
+        return 0
+
+    # Use median for stability.
+    global_widths.sort()
+    global_med = global_widths[len(global_widths) // 2]
+
+    filled = 0
+    for e in entries:
+        if e.get('role') != 'InlineMath' or e.get('event') not in ('start', 'atom'):
+            continue
+        if e.get('width') is not None or e.get('x_end') is not None:
+            continue
+        mml = e.get('mathml') or ""
+        if not supnum_re.search(mml):
+            continue
+        try:
+            page_i = int(e.get('page'))
+            x = float(e.get('x', 0) or 0)
+            y = float(e.get('y', 0) or 0)
+        except Exception:
+            continue
+
+        y_round = int(round(y * 10))
+        widths = by_line.get((page_i, y_round))
+        if widths:
+            widths_sorted = sorted(widths)
+            w = widths_sorted[len(widths_sorted) // 2]
+        else:
+            w = global_med
+
+        # Fill minimal bbox.
+        e['width'] = round(w, 2)
+        e['x_end'] = round(x + w, 2)
+        e['y_end'] = round(y, 2)
+        # Do not invent height here; the aux-based model is 1D for InlineMath.
+        filled += 1
+
+    return filled
 
 
 # Math environments supported for source extraction
@@ -908,8 +1059,10 @@ def enrich_math_source(entries: list, tex_path: str) -> int:
                     enriched += 1
         
         elif role == 'InlineMath':
-            # Parse ID: Sec-N-InlineMath-M
-            match = re.match(r'Sec-(\d+)-InlineMath-(\d+)', entry_id)
+            # Parse ID:
+            # - legacy: Sec-N-InlineMath-M
+            # - current: Sec-N-IMath-M   (aligns with Lua math pass IDs)
+            match = re.match(r'Sec-(\d+)-(?:InlineMath|IMath)-(\d+)', entry_id)
             if match:
                 ctx = int(match.group(1))
                 math_num = int(match.group(2))
@@ -1048,6 +1201,11 @@ def main():
         math_count = refine_inline_math_bboxes(entries, words_by_page)
         if args.verbose:
             print(f"Refined {math_count} inline math bboxes via font detection")
+
+        # Fill any remaining missing InlineMath widths (common for $^{1}$ markers).
+        fill_count = fill_missing_inline_math_widths(entries)
+        if args.verbose:
+            print(f"Filled {fill_count} inline math widths by heuristics")
     
     # Enrich math source from .tex file
     if args.tex:

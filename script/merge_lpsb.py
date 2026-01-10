@@ -177,7 +177,16 @@ def merge_table_events(structure_events: List[dict], table_index: Dict[str, List
 def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> List[dict]:
     """
     Merge structure events with math data.
-    For Math/InlineMath events with matching IDs, add mathml and coordinate fields.
+    For Math/InlineMath/Formula events with matching IDs, add MathML (and display flag).
+
+    IMPORTANT:
+    LuaTeX-side *positions* are NOT gold and can be offset/drifty across engines.
+    We therefore do NOT copy any position fields (x/y/page) from the Lua math pass
+    into the merged structure stream. Gold positions come from the pdfLaTeX aux/PDF
+    enrichment stage.
+
+    We *do* keep math box dimensions (width/height/depth) from Lua, since those are
+    not page-dependent positions and are useful for downstream layout reasoning.
     """
     merged = []
     
@@ -196,8 +205,8 @@ def merge_events(structure_events: List[dict], math_index: Dict[str, dict]) -> L
                 merged_event['mathml'] = math_data['mathml']
                 if 'display' in math_data:
                     merged_event['display'] = math_data['display']
-                # Copy coordinate fields from lualatex math pass
-                for key in ('x', 'y', 'page', 'width', 'height', 'depth'):
+                # Copy non-position geometry fields from Lua math pass (best-effort).
+                for key in ('width', 'height', 'depth'):
                     if key in math_data and key not in merged_event:
                         merged_event[key] = math_data[key]
         

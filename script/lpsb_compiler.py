@@ -32,6 +32,193 @@ TIMEOUT_SEC = 300  # 5 mins per paper
 import re
 import json
 from typing import Tuple
+import threading
+import atexit
+
+# -----------------------------------------------------------------------------
+# Docker Container Pool
+# -----------------------------------------------------------------------------
+
+class DockerContainerPool:
+    """Manages a pool of long-running Docker containers for reuse.
+    
+    Instead of starting a new container per command (docker run), this pool
+    starts containers once with a shared volume mount and reuses them via
+    docker exec. This eliminates ~0.5-1s overhead per command.
+    """
+    
+    _instances = {}  # class-level registry for cleanup
+    _lock = threading.Lock()
+    
+    def __init__(self, image: str, shared_volume: Path, pool_size: int = 1):
+        """
+        Args:
+            image: Docker image name
+            shared_volume: Host path to mount as /workdir in all containers
+            pool_size: Number of containers to start
+        """
+        self.image = image
+        self.shared_volume = Path(shared_volume).resolve()
+        self.pool_size = pool_size
+        self.containers = []  # List of container names
+        self._started = False
+    
+    def start(self) -> None:
+        """Start all containers in the pool."""
+        if self._started:
+            return
+        
+        for i in range(self.pool_size):
+            name = f"lpsb_pool_{os.getpid()}_{i}_{id(self)}"
+            try:
+                # Remove any stale container with same name
+                subprocess.run(
+                    ["docker", "rm", "-f", name],
+                    capture_output=True, check=False
+                )
+                # Start container with shared volume
+                r = subprocess.run(
+                    [
+                        "docker", "run", "-d",
+                        "--name", name,
+                        "--net", "none",
+                        "-v", f"{self.shared_volume}:/workdir",
+                        self.image,
+                        "sleep", "infinity"
+                    ],
+                    capture_output=True, check=True, text=True
+                )
+                self.containers.append(name)
+            except subprocess.CalledProcessError as e:
+                # If starting fails, clean up any containers we did start
+                self.stop()
+                raise RuntimeError(f"Failed to start container pool: {e.stderr}")
+        
+        self._started = True
+        # Register for cleanup
+        with DockerContainerPool._lock:
+            DockerContainerPool._instances[id(self)] = self
+    
+    def get_container(self, index: int) -> str:
+        """Get container name by index (for worker assignment)."""
+        if not self.containers:
+            raise RuntimeError("Container pool not started")
+        return self.containers[index % len(self.containers)]
+    
+    def exec_command(
+        self,
+        container_name: str,
+        workdir: str,
+        cmd: list,
+        timeout: int = 300,
+        log_file: "Path | None" = None,
+    ) -> int:
+        """Execute command in container via docker exec.
+        
+        Args:
+            container_name: Name of the container to exec in
+            workdir: Working directory inside container (must be under /workdir)
+            cmd: Command and arguments to run
+            timeout: Timeout in seconds
+            log_file: Optional file to write output to
+            
+        Returns:
+            Return code of the command (124 for timeout)
+        """
+        exec_cmd = ["docker", "exec", "-w", workdir, container_name] + cmd
+        
+        try:
+            if log_file:
+                with open(log_file, "a") as log:
+                    log.write(f"\n=== EXEC: {' '.join(cmd)} ===\n")
+                    r = subprocess.run(
+                        exec_cmd,
+                        stdout=log,
+                        stderr=subprocess.STDOUT,
+                        timeout=timeout,
+                        check=False
+                    )
+                    log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
+                    return r.returncode
+            else:
+                r = subprocess.run(
+                    exec_cmd,
+                    capture_output=True,
+                    timeout=timeout,
+                    check=False
+                )
+                return r.returncode
+        except subprocess.TimeoutExpired:
+            if log_file:
+                with open(log_file, "a") as log:
+                    log.write("\nError: TIMEOUT during exec\n")
+            return 124
+    
+    def stop(self) -> None:
+        """Stop and remove all containers in the pool."""
+        for name in self.containers:
+            try:
+                subprocess.run(
+                    ["docker", "rm", "-f", name],
+                    capture_output=True, check=False, timeout=10
+                )
+            except Exception:
+                pass
+        self.containers.clear()
+        self._started = False
+        # Unregister
+        with DockerContainerPool._lock:
+            DockerContainerPool._instances.pop(id(self), None)
+    
+    def __enter__(self):
+        self.start()
+        return self
+    
+    def __exit__(self, *args):
+        self.stop()
+    
+    @classmethod
+    def cleanup_all(cls) -> None:
+        """Clean up all registered container pools (called at exit)."""
+        with cls._lock:
+            for pool in list(cls._instances.values()):
+                try:
+                    pool.stop()
+                except Exception:
+                    pass
+
+# Register cleanup handler
+atexit.register(DockerContainerPool.cleanup_all)
+
+# -----------------------------------------------------------------------------
+# Log helpers
+# -----------------------------------------------------------------------------
+
+
+def _scan_log_for_missing_tex_inputs(log_path: Path) -> set:
+    """Extract missing TeX inputs (foo.sty/foo.cls/foo.bst/...) from a LaTeX log."""
+    missing = set()
+    if not log_path.exists():
+        return missing
+    try:
+        txt = log_path.read_text(errors="ignore")
+    except Exception:
+        return missing
+
+    pats = [
+        r"! LaTeX Error: File `([^`']+)' not found\.",
+        r"! I can't find file `([^`']+)'",
+    ]
+    exts = (".sty", ".cls", ".bst", ".clo", ".tex")
+    for pat in pats:
+        for m in re.finditer(pat, txt, flags=re.MULTILINE):
+            name = (m.group(1) or "").strip()
+            if not name:
+                continue
+            name = Path(name).name
+            if name.lower().endswith(exts):
+                missing.add(name)
+    return missing
 
 # arXiv currently supports TeX Live 2023 and TeX Live 2025, with 2025 being the default.
 ARXIV_TEXLIVE_DEFAULT = "2025"
@@ -55,10 +242,16 @@ def _scan_compile_log_for_issues(log_path: Path):
         "bibtex_problem": False,
         "biber_seen": False,
         "stage_b_errors": 0,  # Count of errors in Stage B (for informational purposes)
+        "latex_error_lines": 0,  # Count of "! LaTeX Error:" lines (soft by default)
     }
     try:
         with open(log_path, "r", errors="replace") as f:
             in_stage_b = False
+            # Track per-run fatality: treat "fatal" only if the *current* pdflatex run
+            # hard-stopped and did not produce a PDF. Earlier hard-stops can be fixed by
+            # retries (e.g., after copying missing stubs) and should not poison the result.
+            run_fatal = False
+            run_pdf_written = False
             for line in f:
                 # Detect Stage B section - errors here are non-fatal
                 if "=== Stage B:" in line or "Stage B: lualatex" in line:
@@ -69,14 +262,28 @@ def _scan_compile_log_for_issues(log_path: Path):
                     if line.startswith("! ") or ("! Package" in line and " Error:" in line):
                         issues["stage_b_errors"] += 1
                     continue  # Skip Stage B errors for fatal/undef checks
+
+                # New pdflatex run boundary (best-effort).
+                # pdflatex always prints "This is pdfTeX" early in each run.
+                if line.startswith("This is pdfTeX"):
+                    run_fatal = False
+                    run_pdf_written = False
+
+                if "Output written on " in line and ".pdf" in line:
+                    run_pdf_written = True
                 
                 # Fatal-ish: LaTeX continues but output is not trustworthy.
-                if line.startswith("! LaTeX Error:") or line.startswith("! Emergency stop."):
-                    issues["fatal"] = True
-                elif "! Package" in line and " Error:" in line:
-                    issues["fatal"] = True
+                # IMPORTANT:
+                # - Many real-world arXiv sources emit "! LaTeX Error:" but still produce a usable PDF
+                #   under -interaction=nonstopmode. Treat those as "soft errors" and leave strictness
+                #   to the caller (see strict env vars below).
+                # - Only treat clear hard-stops as fatal here.
+                if line.startswith("! LaTeX Error:"):
+                    issues["latex_error_lines"] += 1
+                if line.startswith("! Emergency stop."):
+                    run_fatal = True
                 elif "Fatal error occurred" in line or "==> Fatal error" in line:
-                    issues["fatal"] = True
+                    run_fatal = True
 
                 # Undefined citations typically render as '?' in PDF.
                 if ("Citation `" in line and "undefined" in line) or ("There were undefined citations" in line):
@@ -105,6 +312,8 @@ def _scan_compile_log_for_issues(log_path: Path):
     except Exception:
         # If we cannot read the log, do not block compilation; caller can still use file presence checks.
         return issues
+    # Only count fatal if the last observed pdflatex run hard-stopped and no PDF was written.
+    issues["fatal"] = bool(run_fatal and not run_pdf_written)
     return issues
 
 def _aux_mentions_bibdata(aux_file: Path) -> bool:
@@ -750,24 +959,57 @@ def find_main_tex(work_dir):
         # fragments or non-LaTeX text files as "main".
         return ("\\documentclass" in s) or ("\\begin{document}" in s) or ("\\end{document}" in s)
 
-    # Priority 1: File containing \documentclass and \begin{document}
+    # Priority 1: Score likely entrypoints.
     candidates = []
     for f in tex_files:
         try:
             content = f.read_text(errors='ignore')
             score = 0
-            ifr = r'\documentclass' in content
+
+            name = (f.name or "").lower()
+            stem = f.stem.lower()
+
+            # Hard de-prioritize known template/docs files that are often shipped
+            # alongside real manuscripts.
+            if name in ("natbib.tex", "natnotes.tex", "aassymbols.tex"):
+                score -= 50
+            for bad in ("template", "sample", "example", "instructions", "readme"):
+                if bad in stem:
+                    score -= 10
+
             if r'\begin{document}' in content:
                 score += 10
-            if ifr:
+            if r'\end{document}' in content:
+                score += 2
+            if r'\documentclass' in content:
                 score += 5
-            if 'ms.tex' in f.name or 'main.tex' in f.name:
+
+            # Real papers tend to have title/author blocks; templates often do not.
+            if r'\title' in content:
+                score += 3
+            if r'\author' in content:
+                score += 2
+            if r'\begin{abstract}' in content:
                 score += 1
+
+            # Filename hints.
+            if stem in ("main", "ms", "paper", "manuscript", "arxiv"):
+                score += 4
+            if "main" in stem:
+                score += 2
+            if "ms" == stem or stem.startswith("ms_") or stem.endswith("_ms"):
+                score += 1
+
+            # Tie-breaker: prefer larger files (real manuscripts are usually bigger).
+            try:
+                score += min(5, int(f.stat().st_size / 20000))  # +0..+5
+            except Exception:
+                pass
             candidates.append((score, f))
         except:
             pass
             
-    candidates.sort(key=lambda x: x[0], reverse=True)
+    candidates.sort(key=lambda x: (x[0], x[1].stat().st_size if x[1].exists() else 0), reverse=True)
     if candidates and candidates[0][0] > 0:
         try:
             return str(candidates[0][1].relative_to(Path(work_dir)))
@@ -912,11 +1154,22 @@ def extract_archive(src_file, dst_dir):
     except Exception as e:
         return False
 
-def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_bbl_underscore_fix=False):
-    """Process a single paper directory or file."""
+def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_bbl_underscore_fix=False, container_name=None):
+    """Process a single paper directory or file.
+    
+    Args:
+        src_path: Path to paper source (directory, .tex, or .gz file)
+        out_dir: Output directory for results
+        lpsb_root: Path to LPSB root directory
+        use_ramdisk: Use /dev/shm for temp workspace
+        disable_bbl_underscore_fix: Disable .bbl underscore workaround
+        container_name: Optional pre-started Docker container name for reuse.
+                        If provided, uses docker exec instead of docker run.
+    """
     src_path = Path(src_path).resolve()
     out_dir = Path(out_dir).resolve()
     lpsb_root = Path(lpsb_root).resolve()
+
     
     paper_id = _paper_id_from_src(src_path)
         
@@ -990,22 +1243,38 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         docker_image = LPSB_IMAGE
         selected_tl = ""
 
+        stage_b_engine = os.environ.get("LPSB_STAGE_B_ENGINE", "latexml").strip().lower()
+        if stage_b_engine not in ("lua", "latexml", "none"):
+            stage_b_engine = "latexml"
+
         # 3. Compile (gold pipeline only)
         pdflatex_dir = work_dir / "_pdflatex"
         lualatex_dir = work_dir / "_lualatex"
+        latexml_dir = work_dir / "_latexml"
         if pdflatex_dir.exists():
             shutil.rmtree(pdflatex_dir, ignore_errors=True)
         if lualatex_dir.exists():
             shutil.rmtree(lualatex_dir, ignore_errors=True)
+        if latexml_dir.exists():
+            shutil.rmtree(latexml_dir, ignore_errors=True)
 
-        ignore = shutil.ignore_patterns("_pdflatex", "_lualatex")
+        ignore = shutil.ignore_patterns("_pdflatex", "_lualatex", "_latexml")
         shutil.copytree(work_dir, pdflatex_dir, ignore=ignore)
-        shutil.copytree(work_dir, lualatex_dir, ignore=ignore)
+        if stage_b_engine == "lua":
+            shutil.copytree(work_dir, lualatex_dir, ignore=ignore)
+        elif stage_b_engine == "latexml":
+            shutil.copytree(work_dir, latexml_dir, ignore=ignore)
 
         pd_tex_dir = pdflatex_dir if tex_dir_rel == "." else (pdflatex_dir / tex_dir_rel)
-        lua_tex_dir = lualatex_dir if tex_dir_rel == "." else (lualatex_dir / tex_dir_rel)
         pd_tex_dir.mkdir(parents=True, exist_ok=True)
-        lua_tex_dir.mkdir(parents=True, exist_ok=True)
+        lua_tex_dir = None
+        latexml_tex_dir = None
+        if stage_b_engine == "lua":
+            lua_tex_dir = lualatex_dir if tex_dir_rel == "." else (lualatex_dir / tex_dir_rel)
+            lua_tex_dir.mkdir(parents=True, exist_ok=True)
+        elif stage_b_engine == "latexml":
+            latexml_tex_dir = latexml_dir if tex_dir_rel == "." else (latexml_dir / tex_dir_rel)
+            latexml_tex_dir.mkdir(parents=True, exist_ok=True)
 
         def _copy_if_exists(name: str, dst_dir: Path) -> None:
             src = lpsb_root / name
@@ -1026,8 +1295,48 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             # Extensions to collect
             exts = {".sty", ".cls", ".bst", ".clo"}
             
-            # Files to ignore (standard or very common files we don't want to pollute with)
-            ignore_files = {"lpsb.sty", "lpsb-luamath.sty", "lpsb-luatable.sty"}
+            # Files to ignore (avoid polluting the stub set with LPSB itself or TeX Live core).
+            #
+            # NOTE: Copying "core" packages into the working directory is actively harmful:
+            # TeX will prefer ./foo.sty over the distro version, and you end up with a random,
+            # possibly mismatched package version that can break output (including producing
+            # garbage text in the PDF).
+            ignore_files = {
+                "lpsb.sty",
+                "lpsb-luamath.sty",
+                "lpsb-luatable.sty",
+                "lpsb-latexml.sty",
+            }
+            deny_exact = {
+                # biblatex/biber core (should NEVER be sourced from random papers).
+                "biblatex.sty",
+                "biblatex.def",
+                "biber",
+                "biber.exe",
+                # LaTeX3 / kernel-ish.
+                "expl3.sty",
+                "xparse.sty",
+            }
+            deny_prefixes = (
+                "biblatex",
+                "blx-",
+                "l3",
+                "expl3",
+                "latex",
+            )
+
+            def _deny_collect(name: str) -> bool:
+                n = (name or "").strip().lower()
+                if not n:
+                    return True
+                if n in ignore_files:
+                    return True
+                if n in deny_exact:
+                    return True
+                for pfx in deny_prefixes:
+                    if n.startswith(pfx):
+                        return True
+                return False
             
             # Traverse work_dir and copy interesting files
             for root, dirs, files in os.walk(work_dir):
@@ -1035,7 +1344,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                 dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
                 
                 for f in files:
-                    if Path(f).suffix.lower() in exts and f not in ignore_files:
+                    if Path(f).suffix.lower() in exts and not _deny_collect(f):
                         src = Path(root) / f
                         subdir = src.suffix.lower().lstrip(".")
                         dst = collect_root / subdir / f
@@ -1050,7 +1359,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                             pass
 
         def _copy_collected_packages(dst_dir: Path, tl_version: str):
-            """Copy previously collected packages to the build directory.
+            """Return a function that copies a requested stub file into dst_dir.
             
             Search order:
             1. Own TL version (arxiv_stubs/collected/TL{tl_version}/)
@@ -1074,6 +1383,65 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             if not manual_root.exists():
                 # Legacy layout: curated files lived directly under arxiv_stubs/.
                 manual_root = stubs_root
+
+            deny_exact = {
+                # Never inject TeX Live core packages into ./ ; they override distro files.
+                "biblatex.sty",
+                "biblatex.def",
+                "blx-case-expl3.sty",
+                "biber",
+                "biber.exe",
+                "expl3.sty",
+                "xparse.sty",
+            }
+            deny_prefixes = (
+                "biblatex",
+                "blx-",
+                "l3",
+                "expl3",
+                "latex",
+            )
+
+            def _deny_copy(name: str) -> bool:
+                n = (name or "").strip().lower()
+                if not n:
+                    return True
+                if n in deny_exact:
+                    return True
+                for pfx in deny_prefixes:
+                    if n.startswith(pfx):
+                        return True
+                return False
+
+            def _copy_one_exact(name: str) -> bool:
+                if _deny_copy(name):
+                    return False
+
+                ext = Path(name).suffix.lower().lstrip(".")
+                # Collected stubs are organized by extension subdir (sty/cls/bst/clo).
+                subdirs = [ext] if ext in ("sty", "cls", "bst", "clo") else []
+
+                # Search collected roots first (fast direct path).
+                for tl_dir in tl_dirs:
+                    for sd in subdirs:
+                        cand = tl_dir / sd / name
+                        if cand.exists():
+                            try:
+                                shutil.copy2(cand, dst_dir / name)
+                                return True
+                            except Exception:
+                                return False
+
+                # Manual stubs may be nested. Keep it exact-name only.
+                if manual_root.exists():
+                    try:
+                        for cand in manual_root.rglob(name):
+                            if cand.is_file():
+                                shutil.copy2(cand, dst_dir / name)
+                                return True
+                    except Exception:
+                        pass
+                return False
             
             tl_dirs = []
             if tl_version and re.fullmatch(r"\d{4}", tl_version):
@@ -1088,81 +1456,62 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                         if d.is_dir() and d.name.startswith("TL") and d != own_dir:
                             tl_dirs.append(d)
 
-                # Collect all available packages from collected dirs
-                for tl_dir in tl_dirs:
-                    for root, dirs, files in os.walk(tl_dir):
-                        # Skip hidden dirs
-                        dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
-                        for f in files:
-                            src = Path(root) / f
-                            if src.suffix.lower() not in ('.sty', '.cls', '.bst', '.clo'):
-                                continue
-                            try:
-                                target = dst_dir / src.name
-                                if not target.exists():
-                                    shutil.copy2(src, target)
-                            except Exception:
-                                pass
-            
-            # Also copy from arxiv_stubs/manual/ (manual stubs, lower priority)
-            if manual_root.exists():
-                for root, dirs, files in os.walk(manual_root):
-                    # Skip hidden dirs
-                    dirs[:] = [d for d in dirs if not d.startswith(('.', '_'))]
-                    for f in files:
-                        src = Path(root) / f
-                        if src.suffix.lower() not in ('.sty', '.cls', '.bst', '.clo', '.tex'):
-                            continue
-                        try:
-                            target = dst_dir / src.name
-                            if not target.exists():
-                                shutil.copy2(src, target)
-                        except Exception:
-                            pass
-
             # Filename aliases: some upstream bundles use patch-level filenames (e.g. aastex631.cls),
             # while sources expect the shorter historic name (aastex63.cls). Allow a controlled rename.
             stub_aliases = {
                 "aastex63.cls": ["aastex631.cls"],
                 "aastex7.cls": ["aastex701.cls"],
             }
-            for target, candidates in stub_aliases.items():
-                try:
-                    target_path = dst_dir / target
-                    if target_path.exists():
-                        continue
-                except Exception:
-                    continue
-                for cand in candidates:
-                    try:
-                        cand_path = dst_dir / cand
-                        if cand_path.exists():
-                            shutil.copy2(cand_path, target_path)
-                            break
-                    except Exception:
-                        pass
+
+            def _copy_one(name: str) -> bool:
+                # Exact first.
+                if _copy_one_exact(name):
+                    return True
+                # Alias: copy candidate as target name.
+                for cand in stub_aliases.get(name, []):
+                    if _copy_one_exact(cand):
+                        try:
+                            shutil.copy2(dst_dir / cand, dst_dir / name)
+                            return True
+                        except Exception:
+                            return False
+                return False
+
+            return _copy_one
 
         # Like batch_compile_all.sh: pdflatex needs only lpsb.sty.
         _copy_if_exists("lpsb.sty", pd_tex_dir)
-        # Lua stage: structure + math/table enrich.
-        _copy_if_exists("lpsb.sty", lua_tex_dir)
-        _copy_if_exists("lpsb-luamath.sty", lua_tex_dir)
-        _copy_if_exists("lpsb-math.lua", lua_tex_dir)
-        _copy_if_exists("lpsb-luatable.sty", lua_tex_dir)
-        _copy_if_exists("lpsb-table.lua", lua_tex_dir)
+        if stage_b_engine == "lua" and lua_tex_dir is not None:
+            # Lua stage: structure + math/table enrich.
+            _copy_if_exists("lpsb.sty", lua_tex_dir)
+            _copy_if_exists("lpsb-luamath.sty", lua_tex_dir)
+            _copy_if_exists("lpsb-math.lua", lua_tex_dir)
+            _copy_if_exists("lpsb-luatable.sty", lua_tex_dir)
+            _copy_if_exists("lpsb-table.lua", lua_tex_dir)
+        if stage_b_engine == "latexml" and latexml_tex_dir is not None:
+            _copy_if_exists("lpsb.sty", latexml_tex_dir)
+            _copy_if_exists("lpsb.sty.ltxml", latexml_tex_dir)
+            _copy_if_exists("lpsb-latexml.sty", latexml_tex_dir)
 
         pd_main_tex_full = pdflatex_dir / main_tex
-        lua_main_tex_full = lualatex_dir / main_tex
         _inject_pkg_after_documentclass(pd_main_tex_full, "lpsb")
-        _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb")
-        _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb-luamath")
-        _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb-luatable")
+        lua_main_tex_full = None
+        if stage_b_engine == "lua":
+            lua_main_tex_full = lualatex_dir / main_tex
+            _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb")
+            _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb-luamath")
+            _inject_pkg_after_documentclass(lua_main_tex_full, "lpsb-luatable")
+        if stage_b_engine == "latexml":
+            _inject_pkg_after_documentclass(latexml_dir / main_tex, "lpsb")
 
         docker_image, selected_tl, selected_reason = _select_docker_image(work_dir, tex_dir_rel, main_base, paper_id)
 
-        # Try to reuse previously collected packages from other papers (and manual arXiv stubs).
-        _copy_collected_packages(pd_tex_dir, selected_tl)
-        _copy_collected_packages(lua_tex_dir, selected_tl)
+        # Stub injection must be on-demand: dumping a whole stub set into the build dir is
+        # wrong (it overrides TeX Live and can break output). We'll only copy stubs that
+        # pdflatex/bibtex/biber actually report as missing.
+        copy_stub_pd = _copy_collected_packages(pd_tex_dir, selected_tl)
+        copy_stub_lua = _copy_collected_packages(lua_tex_dir, selected_tl) if lua_tex_dir is not None else None
+        copy_stub_latexml = _copy_collected_packages(latexml_tex_dir, selected_tl) if latexml_tex_dir is not None else None
 
         with open(log_file, "w") as log:
             log.write(f"Docker image: {docker_image}\n")
@@ -1172,45 +1521,97 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 
         pd_container_wd = "/workdir" if tex_dir_rel == "." else f"/workdir/{tex_dir_rel}"
         lua_container_wd = "/workdir" if tex_dir_rel == "." else f"/workdir/{tex_dir_rel}"
+        latexml_container_wd = "/workdir" if tex_dir_rel == "." else f"/workdir/{tex_dir_rel}"
 
         container_counter = [0]  # mutable for closure
         
-        def _run(stage_dir: Path, container_wd: str, cmd: list, timeout: int) -> int:
-            """Run command in Docker with proper timeout handling."""
+        def _run(
+            stage_dir: Path,
+            container_wd: str,
+            cmd: list,
+            timeout: int,
+            extra_mounts: list = None,
+            extra_env: dict = None,
+        ) -> int:
+            """Run command in Docker with proper timeout handling.
+            
+            If container_name (from outer scope) is provided, uses docker exec
+            for container reuse. Otherwise, uses docker run (creates new container).
+            """
             container_counter[0] += 1
-            container_name = f"lpsb_{paper_id}_{container_counter[0]}_{os.getpid()}"
             
             with open(log_file, "a") as log:
                 try:
                     log.write("\n=== RUN: " + " ".join(cmd) + " ===\n")
+                    
+                    # Container reuse mode: use docker exec
+                    if container_name is not None:
+                        # Compute the working directory relative to the shared /workdir mount
+                        # In reuse mode, stage_dir should be under out_dir/build/paper_id
+                        # which maps to /workdir/build/paper_id inside the container
+                        try:
+                            rel_stage = stage_dir.relative_to(out_dir)
+                            exec_wd = f"/workdir/{rel_stage}"
+                            if container_wd != "/workdir":
+                                # Append any sub-path from container_wd
+                                subpath = container_wd.replace("/workdir", "", 1).lstrip("/")
+                                if subpath:
+                                    exec_wd = f"{exec_wd}/{subpath}"
+                        except ValueError:
+                            # stage_dir not under out_dir, use container_wd as-is
+                            exec_wd = container_wd
+                        
+                        exec_cmd = ["docker", "exec", "-w", exec_wd, container_name] + cmd
+                        r = subprocess.run(exec_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+                        log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
+                        return r.returncode
+                    
+                    # Fresh container mode: use docker run
+                    tmp_container_name = f"lpsb_{paper_id}_{container_counter[0]}_{os.getpid()}"
+                    
                     docker_cmd = [
                         "docker", "run", "--rm",
-                        "--name", container_name,
+                        "--name", tmp_container_name,
                         # Always mount the whole stage at /workdir; set -w separately.
                         # Mounting at a subdir breaks relative paths and makes it impossible
                         # for TeX to access sibling/parent resources.
                         "-v", f"{stage_dir}:/workdir",
                         "--net", "none",
                         "-w", container_wd,
-                        docker_image
-                    ] + cmd
+                    ]
+                    if extra_mounts:
+                        for m in extra_mounts:
+                            try:
+                                host_path, container_path = m
+                            except Exception:
+                                continue
+                            if host_path and container_path:
+                                docker_cmd += ["-v", f"{host_path}:{container_path}"]
+                    if extra_env:
+                        for k, v in extra_env.items():
+                            if k and v is not None:
+                                docker_cmd += ["-e", f"{k}={v}"]
+                    docker_cmd += [docker_image] + cmd
                     r = subprocess.run(docker_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
                     log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
                     return r.returncode
                 except subprocess.TimeoutExpired:
                     log.write("\nError: TIMEOUT - killing container\n")
-                    # Kill the container explicitly
-                    try:
-                        subprocess.run(["docker", "kill", container_name], 
-                                      capture_output=True, timeout=10)
-                    except:
-                        pass
-                    try:
-                        subprocess.run(["docker", "rm", "-f", container_name],
-                                      capture_output=True, timeout=10)
-                    except:
-                        pass
+                    # Kill the container explicitly (only for docker run mode)
+                    if container_name is None:
+                        tmp_container_name = f"lpsb_{paper_id}_{container_counter[0]}_{os.getpid()}"
+                        try:
+                            subprocess.run(["docker", "kill", tmp_container_name], 
+                                          capture_output=True, timeout=10)
+                        except:
+                            pass
+                        try:
+                            subprocess.run(["docker", "rm", "-f", tmp_container_name],
+                                          capture_output=True, timeout=10)
+                        except:
+                            pass
                     return 124
+
 
         if not disable_bbl_underscore_fix:
             # Preflight: some papers ship a pre-generated .bbl that is read on the *first* pdflatex pass.
@@ -1231,18 +1632,38 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                     if _bbl_has_unsafe_bibitem_key(b):
                         preflight_underscore = True
                         break
-            if preflight_underscore:
-                _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
-                _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
-                with open(log_file, "a") as log:
-                    log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
+                if preflight_underscore:
+                    _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
+                    if lua_main_tex_full is not None:
+                        _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+                    with open(log_file, "a") as log:
+                        log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         # Stage A: pdflatex gold (3 passes)
         with open(log_file, "a") as log:
             log.write("\n=== Stage A: pdflatex (gold) ===\n")
         had_rc_error = False
-        rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        had_rc_error |= (rc != 0)
+        missing_seen = set()
+        for attempt in range(1, 6):
+            rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error |= (rc != 0)
+            miss = _scan_log_for_missing_tex_inputs(pd_tex_dir / f"{main_base}.log")
+            miss = {m for m in miss if m not in missing_seen}
+            if not miss:
+                break
+            copied_any = False
+            for name in sorted(miss):
+                try:
+                    if copy_stub_pd(name):
+                        copied_any = True
+                        missing_seen.add(name)
+                except Exception:
+                    pass
+            if copied_any:
+                with open(log_file, "a") as log:
+                    log.write(f"\nInfo: copied missing stubs into build dir: {', '.join(sorted(miss))}\n")
+                continue
+            break
 
         # Bibliography for gold: detect from generated aux/bcf, not by grepping the source.
         aux0 = pd_tex_dir / f"{main_base}.aux"
@@ -1263,7 +1684,8 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             bbltex = pd_tex_dir / "bbl.tex"
             if (bbl.exists() and _bbl_has_unsafe_bibitem_key(bbl)) or _tex_has_unsafe_bibitem_key(bbltex):
                 _inject_bbl_underscore_catcode_fix(pd_main_tex_full)
-                _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
+                if lua_main_tex_full is not None:
+                    _inject_bbl_underscore_catcode_fix(lua_main_tex_full)
                 with open(log_file, "a") as log:
                     log.write("\nInfo: Detected '_' in .bbl \\\\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
@@ -1311,14 +1733,15 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             except Exception:
                 log_txt = ""
 
-            if natbib_err in log_txt:
-                # Off by default: this injects code into the staged main .tex, which some users
-                # consider too invasive. Enable explicitly via env var.
-                if _env_truthy("LPSB_ENABLE_NATBIB_NUMBERS_FIX"):
-                    _inject_natbib_numbers_fix(pd_main_tex_full)
-                    _inject_natbib_numbers_fix(lua_main_tex_full)
-                    with open(log_file, "a") as log:
-                        log.write("\nInfo: Detected natbib author-year incompatibility; enabled LPSB_NATBIB_NUMBERS_FIX and retrying gold passes\n")
+                if natbib_err in log_txt:
+                    # Off by default: this injects code into the staged main .tex, which some users
+                    # consider too invasive. Enable explicitly via env var.
+                    if _env_truthy("LPSB_ENABLE_NATBIB_NUMBERS_FIX"):
+                        _inject_natbib_numbers_fix(pd_main_tex_full)
+                        if lua_main_tex_full is not None:
+                            _inject_natbib_numbers_fix(lua_main_tex_full)
+                        with open(log_file, "a") as log:
+                            log.write("\nInfo: Detected natbib author-year incompatibility; enabled LPSB_NATBIB_NUMBERS_FIX and retrying gold passes\n")
                     rc1 = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
                     rc2 = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
                     # If the retry succeeded cleanly, treat earlier RCs as superseded by the fix.
@@ -1357,45 +1780,156 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                     log.write("\nError: NONZERO_RETURN_CODE (gold stage) and missing artifacts\n")
                 return "FAIL_LATEX_RC"
 
-        # Stage B: lualatex enrichment (3 passes)
-        with open(log_file, "a") as log:
-            log.write("\n=== Stage B: lualatex (enrichment) ===\n")
-        had_rc_error_lua = False
-        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        had_rc_error_lua |= (rc != 0)
-        aux1 = lua_tex_dir / f"{main_base}.aux"
-        if (lua_tex_dir / f"{main_base}.bbl").exists():
-            pass
-        elif _bcf_exists(lua_tex_dir, main_base) or _file_mentions(lua_main_tex_full, "biblatex"):
-            rc = _run(lualatex_dir, lua_container_wd, ["biber", main_base], TIMEOUT_SEC)
-            had_rc_error_lua |= (rc != 0)
-        elif _aux_mentions_bibdata(aux1):
-            rc = _run(lualatex_dir, lua_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
-            had_rc_error_lua |= (rc != 0)
-        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        had_rc_error_lua |= (rc != 0)
-        rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
-        had_rc_error_lua |= (rc != 0)
+        # Stage B: optional enrichment (LuaLaTeX or LaTeXML). Non-fatal: gold artifacts already exist.
+        math_json = None
+        table_json = None
+        had_rc_error_stage_b = False
 
-        math_json = lua_tex_dir / f"{main_base}.lpsb-math.json"
-        table_json = lua_tex_dir / f"{main_base}.lpsb-table.json"
+        if stage_b_engine == "lua" and lua_tex_dir is not None and lua_main_tex_full is not None:
+            with open(log_file, "a") as log:
+                log.write("\n=== Stage B: lualatex (enrichment) ===\n")
+            rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error_stage_b |= (rc != 0)
+            aux1 = lua_tex_dir / f"{main_base}.aux"
+            if (lua_tex_dir / f"{main_base}.bbl").exists():
+                pass
+            elif _bcf_exists(lua_tex_dir, main_base) or _file_mentions(lua_main_tex_full, "biblatex"):
+                rc = _run(lualatex_dir, lua_container_wd, ["biber", main_base], TIMEOUT_SEC)
+                had_rc_error_stage_b |= (rc != 0)
+            elif _aux_mentions_bibdata(aux1):
+                rc = _run(lualatex_dir, lua_container_wd, ["bibtex", main_base], TIMEOUT_SEC)
+                had_rc_error_stage_b |= (rc != 0)
+            rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error_stage_b |= (rc != 0)
+            rc = _run(lualatex_dir, lua_container_wd, ["lualatex", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error_stage_b |= (rc != 0)
 
-        if math_json.exists():
+            mj = lua_tex_dir / f"{main_base}.lpsb-math.json"
+            tj = lua_tex_dir / f"{main_base}.lpsb-table.json"
+            if mj.exists():
+                math_json = mj
+            if tj.exists():
+                table_json = tj
+
+        elif stage_b_engine == "latexml" and latexml_tex_dir is not None:
+            with open(log_file, "a") as log:
+                log.write("\n=== Stage B: latexml (math/table) ===\n")
+            latexml_xhtml = latexml_tex_dir / f"{main_base}.latexml.xhtml"
+            latexml_xml = latexml_tex_dir / f"{main_base}.latexml.xml"
+            latexml_log = latexml_tex_dir / f"{main_base}.latexml.log"
+            latexml_timeout = 600
+            try:
+                latexml_timeout = int(os.environ.get("LPSB_LATEXML_TIMEOUT_SEC", "600"))
+            except Exception:
+                latexml_timeout = 600
+
+            script = (
+                "set -euo pipefail\n"
+                f"main='{main_tex_basename}'\n"
+                f"xml='{latexml_xml.name}'\n"
+                f"xhtml='{latexml_xhtml.name}'\n"
+                f"log='{latexml_log.name}'\n"
+                "rm -f \"$xml\" \"$xhtml\" \"$log\" || true\n"
+                "mkdir -p \"${HOME:-/tmp}\" || true\n"
+                "if [ -n \"${XDG_CACHE_HOME:-}\" ]; then mkdir -p \"$XDG_CACHE_HOME\" || true; fi\n"
+                "if command -v latexmlc >/dev/null 2>&1; then\n"
+                "  (latexmlc --format=xhtml --pmml --nographicimages --nopictureimages --nosvg --dest=\"$xhtml\" \"$main\" || latexmlc --format=xhtml --pmml --nographicimages --nopictureimages --nosvg --destination=\"$xhtml\" \"$main\") >\"$log\" 2>&1 || exit $?\n"
+                "elif command -v latexml >/dev/null 2>&1 && command -v latexmlpost >/dev/null 2>&1; then\n"
+                "  (latexml --dest=\"$xml\" \"$main\" || latexml --destination=\"$xml\" \"$main\") >\"$log\" 2>&1 || exit $?\n"
+                "  (latexmlpost --format=xhtml --pmml --nographicimages --nopictureimages --nosvg --dest=\"$xhtml\" \"$xml\" || latexmlpost --format=xhtml --pmml --nographicimages --nopictureimages --nosvg --destination=\"$xhtml\" \"$xml\") >>\"$log\" 2>&1 || exit $?\n"
+                "else\n"
+                "  echo 'Error: latexml not installed in this image' >\"$log\"\n"
+                "  exit 127\n"
+                "fi\n"
+                "test -s \"$xhtml\"\n"
+            )
+            # Persist LaTeXML caches (notably expl3) across runs, keyed by TeX Live year.
+            # LaTeXML typically caches under $HOME; we mount a stable host directory and
+            # point HOME/XDG_CACHE_HOME at it to reuse caches in subsequent compilations.
+            # https://github.com/brucemiller/LaTeXML/issues/2064
+            latexml_cache_flag = os.environ.get("LPSB_LATEXML_CACHE", "1").strip().lower()
+            latexml_extra_mounts = []
+            latexml_extra_env = {}
+            if latexml_cache_flag not in ("", "0", "false", "no"):
+                cache_base_env = os.environ.get("LPSB_LATEXML_CACHE_ROOT", "").strip()
+                cache_base = Path(cache_base_env) if cache_base_env else (lpsb_root / "latexml_cache")
+                tl_key = selected_tl if (selected_tl and re.fullmatch(r"\d{4}", selected_tl)) else "unknown"
+                cache_dir = cache_base / f"TL{tl_key}"
+                try:
+                    cache_dir.mkdir(parents=True, exist_ok=True)
+                    latexml_extra_mounts.append((str(cache_dir), "/lpsb_latexml_cache"))
+                    latexml_extra_env["HOME"] = "/lpsb_latexml_cache/home"
+                    latexml_extra_env["XDG_CACHE_HOME"] = "/lpsb_latexml_cache/xdg-cache"
+                    with open(log_file, "a") as log:
+                        log.write(f"\nInfo: LaTeXML cache enabled: {cache_dir}\n")
+                except Exception:
+                    with open(log_file, "a") as log:
+                        log.write("\nWarning: Failed to initialize LaTeXML cache dir; continuing without cache\n")
+            else:
+                with open(log_file, "a") as log:
+                    log.write(f"\nInfo: LaTeXML cache disabled (LPSB_LATEXML_CACHE={latexml_cache_flag})\n")
+            rc = _run(
+                latexml_dir,
+                latexml_container_wd,
+                ["bash", "-lc", script],
+                latexml_timeout,
+                extra_mounts=latexml_extra_mounts,
+                extra_env=latexml_extra_env,
+            )
+            had_rc_error_stage_b |= (rc != 0)
+
+            if latexml_xhtml.exists():
+                conv_script = lpsb_root / "script" / "latexml_to_lpsb.py"
+                if not conv_script.exists():
+                    conv_script = lpsb_root / "latexml_to_lpsb.py"
+                out_math = latexml_tex_dir / f"{main_base}.lpsb-math.latexml.json"
+                out_table = latexml_tex_dir / f"{main_base}.lpsb-table.latexml.json"
+                if conv_script.exists():
+                    cmd = [
+                        sys.executable,
+                        str(conv_script),
+                        "--structure",
+                        str(json_file),
+                        "--xhtml",
+                        str(latexml_xhtml),
+                        "--out-math",
+                        str(out_math),
+                        "--out-table",
+                        str(out_table),
+                    ]
+                    with open(log_file, "a") as log:
+                        log.write("\n=== LaTeXML→LPSB (math/table) ===\n")
+                        subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=False)
+                    if out_math.exists():
+                        math_json = out_math
+                    if out_table.exists():
+                        table_json = out_table
+                else:
+                    with open(log_file, "a") as log:
+                        log.write("\nWarning: latexml_to_lpsb.py not found, skipping LaTeXML conversion\n")
+            else:
+                with open(log_file, "a") as log:
+                    log.write("\nWarning: latexml did not produce XHTML, skipping LaTeXML merge\n")
+
+        # Merge (math/table) into the gold structure stream, if any sidecar exists.
+        if (math_json and math_json.exists()) or (table_json and table_json.exists()):
             merged_json = work_dir / f"{main_base}.lpsb.merged.json"
             merge_script = lpsb_root / "script" / "merge_lpsb.py"
             if not merge_script.exists():
                 merge_script = lpsb_root / "merge_lpsb.py"
             if merge_script.exists():
-                cmd = [sys.executable, str(merge_script), str(json_file), str(math_json), str(merged_json)]
-                if table_json.exists():
+                # merge_lpsb.py requires positional args; pass a non-existent math file path when absent.
+                math_arg = str(math_json) if (math_json and math_json.exists()) else str(Path(str(json_file)).with_suffix(".lpsb-math.json"))
+                cmd = [sys.executable, str(merge_script), str(json_file), math_arg, str(merged_json)]
+                if table_json and table_json.exists():
                     cmd.append(str(table_json))
-                with open(log_file, 'a') as log:
+                with open(log_file, "a") as log:
                     log.write("\n=== Merge (math/table) ===\n")
                     subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=False)
                 if merged_json.exists():
                     json_file = merged_json
             else:
-                with open(log_file, 'a') as log:
+                with open(log_file, "a") as log:
                     log.write("\nWarning: merge_lpsb.py not found, skipping merge\n")
 
         # 5. Enrich Positions
@@ -1405,9 +1939,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                 log.write("\nError: COMPILATION_FAILED (missing artifacts)\n")
             return "FAIL"
 
-        if had_rc_error_lua:
+        if had_rc_error_stage_b:
             with open(log_file, "a") as log:
-                log.write("\nWarning: NONZERO_RETURN_CODE (lua stage) - continuing with gold artifacts\n")
+                log.write(f"\nWarning: NONZERO_RETURN_CODE (stage_b={stage_b_engine}) - continuing with gold artifacts\n")
             
         final_json = res_dir / f"{paper_id}.json"
         
@@ -1448,19 +1982,21 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # Final sanity: if log indicates fatal errors or broken citations, do not claim success.
         issues = _scan_compile_log_for_issues(log_file)
         # Undefined references may require one more LaTeX pass, but in batch mode we already did 3 passes.
-        # Treat undefined citations and fatal errors as hard failures; refs can be made strict via env var.
+        # Treat fatal errors as hard failures; refs/citations/bib problems can be made strict via env vars.
         strict_refs = os.environ.get("LPSB_STRICT_UNDEF_REFS", "").strip() not in ("", "0", "false", "False")
+        strict_citations = os.environ.get("LPSB_STRICT_UNDEF_CIT", "").strip() not in ("", "0", "false", "False")
+        strict_bib = os.environ.get("LPSB_STRICT_BIBTEX", "").strip() not in ("", "0", "false", "False")
         if issues["fatal"]:
             with open(log_file, "a") as log:
                 log.write("\nError: LOG_DETECTED_FATAL_LATEX_ERROR\n")
             return "FAIL_LATEX_LOG"
-        if issues["undef_citation"]:
+        if strict_citations and issues["undef_citation"]:
             with open(log_file, "a") as log:
-                log.write("\nError: LOG_DETECTED_UNDEFINED_CITATIONS\n")
+                log.write("\nError: LOG_DETECTED_UNDEFINED_CITATIONS (strict)\n")
             return "FAIL_UNDEF_CIT"
-        if issues["bibtex_problem"]:
+        if strict_bib and issues["bibtex_problem"]:
             with open(log_file, "a") as log:
-                log.write("\nError: LOG_DETECTED_BIBTEX_PROBLEM\n")
+                log.write("\nError: LOG_DETECTED_BIBTEX_PROBLEM (strict)\n")
             return "FAIL_BIB"
         if strict_refs and issues["undef_reference"]:
             with open(log_file, "a") as log:
@@ -1493,7 +2029,15 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             except:
                 pass
 
+# Global container pool reference (set by main process before forking workers)
+_CONTAINER_POOL = None
+_CONTAINER_NAMES = []  # List of container names for workers to use
+
 def batch_worker(args):
+    """Worker function for batch processing.
+    
+    Args is a tuple: (src_path, out_dir, lpsb_root, use_ramdisk, disable_bbl_underscore_fix, container_name)
+    """
     return process_one_paper(*args)
 
 def main():
@@ -1503,6 +2047,9 @@ def main():
     parser.add_argument('--output', '-o', required=True, help="Output directory")
     parser.add_argument('--no-ramdisk', action='store_true', help="Disable RAM disk workspace (default: enabled if /dev/shm exists)")
     parser.add_argument('--workers', type=int, default=16, help="Number of parallel workers")
+    parser.add_argument('--limit', type=int, default=0, help="Limit number of items processed in batch mode (0 = no limit)")
+    parser.add_argument('--reuse-containers', action='store_true',
+                        help="Reuse Docker containers across papers (faster, requires --no-ramdisk)")
     
     args = parser.parse_args()
     
@@ -1517,20 +2064,68 @@ def main():
     elif args.batch:
         src_root = Path(args.batch)
         papers = []
-        # Recursive discovery
-        papers.extend(src_root.rglob("*.gz"))
-        papers.extend(src_root.rglob("*.tex"))
-        # Remove duplicates
-        papers = sorted(list(set(papers)))
+        # Prefer directory-per-paper layout when present (common for extracted corpora
+        # and for our own cached build dirs). This avoids treating every auxiliary
+        # *.tex file inside a paper as a separate "paper".
+        try:
+            paper_dirs = [
+                p for p in src_root.iterdir()
+                if p.is_dir() and re.fullmatch(r"\d{4}\.\d{5}", p.name or "")
+            ]
+        except Exception:
+            paper_dirs = []
+
+        if paper_dirs:
+            papers = sorted(paper_dirs)
+        else:
+            # Recursive discovery (archive or single-tex layout)
+            papers.extend(src_root.rglob("*.gz"))
+            papers.extend(src_root.rglob("*.tex"))
+            # Remove duplicates
+            papers = sorted(list(set(papers)))
+        if args.limit and args.limit > 0:
+            papers = papers[:args.limit]
         
         print(f"Processing BATCH of {len(papers)} items using {args.workers} workers")
         print(f"Output: {args.output}")
         if not args.no_ramdisk:
             print("Using RAM disk for workspace (default)")
         
+        # Container reuse mode
+        container_pool = None
+        container_names = []
+        use_container_reuse = args.reuse_containers
+        
+        if use_container_reuse:
+            if not args.no_ramdisk:
+                print("Warning: --reuse-containers requires --no-ramdisk, enabling --no-ramdisk")
+                args.no_ramdisk = True
+            
+            out_path = Path(args.output).resolve()
+            out_path.mkdir(parents=True, exist_ok=True)
+            
+            # Start container pool (one container per worker)
+            print(f"Starting {args.workers} Docker containers for reuse...")
+            container_pool = DockerContainerPool(
+                image=LPSB_IMAGE,
+                shared_volume=out_path,
+                pool_size=args.workers
+            )
+            try:
+                container_pool.start()
+                container_names = container_pool.containers[:]
+                print(f"Started containers: {', '.join(container_names)}")
+            except Exception as e:
+                print(f"Failed to start container pool: {e}")
+                print("Falling back to non-reuse mode")
+                use_container_reuse = False
+                container_names = []
+        
         tasks = []
-        for p in papers:
-            tasks.append((p, args.output, lpsb_root, not args.no_ramdisk))
+        for i, p in enumerate(papers):
+            # Assign container to task based on index (round-robin across workers)
+            cname = container_names[i % len(container_names)] if container_names else None
+            tasks.append((p, args.output, lpsb_root, not args.no_ramdisk, False, cname))
             
         results = {'SUCCESS': 0, 'FAIL': 0, 'TIMEOUT': 0, 'ERROR': 0, 'NO_MAIN': 0}
         
@@ -1570,6 +2165,13 @@ def main():
         print("\nSummary:")
         print(results)
         
+        # Clean up container pool
+        if container_pool is not None:
+            print("Stopping Docker containers...")
+            container_pool.stop()
+            print("Containers stopped.")
+        
+
     else:
         parser.print_help()
 
