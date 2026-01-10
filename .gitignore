@@ -31,7 +31,12 @@ ENV/
 *.lpsb.json
 *.lpsb.jsonl
 *.lpsb-math.json
+*.lpsb-math.latexml.json
 *.lpsb-table.json
+*.lpsb-table.latexml.json
+*.latexml.xhtml
+*.latexml.xml
+*.latexml.log
 *.idx
 *.ind
 *.lof
@@ -80,3 +85,5 @@ archive/
 _*/
 compile_test*
 script/cluster/
+archive/
+results*/

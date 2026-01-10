@@ -1,0 +1,280 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% IS&T Template 
+% Patrick Vandewalle
+% v1.0 - January 2006
+% v1.0b - February 2006
+%  corrected Figure captions of more than one line
+% v1.0c - February 23, 2006
+%  corrected page margins (A4 and letter) to fit with Word templates 
+%  (visual matching)
+% v1.1 - July 3, 2007
+%  corrected some more issues with the margins, thanks a lot to Michael Shell for his help.
+%  when converting your file from LaTeX to PDF, please be careful that both in dvips and
+%  ps2pdf conversions, you select the correct papersize (which may be different from the
+%  default). In dvips this can be done with the option -t, such as
+%  dvips -t letter template_ist_ltr.dvi -o template_ist_ltr.ps
+%  this template should set options correctly for most users
+% 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use Times and Helvetica as fonts
+\RequirePackage{helvet,mathptmx}
+% this package is required for figures
+\usepackage{graphicx}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Margins and Page set up
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% determine paper size and margins
+\DeclareOption{letterpaper}{\setlength{\paperheight}{11in}%
+                            \setlength{\paperwidth}{8.5in}%
+			    \setlength{\textheight}{9in}% 
+			    \setlength{\textwidth}{6.8in}%
+			    \setlength{\topmargin}{1in}%
+			    \addtolength{\topmargin}{-1in}% a default offset of 1 inch has to be compensated
+			    \setlength{\evensidemargin}{.75in}%
+			    \addtolength{\evensidemargin}{-1in}% a default offset of 1 inch 
+			    							    % has to be compensated
+			    \setlength{\oddsidemargin}{.75in}%
+			    \addtolength{\oddsidemargin}{-1in}%
+			    \setlength{\columnsep}{.3in}%
+			    \setlength{\belowcaptionskip}{-10pt}%
+			    \def\ISTOPTIONpaper{letter}%
+                                \def\ISTINFOpaperwidth{8.5in}%
+                                \def\ISTINFOpaperheight{11in}
+                           }
+
+\DeclareOption{a4paper}{\setlength{\paperheight}{297mm}%
+                        \setlength{\paperwidth}{210mm}%
+			\setlength{\evensidemargin}{20mm}%
+			\addtolength{\evensidemargin}{-1.05in}%
+			\setlength{\oddsidemargin}{20mm}%
+			\addtolength{\oddsidemargin}{-1.05in}%
+			\setlength{\topmargin}{25mm}%
+			\addtolength{\topmargin}{-1.07in}%
+			\setlength{\textwidth}{170mm}%
+			\setlength{\textheight}{247mm}% 
+			\setlength{\columnsep}{7mm}%
+			\setlength{\belowcaptionskip}{-20pt}%
+		         \def\ISTOPTIONpaper{A4}%
+                            \def\ISTINFOpaperwidth{210mm}%
+                            \def\ISTINFOpaperheight{297mm}
+                       }
+\ProcessOptions\relax      % set margins for a4paper or letterpaper
+
+% change common margins for a4paper and letterpaper
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+
+% V1.1 improved paper size setting code (from IEEEtran by Michael Shell)
+% Set pdfpage and dvips paper sizes. Conditional tests are similar to that
+% of ifpdf.sty. Retain within {} to ensure tested macros are never altered,
+% even if only effect is to set them to \relax.
+% indicates if pdf (via pdflatex) output
+\newif\ifISTINFOpdf               \ISTINFOpdffalse
+% if \pdfoutput is undefined or equal to relax, output a dvips special
+{\@ifundefined{pdfoutput}{\AtBeginDvi{\special{papersize=\ISTINFOpaperwidth,\ISTINFOpaperheight}}}{%
+% pdfoutput is defined and not equal to \relax
+% check for pdfpageheight existence just in case someone sets pdfoutput
+% under non-pdflatex. If exists, set them regardless of value of \pdfoutput.
+\@ifundefined{pdfpageheight}{\relax}{\global\pdfpagewidth\paperwidth
+\global\pdfpageheight\paperheight}%
+% if using \pdfoutput=0 under pdflatex, send dvips papersize special
+\ifcase\pdfoutput
+\AtBeginDvi{\special{papersize=\ISTINFOpaperwidth,\ISTINFOpaperheight}}%
+\else
+% we are using pdf output, set CLASSINFOpdf flag
+\global\ISTINFOpdftrue
+\fi}}
+
+% let the user know the selected papersize
+\typeout{-- Using \ISTINFOpaperwidth\space x \ISTINFOpaperheight\space
+(\ISTOPTIONpaper)\space paper.}
+
+\ifISTINFOpdf
+\typeout{-- Using PDF output.}
+\else
+\typeout{-- Using DVI output.}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Change default font sizes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\renewcommand\scriptsize{\fontsize{6}{10}} 
+%\renewcommand\footnotesize{\fontsize{7}{9}} 
+%\renewcommand\small{\fontsize{8}{11}}
+%%\renewcommand\normalsize{\fontsize{10}{12}} % regular text
+%\renewcommand\normalsize{\fontsize{9}{11}}\selectfont
+%\renewcommand\large{\fontsize{10}{11}} % subsubsection titles
+%\renewcommand\Large{\fontsize{10}{11}} % subsection titles
+%\renewcommand\LARGE{\fontsize{11}{11}} % section titles
+%\renewcommand\Huge{\fontsize{18}{22}} % paper title
+%% IEEE sizes
+\def\normalsize{\@setfontsize{\normalsize}{9}{11pt}} % regular text
+\def\small{\@setfontsize{\small}{8}{11pt}} % table captions, authors
+\def\footnotesize{\@setfontsize{\footnotesize}{8}{9pt}}
+\def\scriptsize{\@setfontsize{\scriptsize}{7}{11pt}} % figure captions
+\def\tiny{\@setfontsize{\tiny}{5}{6pt}}
+\def\large{\@setfontsize{\large}{10}{11pt}} % subsubsection titles
+\def\Large{\@setfontsize{\Large}{10}{11pt}} % subsection titles
+\def\LARGE{\@setfontsize{\LARGE}{11}{11pt}} % section titles
+\def\huge{\@setfontsize{\huge}{17}{20pt}}
+\def\Huge{\@setfontsize{\Huge}{18}{22pt}} % paper title
+
+% set standard font size
+%\fontsize{8}{10}\selectfont
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Style changes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Indentation distances
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% no indentation for paragraphs
+\setlength{\parindent}{0.25in}
+\setlength{\parsep}{11pt}
+% spacing between paragraphs (but also after titles)
+% \setlength{\parskip}{11pt}
+% no indentation for equations
+\setlength{\mathindent}{0.25in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine section, subsection and subsubsection headers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% do not number any sections, subsections etc from level 0 onwards
+\setcounter{secnumdepth}{0}
+
+% renew section, subsection and subsubsection commands
+% vertical spacing after the title needs to have a positive value, 
+% but should be almost 0
+\renewcommand{\section}{\@startsection{}{1}{0mm}
+     {\baselineskip}{0.001mm}{\LARGE\bf\sffamily}}% 
+\renewcommand{\subsection}{\@startsection{}{1}{0mm}
+     {\baselineskip}{0.001mm}{\Large\bf\em\sffamily}}% 
+\renewcommand{\subsubsection}{\@startsection{}{1}{0mm}
+     {\baselineskip}{0.001mm}{\large\bf\em}}% 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine abstract environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewenvironment{abstract}{{\section{Abstract}}\begin{em}}
+		    {\end{em}\vskip\baselineskip }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define biography environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newenvironment{biography}{{\section{Author Biography}}\begin{em}}{\end{em}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine lists with zero vertical spacing between items
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\let\orig@Itemize =\itemize            
+\let\orig@Enumerate =\enumerate
+\let\orig@Description =\description
+% Zero the vertical spacing parameters
+\def\NoSpacing{\itemsep=0pt\topsep=0pt\partopsep=0pt\parskip=0pt\parsep=0pt}
+% Redefine the environments with the new spacings
+\renewenvironment{itemize}{\orig@Itemize\NoSpacing}{\endlist}
+\renewenvironment{enumerate}{\orig@Enumerate\NoSpacing}{\endlist}
+\renewenvironment{description}{\orig@Description\NoSpacing}{\endlist}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine tabular environment to change the fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\let\orig@tabular\tabular
+\let\endorig@tabular\endtabular
+\renewenvironment*{tabular}[1]
+	{\sffamily\begin{orig@tabular}{#1}}
+	{\end{orig@tabular}}
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine captions for figures and tables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\abovecaptionskip}{0pt} 
+% \setlength{\belowcaptionskip}{-20pt} -> this is set above
+% because it has to be different between a4 and letter paper
+% strange that negative spacing seems to be necessary
+\def\@tablestring{table}
+\def\@figurecaptionsepspace{\vskip\abovecaptionskip\relax}%
+\def\@tablecaptionsepspace{\vskip\belowcaptionskip\relax}%
+
+\long\def\@makecaption#1#2{%
+  % test if the caption is for a figure or a table
+  \ifx\@captype\@tablestring% table
+  {\small\sffamily\bfseries #2}\@tablecaptionsepspace
+
+  \else % figure
+  \@figurecaptionsepspace
+  \setbox\@tempboxa\hbox{\scriptsize\sffamily\itshape {\bfseries #1.}~~ #2}%
+  \ifdim \wd\@tempboxa >\hsize%
+  % if caption is longer than a line, let it wrap around
+  \setbox\@tempboxa\hbox{\scriptsize\sffamily\itshape {\bfseries #1.}~~ }%
+  \parbox[t]{\hsize}{\scriptsize\sffamily\itshape \noindent\unhbox\@tempboxa#2}%
+  \else% caption is shorter than a line
+  \hbox to\hsize{\scriptsize\sffamily\itshape\box\@tempboxa\hfil}%
+  \fi\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine title and author environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\maketitle{\par
+  \twocolumn[\@maketitle]
+  \let\maketitle\relax
+  \let\@maketitle\relax
+  \gdef\@author{}\gdef\@title{}}
+   
+\def\@maketitle{
+  \null
+    {\Huge \bf \@title \par} 
+    \vskip 11pt 
+    {\small \bf \em \sffamily \@author \par} 
+    \par
+    \vskip 44pt}
+   
+\def\title#1{\gdef\@title{\Huge #1}}
+\def\author#1{\gdef\@author{#1}}
+\gdef\@title{Title of Paper}
+\gdef\@author{{\em Name of author}\\}
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Change bibliography to remove spacing between items
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newdimen\bibindent
+\setlength\bibindent{1.5em}
+\newdimen\bibspacing
+\setlength\bibspacing\baselineskip
+\renewenvironment{thebibliography}[1]{%
+  \section*{\refname
+        \@mkboth{\MakeUppercase\refname}{\MakeUppercase\refname}}%
+      \list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep 
+            \itemsep\z@skip   
+            \parsep\z@skip
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \sloppy\clubpenalty4000\widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+
+% end of style changes
+\makeatother

@@ -1,0 +1,315 @@
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+\ifx\proof\undefined 
+\RequirePackage{amsthm}
+\fi
+\RequirePackage{bm} 
+\RequirePackage{url}
+
+% bold alphabet 
+\newcommand{\thpol}{\pi^{\theta}}
+\newcommand{\prns}[1]{\left(#1\right)}
+\newcommand{\braces}[1]{\left\{#1\right\}}
+\newcommand{\bracks}[1]{\left[#1\right]}
+\newcommand{\ab}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\cbb}{\mathbf{c}}
+\newcommand{\db}{\mathbf{d}}
+\newcommand{\eb}{\mathbf{e}}
+\newcommand{\fb}{\mathbf{f}}
+\newcommand{\gb}{\mathbf{g}}
+\newcommand{\hb}{\mathbf{h}}
+\newcommand{\ib}{\mathbf{i}}
+\newcommand{\jb}{\mathbf{j}}
+\newcommand{\kb}{\mathbf{k}}
+\newcommand{\lb}{\mathbf{l}}
+\newcommand{\mb}{\mathbf{m}}
+\newcommand{\nbb}{\mathbf{n}}
+\newcommand{\ob}{\mathbf{o}}
+\newcommand{\pb}{\mathbf{p}}
+\newcommand{\qb}{\mathbf{q}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\sbb}{\mathbf{s}}
+\newcommand{\tb}{\mathbf{t}}
+\newcommand{\ub}{\mathbf{u}}
+\newcommand{\vb}{\mathbf{v}}
+\newcommand{\wb}{\mathbf{w}}
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+
+\newcommand{\Ab}{\mathbf{A}}
+\newcommand{\Bb}{\mathbf{B}}
+\newcommand{\Cb}{\mathbf{C}}
+\newcommand{\Db}{\mathbf{D}}
+\newcommand{\Eb}{\mathbf{E}}
+\newcommand{\Fb}{\mathbf{F}}
+\newcommand{\Gb}{\mathbf{G}}
+\newcommand{\Hb}{\mathbf{H}}
+\newcommand{\Ib}{\mathbf{I}}
+\newcommand{\Jb}{\mathbf{J}}
+\newcommand{\Kb}{\mathbf{K}}
+\newcommand{\Lb}{\mathbf{L}}
+\newcommand{\Mb}{\mathbf{M}}
+\newcommand{\Nb}{\mathbf{N}}
+\newcommand{\Ob}{\mathbf{O}}
+\newcommand{\Pb}{\mathbf{P}}
+\newcommand{\Qb}{\mathbf{Q}}
+\newcommand{\Rb}{\mathbf{R}}
+\newcommand{\Sbb}{\mathbf{S}}
+\newcommand{\Tb}{\mathbf{T}}
+\newcommand{\Ub}{\mathbf{U}}
+\newcommand{\Vb}{\mathbf{V}}
+\newcommand{\Wb}{\mathbf{W}}
+\newcommand{\Xb}{\mathbf{X}}
+\newcommand{\Yb}{\mathbf{Y}}
+\newcommand{\Zb}{\mathbf{Z}}
+
+\newcommand{\bP}{\bm{P}}
+\newcommand{\bQ}{\bm{Q}}
+\newcommand{\bpiP}{\bm\pi^{\bm P}}
+
+%%%%%%%%%%%%
+
+
+%%%% calligraphic fonts
+
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Bcal}{\mathcal{B}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Dcal}{\mathcal{D}}
+\newcommand{\Ecal}{\mathcal{E}}
+\newcommand{\Fcal}{\mathcal{F}}
+\newcommand{\Gcal}{\mathcal{G}}
+\newcommand{\Hcal}{\mathcal{H}}
+\newcommand{\Ical}{\mathcal{I}}
+\newcommand{\Jcal}{\mathcal{J}}
+\newcommand{\Kcal}{\mathcal{K}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Mcal}{\mathcal{M}}
+\newcommand{\Ncal}{\mathcal{N}}
+\newcommand{\Ocal}{\mathcal{O}}
+\newcommand{\Pcal}{\mathcal{P}}
+\newcommand{\Qcal}{\mathcal{Q}}
+\newcommand{\Rcal}{\mathcal{R}}
+\newcommand{\Scal}{{\mathcal{S}}}
+\newcommand{\Tcal}{{\mathcal{T}}}
+\newcommand{\Ucal}{\mathcal{U}}
+\newcommand{\Vcal}{\mathcal{V}}
+\newcommand{\Wcal}{\mathcal{W}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Ycal}{\mathcal{Y}}
+\newcommand{\Zcal}{\mathcal{Z}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%% Widely accepted definitions %%%%%%%%%%%%%%%
+
+\newcommand{\CC}{\mathbb{C}} % Complex numbers
+\newcommand{\EE}{\mathbb{E}} % Expectation
+\newcommand{\VV}{\mathbb{V}} % Variance
+\newcommand{\II}{\mathbb{I}} % Indicator
+\newcommand{\KK}{\mathbb{K}} % Arbitrary field
+\newcommand{\LL}{\mathbb{L}} % Loss
+\newcommand{\MM}{\mathbb{M}} % Median
+\newcommand{\NN}{\mathbb{N}} % Natural numbers
+\newcommand{\PP}{\mathbb{P}} % Probability
+\newcommand{\QQ}{\mathbb{Q}} % Rationals
+\newcommand{\RR}{\mathbb{R}} % Real numbers
+\newcommand{\ZZ}{\mathbb{Z}} % Integers
+\newcommand{\XX}{\mathbb{X}} %
+\newcommand{\YY}{\mathbb{Y}} %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%% Some standard definitions
+
+\newcommand*{\mini}{\mathop{\mathrm{minimize}}}
+\newcommand*{\maxi}{\mathop{\mathrm{maximize}}}
+\newcommand*{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand*{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\sgn}{\mathop{\mathrm{sign}}}
+\newcommand{\tr}{\mathop{\mathrm{tr}}}
+\DeclareMathOperator*{\Var}{{\rm Var}}
+\DeclareMathOperator*{\Cor}{Corr}
+\DeclareMathOperator*{\Cov}{Cov}
+\DeclareMathOperator*{\ind}{1{\hskip -2.5 pt}\hbox{I}}  % Indicator
+\newcommand{\smallfrac}[2]{{\textstyle \frac{#1}{#2}}}  
+                                                        
+\newcommand*{\zero}{{\textbf 0}}
+\newcommand*{\one}{{\textbf 1}}
+
+\newcommand*{\Risk}{{\rm Risk}}
+\newcommand*{\Bias}{{\rm Bias}}
+
+\newcommand{\pen}{{\rm pen}}
+\newcommand{\diag}{{\rm diag}}
+\newcommand{\rank}{{\rm rank}}
+
+\def\iid{{\it i.i.d.}}
+\newcommand{\iidsim}{\stackrel{{iid}}{\sim}}
+\def\bks{\backslash}
+
+
+
+%%%%%%%% bold greek letters %%%%%%%%%%
+
+\newcommand*{\alphab}{\bm{\alpha}}
+\newcommand*{\betab}{\bm{\beta}}
+\newcommand*{\Sigmab}{\bm{\Sigma}}
+\newcommand*{\Omegab}{\bm{\Omega}}
+\newcommand*{\omegab}{\bm{\omega}}
+\newcommand*{\Gammab}{\bm{\Gamma}}
+\newcommand*{\Psib}{\bm{\Psi}}
+\newcommand*{\Thetab}{\bm{\Theta}}
+\newcommand*{\thetab}{\bm{\theta}}
+\newcommand*{\taub}{\bm{\tau}}
+\newcommand*{\epsilonb}{\bm{\epsilon}}
+\newcommand*{\etab}{\bm{\eta}}
+\newcommand*{\xib}{\bm{\xi}}
+\newcommand*{\gammab}{\bm{\gamma}}
+\newcommand*{\deltab}{\bm{\delta}}
+\newcommand*{\Deltab}{\bm{\Delta}}
+\newcommand*{\mub}{\bm{\mu}}
+\newcommand*{\rhobb}{\bm{\rho}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%% Norms
+
+\newcommand{\orlnorm}[2]{||#1||_{\Psi_{#2}}}
+\newcommand{\norm}[1]{||#1||}
+\newcommand{\bignorm}[1]{\bigg|\bigg|#1\bigg|\bigg|}
+\newcommand{\opnorm}[2]{| \! | \! | #1 | \! | \! |_{{#2}}}
+
+%%%%% Dot product
+\newcommand{\dotp}[2]{\langle{#1},{#2}\rangle}
+
+%%%%  brackets
+\newcommand{\inner}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\rbr}[1]{\left(#1\right)}
+\newcommand{\sbr}[1]{\left[#1\right]}
+\newcommand{\cbr}[1]{\left\{#1\right\}}
+\newcommand{\nbr}[1]{\left\|#1\right\|}
+\newcommand{\abr}[1]{\left|#1\right|}
+
+
+%%%%%%%%%  Other commands
+
+\newcommand{\mcomment}[1]{\marginpar{\tiny{#1}}}
+\newcommand{\fcomment}[1]{\footnote{\tiny{#1}}}
+
+
+%%%%%%%%  amsmath %%%%%%%%%%
+
+
+\ifx\BlackBox\undefined
+\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+\fi
+
+\ifx\QED\undefined
+\def\QED{~\rule[-1pt]{5pt}{5pt}\par\medskip}
+\fi
+
+\ifx\proof\undefined
+\newenvironment{proof}{\par\noindent{\bf Proof\ }}{\hfill\BlackBox\\[2mm]}
+%\newenvironment{proof}{\emph{Proof. }}{ \hfill \QED}
+\fi
+
+\ifx\theorem\undefined
+\newtheorem{theorem}{Theorem}
+\fi
+\ifx\example\undefined
+\newtheorem{example}{Example}
+\fi
+\ifx\property\undefined
+\newtheorem{property}{Property}
+\fi
+\ifx\lemma\undefined
+\newtheorem{lemma}[theorem]{Lemma}
+\fi
+\ifx\proposition\undefined
+\newtheorem{proposition}[theorem]{Proposition}
+\fi
+\ifx\remark\undefined
+\newtheorem{remark}[theorem]{Remark}
+\fi
+\ifx\corollary\undefined
+\newtheorem{corollary}[theorem]{Corollary}
+\fi
+\ifx\definition\undefined
+\newtheorem{definition}[theorem]{Definition}
+\fi
+\ifx\conjecture\undefined
+\newtheorem{conjecture}[theorem]{Conjecture}
+\fi
+\ifx\fact\undefined
+\newtheorem{fact}[theorem]{Fact}
+\fi
+\ifx\claim\undefined
+\newtheorem{claim}[theorem]{Claim}
+\fi
+\ifx\assum\undefined
+\newtheorem{assum}[theorem]{Assumption}
+\fi
+\ifx\exercise\undefined
+\newtheorem{exercise}{Exercise}
+\fi
+
+%%% MLT definitions
+\newcommand{\samplec}{n_{\Hcal}}
+\newcommand{\uniformc}{n_{\Hcal}^{\textrm{UC}}}
+\newcommand{\vcdim}{\textrm{VCdim}}
+\newcommand{\conv}{\textrm{conv}}
+
+
+%%% DJF Definitions
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert} %
+\DeclarePairedDelimiter{\brk}{[}{]}
+\DeclarePairedDelimiter{\crl}{\{}{\}}
+\DeclarePairedDelimiter{\prn}{(}{)}
+\DeclarePairedDelimiter{\nrm}{\|}{\|}
+\DeclarePairedDelimiter{\tri}{\langle}{\rangle}
+\DeclarePairedDelimiter{\dtri}{\llangle}{\rrangle}
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+
+% \DeclareMathOperator{\E}{\mathbb{E}} %expecation
+\let\Pr\undefined
+\let\P\undefined
+\DeclareMathOperator{\En}{\mathbb{E}}
+\DeclareMathOperator*{\Eh}{\widehat{\mathbb{E}}}
+\DeclareMathOperator{\P}{P}
+\DeclareMathOperator{\Pr}{Pr}
+
+\usepackage{prettyref}
+\newcommand{\pref}[1]{\prettyref{#1}}
+\newcommand{\pfref}[1]{Proof of \prettyref{#1}}
+\newcommand{\savehyperref}[2]{\texorpdfstring{\hyperref[#1]{#2}}{#2}}
+\newrefformat{eq}{\savehyperref{#1}{\textup{(\ref*{#1})}}}
+\newrefformat{eqn}{\savehyperref{#1}{Equation~\ref*{#1}}}
+\newrefformat{lem}{\savehyperref{#1}{Lemma~\ref*{#1}}}
+\newrefformat{def}{\savehyperref{#1}{Definition~\ref*{#1}}}
+\newrefformat{line}{\savehyperref{#1}{line~\ref*{#1}}}
+\newrefformat{thm}{\savehyperref{#1}{Theorem~\ref*{#1}}}
+\newrefformat{corr}{\savehyperref{#1}{Corollary~\ref*{#1}}}
+\newrefformat{sec}{\savehyperref{#1}{Section~\ref*{#1}}}
+\newrefformat{ssec}{\savehyperref{#1}{Subsection~\ref*{#1}}}
+\newrefformat{app}{\savehyperref{#1}{Appendix~\ref*{#1}}}
+\newrefformat{ass}{\savehyperref{#1}{Assumption~\ref*{#1}}}
+\newrefformat{ex}{\savehyperref{#1}{Example~\ref*{#1}}}
+\newrefformat{fig}{\savehyperref{#1}{Figure~\ref*{#1}}}
+\newrefformat{alg}{\savehyperref{#1}{Algorithm~\ref*{#1}}}
+\newrefformat{rem}{\savehyperref{#1}{Remark~\ref*{#1}}}
+\newrefformat{conj}{\savehyperref{#1}{Conjecture~\ref*{#1}}}
+\newrefformat{prop}{\savehyperref{#1}{Proposition~\ref*{#1}}}
+\newrefformat{proto}{\savehyperref{#1}{Protocol~\ref*{#1}}}
+\newrefformat{prob}{\savehyperref{#1}{Problem~\ref*{#1}}}
+\newrefformat{claim}{\savehyperref{#1}{Claim~\ref*{#1}}}
+\newrefformat{fact}{\savehyperref{#1}{Fact~\ref*{#1}}}

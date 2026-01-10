@@ -20,6 +20,7 @@ If you need a version that works today, use the **`v1` branch** (the previous im
 - **Math capture**
   - **PDFLaTeX**: captures display math environments as `Formula` (e.g. `equation`, `align`).
   - **LuaLaTeX extension** (`lpsb-luamath`): captures *all* math including `$...$` and can emit **MathML** via `luamml`.
+  - **LaTeXML stage (experimental)**: can emit MathML without LuaTeX; alignment is best-effort and positions remain from PDFLaTeX (gold).
 - **Robust logs**: `solver.py` includes fault-tolerant parsing for “dirty” JSON emitted by TeX.
 - **Batchable via Docker**: scripts run against arXiv source tarballs, producing reproducible output directories.
 
@@ -91,6 +92,18 @@ Output: `main.lpsb.json` (Structure only)
  Output: `main.lpsb-math.json` (Math events with MathML)
 
  > **Note**: The official batch scripts (`script/test_lua_batch.sh`) handle package injection automatically.
+
+### Stage B engine selection (compiler script)
+
+`script/lpsb_compiler.py` supports an optional Stage B enrichment engine:
+
+- `LPSB_STAGE_B_ENGINE=lua` (default): LuaLaTeX MathML/table passes
+- `LPSB_STAGE_B_ENGINE=latexml`: LaTeXML MathML/table extraction (no coordinates)
+- `LPSB_STAGE_B_ENGINE=none`: disable Stage B
+
+For `LPSB_STAGE_B_ENGINE=latexml`, the compiler can persist LaTeXML caches (notably expl3) across runs:
+- Default cache root: `latexml_cache/TL<year>/`
+- Toggle: `LPSB_LATEXML_CACHE=0` to disable
 
 ### Build a structure tree
 

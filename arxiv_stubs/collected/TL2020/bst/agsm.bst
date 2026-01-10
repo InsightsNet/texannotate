@@ -1331,7 +1331,10 @@ SORT
 FUNCTION {begin.bib}
 { preamble$ empty$
     'skip$
-    { preamble$ write$ newline$ }
+    { "\harvardpreambledefs{%" write$ newline$
+      preamble$ write$ "}" write$ newline$
+      "\harvardpreambletext{%" write$ newline$
+      preamble$ write$ "}" write$ newline$ }
   if$
   "\begin{thebibliography}{xx}" write$ newline$
 }

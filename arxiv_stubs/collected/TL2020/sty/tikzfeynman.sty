@@ -1,0 +1,55 @@
+% Tikz Feynman Diagrams
+% by Flip Tanedo
+% 4 January 2011, work in progress
+% Revised Dec 10
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% TIKZ - for drawing Feynman diagrams %%%%
+%%% ... use with pdflatex   			%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes}
+\usetikzlibrary{trees}
+\usetikzlibrary{snakes}
+\usetikzlibrary{matrix,arrows} 				% For commutative diagram
+											% http://www.felixl.de/commu.pdf
+\usetikzlibrary{positioning}				% For "above of=" commands
+\usetikzlibrary{calc,through}				% For coordinates
+\usetikzlibrary{decorations.pathreplacing}  % For curly braces
+\usepackage[tikz]{bclogo} 					% For cute logo boxes
+\usepackage{pgffor}							% For repeating patterns
+
+\usetikzlibrary{decorations.pathmorphing}	% For Feynman Diagrams
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{intersections}				% For interesections
+
+
+% Based on:
+% http://www.texample.net/tikz/examples/feynman-diagram/
+
+\tikzset{
+	% >=stealth', %% more traditional arrows, I don't like them
+    vector/.style={decorate, decoration={snake}, draw},
+    fermion/.style={postaction={decorate},
+        decoration={markings,mark=at position .55 with {\arrow{>}}}},
+    fermionbar/.style={draw, postaction={decorate},
+        decoration={markings,mark=at position .55 with {\arrow{<}}}},
+    fermionnoarrow/.style={},
+    gluon/.style={decorate,
+        decoration={coil,amplitude=4pt, segment length=5pt}},
+    scalar/.style={dashed, postaction={decorate},
+        decoration={markings,mark=at position .55 with {\arrow{>}}}},
+    scalarbar/.style={dashed, postaction={decorate},
+        decoration={markings,mark=at position .55 with {\arrow{<}}}},
+    scalarnoarrow/.style={dashed,draw},
+%
+%%% 	Special vectors (when you need to fine-tune wiggles)
+%	provector/.style={decorate, decoration={snake,amplitude=2.5pt}, draw},
+%	antivector/.style={decorate, decoration={snake,amplitude=-2.5pt}, draw},
+%	    electron/.style={draw=black, postaction={decorate},
+%        decoration={markings,mark=at position .55 with {\arrow[draw=black]{>}}}},
+%	bigvector/.style={decorate, decoration={snake,amplitude=4pt}, draw},
+	vectorscalar/.style={loosely dotted,draw=black, postaction={decorate}},
+}
+

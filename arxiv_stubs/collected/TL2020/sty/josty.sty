@@ -1,0 +1,151 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\eq#1{Eq.~(\ref{#1})}
+\def\Eq#1{Eq.~(\ref{#1})}
+\def\chap#1{Chapter \ref{#1}}
+\def\secref#1{\S\ref{#1}}
+\def\ss#1{\S\ref{#1}}
+\def\sss#1{\S\ref{#1}}
+\def\Fig#1{Fig.~\ref{#1}}
+\def\fig#1{Fig.~\ref{#1}}
+\def\twosec#1#2{\S\ref{#1} and \ref{#2}}
+\def\twofigs#1#2{Figs.~\ref{#1} and \ref{#2}}
+\def\threefigs#1#2#3{Figs.~\ref{#1}, \ref{#2} and \ref{#3}}
+\def\mfigs#1#2{Figs.~\ref{#1}-\ref{#2}}
+\def\Tab#1{Table \ref{#1}}
+\def\tab#1{Table \ref{#1}}
+\def\twotabs#1#2{Tables \ref{#1} and \ref{#2}}
+\def\threetabs#1#2#3{Tables \ref{#1}, \ref{#2} and \ref{#3}}
+\def\mtabs#1#2{Tables \ref{#1}-\ref{#2}}
+\def\app#1{Appendix \ref{app:#1}}
+\def\tnm#1{\tablenotemark{#1}}
+\def\tnt#1{\tablenotetext{#1}}
+\def\tfnm#1{$^{\it #1}$}
+\def\tfnt#1#2{{\scriptsize $^{\it #1}$#2}}
+\def\tcom#1{{\scriptsize {\bf Note.} --- #1}}
+\def\tref#1{{\scriptsize {\bf References.} --- #1}}
+\def\col#1{\colhead{#1}}
+\def\colh#1{\multicolumn{1}{c}{\bf #1}}
+\def\rowh#1{\multicolumn{1}{c|}{\bf #1}}
+\def\mcol#1#2#3{\multicolumn{#1}{#2}{#3}}
+\def\mrow#1#2#3{\multirow{#1}{#2}{#3}}
+\def\etal{et al.}
+\def\ie{i.e.}
+\def\eg{e.g.}
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\bfig{\begin{figure}}
+\def\efig{\end{figure}}
+\def\bfigs{\begin{figure*}}
+\def\efigs{\end{figure*}}
+
+\def\prop{\propto}
+\def\ifm#1{\relax\ifmmode#1\else$\mathsurround=0pt #1$\fi}
+\def\kms{\ifmmode\,{\rm km}\,{\rm s}^{-1}\else km$\,$s$^{-1}$\fi}
+\def\hmpc{\,\ifm{h^{-1}}{\rm Mpc}}
+\def\hkpc{\,{\rm h^{-1}kpc}}
+\def\kmsmpc{\,{\rm km\,s\ifm{^{-1}}Mpc^\ifm{{-1}}}}
+\def\kpc{{\rm kpc}}
+\def\yr{{\rm yr}}
+\def\solar{\ifmmode_{\mathord\odot}\;\else$_{\mathord\odot}\;$\fi}
+\def\msun{{\rm  M}_{\odot} }
+\def\Msun{{\rm  M}_{\odot} }
+\def\Lsun{{\rm  L}_{\odot} }
+\def\cm{{\rm cm}}
+\def\pyr{{\rm yr}^{-1}}
+
+\def\Mcrit{M_{\rm crit}}
+\def\Mshock{M_{\rm shock}}
+\def\Mhalo{M_{\rm halo}}
+\def\Mh{M_{\rm h}}
+\def\mh{M_{\rm h}}
+\def\lmh{\log \Mh}
+\def\msbulge{M_{*,{\rm bulge}}}
+\def\Msbulge{M_{*,{\rm bulge}}}
+
+\def\Re{R_{e}}
+
+\def\lssfr{\log~{\rm SFR}/\Ms}
+\def\ssfr{SSFR}
+
+\def\btcrit{(B/T)_{\rm crit}}
+\def\sfcrit{SSFR_{\rm crit}}
+\def\fq{f_{\rm q}}
+
+\def\sersic{S\'{e}rsic }
+\def\Sersic{S\'{e}rsic }
+
+%\def\ltsima{$\; \buildrel < \over \sim \;$}
+%\def\lteq{\; \buildrel < \over = \;}
+%\def\lsim{\lower.5ex\hbox{\ltsima}}
+%\def\gtsima{$\; \buildrel > \over \sim \;$}
+%\def\gsim{\lower.5ex\hbox{\gtsima}}
+\newcommand {\gtsima} {\raise-.5ex\hbox{$\buildrel>\over{\mathsmaller \sim}$}}
+\newcommand {\ltsima} {\raise-.5ex\hbox{$\buildrel<\over{\mathsmaller \sim}$}}
+\newcommand {\lteq} {\raise-.5ex\hbox{$\buildrel<\over{\mathsmaller -}$}}
+\newcommand {\gteq}{\raise-.5ex\hbox{$\buildrel>\over{\mathsmaller -}$}} 
+
+\def\Ms{M_{\rm *}}
+\def\Msbulge{M_{\rm *,bulge}}
+\def\Msdisk{M_{\rm *,disk}}
+\def\HI{\ion{H}{1} }
+\def\HII{\ion{H}{2} }
+
+\def\Ha{{\rm H}\alpha}
+\def\Hb{{\rm H}\beta}
+\def\OII{[\ion{O}{II}] }
+\def\OIII{[\ion{O}{III}] }
+\def\NII{[\ion{N}{II}] }
+
+\def\DGMS{\Delta{\rm GMS}}
+\def\sfr{ {\rm SFR} }
+\def\DDE{\Delta{\rm D3}}
+\def\dproj{d_{\rm proj}}
+\def\Esn{E_{\rm SN}}
+\def\zion{z_{\rm ion}}
+\def\Rs{R_{*}}
+\def\mus{\mu_*}
+\def\Rvir{R_{\rm vir}}
+\def\Dthree{\log(1+\delta_3)}
+\def\Dfive{\log(1+\delta_5)}
+\def\Rproj{R_{\rm proj}}
+%\def\Dist{\Rproj/\Rvir}
+%\def\dist{\Rproj/\Rvir}
+\def\Dist{D}
+\def\dist{D}
+\def\Remass{R_{\rm e,*}}
+
+\def\sigone{\Sigma_{\rm *,1 kpc}}
+\def\dsigone{\Delta\log \Sigma_{\rm *,1 kpc}}
+\def\vmax{V_{\rm max}}
+\def\pkpc2{{\rm kpc}^{-2}}
+\def\btmass{B/T_{\rm mass}}
+\def\sigemass{\Sigma_{*,e}}
+
+\def\fq{f_{\rm q}}
+
+\def\MLi{M_{*}/L_{i}}
+\def\MBH{M_{\rm BH}}
+
+\def\sigs{\Sigma_{*}}
+\def\sigtwo{\Sigma_{\rm *,2 kpc}}
+
+%\def\sntot{\langle{\rm S/N}\rangle}
+\def\sntot{{\rm S/N}}
+
+\def\qf{Q(\Mh,{\rm morph.},z)}
+\newcommand{\jwb}[1]{\textcolor{blue}{{\bf #1}}}
+\newcommand{\jwg}[1]{\textcolor{green}{{#1}}}
+\newcommand{\jwr}[1]{\textcolor{red}{[JW: {#1}]}}
+\newcommand{\dwr}[1]{\textcolor{red}{[DW: {#1}]}}
+%\newcommand{\blue}[1]{\textcolor{blue}{{#1}}}
+%\newcommand{\refc}[1]{\textcolor{ForestGreen}{\bf{#1}}}
+\newcommand{\blue}[1]{\textcolor{black}{{#1}}}
+\newcommand{\refc}[1]{\textcolor{black}{{#1}}}
+%\newcommand{\refcc}[1]{\textcolor{ForestGreen}{{#1}}}
+%\newcommand{\refcc}[1]{\textcolor{black}{{#1}}}
+
+
+%\providecommand{\eprint}[1]{\href{http://arxiv.org/abs/#1}{#1}}
+%\providecommand{\adsurl}[1]{\href{#1}{ADS}}
+%\providecommand{\ISBN}[1]{\href{http://cosmologist.info/ISBN/#1}{ISBN: #1}} 
