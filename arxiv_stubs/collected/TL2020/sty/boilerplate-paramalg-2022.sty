@@ -1,0 +1,497 @@
+\ProvidesPackage{boilerplate-paramalg-2022}
+
+
+%-------------------------------------------------------------------%
+%  Sectioning                                                       %
+%-------------------------------------------------------------------%
+
+\numberwithin{subsection}{section}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+\usepackage[capitalise]{cleveref}
+
+\newtheorem{thmx}{Theorem}
+\renewcommand{\thethmx}{\Alph{thmx}} 
+
+\swapnumbers
+
+\theoremstyle{definition}
+\newtheorem{nul}{}[subsection]
+\newtheorem{problem}[nul]{Problem}
+\newtheorem{definition}[nul]{Definition}
+\newtheorem{convention}[nul]{Convention}
+\newtheorem{construction}[nul]{Construction}
+\newtheorem{conthm}[nul]{Theorem-Construction}
+\newtheorem{remark}[nul]{Remark}
+\newtheorem{observation}[nul]{Observation}
+\newtheorem{example}[nul]{Example}
+\newtheorem{variant}[nul]{Variant}
+\newtheorem{notation}[nul]{Notation}
+\newtheorem{dfn}[nul]{Definition}
+\newtheorem{axm}[nul]{Axiom}
+\newtheorem{cnstr}[nul]{Construction}
+\newtheorem{ntn}[nul]{Notation}
+\newtheorem{exm}[nul]{Example}
+\newtheorem{ctrexm}[nul]{Counterexample}
+\newtheorem{rec}[nul]{Recollection}
+\newtheorem{exr}[nul]{Exercise}
+\newtheorem{wrn}[nul]{Warning}
+\newtheorem{rem}[nul]{Remark}
+\newtheorem{vrn}[nul]{Variant}
+\newtheorem*{dfn*}{Definition}
+\newtheorem*{axm*}{Axiom}
+\newtheorem*{ntn*}{Notation}
+\newtheorem*{exm*}{Example}
+\newtheorem*{exr*}{Exercise}
+\newtheorem*{int*}{Intuition}
+\newtheorem*{qst*}{Question}
+\newtheorem*{wrn*}{Warning}
+\newtheorem*{rem*}{Remark}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[nul]{Theorem}
+% \newtheorem{mainthm}{Theorem}
+% \renewcommand{\themainthm}{\Alph{mainthm}}
+\newtheorem{pseudotheorem}[nul]{Pseudo-Theorem}
+\newtheorem{proposition}[nul]{Proposition}
+\newtheorem{lemma}[nul]{Lemma}
+\newtheorem{corollary}[nul]{Corollary}
+\newtheorem{axiom}[nul]{Axiom}
+\newtheorem{sch}[nul]{Scholium}
+\newtheorem{thm}[nul]{Theorem}
+\newtheorem{prp}[nul]{Proposition}
+\newtheorem{lem}[nul]{Lemma}
+\newtheorem{por}[nul]{Porism}
+\newtheorem{cnj}[nul]{Conjecture}
+\newtheorem{cor}[nul]{Corollary}
+\newtheorem*{thm*}{Theorem}
+\newtheorem*{prp*}{Proposition}
+\newtheorem*{cor*}{Corollary}
+\newtheorem*{lem*}{Lemma}
+\newtheorem*{cnj*}{Conjecture}
+
+\numberwithin{equation}{subsection}
+
+
+%-------------------------------------------------------------------%
+%  Symbols and letters                                              %
+%-------------------------------------------------------------------%
+
+
+\newcommand{\productop}{\mathbin{\Pi}}
+
+\newcommand{\sift}{\mathrm{sift}}
+
+\newcommand{\Aut}{{\rm Aut}}
+\newcommand{\cofib}{{\rm cofib}}
+\newcommand{\coker}{{\rm coker}}
+\newcommand{\const}{{\rm const}}
+% \newcommand*{\colim}{colim}
+\newcommand{\cored}{{\rm cored}}
+\newcommand{\cosk}{{\rm cosk}}
+\newcommand{\creff}{{\rm cr}}
+\newcommand{\End}{{\rm End}}
+\newcommand{\Ex}{{\rm Ex}}
+\newcommand{\Exc}{{\rm Exc}}
+\newcommand{\fib}{{\rm fib}}
+\newcommand{\hocolim}{{\rm hocolim}}
+\newcommand{\Mor}{{\rm Mor}}
+\newcommand{\Obj}{{\rm Obj}}
+\newcommand{\Pic}{{\rm Pic}}
+\newcommand{\Res}{{\rm Res}}
+\newcommand{\sk}{{\rm sk}}
+\newcommand{\Spec}{{\rm Spec}}
+\newcommand{\Stab}{{\rm Stab}}
+\newcommand{\Fr}{{\rm Fr}}
+\newcommand{\Lin}{{\rm Lin}}
+\newcommand{\Gr}{{\rm Gr}}
+\newcommand{\Sect}{{\rm Sect}}
+\newcommand{\Mul}{{\rm Mul}}
+\newcommand{\Env}{{\rm Env}}
+\newcommand{\Triv}{{\rm Triv}}
+\newcommand{\Span}{{\rm Span}}
+\newcommand{\Norm}{{\rm Norm}}
+\newcommand{\Nm}{{\rm Nm}}
+\newcommand{\Orbit}{{\rm Orbit}}
+\newcommand{\Comm}{{\rm Comm}}
+\newcommand{\Com}{{\rm Com}}
+\newcommand{\uMap}{\underline{\Map}}
+\newcommand{\uFun}{\underline{\Fun}}
+\newcommand{\ob}{{\rm ob}}
+\newcommand{\Rect}{{\rm Rect}}
+\newcommand{\Mon}{{\rm Mon}}
+\newcommand{\MCom}{{\rm MCom}}
+
+\newcommand{\res}{\mathrm{res}}
+\newcommand{\ind}{\mathrm{ind}}
+
+\newcommand{\Deltaup}{\mathrm{\Delta}}
+\newcommand{\Thetaup}{\mathrm{\Theta}}
+\newcommand{\Lambdaup}{\mathrm{\Lambda}}
+\newcommand{\Sigmaup}{\mathrm{\Sigma}}
+\newcommand{\Upsilonup}{\mathrm{\Upsilon}}
+\newcommand{\Phiup}{\mathrm{\Phi}}
+\newcommand{\Psiup}{\mathrm{\Psi}}
+\newcommand{\Omegaup}{\mathrm{\Omega}}
+\newcommand{\Ne}{\mathrm{Ne}}
+\newcommand{\Inert}{\mathrm{Ne}}
+\newcommand{\All}{\CMcal{A}ll}
+
+\newcommand{\N}{\mathrm{N}}
+
+
+\renewcommand{\AA}{\mathbf{A}}
+\newcommand{\BB}{\mathbf{B}}
+\newcommand{\CC}{\mathbf{C}}
+\newcommand{\DD}{\mathbf{D}}
+\newcommand{\EE}{\mathbf{E}}
+\newcommand{\FF}{\mathbf{F}}
+\newcommand{\GG}{\mathbf{G}}
+\newcommand{\HH}{\mathbf{H}}
+\newcommand{\II}{\mathbf{I}}
+\newcommand{\JJ}{\mathbf{J}}
+\newcommand{\KK}{\mathbf{K}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\MM}{\mathbf{M}}
+\newcommand{\NN}{\mathbf{N}}
+\newcommand{\OO}{\mathbf{O}}
+\newcommand{\PP}{\mathbf{P}}
+\newcommand{\QQ}{\mathbf{Q}}
+\newcommand{\RR}{\mathbf{R}}
+\renewcommand{\SS}{\mathbf{S}}
+\newcommand{\TT}{\mathbf{T}}
+\newcommand{\UU}{\mathbf{U}}
+\newcommand{\VV}{\mathbf{V}}
+\newcommand{\WW}{\mathbf{W}}
+\newcommand{\XX}{\mathbf{X}}
+\newcommand{\YY}{\mathbf{Y}}
+\newcommand{\ZZ}{\mathbf{Z}}
+
+\newcommand{\sA}{\mathscr{A}}
+\newcommand{\sB}{\mathscr{B}}
+\newcommand{\sC}{\mathscr{C}}
+\newcommand{\sD}{\mathscr{D}}
+\newcommand{\sE}{\mathscr{E}}
+\newcommand{\sF}{\mathscr{F}}
+\newcommand{\sG}{\mathscr{G}}
+\newcommand{\sH}{\mathscr{H}}
+\newcommand{\sI}{\mathscr{I}}
+\newcommand{\sJ}{\mathscr{J}}
+\newcommand{\sK}{\mathscr{K}}
+\newcommand{\sL}{\mathscr{L}}
+\newcommand{\sM}{\mathscr{M}}
+\newcommand{\sO}{\mathscr{O}}
+\newcommand{\sP}{\mathscr{P}}
+\newcommand{\sQ}{\mathscr{Q}}
+\newcommand{\sR}{\mathscr{R}}
+\newcommand{\sS}{\mathscr{S}}
+\newcommand{\sT}{\mathscr{T}}
+\newcommand{\sU}{\mathscr{U}}
+\newcommand{\sV}{\mathscr{V}}
+\newcommand{\sW}{\mathscr{W}}
+\newcommand{\sX}{\mathscr{X}}
+\newcommand{\sY}{\mathscr{Y}}
+\newcommand{\sZ}{\mathscr{Z}}
+
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cG}{\mathcal{G}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cU}{\mathcal{U}}
+\newcommand{\cV}{\mathcal{V}}
+\newcommand{\cW}{\mathcal{W}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\cZ}{\mathcal{Z}}
+
+
+\newcommand{\tA}{\widetilde{A}}
+\newcommand{\tB}{\widetilde{B}}
+\newcommand{\tC}{\widetilde{C}}
+\newcommand{\tD}{\widetilde{D}}
+\newcommand{\tE}{\widetilde{E}}
+\newcommand{\tF}{\widetilde{F}}
+\newcommand{\tG}{\widetilde{G}}
+\newcommand{\tH}{\widetilde{H}}
+\newcommand{\tI}{\widetilde{I}}
+\newcommand{\tJ}{\widetilde{J}}
+\newcommand{\tK}{\widetilde{K}}
+\newcommand{\tL}{\widetilde{L}}
+\newcommand{\tM}{\widetilde{M}}
+\newcommand{\tO}{\widetilde{O}}
+\newcommand{\tP}{\widetilde{P}}
+\newcommand{\tQ}{\widetilde{Q}}
+\newcommand{\tR}{\widetilde{R}}
+\newcommand{\tS}{\widetilde{S}}
+\newcommand{\tT}{\widetilde{T}}
+\newcommand{\tU}{\widetilde{U}}
+\newcommand{\tV}{\widetilde{V}}
+\newcommand{\tW}{\widetilde{W}}
+\newcommand{\tX}{\widetilde{X}}
+\newcommand{\tY}{\widetilde{Y}}
+\newcommand{\tZ}{\widetilde{Z}}
+
+\newcommand{\categ}[1]{\textbf{\textup{#1}}}
+
+\newcommand{\Ab}{\categ{Ab}}
+\newcommand{\Alg}{\categ{Alg}}
+\newcommand{\CAlg}{\categ{CAlg}}
+\newcommand{\CMon}{\categ{CMon}}
+% \newcommand{\Alg}{\mathrm{Alg}}
+% \newcommand{\CAlg}{\mathrm{CAlg}}
+% \newcommand{\CMon}{\mathrm{CMon}}
+\newcommand{\Cat}{\categ{Cat}}
+\newcommand{\Coh}{\categ{Coh}}
+\newcommand{\CSS}{\categ{CSS}}
+\newcommand{\Exact}{\categ{Exact}}
+\newcommand{\Fin}{\categ{Fin}}
+\newcommand{\Gpd}{\categ{Gpd}}
+\newcommand{\Grp}{\categ{Grp}}
+\newcommand{\Kan}{\categ{Kan}}
+\newcommand{\Mod}{\categ{Mod}}
+\newcommand{\Perf}{\categ{Perf}\mskip2mu}
+\newcommand{\QCoh}{\categ{QCoh}}
+\newcommand{\Set}{\categ{Set}}
+\newcommand{\sSet}{\categ{sSet}}
+\newcommand{\Shv}{\categ{Shv}}
+\newcommand{\Sp}{\categ{Sp}}
+\renewcommand{\Pr}{\categ{Pr}}
+\newcommand{\Top}{\categ{Top}}
+\newcommand{\Spc}{\categ{Spc}}
+\newcommand{\Wald}{\categ{Wald}}
+\newcommand{\Mack}{\categ{Mack}}
+\newcommand{\Op}{\categ{Op}}
+\newcommand{\Orbital}{\categ{Orb}}
+\newcommand{\PreOp}{\categ{PreOp}}
+\newcommand{\cocart}{\textit{cocart}}
+\newcommand{\cart}{\textit{cart}}
+\newcommand{\SH}{\categ{SH}}
+
+%added from paramcats-appendix macros
+\renewcommand{\lim}{{\mathrm{lim}}}
+\newcommand{\colim}{{\mathrm{colim}}}
+\newcommand{\Map}{{\rm Map}}
+\newcommand{\LFib}{\categ{LFib}}
+\newcommand{\Ind}{\categ{Ind}}
+\newcommand{\PShv}{\categ{P}}
+\newcommand{\fb}{{\rm fb}}
+\newcommand{\vop}{{\rm vop}}
+\newcommand{\op}{{\rm op}}
+\newcommand{\Fun}{{\rm Fun}}
+\newcommand{\id}{{\rm id}}
+\newcommand{\ev}{{\rm ev}}
+\newcommand{\pr}{{\rm pr}}
+\newcommand{\Tw}{{\rm Tw}}
+\newcommand{\Ar}{{\rm Ar}}
+\newcommand{\Hom}{{\rm Hom}}
+\newcommand{\ksmall}{\operatorname{\kappa-small}}
+\newcommand{\fbK}{\operatorname{\CMcal{K}-fb}}
+\newcommand{\can}{\textrm{can}}
+\newcommand{\Nat}{\mathrm{Nat}}
+\newcommand{\lax}{\mathrm{lax}}
+
+\newcommand{\eff}{\mskip-2mu\textit{eff}}
+\newcommand{\et}{\textit{ét}}
+\newcommand{\fin}{\mathrm{fin}}
+% \newcommand{\id}{\textit{id}}
+% \newcommand{\op}{\textit{op}}
+\newcommand{\rev}{\textit{rev}}
+% \newcommand{\vop}{\textit{vop}}
+\newcommand{\rex}{\textit{rex}}
+\newcommand{\lex}{\textit{lex}}
+\newcommand{\inert}{\textit{ne}}
+\newcommand{\act}{\textit{act}}
+\newcommand{\fibact}{\textit{f.act}}
+\newcommand{\sact}{\textit{sact}}
+\newcommand{\tdeg}{\textit{tdeg}}
+\newcommand{\si}{\textit{si}}
+
+\newcommand{\un}{\textit{un}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  New stuff I'm adding -- Denis                                                                          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\ul}[1]{\underline{#1}}                     % Shortening of underline
+\newcommand{\wt}[1]{\widetilde{#1}}
+
+\newcommand{\CMonT}{{\operatorname{CMon}_\cT}}          % Category of T-commutative monoids
+\newcommand{\uCMonT}{{\ul{\operatorname{CMon}}_\cT}}    % T-category of T-commutative monoids
+
+\newcommand{\CatT}{\Cat_{\cT}}                          % Category of T-categories
+\newcommand{\uCatT}{\ul{\Cat}_{\cT}}                    % T-category of T-categories
+\newcommand{\OpT}{\Op_{\cT}}
+\newcommand{\uOpT}{\ul{\Op_{\cT}}}
+
+\newcommand{\uP}[1]{\ul{\mathcal{P}(#1)}}               % T-cube of a finite T-set
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\coloneq}{\mathrel{\mathop:}=}
+\newcommand{\eqcolon}{=\mathrel{\mathop:}}
+\newcommand{\mathup}[1]{\mathrm{#1}}
+
+\def\revddots{{\mathpalette\reflectedop\ddots}}
+\def\reflectedop#1#2{\mathop{\reflectbox{$#1{#2}$}}}
+\newcommand{\xdots}{\ddots\hspace{-11.6pt}\adots}
+
+\newcommand{\upsidedown}[1]{\textrm{\raisebox{\depth}{\rotatebox{180}{$#1$}}}}
+
+\def\noloc{{\mathpalette\reflectedop\colon}}
+\def\reflectedop#1#2{\mathop{\reflectbox{$#1{#2}$}}}
+
+\newcommand{\cop}{?}
+
+\newcommand{\leftnat}[1]{\vphantom{#1}_{\natural}\mskip-1mu{#1}}
+\newcommand{\rightnat}[1]{{#1}^{\natural}}
+
+\newcommand{\angs}[1]{\langle #1 \rangle}
+\newcommand{\brac}[1]{\left[ #1 \right]}
+
+\newcommand{\twa}{\widetilde{\mathscr{O}}}
+
+\def\rnatural{{\mathpalette\reflectedop\natural}}
+\def\reflectedop#1#2{\mathop{\reflectbox{$#1{#2}$}}}
+
+\newcommand{\sub}{\subset}
+
+\newcommand{\ra}{\rightarrow}
+\newcommand{\la}{\leftarrow}
+
+%-------------------------------------------------------------------%
+% Finite T-sets                                                     %
+%-------------------------------------------------------------------%
+
+\newcommand{\FinT}[1][]{
+\ifthenelse{\isempty{#1}}{\mathbf{F}_\cT}{ \mathbf{F}_{ \cT^{/#1} } }
+}
+
+% \newcommand{\FinpT}{{\mathbf{F}_{\cT,\ast}}}
+\newcommand{\FinpT}[1][]{
+\ifthenelse{\isempty{#1}}{\mathbf{F}_{\cT,\ast}}{ \mathbf{F}_{ \cT^{/#1},\ast } }
+}
+
+\newcommand{\uFinT}{{\underline{\mathbf{F}}_\cT}}
+
+\newcommand{\uFinpT}{{\underline{\mathbf{F}}_{\cT,\ast}}}
+
+\newcommand{\BigFinT}{\underline{\mathbf{F}}_{\cT,\ast}^{\text{big}}}
+
+\newcommand{\test}[1][]{
+\ifthenelse{\isempty{#1}}{omitted}{#1}
+}
+
+\newcommand{\ArOT}{\underline{\FF}^{{\rm v}}_{\cT}}
+
+\newcommand{\uSpcT}{{\underline{\Spc}_\cT}}
+\newcommand{\uSpcpT}{{\underline{\Spc}_{\cT,\ast}}}
+
+\newcommand{\FinG}{\mathbf{F}_G}                        % category of finite G-sets
+\newcommand{\uFinG}{{\underline{\mathbf{F}}_G}}         % G-category of finite G-sets
+\newcommand{\uFinpG}{{\underline{\mathbf{F}}_{G,\ast}}} % G-category of finite pointed G-sets
+\newcommand{\Bij}{\operatorname{Bij}}                   % Bijections
+\newcommand{\St}{\operatorname{St}}                     % Stabilizer
+
+
+%-------------------------------------------------------------------%
+%  Markers                                                          %
+%-------------------------------------------------------------------%
+
+% \def\labelitemi{$\blacktriangleright$}
+
+% \newcommand*{\asterism}{\par\bigskip\noindent\hfill{\ooalign{\hfil\raise1ex\hbox{$\ast$}\hfil\cr$\ast$\kern-0.07ex$\ast$}}\hfill\null\par\bigskip}
+
+% \newcommand{\minidiv}{\par\smallskip\noindent\hfill{}\hfill\null\par\smallskip}
+
+%-------------------------------------------------------------------%
+%  Graphics                                                         %
+%-------------------------------------------------------------------%
+
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{morefloats}
+\usepackage{pdfpages}
+\usetikzlibrary{matrix,arrows,arrows.meta,calc,decorations,decorations.pathmorphing,quotes,angles,decorations.markings,shapes,shapes.misc}
+\RequirePackage{color}
+
+\newlength{\perspective}
+
+% \usepackage{tikz}
+% \usetikzlibrary{matrix,arrows,calc,decorations,decorations.pathmorphing,shapes}
+
+\pgfdeclaredecoration{single line}{initial}{\state{initial}[width=\pgfdecoratedpathlength-1sp]{\pgfpathmoveto{\pgfpointorigin}}\state{final}{\pgfpathlineto{\pgfpointorigin}}}
+
+\newcommand{\fromto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->](0,0.5ex)--(0.5,0.5ex);\ {#2}}
+\newcommand{\into}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,right hook->](0,0.5ex)--(0.5,0.5ex);\ {#2}}
+\newcommand{\onto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->>](0,0.5ex)--(0.5,0.5ex);\ {#2}}
+\newcommand{\cofto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,>->](0,0.5ex)--(0.5,0.5ex);\ {#2}}
+\newcommand{\fibto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->>](0,0.5ex)--(0.5,0.5ex);\ {#2}}
+\newcommand{\equivto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->,font=\scriptsize,inner sep=0.5pt](0,0.5ex)--node[above]{$\sim$}(0.5,0.5ex);\ {#2}}
+\newcommand{\trivcofto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->>,font=\scriptsize,inner sep=0.75pt](0,0.5ex)--node[above]{$\sim$}(0.5,0.5ex);\ {#2}}
+\newcommand{\trivfibto}[2]{{#1}\ \tikz[baseline]\draw[>=stealth,->>,font=\scriptsize,inner sep=0.75pt](0,0.5ex)--node[above]{$\sim$}(0.5,0.5ex);\ {#2}}
+
+\newcounter{sarrow}
+\newcommand\goesto[2]{%
+#1\stepcounter{sarrow}%
+\mathrel{\begin{tikzpicture}[baseline= {( $ (current bounding box.south) + (0,-0.25ex) $ )}]
+\node[inner sep=.5ex] (\thesarrow) {$\quad$};
+\path[draw,>=stealth,<-,decorate,
+  decoration={zigzag,amplitude=0.7pt,segment length=1.2mm,pre=lineto,pre length=4pt}] 
+    (\thesarrow.south east) -- (\thesarrow.south west);
+\end{tikzpicture}}#2%
+}
+
+\newcommand{\adjunct}[4]{{#1}\colon{#2}\ \begin{tikzpicture}[baseline] \draw[>=stealth,->] (0,1ex) -- (0.75,1ex); \draw[>=stealth,->] (0.75,0.25ex) -- (0,0.25ex); \end{tikzpicture}\ {#3}\noloc{#4}}
+
+\newcommand{\adjunctb}[2]{{#1}\ \begin{tikzpicture}[baseline] \draw[>=stealth,->] (0,1ex) -- (0.75,1ex); \draw[>=stealth,->] (0.75,0.25ex) -- (0,0.25ex); \end{tikzpicture}\ {#2}}
+
+\renewcommand{\to}{\ \tikz[baseline]\draw[>=stealth,->](0,0.5ex)--(0.5,0.5ex);\ }
+\newcommand{\ot}{\ \tikz[baseline]\draw[>=stealth,<-](0,0.5ex)--(0.5,0.5ex);\ }
+
+\newcommand{\xto}[1]{\ \tikz[baseline]\draw[>=stealth,->,inner sep=1pt](0,0.5ex)--node[above]{$\scriptstyle#1$}(0.5,0.5ex);\ } 
+\newcommand{\xtolong}[2]{\ \tikz[baseline]\draw[>=stealth,->,inner sep=2pt](0,0.5ex)--node[above]{\scriptsize $#1$}(#2,0.5ex);\ } 
+\newcommand{\xot}[1]{\ \tikz[baseline]\draw[>=stealth,<-,inner sep=1pt](0,0.5ex)--node[above]{$\scriptstyle#1$}(0.5,0.5ex);\ } 
+
+\newcommand\myrot[1]{\mathrel{\rotatebox[origin=c]{#1}{$\Rightarrow$}}}
+% create four new angled double-struck arrows
+\newcommand\NEarrow{\myrot{45}}
+\newcommand\NWarrow{\myrot{135}}
+\newcommand\SWarrow{\myrot{-135}}
+\newcommand\SEarrow{\myrot{-45}}
+
+% typographical and formatting stuff
+
+% \definecolor{darkpastelpurple}{rgb}{0.59, 0.44, 0.84}
+% \usepackage{microtype}
+% \usepackage{epigraph}
+% \setlength\epigraphwidth{.50\textwidth}
+% \usepackage{tocloft}
+% \usepackage[colorinlistoftodos, textsize=tiny]{todonotes}
+% \renewcommand{\baselinestretch}{1.25}
+
+% \usepackage[framemethod=TikZ]{mdframed}

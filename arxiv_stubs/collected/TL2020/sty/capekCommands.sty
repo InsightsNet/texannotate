@@ -1,0 +1,157 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% COLORS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{xcolor} % for defines colors
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MATH SYMBOLS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage[cmex10,intlimits]{amsmath}
+\RequirePackage{amsfonts}
+\RequirePackage{amssymb}
+
+% For avoiding \mbox{} everywhere...
+\relpenalty=10000
+\binoppenalty=10000
+
+\providecommand{\J}{\ensuremath{\mathrm{j}}}    % imaginary unit
+\providecommand{\RE}{\ensuremath{\mathrm{Re}}}  % real part of...
+\providecommand{\IM}{\ensuremath{\mathrm{Im}}}  % imaginary part of...
+
+\providecommand{\Quot}[1]{``{#1}"}              % quotation
+\providecommand{\D}{\,\mathrm{d}}               % d for integral
+\providecommand{\V}[1]{\boldsymbol{#1}}         % vector
+\providecommand{\M}[1]{\mathbf{#1}}             % matrix
+\providecommand{\T}[1]{\mathrm{#1}}             % upright text (subindex, superindex,..)
+\providecommand{\UV}[1]{\V{\hat{#1}}}           % unit vector
+\providecommand{\NORM}[1]{\left\| #1 \right\|}  % norm
+\providecommand{\ABS}[1]{\left| #1 \right|}     % absolute value
+\providecommand{\OP}[1]{{\mathcal{#1}}}         % operator
+
+\providecommand{\herm}{\mathrm{H}} 
+\providecommand{\trans}{\mathrm{T}}
+\providecommand{\mySubj}{\mathrm{subj.}}
+
+% Bessels, Neumann, Hankel functions
+\providecommand{\JBSL}[2]{\mathrm{j}_{#1} \left( #2 \right)}  
+\providecommand{\YBSL}[2]{\mathrm{y}_{#1} \left( #2 \right)}
+\providecommand{\HBSL}[3]{\mathrm{h}_{#1}^{(#2)} \left( #3 \right)}
+
+% Spherical waves
+\providecommand{\UFCN}[3]{\M{u}_{#1}^{\left( #2 \right)} \left(#3\right)}
+\providecommand{\UFCNbar}[3]{\M{u}_{\bar{#1}}^{\left(#2\right)} \left(#3\right)}
+\providecommand{\RFCN}[3]{\mathrm{R}_{#1}^{\left( #2 \right)} \left(#3\right)}
+\providecommand{\YFCN}[2]{\M{Y}_{#1}\left(#2\right)}
+\providecommand{\YFCNs}[2]{\mathrm{Y}_{#1}\left(#2\right)}
+\providecommand{\AFCN}[2]{\M{A}_{#1}\left(#2\right)}
+\providecommand{\PFCNn}[3]{\tilde{\mathrm{P}}_{#1}^{#2}\left(#3\right)}
+
+% Constants (keep them as LaTeX variables)
+\providecommand*{\EPS}{\ensuremath{\varepsilon_0}} % permittivity
+\providecommand*{\MUE}{\ensuremath{\mu_0}}         % permeability
+\providecommand*{\SIGMA}{\ensuremath{\sigma}}      % conductivity
+\providecommand{\ZVAC}{\ensuremath{Z_0}}           % impedance of vacuum
+
+% Geometry, basis functions
+\providecommand{\srcRegion}{\ensuremath{\varOmega}} 
+\providecommand{\basisFcn}{\V{\psi}}
+\providecommand{\BFpol}{\chi}
+
+\providecommand{\Ivec}{\ensuremath{\M{I}}}
+\providecommand{\Vvec}{\ensuremath{\M{V}}}
+\providecommand{\Fvec}{\ensuremath{\M{F}}}
+\providecommand{\Mvec}{\ensuremath{\M{m}}}
+\providecommand{\Pvec}{\ensuremath{\M{p}}}
+\providecommand{\Eveci}{\ensuremath{\V{E}_\T{i}}}
+\providecommand{\Evecs}{\ensuremath{\V{E}_\T{s}}}
+\providecommand{\zvecL}{\ensuremath{\V{z}_\T{L}}}
+\providecommand{\vvec}{\ensuremath{\V{v}}}
+\providecommand{\yvec}{\ensuremath{\M{y}}}
+\providecommand{\Jvec}{\ensuremath{\V{J}}}
+
+% Matrix operators
+\providecommand{\BFmat}{\ensuremath{\V{\Psi}}}
+\providecommand{\Rmat}{\ensuremath{\M{R}}}
+\providecommand{\Xmat}{\ensuremath{\M{X}}}
+\providecommand{\Zmat}{\ensuremath{\M{Z}}}
+\providecommand{\RmatFS}{\ensuremath{\M{R}_\M{G}}}
+\providecommand{\XmatFS}{\ensuremath{\M{X}_\M{G}}}
+\providecommand{\ZmatFS}{\ensuremath{\M{Z}_\M{G}}}
+\providecommand{\YmatFS}{\ensuremath{\M{Y}_\M{G}}}
+\providecommand{\ZmatL}{\ensuremath{\M{Z}_\T{L}}}
+\providecommand{\Ymat}{\ensuremath{\M{Y}}}
+\providecommand{\Smat}{\ensuremath{\M{S}}}
+\providecommand{\Umat}{\ensuremath{\M{U}}}
+\providecommand{\XEmat}{\ensuremath{\M{X}_\T{e}}}
+\providecommand{\XMmat}{\ensuremath{\M{X}_\T{m}}}
+\providecommand{\XDmat}{\ensuremath{\M{X}'}}
+\providecommand{\Wmat}{\ensuremath{\M{W}}}
+\providecommand{\Cmat}{\ensuremath{\M{C}}}
+
+% input impedance-related paramters
+\providecommand{\Rin}{\ensuremath{R_\T{in}}}
+\providecommand{\Xin}{\ensuremath{X_\T{in}}}
+\providecommand{\Zin}{\ensuremath{Z_\T{in}}}
+
+% Antenna parameters
+\providecommand{\surfres}{R_\T{s}}
+\providecommand{\radeff}{\eta}
+\providecommand{\dissipfact}{\delta}
+\providecommand{\Prad}{P_\T{rad}}
+\providecommand{\Preact}{P_\T{react}}
+\providecommand{\Plost}{P_\T{lost}}
+\providecommand{\Wrad}{\ensuremath{W_\mathrm{rad}}}
+\providecommand{\Wsto}{\ensuremath{W_\mathrm{sto}}}
+\providecommand{\We}{\ensuremath{W_\mathrm{e}}}
+\providecommand{\Wm}{\ensuremath{W_\mathrm{m}}}
+\providecommand{\Qlb}{\ensuremath{Q_\mathrm{lb}}}
+% Units
+\providecommand{\Ohm}{\Omega}
+
+% Style
+\newcommand{\ie}{\textit{i.e.}{}}
+\newcommand{\eg}{\textit{e.g.}{}}
+\newcommand{\cf}{\textit{cf.}{}}
+
+% Acronyms
+\RequirePackage[nolist]{acronym}
+\newacro{MoM}[MoM]{method of moments}
+\newacro{MOO}[MOO]{multiobjective optimization}
+\newacro{CM}[CM]{characteristic mode}
+\newacro{PEC}[PEC]{perfect electric conductor}
+\newacro{PMC}[PMC]{perfect magnetic conductor}
+\newacro{EP}[EP]{eigenvalue problem}
+\newacro{GEP}[GEP]{generalized eigenvalue problem}
+\newacro{EFIE}[EFIE]{electric field integral equation}
+\newacro{SVD}[SVD]{singular value decomposition}
+\newacro{RWG}[RWG]{Rao-Wilton-Glisson}
+\newacro{EM}[EM]{electromagnetic}
+\newacro{dof}[d-o-f]{\mbox{degrees-of-freedom}}
+\newacro{MLFMA}[MLFMA]{multilevel fast multipole algorithm}
+\newacro{FEM}[FEM]{finite element method}
+
+% For (official) REVIEW
+% Review
+%\newcommand{\RR}[1]{\textcolor{red}{#1}}   % displays text in red color
+%\newcommand{\RS}[1]{\textcolor{red}{\sout{#1}}}   % displays -//- (crossed)
+% Authors (can be extended, use even colors from Paired ColorBrewer scheme)
+%\newcommand{\MC}[1]{\textcolor{PairedB}{#1}}  
+
+%\RequirePackage[normalem]{ulem}
+
+%\newcommand{\MCs}[1]{\textcolor{PairedF}{\sout{#1}}}
+
+% TODO package
+%\RequirePackage[textsize=tiny,backgroundcolor=red,linecolor=red,textwidth=2cm]{todonotes}
+% Authors (can be extended, use even colors from Paired ColorBrewer scheme)
+%\newcommand{\MCtodo}[1]{\todo[inline, backgroundcolor=PairedA, bordercolor=black]{\normalsize Miloslav: #1}}
+
+% IMPORTANT COLLOCATIONS:
+%================================================================================
+% "the free space" (not "free space")
+% "wave-number" (not "wavenumber" or "wave number")
+% "the speed of light" (not "speed of light")
+% Poynting's theorem (not Poynting theorem)
+% Maxwell's equations (not Maxwell equations)
+% energy in a vacuum (not energy in vacuum)
+% state-of-the-art (not state of the art)

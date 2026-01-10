@@ -1,0 +1,70 @@
+% Copyright (C) 1990 Sake J. Hogeveen.
+
+% This is ASTRON.STY, a LaTeX style for use with the BibTeX style ASTRON.BST.
+
+% ASTRON.BST is an adaptation of APALIKE.BST by Oren Patashnik and Suzan King.
+
+% This style produces citations in the `author-year' format, which is widely
+% used among astronomical journals.
+% It supports two forms of citation: the \cite command produces:  (Author, year)
+% in the text; the \cite* command only:  (year) .
+
+% The long an short citation trickery is adapted from NAMED.BST by
+% Peter F. Patel-Schneider.
+
+% Copyright Notice:
+% The files ASTRON.BST, ASTRON.STY, ASTDOC.TEX, ASTDOC.BIB, EXAMPLE.TEX,
+% EXAMPLE.BIB, MNEMONIC.BIB, and TEMPLATE.BIB are a package.
+% You may copy and distribute them freely for non-commercial purposes,
+% provided that you keep the package together and this copyright notice
+% in tact.
+% You may not alter or modify the files; this helps to ensure that all
+% distributions of ASTRON.BST and related files are the same.
+% If you make any modifications, then you must give the files new names,
+% other than the present.
+% The author bears no responsibilities for errors in this document or
+% the software it describes; and shall not be held liable for any indirect,
+% incidental, or consequential damages.
+
+% If you find any bugs in the style files, or omissions in the documentation,
+% please report them to: E-mail A410SAKE@SARA.NL; UUCP: l42@nikhefh.nikhef.nl
+
+\@ifundefined{chapter}{\def\thebibliography#1{\section*{References\@mkboth
+  {REFERENCES}{REFERENCES}}\list
+  {\relax}{\setlength{\labelsep}{0em}
+	\setlength{\itemindent}{-\bibhang}
+	\setlength{\itemsep}{0pt}
+	\setlength{\parsep}{0pt}
+	\setlength{\leftmargin}{\bibhang}}
+    \def\newblock{\hskip .11em plus .33em minus .07em}
+    \sloppy\clubpenalty4000\widowpenalty4000
+    \sfcode`\.=1000\relax}}%
+{\def\thebibliography#1{\chapter*{Bibliography\@mkboth
+  {BIBLIOGRAPHY}{BIBLIOGRAPHY}}\list
+  {\relax}{\setlength{\labelsep}{0em}
+	\setlength{\itemindent}{-\bibhang}
+	\setlength{\itemsep}{0pt}
+	\setlength{\parsep}{0pt}
+	\setlength{\leftmargin}{\bibhang}}
+    \def\newblock{\hskip .11em plus .33em minus .07em}
+    \sloppy\clubpenalty4000\widowpenalty4000
+    \sfcode`\.=1000\relax}}
+
+\newlength{\bibhang}
+\setlength{\bibhang}{1.4em}
+
+\let\@internalcite\cite
+\def\cite{\@ifstar{\citeyear}{\citefull}}
+\def\citefull{\def\astroncite##1##2{##1, ##2}\@internalcite}
+\def\citeyear{\def\astroncite##1##2{##2}\@internalcite}
+
+\def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
+  \def\@citea{}\@cite{\@for\@citeb:=#2\do
+    {\@citea\def\@citea{; }\@ifundefined
+       {b@\@citeb}{{\bf ?}\@warning
+       {Citation `\@citeb' on page \thepage \space undefined}}%
+{\csname b@\@citeb\endcsname}}}{#1}}
+
+\def\@cite#1#2{(#1\if@tempswa , #2\fi)}
+\def\@biblabel#1{}
+

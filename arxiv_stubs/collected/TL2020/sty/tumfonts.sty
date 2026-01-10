@@ -1,0 +1,131 @@
+% File: tumfonts.sty Copyright (C) 2019 The LaTeX4EI Team
+% Provides the fonts defined by the TUM Corporate Design.
+%
+% It may be distributed and/or modified under the conditions of the
+% LaTeX Project Public License (LPPL), either version 1.3c of this
+% license or (at your option) any later version. The latest version
+% of this license is in the file
+%
+%    https://www.latex-project.org/lppl.txt
+%
+% This file is part of the "tum-templates bundle" (The Work in LPPL)
+% and all files in that bundle must be distributed together.
+%
+%
+% ----------------------------------------------------------------------------
+%
+% The development version of the bundle can be found at
+%
+%    https://gitlab.lrz.de/latex4ei/tum-templates
+%
+% for those people who are interested.
+%
+% ----------------------------------------------------------------------------
+%
+% Version history:
+% v1.0 2020/10/01 Initial version.
+% v2.0 2021/04/19 Simplify option handling, review font scaling,
+%                 consistently load helvet as sans serif font.
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tumfonts}[2021/04/19 v2.0]
+
+
+% .:: Load required packages
+% ----------------------------------------------------------------------------
+
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+
+
+% .:: Package options for tumfonts package
+% ----------------------------------------------------------------------------
+% textfont: helvet (default), times, palatino, libertine
+% mathfont: ams (default for helvet), pxtx (default for all but helvet)
+
+\newcounter{@tum@textfont@number@}
+\newcounter{@tum@mathfont@number@}
+
+\pgfqkeys{/TUM/fonts}{
+  textfont/.is choice,
+  textfont/helvet/.code = {
+      \setcounter{@tum@textfont@number@}{1}
+      \pgfkeys{/TUM/fonts/mathfont=ams}
+    },
+  textfont/times/.code = {
+      \setcounter{@tum@textfont@number@}{2}
+      \pgfkeys{/TUM/fonts/mathfont=pxtx}
+    },
+  textfont/palatino/.code = {
+      \setcounter{@tum@textfont@number@}{3}
+      \pgfkeys{/TUM/fonts/mathfont=pxtx}
+    },
+  textfont/libertine/.code = {
+      \setcounter{@tum@textfont@number@}{4}
+      \pgfkeys{/TUM/fonts/mathfont=pxtx}
+    },
+  mathfont/.is choice,
+  mathfont/ams/.code  = {\setcounter{@tum@mathfont@number@}{1}},
+  mathfont/pxtx/.code = {\setcounter{@tum@mathfont@number@}{2}},
+  mathfont/newpxtx/.forward to = /TUM/fonts/mathfont/pxtx,
+  font/.forward to = /TUM/fonts/textfont,
+  math/.forward to = /TUM/fonts/mathfont,
+}
+
+% set default options
+\pgfqkeys{/TUM/fonts}{font=helvet}
+
+% process package options
+\ProcessPgfOptions{/TUM/fonts}
+
+% print debug info to logfile
+\typeout{Global options after tumfonts option parsing.}
+\typeout{classoptions: \@classoptionslist}
+\typeout{unused classoptions: \@unusedoptionlist}
+
+
+% .:: Handle package options
+% ----------------------------------------------------------------------------
+
+% handle text font package option
+\ifcase\the@tum@textfont@number@\relax
+\or % helvet
+  \RequirePackage{lmodern}
+  \RequirePackage[scaled]{helvet}
+  \RequirePackage[scale=1.10]{newtxtt}
+  \renewcommand{\familydefault}{\sfdefault}
+\or % times
+  \RequirePackage[largesc]{newtxtext}
+  \RequirePackage[scale=1.06]{newtxtt}
+  \renewcommand{\familydefault}{\rmdefault}
+\or % palatino
+  \RequirePackage[largesc]{newpxtext}
+  \RequirePackage[scale=1.06]{newtxtt}
+  \renewcommand{\familydefault}{\rmdefault}
+\or % libertine
+  \RequirePackage{libertine}
+  \RequirePackage[scaled=0.92]{helvet}
+  \RequirePackage[scale=1.04]{newtxtt}
+  \renewcommand{\familydefault}{\rmdefault}
+\fi
+
+% handle math font package option
+\ifcase\the@tum@mathfont@number@\relax\or
+  % ams math fonts
+  \RequirePackage{amsmath}
+  \RequirePackage{amsfonts}
+  \RequirePackage{amssymb}
+  \RequirePackage{upgreek}
+\or
+  % pxtx math fonts
+  \ifcase\the@tum@textfont@number@\relax
+  \or % helvet
+    \RequirePackage[bigdelims,varbb]{newpxmath}
+  \or % times
+    \RequirePackage[bigdelims,varbb]{newtxmath}
+  \or % palatino
+    \RequirePackage[bigdelims,varbb]{newpxmath}
+  \or % libertine
+    \RequirePackage[libertine,bigdelims,varbb]{newtxmath}
+  \fi
+\fi

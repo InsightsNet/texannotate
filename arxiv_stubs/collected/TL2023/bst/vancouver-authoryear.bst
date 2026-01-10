@@ -1,5 +1,4 @@
 %% natbib-compatible BibTeX bibliography style `vancouver-authoryear'
-%% 2017/12/04: Remove sorting by authors
 %%
 %% Use
 %%
@@ -1703,34 +1702,34 @@ FUNCTION {editor.sort}
 }
 FUNCTION {presort}
 { calc.label
-%  label sortify
-%  "    "
-%  *
-%  type$ "book" =
-%  type$ "inbook" =
-%  or
-%    'author.editor.sort
-%    { type$ "proceedings" =
-%        'editor.sort
-%        'author.sort
-%      if$
-%    }
-%  if$
-%  #1 entry.max$ substring$
-%  'sort.label :=
-%  sort.label
-%  *
-%  "    "
-%  *
-%  title field.or.null
-%  sort.format.title
-%  *
-%  #1 entry.max$ substring$
-%  'sort.key$ :=
+  label sortify
+  "    "
+  *
+  type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.sort
+    { type$ "proceedings" =
+        'editor.sort
+        'author.sort
+      if$
+    }
+  if$
+  #1 entry.max$ substring$
+  'sort.label :=
+  sort.label
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
 }
 
 ITERATE {presort}
-SORT
+%SORT
 STRINGS { last.label next.extra }
 INTEGERS { last.extra.num number.label }
 FUNCTION {initialize.extra.label.stuff}
@@ -1782,8 +1781,8 @@ FUNCTION {bib.sort.order}
   #1 entry.max$ substring$
   'sort.key$ :=
 }
-% ITERATE {bib.sort.order}
-% SORT
+ITERATE {bib.sort.order}
+%SORT
 FUNCTION {begin.bib}
 { preamble$ empty$
     'skip$

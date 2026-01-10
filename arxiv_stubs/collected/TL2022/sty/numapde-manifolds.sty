@@ -1,0 +1,197 @@
+% This LaTeX package provides numerous commands relevant to typesetting
+% material related to manifolds and differential geometry.
+\ProvidesPackage{numapde-manifolds}
+
+% Resolve the dependencies of this package
+\RequirePackage{numapde-semantic}
+
+% Define some symbols
+\newcommand{\bitangentSpaceSymbol}{\cT^{**}}
+\newcommand{\cotangentSpaceSymbol}{\cT^*}
+\newcommand{\covariantDerivativeSymbol}{\textup{D}}
+\newcommand{\secondCovariantDerivativeSymbol}{\covariantDerivativeSymbol^2}
+\newcommand{\geodesicSymbol}{\gamma}
+\@ifundefined{widearc}{%
+	\DeclareSymbolFont{yhlargesymbols}{OMX}{yhex}{m}{n}
+	\DeclareMathAccent{\wideparen}{\mathord}{yhlargesymbols}{"F3}
+	\newcommand{\geodesicArcSymbol}{\wideparen}
+	}{%
+	\newcommand{\geodesicArcSymbol}{\widearc}
+}
+\newcommand{\parallelTransportSymbol}{\textup{P}}
+\newcommand{\retractionSymbol}{\textup{retr}}
+\newcommand{\tangentSpaceSymbol}{\cT}
+\newcommand{\tensorSpaceSymbol}{\cT}
+\newcommand{\vectorTransportSymbol}{\textup{T}}
+
+% Define a command for the bitangent space
+% Argument {#1} is the base point
+% The optional argument [#2] (default \cM) is the manifold
+\NewDocumentCommand{\bitangent}{ m O{\cM} }{\bitangentSpaceSymbol_{#1}#2}
+
+% Define a command for the cotangent space
+% Argument {#1} is the base point
+% The optional argument [#2] (default \cM) is the manifold
+\NewDocumentCommand{\cotangent}{ m O{\cM} }{\cotangentSpaceSymbol_{#1}\!#2}
+
+% Define a command for the cotangent bundle
+% The optional argument [#1] (default \cM) is the manifold
+\NewDocumentCommand{\cotangentBundle}{ O{\cM} }{\cotangentSpaceSymbol\!#1}
+
+% Define a command for the covariant derivative (connection)
+% Argument {#1} is the vector (field) which determines the direction of differentiation
+% The optional argument [#2] denotes the tensor field being differentiated
+\NewDocumentCommand{\covariantDerivative}{ m O{} }{\covariantDerivativeSymbol_{#1}#2}
+
+\DeclareMathOperator{\expOp}{exp}
+% Define a command for the exponential map
+% Argument {#1} is used to scale the brackets around #3
+% Argument {#2} is the source base point
+% Argument {#3} is a corresponding tangent vector
+\NewDocumentCommand{\exponential}{ O{} m d() }{%
+    \expOp_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define a command for various versions of geodesic curves
+% * The optional argument (#1) can be used to locally set the geodesic symbol.
+%     note that globally setting it, you can also redefine `\geodesicSymbol'
+% * The optional argument <#2> defines the type: [s]symbol, [l]ong, [a]rc, or [p]lain (the default)
+% * The optional argument [#2] scales the delimiters
+% * Argument {#4} is the initial point (t = 0) of the geodesic
+% * Argument {#5} is the final point (t = 1) of the geodesic (for types l and a)
+% * Argument {#5} is the initial tangent direction of the geodesic (for type p)
+% * The optional argument (#6) denotes the evaluation point
+\NewDocumentCommand{\geodesic}{ D||{\geodesicSymbol} D<>{plain} o G{} G{} d() }{%
+	\ifthenelse{\equal{#2}{s}}{%
+		{#1}% format: just the symbol
+		\IfNoValueF{#6}{\enclose[#3]{(}{#6}{)}}% if arg given
+		}{% not s
+		\ifthenelse{\equal{#2}{l}}{% long form
+			{#1}% format:  arg; p1, p2
+			\enclose[#3]{(}{%
+				\IfNoValueTF{#6}{\cdot}{#6};#4\,,\,#5%
+			}{)}%print \cdot if not param given
+			}{% neither s nor l
+			\ifthenelse{\equal{#2}{a}}{%
+				{#1}_{\geodesicArcSymbol{#4,#5}}%
+				\IfNoValueF{#6}{\enclose[#3]{(}{#6}{)}}% if arg given -> print
+				}{% neither s nor l nor a -> plain
+				{#1}_{#4,#5}%
+				\IfNoValueF{#6}{\enclose[#3]{(}{#6}{)}}% if arg given -> print
+			}%
+		}%
+	}%
+}
+
+\DeclareMathOperator{\logOp}{log}
+% Define a command for the logarithmic map
+% Argument {#1} is used to scale the brackets around #3
+% Argument {#2} is the source base point
+% Argument {#3} is a second point
+\NewDocumentCommand{\logarithm}{ O{} m d() }{%
+    \logOp_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define a command for the logarithmic map
+% Argument {#1} is used to scale the brackets around #3
+% Argument {#2} is the source base point
+% Argument {#3} is a second point
+\NewDocumentCommand{\inverseRetract}{ O{} m d() }{%
+    \retractionSymbol^{-1}_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define a command for the Lie bracket (of two vector fields)
+% The optional argument [#1] scales the delimiters
+% Argument {#2} is the first vector field
+% Argument {#3} is the second vector field
+\NewDocumentCommand{\lie}{ O{} m m }{\enclose[#1]{[}{#2,#3}{]}}
+
+% Define a command for the parallel transport, where
+% Argument {#1} (optional) is used to scale the brackets around #4
+% Argument {#2} is the source base point
+% Argument {#3} is the destination base point
+% Argument {#4} is a tangent vector from the source base points tangent space (in round brackets)
+% Argument {#5} (optional) can be used to specify that this parallel transport is along a curve
+\NewDocumentCommand{\parallelTransport}{ O{} m m d() O{}}{%
+    \parallelTransportSymbol^{#5}_{#3\leftarrow#2}%
+        \IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}%
+}
+
+% Define a command for the parallel transport with direction, where
+% Argument {#1} (optional) is used to scale the brackets around #4
+% Argument {#2} is the source base point
+% Argument {#3} is the direction to transport into
+% Argument {#4} is a tangent vector from the source base points tangent space (in round brackets)
+% Argument {#5} (optional) can be used to specify that this parallel transport is along a curve
+\NewDocumentCommand{\parallelTransportDir}{ O{} m m d() O{}}{%
+    \parallelTransportSymbol^{#5}_{#2,#3}%
+        \IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}%
+}
+
+% Define a command for a retraction map
+% Argument {#1} is used to scale the brackets around #3
+% Argument {#2} is the source base point
+% Argument {#3} is a corresponding tangent vector
+\NewDocumentCommand{\retract}{ O{} m d() }{%
+    \retractionSymbol_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define a command for the Riemannian metric (inner product in the tangent space)
+% The optional argument [#1] scales the delimiters
+% Argument {#2} is the first tangent vector
+% Argument {#3} is the second tangent vector
+% The optional argument [#4] can be used to denote the base point or to specify the metric
+\NewDocumentCommand{\riemannian}{ O{} m m O{} }{\enclose[#1]{(}{#2\,,\,#3}{)}_{#4}}
+
+% Define a command for the norm induced by the Riemannian metric (inner product in the tangent space)
+% The optional argument [#1] scales the delimiters
+% Argument {#2} is the tangent vector
+% The optional argument [#3] can be used to denote the base point or to specify the metric
+\NewDocumentCommand{\riemanniannorm}{ O{} m O{} }{\norm[#1]{#2}_{#3}}
+
+% Define a command for the second covariant derivative
+% Argument {#1} is the vector (field) which determines the first direction of differentiation
+% Argument {#2} is the vector (field) which determines the second direction of differentiation
+% The optimal argument (#3) denotes the tensor field being differentiated
+\NewDocumentCommand{\secondCovariantDerivative}{ m m O{} }{\secondCovariantDerivativeSymbol_{#1,#2}#3}
+
+% Define a command for the tangent space
+% Argument {#1} is the base point
+% The optional argument [#2] (default \cM) is the manifold
+\NewDocumentCommand{\tangent}{ m O{\cM} }{\tangentSpaceSymbol_{#1}#2}
+
+% Define a command for the tangent bundle
+% The optional argument [#1] (default \cM) is the manifold
+\NewDocumentCommand{\tangentBundle}{ O{\cM} }{\tangentSpaceSymbol{}#1}
+
+% Define a command for the (r,s)-tensor bundle
+% Argument {#1} is the number r of elements of the cotangent space the tensors accept.
+% Argument {#2} is the number s of elements of the tangent space the tensors accept.
+% The optimal argument [#3] (default \cM) is the manifold
+\NewDocumentCommand{\tensorBundle}{ m m O{\cM} }{\tensorSpaceSymbol^{(#1,#2)}#3}
+
+% Define a command for the space of (r,s)-tensors over a vector space V
+% Argument {#1} is the number r of elements of the dual space V^* the tensors accept.
+% Argument {#2} is the number s of elements of the space V the tensors accept.
+% The optimal argument [#3] (default empty) denotes the vector space V.
+\NewDocumentCommand{\tensorSpace}{ m m O{} }{\tensorSpaceSymbol^{(#1,#2)}\IfNoValueF{#3}{(#3)}}
+
+% Define a command for the general vector transport, where
+% Argument {#1} (optional) is used to scale the brackets around #4
+% Argument {#2} is the source base point
+% Argument {#3} is the destination base point
+% Argument {#4} (optional) is a tangent vector from the source base point's tangent space
+% Argument {#5} (optional) can be used to specify that this vector transport is from a retraction or symmetric
+\NewDocumentCommand{\vectorTransport}{ O{} m m d() O{}}{%
+	\vectorTransportSymbol_{#3\leftarrow#2}^{#5}\IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}%
+}
+
+% Define a command for the general vector transport with direction, where
+% Argument {#1} (optional) is used to scale the brackets around #4
+% Argument {#2} is the source base point
+% Argument {#3} is the dirction to transport to (using the retraction in #5)
+% Argument {#4} (optional) is a tangent vector from the source base point's tangent space
+% Argument {#5} (optional) can be used to specify that this vector transport is from a retraction or symmetric
+\NewDocumentCommand{\vectorTransportDir}{ O{} m m d() O{}}{%
+	\vectorTransportSymbol_{#2,#3}^{#5}\IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}%
+}

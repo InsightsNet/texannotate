@@ -1,0 +1,1463 @@
+
+%From help@ep.ieee.org Tue Jun 29 11:14:12 1993
+%Received: from andromeda.ep.ieee.org by terra.ucsc.edu with SMTP id AA14525
+%  (5.65c/IDA-1.4.4 for <rph@cse.ucsc.edu>); Tue, 29 Jun 1993 11:13:45 -0700
+%Received: by andromeda.ep.ieee.org (4.1/I-3.00)
+%	id AA03694; Tue, 29 Jun 93 14:13:02 EDT
+%Date: Tue, 29 Jun 93 14:13:02 EDT
+%Message-Id: <9306291813.AA03694@andromeda.ep.ieee.org>
+%From: help@ep.ieee.org (via the vacation program)
+%Subject: IEEEtran.sty
+%Apparently-To: rph@cse.ucsc.edu
+%Status: R
+%
+%
+%	Thank you for inquiring about the IEEE Latex style file called: 
+%
+%                                  IEEEtran.sty
+%
+%
+%	Included below are the following:
+%
+%	                  IEEEtran.sty (the style file)
+%		          latex_ieee_sample_file.tex (a sample file)
+%
+%        A third section contains "How to Use" information.
+%			
+%	The text of the sample (including the coding) is taken from a paper
+%	originally submitted by an author, thus, it's not a
+%	``canned-demonstration''. I have left in the `errors' to underline 
+%	the authenticity.
+%
+%	Yes you can certainly email your paper to us. All you need to do is
+%	(after review) ask the editor, responsible for the transaction, for
+%	his/her email address, and post it to them, that's all.
+%
+%	We can email you a postscript version of the paper (300 dpi), should you
+%	so wish, instead of us posting/faxing a hardcopy. 
+%
+%	Any further questions? ...just email ME: juzzo@ieee.org
+%
+%
+%
+%
+%
+%
+%---------------------------------IEEEtran.sty---------------------
+%
+% Style file `IEEEtran.sty' created by Gerry Murray, June 1992, gmurray@ieeepub.org
+% The sample file (supplied) is based on this `IEEEtran.sty'.
+% The purpose of this style file is spelled out in the title.
+% If, for some reason you're unable to see the title, then here it is again:
+%
+% This Is A Sample File Using The `IEEEtran.sty',\\ To Help You Estimate
+% Your Page Count And Facilitate Input-Processing Of Your Compuscript
+% 
+% You`ll notice that it is very, very simple and there is an
+% important reason behind this. 
+% As an author, you should primarily concern yourself with
+% the CONTENT of the compuscript, leaving the FORMAT to the IEEE.
+% We have sophisticated software, in house and different to LATEX,
+% which we use to typeset transaction papers. 
+% The single most important reason for making this style file 
+% available was due to the fact that many authors (using TEX
+% and LATEX) were supplying their compuscripts using style files 
+% that were SINGLE COLUMN PAGE WIDE. It was obvious from the coding
+% that many had spent time inserting commands that made the 
+% displayed equations `pretty', spreading them right across the page.
+% But of course, IEEE transactions are DOUBLE COLUMN, with the 
+% column width being 21 pica. Thus, we ended up deleting these
+% typesetting `niceties' and breaking the page wide displayed
+% equations so that they would FIT inside the style-required 21pc. 
+% By using this style file (and by all means feel free to modify it)
+% you'll find that the displayed equations, algorithms, nomenclature
+% lists, etc. that you supply to us (on disk) will undergo minimal
+% change.
+% Obviously, if you have used macros to facilitate the 
+% keyboarding of your compuscript, PLEASE supply them on the disk.
+% And last but not least, it's wonderful to receive a `.bib' file
+% containing the hundreds of references in your database file,
+% but what we REALLY need is the `.bbl' file, which is the
+% reference list that will be seen when your paper is published.
+%
+% ***************** E-MAILING YOUR FILE TO US ******************
+% Great! ...just ask the editor (responsible for the transaction)
+% to give you an e-mail address (if you don't already know it).
+% **************************************************************
+
+
+
+% Usage:
+
+%  FEEL FREE TO MODIFY TO INCORPORATE SECTIONING
+%  CITATIONS, REFERENCE KEYS ETC. ETC. 
+% 
+
+% \documentstyle[IEEEtran]{article}
+% \begin{document}
+% \bibliography{plain}
+% \nocite{*}
+
+
+% \title{...}
+% \author{...}
+
+% \maketitle
+
+
+
+% \begin{abstracttext}
+
+% ...
+
+% \end{abstracttext} 
+% \begin{keywords}
+% ...
+% \end{keywords}
+%  
+
+% \auffil{...}
+
+%
+% Your headings and body of the document here
+%
+
+% \begin(yourbibliography}{99}
+% \bibitem{}
+% \bibitem{}
+%    .
+%    .
+%    .
+% \end{yourbibliography}
+%
+% \begin{yourbiography}{your goes name here}
+%  This is the text of your biography
+% \end{yourbiography}
+
+% \end{document}
+% *********************************************
+
+
+
+\textheight        24.55cm
+\textwidth         18.3cm
+\topmargin         -60pt
+\oddsidemargin     -35pt
+\evensidemargin    -35pt 
+\parindent         1em
+
+\setlength\columnsep{0.17in}  
+\newlength\titlebox \setlength\titlebox{1.75in}
+\flushbottom
+\twocolumn 
+
+
+
+% Make \small be smaller (8 pt)
+
+\def\small{\@setsize\small{9pt}\viiipt\@viiipt\let\@listi\@listI}
+
+
+% Make \footnotesize be smaller (7 pt)
+
+\def\footnotesize{\@setsize\footnotesize{8pt}\viipt\@viipt\let\@listi\@listI}
+
+\def\abst#1{{\boldmath%
+\mathchoice{\hbox{$\displaystyle#1$}}{\hbox{$\textstyle#1$}}%
+{\hbox{$\scriptstyle#1$}}{\hbox{$\scriptscriptstyle#1$}}}}%
+
+
+% No contents needed
+
+\def\addcontentsline#1#2#3{}
+
+
+
+
+
+% Let's make the title
+
+\def\maketitle{\par
+
+ \begingroup
+
+    \twocolumn[\@maketitle]% original
+
+ \endgroup
+
+ \let\maketitle\relax \let\@maketitle\relax
+
+ \gdef\@author{}\gdef\@title{}}
+
+
+
+\def\@maketitle{\vbox to \titlebox{\hsize\textwidth
+
+ \linewidth\hsize \vskip 2ex plus 1fil minus 2ex \centering
+
+ {\huge\bf \@title \par} \vskip 3ex plus 0.5fil minus 2ex
+
+ {\def\and{\unskip\enspace{\rm and}\enspace}%
+
+  \def\And{\end{tabular}\hss \egroup \hskip 1in plus 2fil 
+
+           \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\bf}%
+
+  \hbox to \linewidth{\large \hfil\hfil
+
+    \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\@author 
+
+			    \end{tabular}\hss\egroup
+
+    \hfil\hfil}}
+
+  \vskip 5ex plus 2fil minus 2ex}}
+
+
+
+
+
+
+
+
+
+\newenvironment{abstracttext}{\hangindent=0pc\hangafter=-0\noindent\boldmath\small\bf$\abst{Abstract}$---$\!$\small\bf}{\par\rm\normalsize\unboldmath\medskip}
+
+
+
+\newenvironment{keywords}{\hangindent=0pc\hangafter=-0\noindent\boldmath\small\bf$\abst{Keywords}$---$\!$\small\bf}{\par\rm\normalsize\unboldmath}
+%
+%
+\newenvironment{yourbiography}[1]{\bigskip\bigskip\bigskip\hangindent=7pc\hangafter=-11\noindent\small{\bf#1} \parindent=1em}{\par\rm\normalsize}
+%
+
+
+
+
+
+
+
+
+
+\long\def\auffil#1{\insert\footins{\footnotesize
+
+    \interlinepenalty\interfootnotelinepenalty 
+
+    \splittopskip\footnotesep
+
+    \splitmaxdepth \dp\strutbox \floatingpenalty \@MM
+
+    \hsize\columnwidth \@parboxrestore
+
+    \rule{\z@}{\footnotesep}\ignorespaces\hskip 1em\parindent=1em #1\strut}}
+
+
+
+
+
+
+% don't box citations, add space between multiple citations, separate with ;
+
+\def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
+
+  \def\@citea{}\@cite{\@for\@citeb:=#2\do {\@citea\def\@citea{;
+
+}\@ifundefined {b@\@citeb}{{\bf ?}\@warning {Citation `\@citeb' on
+
+page \thepage \space undefined}}%
+
+{\csname b@\@citeb\endcsname}}}{#1}}
+
+
+
+% Allow short (name-less) citations, when used in
+
+% conjunction with a bibliography style that creates labels like
+
+%	\citename{<names>, }<year>
+
+\let\@internalcite\cite
+
+\def\cite{\def\citename##1{##1}\@internalcite}
+
+\def\shortcite{\def\citename##1{}\@internalcite}
+
+\def\@biblabel#1{\def\citename##1{##1}[#1]\hfill}
+
+%
+% And here's how we do the references
+
+
+\def\yourbibliography#1{{
+\bigskip
+\noindent    
+\centerline{\sc References}
+\smallskip
+\noindent}\list{[\arabic{enumi}]}\small
+\settowidth\labelwidth{[#1]}\leftmargin\labelwidth \itemsep
+0pt\advance\leftmargin\labelsep \usecounter{enumi}
+\sloppy\clubpenalty4000\widowpenalty4000 \sfcode`\.=1000\relax
+\let\yourbibliography=\endlist}
+
+
+
+% sections (I,II,...) and subsections (A,B,...) only
+
+% with less space
+
+%
+
+\def\@startsection#1#2#3#4#5#6{\if@noskipsec\gdef\@period{}\leavevmode
+
+ \gdef\@period{.}\fi \par \@tempskipa #4\relax \@afterindenttrue
+
+\ifdim \@tempskipa <\z@ \@tempskipa -\@tempskipa \@afterindentfalse\fi
+
+\if@nobreak \everypar{}\else
+
+\addpenalty{\@secpenalty}\addvspace{\@tempskipa}\fi \@ifstar
+
+{\@ssect{#3}{#4}{#5}{#6}}{\@dblarg{\@sect{#1}{#2}{#3}{#4}{#5}{#6}}}}
+
+
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+
+     \def\@svsec{}\else \refstepcounter{#1}\edef\@svsec{\ifnum
+
+#2=1\Roman{#1}.\else \Alph{#1}.\fi\hskip .5em }\fi \@tempskipa
+
+#5\relax \ifdim \@tempskipa>\z@ \begingroup #6\relax \@hangfrom{\hskip
+
+#3\relax\@svsec}{\interlinepenalty \@M #8\par} \endgroup \csname
+
+#1mark\endcsname{#7}\addcontentsline {toc}{#1}{\ifnum
+
+#2>\c@secnumdepth \else \protect\numberline{\csname
+
+the#1\endcsname}\fi #7}\else \def\@svsechd{#6\hskip #3\@svsec
+
+#8\csname #1mark\endcsname {#7}\addcontentsline {toc}{#1}{\ifnum
+
+#2>\c@secnumdepth \else \protect\numberline{\csname
+
+the#1\endcsname}\fi #7}}\fi \@xsect{#5}}
+
+
+
+\def\@xsect#1{\@tempskipa #1\relax
+
+      \ifdim \@tempskipa>\z@ \par \nobreak \vskip \@tempskipa
+
+\@afterheading \else \global\@nobreakfalse \global\@noskipsectrue
+
+\everypar{\if@noskipsec \global\@noskipsecfalse \clubpenalty\@M \hskip
+
+-\parindent \begingroup \@svsechd\@period \endgroup \unskip \hskip -#1
+
+\else \clubpenalty \@clubpenalty \everypar{}\fi}\fi\ignorespaces}
+
+
+
+\def\thesection {\Roman{section}}
+
+\def\thesubsection {\thesection.\Alph{subsection}}
+
+
+
+\def\section{\@startsection {section}{1}{\z@}{2.0ex plus
+
+    0.5ex minus .2ex}{1.5ex plus 0.3ex minus .2ex}{\centering\sc}}
+
+\def\subsection{\@startsection{subsection}{2}{\z@}{1.8ex plus
+
+    0.5ex minus .2ex}{0.8ex plus .2ex}{\it\raggedright}}
+
+
+
+% Figures, Tables, and Captions
+
+\def\fnum@figure{Fig.\ \thefigure}
+
+\long\def\@makecaption#1#2{
+
+ \vskip 10pt \setbox\@tempboxa\hbox{\footnotesize #1. #2} \ifdim
+
+\wd\@tempboxa >\hsize \footnotesize #1. #2\par \else \hbox
+
+to\hsize{\hfil\box\@tempboxa\hfil} \fi}
+
+
+
+% Debug floats manually
+
+
+
+\def\topfraction{1.0}
+
+\def\dbltopfraction{1.0}
+
+\def\bottomfraction{1.0}
+
+\def\textfraction{0.0}
+
+\def\floatpagefraction{0.8}
+
+\def\dblfloatpagefraction{0.8}
+
+
+
+% Footnotes
+
+\footnotesep 8pt
+
+\def\footnoterule{}
+
+\setcounter{footnote}{0}
+
+
+
+% Lists and paragraphs
+
+\parskip 0pt
+
+\parindent 1em
+
+\leftmargini 2em
+
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+
+\def\@listI{\leftmargin\leftmargini\parsep 0pt\topsep 5pt plus 1pt minus 1pt
+
+\itemsep 0pt\partopsep 0pt\listparindent 0pt}
+
+\@listI
+
+
+
+\abovedisplayskip 0pt plus2pt minus5pt%
+
+\belowdisplayskip \abovedisplayskip
+
+\abovedisplayshortskip  0pt plus3pt%   
+
+\belowdisplayshortskip  0pt plus3pt minus3pt%
+
+
+
+
+
+
+% Have Fun.
+
+\endinput
+
+-----------------------------Sample-----------------------------
+
+% Style file `IEEEtran.sty' created by Gerry Murray, June 1992,
+% gmurray@ieeepub.org
+%
+% The sample file (supplied) is based on this `IEEEtran.sty'.
+% The purpose of this style file is spelled out in the title.
+% If, for some reason you're unable to see the title, then here it is
+% again:
+%
+% This Is A Sample File Using The `IEEEtran.sty',\\ To Help You Estimate
+% Your Page Count And Facilitate Input-Processing Of Your Compuscript
+% 
+% You`ll notice that it is very, very simple and there is an
+% important reason behind this. 
+% As an author, you should primarily concern yourself with
+% the CONTENT of the compuscript, leaving the FORMAT to the IEEE.
+% We have sophisticated software, in house and different to LATEX,
+% which we use to typeset transaction papers. 
+% The single most important reason for making this style file 
+% available was due to the fact that many authors (using TEX
+% and LATEX) were supplying their compuscripts using style files 
+% that were SINGLE COLUMN PAGE WIDE. It was obvious from the coding
+% that many had spent time inserting commands that made the 
+% displayed equations `pretty', spreading them right across the page.
+% But of course, IEEE transactions are DOUBLE COLUMN, with the 
+% column width being 21 pica. Thus, we ended up deleting these
+% typesetting `niceties' and breaking the page wide displayed
+% equations so that they would FIT inside the style-required 21pc. 
+% By using this style file (and by all means feel free to modify it)
+% you'll find that the displayed equations, algorithms, nomenclature
+% lists, etc. that you supply to us (on disk) will undergo minimal
+% change.
+% Obviously, if you have used macros to facilitate the 
+% keyboarding of your compuscript, PLEASE supply them on the disk.
+% And last but not least, it's wonderful to receive a `.bib' file
+% containing the hundreds of references in your database file,
+% but what we REALLY need is the `.bbl' file, which is the
+% reference list that will be seen when your paper is published.
+%
+% ***************** E-MAILING YOUR FILE TO US ******************
+% Great! ...just ask the editor (responsible for the transaction)
+% to give you an e-mail address (if you don't already know it).
+% **************************************************************
+
+
+
+\documentstyle[IEEEtran]{article}    % Specifies the document style.
+
+%
+\hyphenation{compu-script }
+\begin{document}
+\bibliography{plain}
+\nocite{*}
+
+\title{This Is A Sample File Using The `IEEEtran.sty',\\ To Help You
+Estimate Your Page Count And Facilitate Input-Processing Of Your
+Compuscript} 
+\author{ERB, Woody, Pheff, Bont, Tranman, IP, Dalton, Christine and OOZ}
+
+
+\maketitle               
+\begin{abstracttext}
+The theoretical analysis and derivation of artificial neural systems
+consist 
+essentially 
+of manipulating symbolic mathematical objects according to certain 
+mathematical and biological knowledge. A simple observation has been
+made 
+that this work can be done more efficiently with computer assistance
+by using and extending methods and systems of symbolic computation. 
+In this paper, after presenting the mathematical characteristics of
+neural 
+systems and a brief review on Liapunov stability theory, we present some
+features and 
+capabilities of existing systems and our extension
+for manipulating objects occurring in the analysis of neural systems. 
+Then, some strategies and a toolkit developed in MACSYMA for computer
+aided 
+analysis and derivation are described. A concrete example is given to 
+demonstrate the derivation of a hybrid neural system, i.e.\ a system
+which in its 
+learning rule combines elements of supervised and unsupervised learning. 
+The future work and directions on this topic are indicated.
+\end{abstracttext}
+\begin{keywords}
+CA system, computer aided analysis and derivation,  
+Liapunov function, neural system, symbolic computation.
+\end{keywords}
+
+
+
+
+\auffil{This would be where the author affiliation would be, together
+with the IEEE log Number, like so.\\ 
+The research of D.\ Wang is supported by a grant from SIEMENS AG Munich.
+He is with the Research Institute for Symbolic Computation,
+Johannes Kepler University, A-4040 Linz, Austria. 
+
+$^{~}~~$B.\ Sch\"urmann is with the Corporate Research and Development,
+ZFE IS INF 2, Siemens AG, 8000 M\"unchen 83, Germany.}
+\bigskip
+\noindent    
+\centerline{\sc I. Introduction}
+
+\smallskip
+\noindent
+SINCE the early 1940s a large number of artificial neural 
+systems have been 
+proposed by neural scientists. The dynamical behavior of these systems
+may 
+be mathematically described by sets of coupled equations like
+differential 
+equations for formal neurons with graded response. The investigation of
+essential features of neural systems such as stability and 
+adaptation depends strongly upon the state of the mathematical theory to
+be 
+applied and on a concrete and efficient analysis of dynamical equations.
+Unlike abstract theoretical research in which the mathematical objects 
+adopted are frequently assumed to be of certain canonical form, 
+the neurodynamics is usually complicated due to various biological facts
+which should be taken account of to a degree as large as possible. 
+Consequently, this makes the analysis and derivation very complex, 
+sometimes to an extent which is beyond human capacity, and 
+the traditional methods and tools of mathematics are not always
+sufficient. 
+It is therefore proposed in [19] to use and extend
+the methods and software systems of symbolic 
+computation for handling, analyzing and constructing neurodynamics and
+its 
+related objects. The present paper is the continuation of our work in
+this 
+direction. The attempt is to demonstrate how symbolic computation can be 
+applied to aid the analysis and derivation of neural systems. 
+
+In contrast to the approximative character of numerical calculations,
+symbolic 
+computation treats objects with semantics 
+like functions, formulae and programs. A variety of software systems for 
+performing symbolic computation have been developed for research and
+applications in natural and technical sciences. However, the existing
+systems cannot be directly used for the analysis and
+derivation of neural systems as the operations on the occurring objects,
+particularly those involving an unspecified number of arguments like
+indefinite summations,
+have not yet been taken into account. To achieve our goal, some 
+rules for differentiating and integrating indefinite summations with
+respect 
+to indexed variables were proposed [20].
+A toolkit has been designed and implemented in MACSYMA for manipulating 
+these objects occurring in the analysis and derivation of neural systems 
+[21]. 
+
+In the next section, we introduce the general method 
+and techniques for the stability analysis of 
+artificial neural systems. The role of symbolic computation for
+representing 
+and manipulating the objects concerning neural systems is discussed in 
+Section III. In Section IV we present some strategies for using 
+computer algebra (CA)
+systems and their extension to analyse the stability of neural 
+systems and to derive novel stable systems. A brief description of a
+toolkit 
+developed in MACSYMA is also provided.
+A concrete example is given in Section V to illustrate the derivation
+of a hybrid model by our toolkit. Section VI contains a discussion on
+future 
+developments. The paper is closed with a brief summary.
+\bigskip
+\noindent    
+\centerline{\sc II. Stability Analysis of Neural Systems}
+
+\smallskip
+\noindent
+Consider artificial neural systems which are described by coupled
+systems of 
+differential equations of the form 
+$$\stackrel{.}{x}=F(x, w, K)\eqno(1)$$
+and
+$$\stackrel{.}{w}=G(x, w, K)\eqno(2)$$
+
+\medskip
+\noindent
+where $x=(x_1(t), ..., x_n(t))$ is the activation state vector, 
+$w=(w_{ij}(t))$ is the weight matrix of dimension $n\times n$, $n$ is
+the 
+number of nodes and $K$ is an external time-independent pattern vector. 
+Such systems of
+differential equations which describe the neural model will occasionally 
+be named {\em neurodynamics}.
+
+Once a neural model is proposed, its main features are 
+represented by its dynamic behavior. The adaptability of the latter 
+is often suggested by experimental results in neurophysiological
+research. 
+>From a mathematical and theoretical point of view, the essential
+question 
+of the dynamic behavior as discussed in [7] is as follows. 
+
+\medskip
+\noindent
+{\bf Question 1:}
+{\em Under what conditions does the neural system (1)-(2) always
+approach 
+an equilibrium point in response to an arbitrary, but sustained, input
+pattern?}
+
+\medskip
+In a satisfactory analysis of this question, the behavior of the neural
+system in response to arbitrary initial data, an arbitrary sustained
+input 
+pattern, and an arbitrary choice of system parameters should be
+provided. 
+Also an account of how many equilibrium points exist and of how they are 
+approached through time is desirable. 
+
+In addition, while an individual equilibrium point of (1)-(2) is
+specified, 
+many questions concerning its local behavior could arise. For example,
+we may ask 
+
+\medskip
+\noindent
+{\bf  Question 2:} 
+{\em Is a given equilibrium point stable, and if so,
+what is its domain of attraction and how to characterize the
+trajectories 
+of the system near the equilibrium point?}
+
+\medskip
+The mathematical analysis of the first question is called a global 
+stability analysis,
+whereas that of the second is called a local stability analysis. 
+Since the 1960s, a variety of contributions (e.g., [1, 5, 6, 10]) 
+to the global and local analysis of
+neural systems have been made. The major mathematical method used for
+this
+analysis is Liapunov's second method. 
+
+Let $\Delta$ be an arbitrary set in $R^{3n}$ and
+$L=L(x, w, K)$
+be a $C^1$ function on $\Delta$ to $R$. We say that $L$ is a 
+{\em global Liapunov function\/} over $\Delta$ for (1)-(2) if 
+ the differential of $L$ along trajectories of the dynamic system,
+$$\stackrel{.}{L}\equiv \frac{dL}{dt}=
+\sum_{i=1}^n\frac{\partial L}{\partial x_i}\cdot
+\stackrel{.}{x}_i+\sum_{i=1}^n\sum_{j=1}^n\frac{\partial L}{\partial
+w_{ij}}\cdot
+\stackrel{.}{w}_{ij},\eqno(3)$$
+does not change sign on $\Delta$. Define
+$$E=\{(x,w)\in\bar{\Delta}|~\stackrel{.}{L}=0\},$$
+where $\bar{\Delta}$ is the closure of $\Delta$. Let $M$ be the largest 
+invariant set in $E$ (for definition of invariant set, see [9]).
+Then the central part of the Liapunov method is
+the following fundamental\medskip
+\noindent
+{\bf Stability Theorem 1$^{\rm [9]}$:} 
+{\em If $L$ is a global Liapunov function on $\Delta$ for (1)-(2), 
+then each solution $(x(t), w(t))$ of (1)-(2) that remains in $\Delta$ 
+for all $t>0$ approaches $M\cup\{\infty\}$ as $t\rightarrow\infty$. 
+If $M$ is bounded,
+then either $(x(t), w(t))\rightarrow M$ or $(x(t),w(t))\rightarrow
+\infty$ as
+$t\rightarrow \infty$.} 
+
+\medskip
+This is an extended Liapunov stability theorem, referred as to LaSalle 
+invariant principle, 
+and contains the usual Liapunov-like theorems on stability and
+instability of
+autonomous systems. 
+
+For the local stability analysis, 
+we let $(x^0, w^0)$ be an equilibrium point of (1)-(2) and $\delta$ be a
+small neighborhood of $(x^0, w^0)$ in $R^{3n}$. A $C^1$ function
+$L=L(x, w, K)$ defined on $\delta$ to $R$ with
+$L(x^0, w^0, K)=0$ is called a {\em local Liapunov function\/} if it is
+positive definite (i.e., positive whenever $(x, w)\neq (x^0, w^0)$), 
+and with a differential $dL/dt$ along the trajectories 
+being continuous and of fixed negative sign in $\delta$.
+The following is the classic stability theorem due basically to
+Liapunov.
+
+\medskip
+\noindent
+{\bf Stability Theorem 2:} 
+{\em If there is a Liapunov function $L$ over $\delta$ for (1)-(2), 
+then the equilibrium point $(x^0, w^0)$ is stable. If $dL/dt$ is
+moreover 
+negative definite, then $(x^0, w^0)$ is asymptotically stable.}
+
+\medskip
+The above two theorems have served as a theoretical basis for stability
+analysis of neural systems. So far a considerable
+ amount of work has been done for 
+various specialized models. Significant contributions were made in [1,
+5], for 
+example, to the local stability analysis 
+while [6] contains most of the early global stability results. 
+In [3],
+a global Liapunov function is constructed for content-addressable memory
+networks with symmetric and constant weights which includes a number of
+popular
+models as specialized cases. This Liapunov function was generalized in
+[17]
+by using instead of symmetric detailed balance weights. In [13],
+a careful local stability analysis for the Hopfield model was made.
+
+As both the global and local stability theorems consist of the
+determination 
+of corresponding Liapunov functions, but the theorems themselves 
+are merely existential in character and give no handle on the exact 
+construction, the discovery of specific Liapunov functions 
+depends strongly upon specific mathematical knowledge,
+various technical derivations and extensive experiments. 
+When the Liapunov functions are constructed,
+important information about the trajectories of systems will be 
+provided without any knowledge of the trajectories themselves.
+Therefore,
+for a practical stability analysis the central problem remains to 
+find explicitly the associated Liapunov function $L$ for a given
+dynamical system. To design stable and adaptive artificial neural
+systems on the other hand, one has to seek such dynamics 
+which in the ideal case both reflect the biological 
+features (at least on a rudimentary level) and associate a Liapunov
+function. 
+Thus, the main task in this 
+context is the exact determination of such a pair of mathematical
+objects. 
+
+It is clear that in addition to the application 
+of a mathematical theory, the analysis and derivation of neurodynamics 
+consist of a certain amount of experiments and manipulations on the
+objects 
+which are considered to be possible candidates as Liapunov functions 
+and adaptive 
+neurodynamics. As a matter of fact, these objects have become more and
+more 
+complicated due to diverse biological facts as we mentioned earlier. 
+A natural question now is how to efficiently and accurately deal with
+these 
+complex mathematical objects. To answer this question,
+ the approach of automatic analysis and derivation by computer is
+desirable.
+As proposed in [19], methods
+and software systems of symbolic computation can be demonstrated to well
+suit 
+this need. 
+
+It is noted that in this work, our emphasis is mainly on the 
+manipulation of symbolic mathematical objects, without much concern for 
+theoretical proof about stability and the biological performance of
+neural 
+systems.\bigskip
+\noindent    
+\centerline{\sc III. The Role of Symbolic Computation}
+
+\smallskip
+\noindent
+Symbolic computation treats objects with semantics such as logic
+formulae,
+geometric objects, algebraic functions and computer programs. It
+contains
+computer algebra, computational geometry, automated reasoning and
+automatic
+programming as subareas. The development of symbolic computation,
+including
+algorithm design and system implementation together with applications,
+has
+received more and more attention due to its important role in dealing
+with large and complicated symbolic objects in various technical
+sciences.
+In this section, we present a few fundamental features of symbolic 
+computation for the analysis and 
+derivation of neural systems.
+
+\bigskip
+\noindent
+{\em A. Representation of Objects}
+
+\smallskip
+To treat symbolic objects, the first task is their representation, 
+particularly, in a software system. Within the existing systems
+such as CA systems, graphical kernel systems and theorem
+provers designed for different purposes, most symbolic objects
+including mathematical numbers, symbols and functions, geometric bodies,
+logic formulae and programs can be represented.
+
+The objects occurring in the analysis and derivation of neural systems
+are essentially mathematical objects such as elementary functions, 
+unspecified functions, indexed variables and functions, indefinite 
+summations and matrices. Most of these objects can be represented in
+existing CA systems. However, these systems are
+not capable to represent objects like the Kronecker
+symbol, piece-wise functions and indefinite summations with non-interval
+domains. Such capabilities could be improved for special purposes
+without
+major difficulties.
+
+\bigskip
+\noindent
+{\em B. Operations on Objects}
+
+\smallskip
+The main task for the analysis and derivation of neural systems is the
+manipulation of the occurring objects. One major manipulation is 
+formal operations, including arithmetic operation,
+functional operation, matrix operation,
+differential and integral operation and limit operation. CA 
+systems provide a user-friendly interface for non-specialized users to
+perform
+most of these operations while the number of arguments is given.
+Nevertheless, the objects occurring in the analysis and derivation of
+neural systems are often related to an indefinite number of arguments 
+or dimension. The existing CA systems 
+have their emphasis on traditional algebraic objects and are either 
+unable to perform operations on these objects, or provide wrong 
+computations. For example, expressions of the form
+\[\sum_{i=1}^nw_{ij}S_i(x_i)\]
+appear in most neural systems. To analyze stability and derive learning
+rules, we need frequently to calculate the partial derivative and
+integral 
+of the above expression with respect to an indexed variable $x_k$ or
+$w_{kl}$. Unfortunately, this cannot be done with the available CA 
+systems.
+Thus, the operations among objects with an indefinite number of
+arguments 
+have to be extended and modified. One of the authors investigated the 
+possibility 
+for such extension and suggested some rules for differentiating and
+integrating indefinite summations with respect to indexed variables
+which 
+we have to deal with for the analysis and 
+derivation of some neural systems. These rules, together with others, 
+have been included in a toolkit to be described in Subsection IV.D
+for manipulating indefinite summations.  
+
+\bigskip
+\noindent
+{\em C. Simplification of Objects}
+
+\smallskip
+While an object is given or obtained from a sequence of operations which 
+might be very complicated, it is important to know whether this object
+can be replaced by an equivalent but simpler one and how to find such
+an object automatically. This is the problem of simplification, which 
+belongs partially to the subarea of automated deduction. As an example,
+let us look at the expression
+\[1-\frac{1}{n}\sum_{i=1}^n[\cos^2i\theta+\sin(i+1)\theta
+\sin(i-1)\theta].\]
+By a careful analysis, one finds that this expression is the
+same as the much simpler one
+\[\sin^2\theta.\]
+The current CA systems have integrated simplification mechanisms and 
+some of them are able to simplify the above expression.
+Simplifications can be carried out automatically or with human
+interaction. 
+Some special-purpose systems have implemented more power for automatic 
+simplification. 
+
+As the manipulation of objects with indefinite number of arguments has
+not 
+been taken into account of by the popular CA systems, 
+simplifications of some of such objects cannot be done within these
+systems.
+In our toolkit developed in MACSYMA, we have include several rules to 
+simplify objects with indefinite summations as will be seen from the 
+example given in Section V.
+
+
+\bigskip
+\noindent
+{\em D. Data Transformation}
+
+\smallskip
+Symbolic computation systems are highly interactive with powerful
+devices for input and output of objects. One can expect the input,
+output and terminal display of the objects to be very text-like. Some
+tools have been developed for transforming the input/output from
+the form of one system to that of another, and to \TeX or other
+word-processor form. So one is able to directly include the 
+objects produced by the symbolic computation systems into his/her
+text.
+
+As one purpose, symbolic computation may be the preprocessing for
+numeric computation, especially in the case of neural research. On the
+one hand, most CA systems have capabilities for doing
+numeric computation; therefore, the symbolic objects can be used for
+further numeric experiments within the same system. 
+On the other hand, it is also possible to
+encode the objects processed by CA systems into the
+numeric (like C, Fortran, Pascal etc.) programs. In addition, 
+the CA systems may also be used to generate large numeric 
+computing programs and codes. This is somewhat in the category
+of automatic programming and will be be discussed briefly in the last 
+section. 
+
+\bigskip
+\noindent    
+\centerline{\sc IV. Computer Aided Analysis and Derivation}
+
+\smallskip
+\noindent
+In the previous section, we have discussed four features and
+capabilities 
+of methods and systems of symbolic computation for the analysis and
+derivation of neural systems. In this section we present some strategies
+for using CA systems and their extension
+to aid the analysis and derivation of neural systems.  
+
+\bigskip
+\noindent
+{\em A. Computation Checking}
+
+\smallskip
+While a stability analysis of a neural system is made or a possibly 
+stable system is derived by humans, CA systems can be
+used to check the computation and derivation step by step. This is
+necessary particularly when the objects become too complex. 
+Symbolic computation
+guarantees the correctness and rapidity of the performance. Intuitively, 
+this seems
+to be an easy and trivial task. But the real situation is actually not
+as
+simple as expected. The reason is that two computations on the same
+objects
+can yield two equivalent but totally different expressions as different
+simplification techniques and rules may be used. One cannot easily
+determine whether one expression is the same as the other. Therefore,
+for computation checking, the equivalence proof of different expressions
+beyond computation must be considered, which requires very powerful
+deduction mechanisms.
+
+Some operations and simplification rules concerning expressions with 
+indefinite sums have been designed and implemented 
+for the toolkit in MACSYMA (see Subsection D), and the computation and
+derivation of a number of neural systems have been checked, where some 
+mistakes in the literature were discovered (see an example in [21]).
+
+\bigskip
+\noindent
+{\em B. Constructing Liapunov Functions}
+
+\smallskip
+As presented in Section II, a stable and adaptive artificial neural
+system
+is characterized by the existence of a Liapunov function.
+A sufficient condition for a function $L$ to be a Liapunov function is
+$$\frac{\partial L}{\partial
+x_i}=-[A_i(x)]^2\stackrel{.}{x}_i,~~~~\eqno(4)$$
+$$\frac{\partial L}{\partial w_{ij}}=-[B_{ij}(w)]^2\stackrel{.}{w}_{ij}.
+\eqno(5)$$
+If the dynamics (1)-(2) of the neural system is known 
+from some experimental neurophysiological facts,
+the stability analysis of neurodynamics is mainly to construct
+a Liapunov function $L$.
+For this purpose, one useful strategy is to insert (1) and
+(2) into (4) and (5), and integrate both with respect to $x_i$ 
+and $w_{ij}$ respectively. In this case, different $A_i$ and $B_{ij}$
+need
+to be examined. 
+
+The other strategy for obtaining a Liapunov function is based on two
+steps. 
+First, specialize the equations to dimensions 1 or 2 for instance,   
+and then construct their Liapunov functions. Secondly, try to extend the 
+Liapunov functions so obtained to the general case of indefinite
+dimension 
+$n$ and verify 
+whether the extended ones are still Liapunov functions. 
+
+In both cases, necessary experiments are involved and CA 
+systems become then helpful tools. In MACSYMA together with our toolkit, 
+we are by now able to perform almost all operations including
+differentiation 
+and integration of objects needed for practical experiments. 
+This provides many more possibilities for constructing suitable
+Liapunov functions.
+
+\bigskip
+\noindent
+{\em C. Deriving Neurodynamics}
+
+\smallskip
+A Liapunov function is not necessarily the energy of the 
+system. However, the term {\em energy function}, {\em objective
+function\/} 
+or {\em cost function}, is often used instead of Liapunov function in 
+the neural networks community. 
+If a problem-specific objective function $L$ is given,
+the other direction is to derive the neurodynamics, in particular,
+the learning rule. This is frequently achieved by minimizing the
+function 
+$L$ in weight space, where the position of the minimum is located at the 
+weights' values at the end of the learning phase.
+In this case, one may take various possible energy functions and 
+use $(4)$ and $(5)$. 
+
+Often the dynamics for the activation states $x$ is specified first. The
+objective function need then be chosen in order to derive an adaptive
+dynamic 
+equation for the weights, namely, the learning rule. We have made some
+experiments in this direction and found that this procedure is quite
+feasible. 
+The example given in Section V constitutes such a case.
+
+Again, while a possible neurodynamics is derived, it may be very
+complicated. 
+Much work would remain for simplifying such dynamics either by
+transforming 
+it to a simpler form or by introducing some constraints. Even though the 
+dynamics may be mathematically and biologically suitable, one may still
+need to 
+consider various modifications and simplifications from computational
+aspects.
+It is convenient to do all of them by use of a symbolic computation
+tool.
+
+\bigskip
+\noindent
+{\em D. A Toolkit in MACSYMA}
+
+\smallskip
+To test the analytic derivation of neural systems on the computer as 
+discussed in the previous sections, we have developed a toolkit within
+the
+CA system MACSYMA. This toolkit together
+with its base system MACSYMA has served well for our investigation in
+this 
+approach. The current version of the toolkit contains three parts: a
+database 
+including a number of neural systems well known from literature, a
+library of 
+functions for manipulating indefinite summations and a few subsidiary
+functions 
+for help, literature inquiry and reading neural systems from the
+database.
+
+The database serves for studying and comparing various neural systems
+such as
+the Cohen and Grossberg, the Hopfield, the standard backpropagation, 
+the recurrent backpropagation 
+models etc. These models can simply be called by the toolkit if needed. 
+The MACSYMA system itself contains very extensive functions for
+algebraic, 
+differential, integral and matrix operation, equation 
+solving and algebraic simplification on objects with a definite number
+of 
+arguments. It provides also the indefinite sum expression with interval
+domain
+and a few functions for treating this object. 
+Nevertheless, these functions are currently limited and give often
+incorrect
+computations due to MACSYMA's design philosophy. For the analysis and 
+derivation of neural systems, the main manipulation is among objects
+with 
+indefinite summations. Therefore, the MACSYMA built-in functions for
+these 
+objects have to be modified and some new functions for manipulating
+these 
+objects must be designed and implemented. To this end, we have
+established a 
+library of such modified and new functions. They are DF, DFINTOSUM, INT,
+
+REWRITEDF, SUMCOMB, SUMCONT, SUMCONV, SUMDIST, SUMP, SUMSIMP, SUMSIMPD 
+and SUMSIMPM. 
+
+The functions WHO, WHERE and CALL are used respectively for listing all 
+neural systems included in the database, literature details of each
+system, 
+and reading systems from the database to MACSYMA session. 
+The description of all functions can be displayed by the help function
+HELP. 
+This makes the toolkit easy to be used. Of course, the toolkit is still 
+undergoing changes and will
+be extended from time to time by adding more functions and completing
+the 
+database. A detailed description of the current version of the toolkit
+is 
+given in [21]. Using the implemented functions, we are now able to 
+deal with the majority of neural systems known from the literature.     
+
+\bigskip
+\noindent    
+\centerline{\sc V. A Concrete Example}
+
+\smallskip
+\noindent
+In the main part of this section, we present an example to illustrate
+the 
+derivation of a hybrid neural model by using our toolkit. 
+The Liapunov function of the hybrid model consists of an adaptive
+Hopfield term
+and a quadratic error function. Hopfield type models are very successful
+in 
+restoring incomplete and/or noise-corrupted patterns whereas models
+which minimize
+the quadratic error between the actual and the desired output are
+suitable for input 
+data classification. The hybrid model discussed below combines the
+virtues of both
+approaches. This example is extracted from recent results in [18] which
+we 
+briefly describe first. 
+
+\bigskip
+\noindent
+{\em A. The Neural Model}
+
+\smallskip
+The dynamics for the activation states $z_k$ of nodes $k$ considered 
+is described by a set of coupled
+differential equations of the form
+$$\stackrel{.}{z}_k=f_k(z_k)[-g_k(z_k, K_k)+\sum_{s=1}^nw_{sk}S_s(z_s)],
+~~k=1, ..., n. \eqno(6)$$
+We assume the activation states $z_k$ of the 
+neurons to change much more rapidly 
+with time than the weights $w_{ij}$. Then, at the fixed point
+$z^{\infty}$, 
+the equation (6) becomes
+$$g_k(z_k^{\infty}, K_k)=\sum_{s=1}^nw_{sk}S_s(z_s^{\infty}).\eqno(7)$$
+The existence of fixed points is guaranteed, if the neural system is 
+dynamically stable. This is the case if either $w_{ij}=w_{ji}$
+(symmetry,
+cf.\ [8]), or $\mu_jw_{ij}=\mu_iw_{ji}$ (detailed balance,
+cf.\ [17]), or $\sum_{i,j}w_{ij}^2<1/[\max|S_s'(z_s)|]^2$
+(finite norm, cf.\ [2]). Henceforth, we assume either one of the first
+two 
+conditions to hold.
+
+The main goal below is to derive a hybrid learning rule by
+proposing the following objective function
+\[L\!=\!\frac{1}{4}\!\sum_{s=1}^n\!\sum_{k=1}^n\frac{\mu_k\lambda_{sk}w_{sk}^2}{\eta_{sk}}
+-\frac{1}{2}\!\sum_{s=1}^n\!\sum_{k=1}^n\mu_kw_{sk}S_s(z_s^{\infty})S_k(z_k^{\infty})\]
+\[+\sum_{k=1}^n\mu_k\int_0^{z_k^{\infty}}g_k(\xi_k, 
+K_k)\frac{dS_k(\xi_k)}{d\xi_k}d\xi_k~~~~~~~~~~\]
+$$+\frac{1}{2}\sum_{k=1}^n\alpha_k[S_k(K_k)-S_k(z_k^{\infty})]^2,
+~~~~~~~~~~~~~~\eqno(8)$$ 
+where
+\[\eta_{sk}=\mu_{max(s, k)}/\mu_k.\] 
+This objective function is a combination of a Hopfield-type energy
+function
+(first 3 terms) and an error function as used in multi-layer
+perceptrons.
+Accordingly, taking the gradient of $L$ in weight space yields a
+learning
+rule which contains Hebbian as well as backpropagation terms. Whether
+such a 
+hybrid formulation may permit more efficient learning than either the
+Hebb rule or the delta rule alone, has yet to be checked for specific 
+applications. In any case, (8) leads to a generalization of the standard
+learning algorithms and thus may be useful for efficient neural
+programming.
+
+The following calculations are carried out in MACSYMA 4.103 with our
+toolkit.
+Following the MACSYMA input lines, we use the text form instead of the
+display of computer output for space limitation.
+All these expressions are exactly a copy of the original forms. 
+
+\bigskip
+\noindent
+{\em B. Derivation of a Hybrid Learning Rule}
+
+\smallskip
+We calculate now the differential of $L$ along trajectories of the 
+neural system which need be derived. It is assumed that each
+$z_r^{\infty}$ is
+dependent on the weight $w_{ij}$.
+
+Calculating first the partial derivative of $L$ with respect to 
+$z_r^{\infty}$ and simplifying it by SUMSIMP, we have
+
+\medskip
+\noindent
+{\tt (C5) SUMSIMP(DF(LL, Z[R]));\footnote{Since there is no 
+difference between small letters and capital letters in MACSYMA, 
+we use a double letter instead of the normal capital letter. 
+In MACSYMA, the input lines are automatically indexed by labels
+of the form {\tt (Ci)} where {\tt i} is an integer, incremented with
+each new line and the subscripts are entered by using a pair 
+of square brackets (cf.\ [12]). 
+Here we simply use z for $z^{\infty}$, and the same 
+below.}} 
+\[\frac{\partial L}{\partial z_r^{\infty}}
+=
+-\frac{1}{2}S_r'\{\sum_{s=1}^nS_s(z_s^{\infty})(\mu_sw_{rs}+w_{sr}\mu_r)
+~~~~~~~~~~\]
+\[~~~~~~~~~~-2\mu_rg_r(z_r^{\infty},K_r)-2\alpha_r[S_r(z_r^{\infty})-S_r(K_r)]\},\]
+provided that $1\leq r\leq n$.                          
+Assume now that $w_{ji}$ is dependent on $w_{ij}$ (cf.\ [8, 17]). Then
+
+\medskip
+\noindent
+{\tt (C6) SUMSIMP(DF(LL,W[I,J]))+SUMSIMP(DF(LL,
+
+~~W[J,I]))*'DIFF(W[J,I],W[I,J]);} 
+\[\tilde{L}=\frac{\partial L}{\partial w_{ij}}+
+\frac{\partial L}{\partial w_{ji}}\frac{dw_{ji}}{dw_{ij}}~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~\]
+\[=-\frac{\mu_i[S_i(z_i^{\infty})\eta_{ji}S_j(z_j^{\infty})-\lambda_{ji}w_{ji}]
+}{2\eta_{ji}}\frac{dw_{ji}}{dw_{ij}}\]
+\[-\frac{\mu_j[\eta_{ij}S_i(z_i^{\infty})S_j(z_j^{\infty})-\lambda_{ij}w_{ij}]
+}{2\eta_{ij}},~~\]
+provided that $1\leq i, j\leq n$.
+Hence
+
+\medskip
+\noindent
+{\tt (C7) SUM(D5*'DIFF(Z[R],W[I,J]),R,1,N)+D6;
+\[\frac{dL}{dw_{ij}}=\sum_{r=1}^n\frac{\partial L}{\partial
+z_r^{\infty}}
+\frac{dz_r^{\infty}}{dw_{ij}}+\tilde{L}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\]                             
+
+\[=-\frac{1}{2}\sum_{r=1}^nS_r'\frac{dz_r^{\infty}}{dw_{ij}}
+\{\sum_{s=1}^nS_s(z_s^{\infty})(\mu_sw_{rs}+w_{sr}\mu_r)\]
+\[~~-2\mu_rg_r(z_r^{\infty},K_r)
+-2\alpha_r[S_r(z_r^{\infty})-S_r(K_r)]\}\]
+\[-\frac{\mu_i[(S_i(z_i^{\infty})\eta_{ji}S_j(z_j^{\infty})-\lambda_{ji}w_{ji}]
+}{2\eta_{ji}}\frac{dw_{ji}}{dw_{ij}}~~~~\]
+\[-\frac{\mu_j[\eta_{ij}S_i(z_i^{\infty})S_j(z_j^{\infty})-\lambda_{ij}w_{ij}]
+}{2\eta_{ij}}.~~~~~~~~~\]
+Substituting $g_r(z_r^{\infty},K_r)$ by using the fixed point equation
+(7) and 
+simplifying then the resulting expression, we obtain
+
+\medskip
+\noindent
+{\tt (C8) FACTORSUM(SUMCONT(SUBST('SUM(W[R,S]*SS}
+
+[S](Z[S]),S,1,N),G[R](Z[R],KK[R]),D7)));} 
+\[\frac{dL}{dw_{ij}}=
+\{\eta_{ij}\eta_{ji}\sum_{r=1}^nS_r'\frac{dz_r^{\infty}}{dw_{ij}}
+\{\sum_{s=1}^nS_s^{\infty}(z_s^{\infty})
+[(2\mu_r-\mu_s)w_{rs}\]
+\[-w_{sr}\mu_r]+2\alpha_rS_r(z_r^{\infty})-2\alpha_rS_r(K_r)\}~~~~\]
+\[~~~~-\mu_i\eta_{ij}S_i(z_i^{\infty})
+\eta_{ji}S_j(z_j^{\infty})\frac{dw_{ji}}{dw_{ij}}
++\mu_i\eta_{ij}\lambda_{ji}w_{ji}\frac{dw_{ji}}{dw_{ij}}\]
+\[~~~~~~-\eta_{ij}S_i(z_i^{\infty})\mu_j\eta_{ji}S_j(z_j^{\infty})
++\lambda_{ij}w_{ij}\mu_j\eta_{ji}\}/(2\eta_{ij}\eta_{ji}).\]
+
+OK let's finish up with the references list and the biography section.
+
+
+
+
+\begin{yourbibliography}{99}
+\bibitem{}This is a reference that might appear in a compuscript and
+since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'. 
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+\bibitem{}This is another reference that might appear in a compuscript
+and since it is in electronic form, no rekeying is required ...only
+editorial `manipulation'.
+
+\end{yourbibliography}
+
+
+
+
+
+\begin{yourbiography}{Gerry Murray}
+...will process your compuscript, adding `value' to your file using a
+sophisticated text editor. Jeremy Barth will standardize the dimensions
+you've used, run a spell check, apply SGML tags to structure your
+document and validate all coding. The editor will `on-screen edit' the
+file, `size' your artwork and supply you with a laser proof by mail, or
+by fax, or even email you a postscript version of the file which you can
+view on your workstation (using OpenWindows, NeXT, or an appropriate
+postscript viewer). When the editor is finished incorporating your
+amendments, Tom Bontrager, Mark Pheffer, Dalton Patterson or Chaucer
+Tran will receive the file and apply their abundant knowledge of
+typesetting to produce a document of the highest possible quality. A
+postscript file will be generated, output at 2032dpi on high quality RC
+paper for final examination by the editor. Christine will incorporate
+the artwork, the resulting camera-ready-copy will then be shot, the film
+supplied to the printer and your paper printed in the transaction for
+all to admire.  
+\end{yourbiography}
+
+\end{document}
+
+
+
+
+
+
+----------------------------------How To------------------------------
+
+
+The ***REAL*** way to use `IEEEtran.sty' is as follows:
+
+Use \documentstyle{article} or your favourite style file, pulling in
+all your wonderful symbolics ***as you are writing your paper*** and as you and
+the reviewer(s) are putting your wits together to culminate in a masterpiece!
+
+When you are happy with the ***ultimate unequivocal final version*** .....
+
+***THEN***...
+
+1) Change the \documentstyle to use `IEEEtran.sty'
+
+2) Change the symbolics so that the file actually contains the numbers
+   i.e. blah blah \cite{fred} and so on and so on
+   should be changed to:
+   blah blah [3] and so on and so on 
+   ....one author (who used the style file) did a smart thing 
+       AFTER he had decided upon a final version...
+   He put his \cites and other symbolics on a line on their own and 
+   commented them out (from the formatting) by putting a % sign before each
+   symbolic. Then, on the next line he just inserted the copy-matching 
+   numerical, like this:
+
+      Well, according the Fred Bloggs
+      %\cite{FredBloggs}
+      [24]
+      the value of $\alpha$ should be even greater than what we think it
+      should be.
+
+   Thus, HE knows he put in the correct (copy-matching) numerical and WE
+   can send him back an author-proof that correctly matches his submission.
+ 
+3) The above also applies to the Figure cites (and any `auto-numbering' feature,
+   standard or synonymous with your system).
+
+4) Change the \section'ing to small caps and \sub/\subsubsection'ing to italics. 
+
+In essence, by you actually putting in the CORRECT COPY MATCHING numericals
+we don't have to jump through hoops due to incomplete files being sent to us
+(the wrong `.bib', `.bbl', the wrong versions of figures etc).  Also, and 
+more importantly, the #'s that are on your hard-copy (and in the reviewer's
+hands) will be the same ones that you receive in your author proof. 
+We cannot guarantee this if symbolics are used, you see!
+
+5) Figure captions can be part of the text (in between paragraphs) like this:
+   
+       And in Fig. 3 we see that the value of $\alpha$ increases
+     exponentially.
+
+     Fig. 3\quad This is the caption for figure 3 showing some $\alpha$.
+
+       And after the caption we continue on with the next paragraph, like this.
+
+And since we've been doing disks for quite some time now --- many, many
+submissions are incomplete and out of date --- much grief!!!
+
+---Not so if the FILE contains EVERYTHING AS IS ON THE H/C !!!
+
+Then you should be able to get a fairly accurate printout of what your
+paper (author proof) will look like.
+
+If some of the math splashes over the 21pica width then you should break it
+as you see fit (and mathematically correct too!).
+
+I know, I know, seems like an awful lot of work ....but not really...after all
+you want your paper published quickly, right?
+Also, we want to process your paper quickly and efficiently, and assure you
+that what you send in WILL actually be sent back to you sans mistakes 
+(cites etc.) In addition, if the math is broken --- it's even better for all.
+
+In essence, `IEEEtran.sty' is not really for formatting (paper printout)
+- but is REALLY for our INPUT PROCESSING which is chalk and cheese, frankly.
+
+I hope this gives you some insight.
+
+Gerry
+
+
+

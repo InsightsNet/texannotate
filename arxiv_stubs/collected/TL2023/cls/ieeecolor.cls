@@ -3972,12 +3972,9 @@ which is provided to fool Hyperref.}}
          {\lineskip.5em\sublargesize\sf\@author\centerline\@specialpapernotice\par}%
       \fi
    \fi
-  \@IEEEtitleabstractindextext
 \fi\fi\end{center}}
 
-\def\@IEEEtitleabstractindextext{}
 
-\long\def\IEEEtitleabstractindextext#1{\def\@IEEEtitleabstractindextext{\parbox{1\textwidth}{{\color{subsectioncolor}\hrule}\bigskip\par#1\bigskip\par{\color{subsectioncolor}\hrule}}}}
 
 % V1.6b define the \IEEEpeerreviewmaketitle as needed
 \if@peerreviewoption

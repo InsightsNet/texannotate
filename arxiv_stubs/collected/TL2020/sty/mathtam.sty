@@ -1,0 +1,669 @@
+
+%----------------------------------------------------------------------------------------
+%	MATHEMATICS STYLING
+%----------------------------------------------------------------------------------------
+\let\openbox\relax % another package also defines openbox...
+\usepackage{harpoon,physics}
+\usepackage{pstricks}
+\usepackage{dashrule}
+\usepackage{pst-plot}%, pst-math}
+\usepackage{pst-func}
+\usepackage{pst-ode}
+\usepackage{pst-3dplot}
+\usepackage{pst-solides3d}
+
+
+
+% ALLOWS ONE TO EXCEED TPYICAL MAX FONTS
+\newcommand\hmmax{0}
+\newcommand\bmmax{0}
+
+% ROMAN NUMERALS
+\makeatletter
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+
+
+% OVERIDDEN COMMANDS
+% forall
+\let\oldforall\forall
+\renewcommand{\forall}{\;\oldforall\;}
+
+% degree
+\renewcommand{\degrees}{$^{\circ}$}
+
+
+% mod
+\renewcommand{\mod}{\text{\;mod\;}}
+
+% Maps
+\renewcommand{\to}{\rightarrow}
+
+% inner product
+\renewcommand{\ip}[2]{\langle #1 , #2 \rangle}
+\newcommand{\inp}{\langle .\ , . \rangle}
+
+% PHYSICS
+
+% conjugate
+\newcommand{\conj}{^{*}}
+% Hermitian conjugate
+\newcommand{\conjtrans}{^{*\text{T}}}
+\newcommand{\lconjtrans}[1]{\overline{#1}^{\text{T}}}
+\newcommand{\Hconj}{^\dagger}
+
+% transition amplitude
+\newcommand{\ta}[3]{\mel{#1}{#2}{#3}}
+
+%average
+\newcommand{\avg}[1]{\expval{#1}}
+
+% NEW COMMANDS
+\usepackage{mathtools}
+% \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+% Feynman slash notation
+\usepackage{slashed}
+\newcommand{\fspartial}{\slashed{\partial}}
+\newcommand{\fsgrad}{\slashed{\grad}}
+
+% levi civita
+\newcommand{\levic}{\varepsilon}
+
+% sign operator
+\newcommand{\sgn}[1]{\text{sgn}(#1)}
+
+% derivatives
+\let\d\relax
+\DeclareMathOperator{\d}{\mathrm d}
+\newcommand{\partiald}[2]{\frac{\partial #1}{\partial #2}}
+%\renewcommand{\dfrac}[1]{\frac{d}{d#1}}
+
+% set minus
+\newcommand{\sm}{\setminus}
+
+% Adjoint of matrix
+\newcommand{\adj}[1]{\text{adj}(#1)}
+
+% transpose
+\newcommand{\trans}{^\intercal}
+
+% identity
+\usepackage{bbold}
+\newcommand{\Id}{\mathbb{1}}
+
+% 1 : 1
+\newcommand{\onetoone}{\xleftrightarrow{\text{DFT}}}
+
+% misceallany from evan chen
+%\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceiling}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\eps}{\varepsilon}
+
+% vectors
+\usepackage{bm}
+%\newcommand*{\bg}[1]{\bm{#1} }
+%\newcommand*{\bvec}[1]{\mathbf{#1} }
+\newcommand{\bvec}[1]{\boldsymbol{\bm{#1}}}
+\renewcommand*{\vec}[1]{\text{\overrightharp{\ensuremath{#1}}}}
+
+% probability
+\renewcommand{\Pr}[0]{\mathbb P}
+
+% inline chi
+\let\oldchi\chi
+\renewcommand\chi{\raisebox{2pt}{\scalebox{1}{$\oldchi$}}}
+\let\bigchi\chi
+\newcommand\Chi{\raisebox{.125pt}{\scalebox{1.3}{$\bigchi$}}}
+
+%More commands and math operators
+\DeclareMathOperator{\cis}{cis}
+\DeclareMathOperator*{\lcm}{lcm}
+\DeclareMathOperator*{\argmin}{arg min}
+\DeclareMathOperator*{\argmax}{arg max}
+\DeclareMathOperator{\Var}{\text{var}}
+
+
+
+%Inequalities
+\newcommand{\cycsum}{\sum_{\mathrm{cyc}}}
+\newcommand{\symsum}{\sum_{\mathrm{sym}}}
+\newcommand{\cycprod}{\prod_{\mathrm{cyc}}}
+\newcommand{\symprod}{\prod_{\mathrm{sym}}}
+
+%From Kiran Kedlaya's "Geometry Unbound"
+%\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+%\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\dang}{\measuredangle} %% Directed angle
+\newcommand{\ray}[1]{\overrightarrow{#1}} 
+\newcommand{\seg}[1]{\overline{#1}}
+\newcommand{\arc}[1]{\wideparen{#1}}
+
+%From M275 "Topology" at SJSU
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\taking}[1]{\xrightarrow{#1}}
+\newcommand{\inv}{^{-1}}
+
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Inn}{Inn}
+\DeclareMathOperator{\Syl}{Syl}
+\DeclareMathOperator{\Gal}{Gal}
+\DeclareMathOperator{\GL}{GL} % General linear group
+\DeclareMathOperator{\SL}{SL} % Special linear group
+
+% SIGMA ALGEBRAS
+\usepackage[mathscr]{euscript}
+\newcommand{\Cl}{\mathcal{C\ell}} % Clifford algebra
+
+% SPACES
+\usepackage{mathrsfs}
+\DeclareMathAlphabet{\dutchcal}{U}{dutchcal}{m}{n}
+\SetMathAlphabet{\dutchcal}{bold}{U}{dutchcal}{b}{n}
+\DeclareMathAlphabet{\dutchbcal} {U}{dutchcal}{b}{n}
+\newcommand{\Proj}{\mathcal{P}} 
+\newcommand{\Hil}{\dutchcal{H}} 
+\newcommand{\HH}{\mathcal{H}} 
+\newcommand{\PH}{\mathcal{P}\Hil} 
+
+
+%From M170 "Introduction to Graph Theory" at SJSU
+\DeclareMathOperator{\diam}{diam}
+\DeclareMathOperator{\ord}{ord}
+\newcommand{\defeq}{\overset{\mathrm{def}}{=}}
+
+\newcommand{\liff}{\leftrightarrow}
+\newcommand{\lthen}{\rightarrow}
+\newcommand{\opname}{\operatorname}
+\newcommand{\surjto}{\twoheadrightarrow}
+\newcommand{\injto}{\hookrightarrow}
+\newcommand{\On}{\mathrm{On}} % ordinals
+\DeclareMathOperator{\img}{im} % Image
+\DeclareMathOperator{\Img}{Im} % Image
+\DeclareMathOperator{\coker}{coker} % Cokernel
+\DeclareMathOperator{\Coker}{Coker} % Cokernel
+\DeclareMathOperator{\Ker}{Ker} % Kernel
+%\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Spec}{Spec} % spectrum
+%\DeclareMathOperator{\Tr}{Tr} % trace
+\DeclareMathOperator{\pr}{pr} % projection
+\DeclareMathOperator{\ext}{ext} % extension
+\DeclareMathOperator{\pred}{pred} % predecessor
+\DeclareMathOperator{\dom}{dom} % domain
+\DeclareMathOperator{\ran}{ran} % range
+\DeclareMathOperator{\Hom}{Hom} % homomorphism
+\DeclareMathOperator{\Mor}{Mor} % morphisms
+\DeclareMathOperator{\End}{End} % endomorphism
+
+% MATH ARROWS
+\newcommand{\up}{\uparrow}
+\newcommand{\down}{\downarrow}
+
+% MATH LETTERING
+\newcommand{\C}{\mathbb C}
+\newcommand{\F}{\mathbb F}
+\newcommand{\N}{\mathbb N}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\RR}{\mathbb R}
+\newcommand{\EE}{\mathbb E}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\charin}{\text{ char }}
+
+
+\renewcommand{\Re}{\mathbb{Re}}
+\renewcommand{\Im}{\mathbb{Im}}
+\newcommand{\Real}{\mathfrak Re}
+\newcommand{\Imag}{\mathfrak Im}
+\newcommand{\R}{\mathbb R}
+
+%From the USAMO .tex files
+\newcommand{\ts}{\textsuperscript}
+\newcommand{\dg}{^\circ}
+\newcommand{\ii}{\item}
+
+% More script letters etc.
+\newcommand{\SA}{\mathcal A}
+\newcommand{\SB}{\mathcal B}
+\newcommand{\SC}{\mathcal C}
+\newcommand{\SD}{\mathcal D}
+\newcommand{\SF}{\mathcal F}
+\newcommand{\SG}{\mathcal G}
+\newcommand{\SH}{\mathcal H}
+\newcommand{\SR}{\mathcal R}
+\newcommand{\OO}{\mathcal O}
+\newcommand{\scriptL}{\mathcal L}
+\newcommand{\FT}{\mathcal FT}
+\newcommand{\SN}{\mathcal N}
+\newcommand{\ST}{\mathcal T}
+\newcommand{\SV}{\mathcal V}
+\newcommand{\SW}{\mathcal W}
+
+
+\newcommand{\CE}{\mathcal E}
+\newcommand{\CS}{\mathcal S}
+
+\newcommand{\SCA}{\mathscr A}
+\newcommand{\SCB}{\mathscr B}
+\newcommand{\SCC}{\mathscr C}
+\newcommand{\SCD}{\mathscr D}
+\newcommand{\SCE}{\mathscr E}
+\newcommand{\SCF}{\mathscr F}
+\newcommand{\SCG}{\mathscr G}
+\newcommand{\SCH}{\mathscr H}
+\newcommand{\SCN}{\mathscr N}
+
+
+% MATH ENVIRONMENTS
+%Convenient Environments
+\newenvironment{soln}{\begin{proof}[Solution]}{\end{proof}}
+\newenvironment{parlist}{\begin{inparaenum}[(i)]}{\end{inparaenum}}
+\newenvironment{gobble}{\setbox\z@\vbox\bgroup}{\egroup}
+
+% From Math 55 and Math 145 at Harvard
+\newenvironment{subproof}[1][Proof]{%
+	\begin{proof}[#1] \renewcommand{\qedsymbol}{$\blacksquare$}}%
+	{\end{proof}}
+
+
+% DEFINE BOX COLOR SCHEMES
+
+\usepackage{amsthm} % needed for nothm+mdthm
+\usepackage{amssymb}
+\usepackage{thmtools}
+\usepackage[framemethod=TikZ]{mdframed}
+
+\newif\iftamfancy\tamfancytrue
+\newif\iftamhdr\tamhdrtrue
+\newif\iftamhref\tamhreftrue
+\newif\iftamsetup\tamsetuptrue
+\newif\iftamthm\tamthmtrue
+\newif\iftamsecthm\tamsecthmtrue
+\newif\iftamht\tamhtfalse
+\newif\iftampkg\tampkgtrue
+%\newif\iftampdf\tampdftrue
+\newif\iftamauthor\tamauthortrue
+\newif\iftammdthm\tammdthmtrue
+\newif\iftamdiagrams\tamdiagramsfalse
+\newif\iftampatchasy\tampatchasyfalse
+\newif\iftamhints\tamhintsfalse
+\newif\iftamasy\tamasytrue
+\newif\iftamcolorheadings\tamcolorheadingsfalse
+\newif\iftamtitlemark\tamtitlemarktrue
+\newif\iftamserifsec\tamserifsecfalse
+\newif\iftamseclines\tamseclinesfalse
+
+
+% update proof environment
+\makeatletter
+\renewenvironment{proof}[1][\proofname]{\par
+	\pushQED{\qed}%
+	\normalfont \topsep6\p@\@plus6\p@\relax
+	\trivlist
+	\item[%
+	\hskip\labelsep
+	\normalfont\bfseries \itshape
+	#1%
+	\@addpunct{.}% remove this if you don't want punctuation
+	]\ignorespaces
+}{%
+	\popQED\endtrivlist\@endpefalse
+}
+\let\qed\relax % avoid a warning
+\DeclareRobustCommand{\qed}{%
+	\ifmmode \mathqed
+	\else
+	\leavevmode\unskip\penalty\@M\hbox{}\nobreak\hspace{.5em minus .1em}% was \hfill
+	\hbox{\qedsymbol}%
+	\fi
+}
+\makeatother
+
+\def\roundness{0pt}
+
+% Blue
+\mdfdefinestyle{mdbluebox}{%
+		roundcorner = \roundness,
+		linewidth=1pt,
+		skipabove=12pt,
+		innerbottommargin=9pt,
+		skipbelow=2pt,
+		linecolor=NavyBlue,
+		nobreak=true,
+		backgroundcolor=TealBlue!5,
+}
+\declaretheoremstyle[
+headfont=\sffamily\bfseries\color{NavyBlue},
+notefont = \bfseries,
+mdframed={style=mdbluebox},
+headpunct={\\[3pt]},
+postheadspace={0pt}
+]{thmbluebox}
+
+% Yellow
+\mdfdefinestyle{mdyellowbox}{%
+	roundcorner = \roundness,
+	linewidth=1pt,
+	skipabove=12pt,
+	innerbottommargin=9pt,
+	skipbelow=2pt,
+	linecolor=Bittersweet,
+	nobreak=true,
+	backgroundcolor=Goldenrod!15,
+}
+\declaretheoremstyle[
+headfont=\sffamily\bfseries\color{Bittersweet},
+notefont = \bfseries,
+mdframed={style=mdyellowbox},
+headpunct={\\[3pt]},
+postheadspace={0pt}
+]{thmyellowbox}
+
+
+% Purple
+\mdfdefinestyle{mdpurplebox}{%
+	roundcorner = \roundness,
+	linewidth=1pt,
+	skipabove=12pt,
+	innerbottommargin=9pt,
+	skipbelow=2pt,
+	linecolor=Fuchsia,
+	nobreak=true,
+	backgroundcolor=Violet!5,
+}
+\declaretheoremstyle[
+headfont=\sffamily\bfseries\color{Fuchsia},
+notefont = \bfseries,
+mdframed={style=mdpurplebox},
+headpunct={\\[3pt]},
+postheadspace={0pt}
+]{thmpurplebox}
+
+% Red
+\mdfdefinestyle{mdredbox}{%
+	linewidth=0.5pt,
+	skipabove=12pt,
+	frametitleaboveskip=5pt,
+	frametitlebelowskip=0pt,
+	skipbelow=2pt,
+	frametitlefont=\bfseries,
+	innertopmargin=4pt,
+	innerbottommargin=8pt,
+	nobreak=true,
+	backgroundcolor=Salmon!5,
+	linecolor=RawSienna,
+}
+\declaretheoremstyle[
+headfont=\bfseries\color{RawSienna},
+notefont = \bfseries,
+mdframed={style=mdredbox},
+headpunct={\\[3pt]},
+postheadspace={0pt},
+]{thmredbox}
+
+
+% Green
+\mdfdefinestyle{mdgreenbox}{%
+	skipabove=8pt,
+	linewidth=2pt,
+	rightline=false,
+	leftline=true,
+	topline=false,
+	bottomline=false,
+	linecolor=ForestGreen,
+	backgroundcolor=ForestGreen!5,
+}
+\declaretheoremstyle[
+headfont=\bfseries\sffamily\color{ForestGreen!70!black},
+bodyfont=\normalfont,
+notefont = \bfseries,
+spaceabove=2pt,
+spacebelow=1pt,
+mdframed={style=mdgreenbox},
+headpunct={ --- },
+]{thmgreenbox}
+
+% Black
+\mdfdefinestyle{mdblackbox}{%
+	skipabove=8pt,
+	linewidth=3pt,
+	rightline=false,
+	leftline=true,
+	topline=false,
+	bottomline=false,
+	linecolor=black,
+	backgroundcolor=RedViolet!5!gray!5,
+}
+\declaretheoremstyle[
+headfont=\bfseries,
+notefont = \bfseries,
+bodyfont=\normalfont\small,
+spaceabove=12pt,
+spacebelow=12pt,
+mdframed={style=mdblackbox}
+]{thmblackbox}
+
+% No color box
+\mdfdefinestyle{mdblankbox}{%
+	roundcorner = \roundness,
+	linewidth=.75pt,
+	skipabove=12pt,
+%	outertopmargin=12pt,
+	innerbottommargin=9pt,
+%	skipbelow=2pt,
+	linecolor=Black,
+}
+\declaretheoremstyle[
+headfont=\sffamily\bfseries\color{Black},
+notefont = \bfseries,
+mdframed={style=mdblankbox},
+%headpunct={\\[3pt]},
+%postheadspace={0pt}
+]{thmblankbox}
+
+	
+\declaretheoremstyle[
+%spaceabove=0pt, 
+%spacebelow=0pt,
+headpunct = {},
+notebraces={}{},
+headindent = {0pt},
+%postheadhook = {\hspace{0mm}\newline},
+headformat=\NOTE,
+%headpunct={\\[3pt]},
+postheadspace={0pt},
+mdframed={style=mdbluebox}
+]{emptycolorthm}
+
+\declaretheoremstyle[
+spaceabove=0pt, 
+%spacebelow=0pt,
+headpunct = {},
+notebraces={}{},
+headindent = {0pt},
+%postheadhook = {\hspace{0mm}\newline},
+headformat=\NOTE,
+%headpunct={\\[3pt]},
+postheadspace={0pt},
+mdframed={skipabove=\parskip, skipbelow=\parskip, style=thmblankbox}
+]{emptythm}
+
+\usepackage{varwidth}
+\usepackage{environ}
+\newlength{\MyMdframedWidthTweak}%
+
+\NewEnviron{tbox}{%
+	\setlength{\MyMdframedWidthTweak}{\dimexpr%
+		+\mdflength{innerleftmargin}
+		+\mdflength{innerrightmargin}
+		+\mdflength{leftmargin}
+		+\mdflength{rightmargin}
+	}%
+	\savebox0{%
+		\begin{varwidth}{\textwidth}%
+			\BODY
+		\end{varwidth}%
+	}%
+	\begin{mdframed}[
+		roundcorner = \roundness,
+		linewidth=1pt,
+		skipabove=12pt,
+		skipbelow=2pt,
+		linecolor=NavyBlue,
+		align=center,
+		nobreak=true,
+		backgroundcolor=TealBlue!5,	
+		userdefinedwidth=\dimexpr\wd0+\MyMdframedWidthTweak\relax
+		]
+		\usebox0
+	\end{mdframed}
+}
+
+
+\NewEnviron{cbox}{%
+	\setlength{\MyMdframedWidthTweak}{\dimexpr%
+		+\mdflength{innerleftmargin}
+		+\mdflength{innerrightmargin}
+		+\mdflength{leftmargin}
+		+\mdflength{rightmargin}
+	}%
+	\savebox0{%
+		\begin{varwidth}{\textwidth}%
+			\BODY
+		\end{varwidth}%
+	}%
+	\begin{mdframed}[
+		roundcorner = \roundness,
+		linewidth=1pt,
+		skipabove=12pt,
+		skipbelow=2pt,
+		linecolor=NavyBlue,
+		align=center,
+		nobreak=true,
+		backgroundcolor=TealBlue!5,	
+		userdefinedwidth=\dimexpr\wd0+\MyMdframedWidthTweak\relax
+		]
+		\usebox0
+	\end{mdframed}
+}
+
+
+\NewEnviron{blankbox}{%
+	\setlength{\MyMdframedWidthTweak}{\dimexpr%
+		+\mdflength{innerleftmargin}
+		+\mdflength{innerrightmargin}
+		+\mdflength{leftmargin}
+		+\mdflength{rightmargin}
+	}%
+	\savebox0{%
+		\begin{varwidth}{\dimexpr\linewidth-\MyMdframedWidthTweak\relax}%
+			\BODY
+		\end{varwidth}%
+	}%
+	\begin{mdframed}[
+		roundcorner = \roundness,
+		linewidth=1pt,
+		skipabove=12pt,
+		skipbelow=2pt,
+		align=center,
+		nobreak=true,
+		userdefinedwidth=\dimexpr\wd0+\MyMdframedWidthTweak\relax
+		]
+		\usebox0
+	\end{mdframed}
+}
+
+
+%%fakesection Theorem setup
+\iftamthm
+	\theoremstyle{plain}
+%	Branching here: the option secthm changes theorems to be labelled by section
+	\iftammdthm
+		\iftamsecthm
+			\declaretheorem[style=thmyellowbox,name=Theorem,numberwithin=section]{theorem}
+		\else
+			\declaretheorem[style=thmyellowbox,name=Theorem]{theorem}
+		\fi
+		
+		\declaretheorem[style=thmyellowbox,name=Lemma,sibling=theorem]{lemma}
+		\declaretheorem[style=thmbluebox,name=Proposition,sibling=theorem]{proposition}
+		\declaretheorem[style=thmyellowbox,name=Corollary,sibling=theorem]{corollary}
+		\declaretheorem[style=thmyellowbox,name=Theorem,numbered=no]{theorem*}
+		\declaretheorem[style=thmbluebox,name=Lemma,numbered=no]{lemma*}
+		\declaretheorem[style=thmbluebox,name=Proposition,numbered=no]{proposition*}
+		\declaretheorem[style=thmyellowbox,name=Corollary,numbered=no]{corollary*}
+		
+		\declaretheorem[style=thmblankbox,name=Definition,sibling=theorem]{definition}
+		\declaretheorem[style=thmblankbox,name=Definition,numbered=no]{definition*}
+		
+%		\declaretheorem[style=thmpurplebox,name=Note,within=section]{note}
+%		\declaretheorem[style=thmpurplebox,name=Note,numbered=no]{note*}
+%		\declaretheorem[style=emptycolorthm,numbered=no]{cbox}
+%		\declaretheorem[style=emptythm,numbered=no]{blankbox}
+	\else
+		\iftamsecthm
+			\newtheorem{theorem}{Theorem}[section]
+		\else
+			\newtheorem{theorem}{Theorem}
+		\fi
+		\newtheorem{lemma}[theorem]{Lemma}
+		\newtheorem{proposition}[theorem]{Proposition}
+		\newtheorem{corollary}[theorem]{Corollary}
+		\newtheorem*{theorem*}{Theorem}
+		\newtheorem*{lemma*}{Lemma}
+		\newtheorem*{proposition*}{Proposition}
+		\newtheorem*{corollary*}{Corollary}
+	\fi
+
+	%Def-style theorems
+	\theoremstyle{definition}
+	% This ought to be a real theorem, but would be too much italics
+	\iftammdthm
+		\declaretheorem[style=thmgreenbox,name=Algorithm,sibling=theorem]{algorithm}
+		\declaretheorem[style=thmgreenbox,name=Algorithm,numbered=no]{algorithm*}
+		\declaretheorem[style=thmgreenbox,name=Claim,sibling=theorem]{claim}
+		\declaretheorem[style=thmgreenbox,name=Claim,numbered=no]{claim*}
+	\else
+		\newtheorem{algorithm}[theorem]{Algorithm}
+		\newtheorem*{algorithm*}{Algorithm}
+		\newtheorem{claim}[theorem]{Claim}
+		\newtheorem*{claim*}{Claim}
+	\fi
+	\newtheorem{conjecture}[theorem]{Conjecture}
+%	\newtheorem{definition}[theorem]{Definition}
+	\newtheorem{fact}[theorem]{Fact}
+	\newtheorem{answer}[theorem]{Answer}
+% 	\newtheorem{case}[theorem]{Case}
+% 	\newtheorem{ques}[theorem]{Question}
+% 	\newtheorem{exercise}[theorem]{Exercise}
+% 	\newtheorem{problem}[theorem]{Problem}
+% 	\newtheorem*{conjecture*}{Conjecture}
+%	\newtheorem*{definition*}{Definition}
+% 	\newtheorem*{fact*}{Fact}
+% 	\newtheorem*{answer*}{Answer}
+% 	\newtheorem*{case*}{Case}
+% 	\newtheorem*{joke*}{Joke}
+% 	\newtheorem*{ques*}{Question}
+% 	\newtheorem*{exercise*}{Exercise}
+% 	\newtheorem*{problem*}{Problem}
+	\iftammdthm
+		\declaretheorem[style=thmredbox,name=Example,sibling=theorem]{example}
+		\declaretheorem[style=thmredbox,name=Example,numbered=no]{example*}
+	\else
+		\newtheorem{example}[theorem]{Example}
+		\newtheorem*{example*}{Example}
+	\fi
+	
+%	 Remark-style theorems
+	\theoremstyle{remark}
+	\iftammdthm
+		\declaretheorem[style=thmblackbox,name=Remark,sibling=theorem]{remark}
+		\declaretheorem[style=thmblackbox,name=Remark,numbered=no]{remark*}
+	\else
+		\newtheorem{remark}[theorem]{Remark}
+		\newtheorem*{remark*}{Remark}
+	\fi
+		\newtheorem{abuse}[theorem]{Abuse of Notation}
+		\newtheorem*{abuse*}{Abuse of Notation}
+\fi

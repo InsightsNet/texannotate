@@ -370,14 +370,14 @@
        \hfill{\raisebox{5pt}{{\titlepageheaderfont\color{accessblue}\headName}}}%
        \vspace*{-3.5mm}\par\mbox{}\hfill\rule{30.54pc}{.3pt}}}
      \def\@oddfoot{\raisebox{3pt}{%%
-       \hbox to 0pc{\hbox to \textwidth{{\footervolfont }\hfill\mbox{}}}%
+       \hbox to 0pc{\hbox to \textwidth{{\footervolfont VOLUME\ \thevol, \theyear}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont\@pubid}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footerpagefont\@artnum}}}%\hspace*{1.8pc}
        }}
      \def\@evenfoot{\raisebox{3pt}{%
        \hbox to 0pc{\hbox to \textwidth{{\footerpagefont\@artnum}}\hfill\mbox{}}\hspace*{1.8pc}%\hspace*{-1.8pc}
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont\@pubid}\hfill\mbox{}}}%
-       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont }}}%
+       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont VOLUME\ \thevol, \theyear}}}%
      }}
   }
 % normal page
@@ -389,29 +389,29 @@
        \headerlogo\hfill{\raisebox{5pt}{\headerfont\leftmark}}\vspace*{-3.55mm}\par%
        \mbox{}\hfill\rule{30.54pc}{.3pt}}}
      \def\@oddfoot{\raisebox{8pt}{%
-       \hbox to 0pc{\hbox to \textwidth{{\footervolfont }\hfill\mbox{}}}%
+       \hbox to 0pc{\hbox to \textwidth{{\footervolfont VOLUME\ \thevol, \theyear}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footerpagefont\@artnum}}}%\hspace*{1.8pc}
        }}
      \def\@evenfoot{\raisebox{8pt}{%
        \hbox to 0pc{\hbox to \textwidth{{\footerpagefont\@artnum}\mbox{}\hfill}}%\hspace*{1.8pc}%\hspace*{-1.8pc}
-       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont }}}%
+       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont VOLUME\ \thevol, \theyear}}}%
      }}
   }
 \else
-  \def\headerlogo{\raisebox{-2pt}{\includegraphics[width=7.61pc]{Logo.png}}}
-  \def\headerlogoall{\raisebox{-2pt}{\includegraphics[width=7.61pc]{notaglineLogo.png}}}
+  \def\headerlogo{\raisebox{-2pt}{\includegraphics[width=7.61pc]{logo.png}}}
+  \def\headerlogoall{\raisebox{-2pt}{\includegraphics[width=7.61pc]{notaglinelogo.png}}}
   \def\ps@titlepage{%
     \def\@oddhead{\parbox[t]{\textwidth}{\mbox{}\\[-6.3mm]\mbox{}\nheaderfont\color{accessblue}\headName\hfill\headerlogo{\raisebox{-2pt}{\,}}\color{black}\vspace*{-1.5mm}\par\hrulefill}}
     \def\@evenhead{\parbox[t]{\textwidth}{\mbox{}\\[-6.3mm]\mbox{}\headerlogo\hfill\nheaderfont\color{accessblue}\headName{\raisebox{-2pt}{\,}}\color{black}\vspace*{-1.5mm}\par\hrulefill}}
      \def\@oddfoot{\raisebox{3pt}{%%
-       \hbox to 0pc{\hbox to \textwidth{{\footervolfont }\hfill\mbox{}}}%
+       \hbox to 0pc{\hbox to \textwidth{{\footervolfont VOLUME\ \thevol, 2016}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont\@pubid}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footerpagefont\thepage}}}%\hspace*{1.8pc}
        }}
      \def\@evenfoot{\raisebox{3pt}{%
        \hbox to 0pc{\hbox to \textwidth{{\footerpagefont\thepage}\hfill}\mbox{}}\hspace*{1.8pc}%\hspace*{1.8pc}
        \hspace*{-1.8pc}\hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont\@pubid}\hfill\mbox{}}}%
-       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont }}}\hspace*{1.8pc}% [updated here]
+       \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont VOLUME\ \thevol, 2016}}}\hspace*{1.8pc}% [updated here]
      }}
   }
 % normal page
@@ -419,12 +419,12 @@
      \def\@oddhead{\parbox[t]{\textwidth}{\mbox{}\\[-6.3mm]{\raisebox{-2pt}{\headerfont\rightmark}}\hfill\headerlogoall\mbox{}\vspace*{-1.5mm}\par\hrulefill}}
      \def\@evenhead{\parbox[t]{\textwidth}{\mbox{}\\[-6.3mm]\mbox{}\headerlogoall\hfill{\raisebox{-2pt}{\headerfont\leftmark}}\vspace*{-1.5mm}\par\hrulefill}}
      \def\@oddfoot{\raisebox{8pt}{%
-       \hbox to 0pc{\hbox to \textwidth{{\footervolfont }\hfill\mbox{}}}%
+       \hbox to 0pc{\hbox to \textwidth{{\footervolfont VOLUME\ \thevol, 2016}\hfill\mbox{}}}%
        \hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footerpagefont\thepage}}}%\hspace*{1.8pc}
        }}
      \def\@evenfoot{\raisebox{8pt}{%
        \hbox to 0pc{\hbox to \textwidth{{\footerpagefont\thepage}\mbox{}\hfill}}\hspace*{1.8pc}%\hspace*{-1.8pc}
-       \hspace*{-1.8pc}\hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont }}}\hspace*{1.8pc}% [updated here]
+       \hspace*{-1.8pc}\hbox to 0pc{\hbox to \textwidth{\mbox{}\hfill{\footervolfont VOLUME\ \thevol, 2016}}}\hspace*{1.8pc}% [updated here]
      }}
   }
 \fi

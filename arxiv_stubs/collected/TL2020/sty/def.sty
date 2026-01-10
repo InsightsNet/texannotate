@@ -1,0 +1,245 @@
+\newcommand{\bx}{{\textbf{x}}}
+\newcommand{\ty}{{\tilde{y}}}
+\newcommand{\hy}{{\hat y}}
+\newcommand{\bw}{{\textbf{w}}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\bes}{\begin{equation*}}
+\newcommand{\ees}{\end{equation*}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\cL}{{\cal L}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\sE}{\mathbb{E}}
+\newcommand{\cN}{{\cal N}}
+\newcommand{\cC}{{\cal C}}
+\newcommand{\cY}{{\cal Y}}
+\newcommand{\cD}{{\cal D}}
+\newcommand{\cZ}{{\cal Z}}
+\newcommand{\cX}{{\cal X}}
+\newcommand{\cR}{{\cal R}}
+\newcommand{\cB}{{\cal B}}
+
+%\newcommand*\circled[2]{\tikz[baseline=(char.base)]{
+%            \node[shape=circle,fill=black,inner sep=1pt] (char) %
+%{\textcolor{#1}{{\footnotesize #2}}};}}
+%\newcommand*\circled[1]{%
+%  \protect\tikz[baseline=(char.base)]{%
+%      \protect\node[shape=circle,fill=gray,font=\bfseries,inner sep=0.5pt] (char) {\textcolor{white}{#1}};%
+%    }%
+%}
+
+\newcommand*\circleb[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=0.5pt,fill=black,text=white, scale=0.85] (char) {#1};}}
+
+\newcommand*\circlep[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw=violet!85,inner sep=0.5pt,fill=violet!85,text=white, scale=0.85] (char) {#1};}}
+
+
+            
+%%\newcommand*\blkcircled[1]{\tikz[baseline=(char.base)]{
+%%            \node[shape=circle,fill=black,font=\bfseries,inner %sep=1pt] (char) {\textcolor{white}{#1}};}}
+%\newcommand*\blkcircled[1]{%
+%  \protect\tikz[baseline=(char.base)]{%
+%      \protect\node[shape=circle,fill=black,font=\bfseries,inner sep=0.5pt] (char) {\textcolor{white}{#1}};%
+%    }%
+%}
+%        
+%\newcommand*\redcircled[1]{\tikz[baseline=(char.base)]{
+%            \node[shape=circle,fill=red,font=\bfseries,inner sep=1pt] (char) {\textcolor{white}{#1}};}}
+%\newcommand*\doucircled[1]{\tikz[baseline=(char.base)]{
+%            \node[shape=circle,fill=red,font=\bfseries,inner sep=0.5pt] (char) {\textcolor{white}{#1}};}}
+%
+%
+
+\newcommand{\revised}[1]{{\color{black} #1}}
+
+
+\newcommand{\todo}[2]{
+\textcolor{red}{TODO[#1]:} \textcolor{blue}{\textit{#2}\xspace}
+}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\makeatletter
+\usepackage{xspace}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+
+\newcommand{\Sect}[1]{$\S$~\ref{#1}}
+\newcommand{\Fig}[1]{Figure~\ref{#1}}
+\newcommand{\Tbl}[1]{Table~\ref{#1}}
+\newcommand{\Alg}[1]{Algorithm~\ref{#1}}
+\newcommand{\Equ}[1]{Equation~\ref{#1}}
+\newcommand{\Apx}[1]{Appendix~\ref{#1}}
+
+%\newcommand{\figref}[1]{Figure~\ref{#1}}
+%\newcommand{\equref}[1]{Eq\onedot~\eqref{#1}}
+%\newcommand{\secref}[1]{$\S$~\ref{#1}}
+%\newcommand{\tabref}[1]{Table~\ref{#1}}
+%\newcommand{\thmref}[1]{Theorem~\ref{#1}}
+%\newcommand{\prgref}[1]{Program~\ref{#1}}
+%\newcommand{\algref}[1]{Algorithm~\ref{#1}}
+%\newcommand{\clmref}[1]{Claim~\ref{#1}}
+%\newcommand{\lemref}[1]{Lemma~\ref{#1}}
+%\newcommand{\ptyref}[1]{Property\onedot~\ref{#1}}
+
+\newcommand{\specialcell}[2][c]{\begin{tabular}[#1]{@{}l@{}}#2\end{tabular}}
+
+\newcommand{\RNum}[1]{\uppercase\expandafter{\romannumeral #1\relax}}
+
+\def\eg{{e.g}\onedot} \def\Eg{{E.g}\onedot}
+\def\ie{{i.e}\onedot} \def\Ie{{I.e}\onedot}
+\def\cf{\textit{cf}\onedot} \def\Cf{{Cf}\onedot}
+\def\etc{\textit{etc}\onedot} \def\vs{\textit{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\textit{et al}\onedot}
+%\newcommand{\Eg}{{\em E.g.}, }
+%\newcommand{\eg}{{\em e.g.}, }
+%\newcommand{\ie}{{\em i.e.}, }
+%\newcommand{\etal}{{\em et al.}}
+
+%\def\pname{{NetTensor}\xspace}
+%\def\archabs{\textsf{\footnotesize our name}\xspace}
+\newcommand{\pname}[1]{{{{LeaFTL}}}{#1}}
+\newcommand{\palg}[1]{{{adaptive}}{#1}}
+
+\newcommand{\website}[1]{{\tt #1}}
+\newcommand{\program}[1]{{\tt #1}}
+\newcommand{\benchmark}[1]{{\it #1}}
+\newcommand{\fixme}[1]{{\textcolor{red}{\textit{#1}}}}
+
+\ifx\figurename\undefined \def\figurename{Figure}\fi
+\renewcommand{\figurename}{Figure}
+\renewcommand{\paragraph}[1]{\textbf{#1}~~}
+\newcommand{\figline}{{\vspace*{.05in}\hline}}
+
+
+
+\newenvironment{enumpacked}{%
+\begin{enumerate}[noitemsep,nolistsep,leftmargin=*]
+}
+{%
+\end{enumerate}
+}
+\newenvironment{itempacked}{%
+\begin{itemize}[noitemsep,nolistsep,leftmargin=*]
+}
+{%
+\end{itemize}
+}
+%\begin{enumerate}[label={(\arabic*)},noitemsep,nolistsep,leftmargin=*]	
+%\end{enumerate}
+
+
+\newcommand{\tline}[0]{\vspace{2pt}\hrule}
+\newcommand{\bline}[0]{\vspace{-5pt}\hrule\vspace{2.5pt}}
+%\newcommand{\niparagraph}[1]{\vspace{2pt}\noindent\textbf{\sffamily#1}}
+\newcommand{\niparagraph}[1]{\vspace{3pt}\noindent\textbf{#1}}
+
+
+\newcommand{\hilite}[2]{\marginnote{\textcolor{blue}{#1}}\textcolor{red}{#2}\xspace}
+
+
+\newcommand{\tabincell}[2]{
+   \begin{tabular}{@{}#1@{}}#2\end{tabular}
+}
+
+%\newcommand{\iscasubmissionnumber}{726}
+%\fancypagestyle{firstpage}{
+%  \fancyhf{}
+%\renewcommand{\headrulewidth}{0pt}
+%  \fancyhead[C]{\normalsize{ISCA 2019 Submission
+%      \textbf{\#\iscasubmissionnumber} \\ Confidential Draft: DO NOT DISTRIBUTE}} 
+%  \fancyfoot[C]{\thepage}
+%}  
+
+%\pagenumbering{arabic}
+
+\definecolor{codered}{rgb}{0.9,0,0}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\makeatletter
+\newcommand\BeraMonottfamily{%
+  \def\fvm@Scale{0.6}% scales the font down
+  \fontfamily{fvm}\selectfont% selects the Bera Mono font
+}
+\makeatother
+ 
+
+%\lstdefinestyle{mystyle}{
+%    %backgroundcolor=\color{backcolour},   
+%    commentstyle=\color{codegreen},
+%    keywordstyle=\color{magenta},
+%    numberstyle=\tiny\color{codegray},
+%    stringstyle=\color{codepurple},
+%    %basicstyle=\linespread{0.1}\footnotesize,
+%	basicstyle=\linespread{0.7}\BeraMonottfamily,    
+%    breakatwhitespace=false,         
+%    breaklines=true,                 
+%    captionpos=b,                    
+%    keepspaces=true,                 
+%    numbers=none, %left,                    
+%    numbersep=5pt,                  
+%    showspaces=false,                
+%    showstringspaces=false,
+%    showtabs=false,  
+%    tabsize=2
+%}
+
+%\lstset{frame=single, style=mystyle}
+
+%\lstdefinestyle{mystyle2}{
+%    %backgroundcolor=\color{backcolour},   
+%    commentstyle=\color{codegreen!90!black}, % codegray, codegreen
+%	%    
+%    otherkeywords={==},
+%   	morekeywords={==},
+%    keywordstyle=\color{codered},
+%	%    
+%    stringstyle=\color{codepurple},
+%    %
+%    emph={num_workers, train_mode, __name__},
+%    emphstyle={\color{blue}},
+%    %
+%	basicstyle=\linespread{0.8}\BeraMonottfamily,    
+%	%identifierstyle=\color{yellow},
+%    breakatwhitespace=false,         
+%    breaklines=true,                 
+%    captionpos=b,                    
+%    keepspaces=true,                 
+%	%    
+%    numberstyle=\tiny\color{codegray}, % line number only
+%    numbers=left, % none                    
+%    numbersep=5pt,                  
+%    %
+%    showspaces=false,                
+%    showstringspaces=false,
+%    showtabs=false,  
+%    tabsize=2
+%}
+%
+%
+%\lstset{%frame=single,
+%   	style=mystyle2,
+%   	literate=%
+%   *{0}{{{\color{codepurple}0}}}1
+%    {1}{{{\color{codepurple}1}}}1
+%    {2}{{{\color{codepurple}2}}}1
+%    {3}{{{\color{codepurple}3}}}1
+%    {4}{{{\color{codepurple}4}}}1
+%    {5}{{{\color{codepurple}5}}}1
+%    {6}{{{\color{codepurple}6}}}1
+%    {7}{{{\color{codepurple}7}}}1
+%    {8}{{{\color{codepurple}8}}}1
+%    {9}{{{\color{codepurple}9}}}1}
+%
+%%\def\bibfont{\small}
+%

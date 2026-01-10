@@ -1,0 +1,178 @@
+\usepackage[full]{textcomp}
+\usepackage{newpxtext}
+\usepackage{cabin} % sans serif
+\usepackage[varqu,varl]{inconsolata} % sans serif typewriter
+\usepackage[bigdelims,vvarbb]{newpxmath} % bb from STIX
+\usepackage[cal=cm,bb=esstix,bbscaled=1.05]{mathalfa} % mathcal
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{savesym}
+\let\savedegree\bigtimes
+\let\bigtimes\relax
+\usepackage{mathabx}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{hyperref}
+\hypersetup{
+ colorlinks,
+ linkcolor={red!80!black},
+ citecolor={blue!80!black},
+ urlcolor={blue!80!black}
+}
+
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage[all,cmtip]{xy}
+\usepackage{mleftright}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{enumitem}
+\usepackage{mathdots}
+\usepackage{pagecolor}
+%-------------------------------------------------------------------------------
+\renewcommand{\baselinestretch}{1.1}
+\setlist[enumerate]{labelsep=*, leftmargin=1.5pc}
+\setlist[enumerate]{label=\normalfont(\roman*), ref=\roman*}
+%-------------------------------------------------------------------------------
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{thm*}[]{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{lemma*}[]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{cor*}[]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{prop*}[]{Proposition}
+\newtheorem{claim}[thm]{Claim}
+\newtheorem{claim*}[]{Claim}
+\newtheorem{conjecture}[thm]{Conjecture}
+\newtheorem{conjecture*}[]{Conjecture}
+\newtheorem{thm/conj}[thm]{Theorem / Conjecture}
+%-------------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{example}[thm]{Example}
+\newtheorem{example*}[]{Example}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{remark*}[]{Remark}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{definition*}[]{Definition}
+\newtheorem{problem}[thm]{Problem}
+\newtheorem{problem*}[]{Problem}
+\numberwithin{equation}{section}
+%-------------------------------------------------------------------------------
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\bF}{\mathbb{F}}
+\newcommand{\bK}{\mathbb{K}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\mL}{\mathcal{L}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\mO}{\mathcal{O}}
+\newcommand{\mA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cRB}{\mathcal{RB}}
+\newcommand{\cIB}{\mathcal{IB}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\ph}{\varphi}
+\ProvideTextCommand{\DJ}{OT1}{\raisebox{0.25ex}{-}\kern-0.4em D}
+\newcommand{\NQ}{N_\Q}
+\newcommand{\MQ}{M_\Q}
+\DeclareMathOperator{\GL}{GL}
+\newcommand{\pr}{\mathbb{P}}
+\newcommand{\abs}[1]{\left\vert{#1}\right\vert}
+\newcommand{\dual}[1]{{#1}^*}
+\DeclareMathOperator{\Disc}{\Delta}
+\DeclareMathOperator{\Ehr}{Ehr}
+\newcommand{\orig}{\textbf{0}}
+\newcommand{\vol}[1]{\operatorname{vol}\mleft({#1}\mright)}
+\newcommand{\bdry}[1]{\partial{#1}}
+\newcommand{\intr}[1]{{#1}^\circ}
+\newcommand{\Vol}[1]{\operatorname{Vol}\mleft({#1}\mright)}
+\newcommand{\V}[1]{\operatorname{vert}\mleft({#1}\mright)}
+\renewcommand{\dim}[1]{\operatorname{dim}\mleft({#1}\mright)}
+\renewcommand{\det}[1]{\operatorname{det}\mleft({#1}\mright)}
+\renewcommand{\gcd}[1]{\operatorname{gcd}\mleft\{{#1}\mright\}}
+\renewcommand{\min}[1]{\operatorname{min}\mleft\{{#1}\mright\}}
+\renewcommand{\max}[1]{\operatorname{max}\mleft\{{#1}\mright\}}
+\newcommand{\conv}[1]{\operatorname{conv}\mleft({#1}\mright)}
+\newcommand{\sconv}[1]{\operatorname{conv}\mleft\{{#1}\mright\}}
+\newcommand{\scone}[1]{\operatorname{cone}\mleft\{{#1}\mright\}}
+\newcommand{\umin}{u_{\operatorname{min}}}
+\newcommand{\hmin}{h_{\operatorname{min}}}
+\newcommand{\hmax}{h_{\operatorname{max}}}
+\newcommand{\modb}[1]{\ \ \mleft(\operatorname{mod}\ {#1}\mright)}
+\newcommand{\mB}{\mathcal{B}}
+\newcommand{\SC}[1]{\operatorname{SC}\mleft({#1}\mright)}
+\newcommand{\res}[1]{\operatorname{res}\mleft({#1}\mright)}
+\DeclareMathOperator{\mut}{mut}
+\newcommand{\mult}[1]{\operatorname{mult}\mleft({#1}\mright)}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Sing}{Sing}
+\DeclareMathOperator{\Hilb}{Hilb}
+\newcommand{\on}{\operatorname}
+\newcommand{\ol}{\overline}
+\newcommand{\wt}{\widetilde}
+\newcommand{\ub}{\underline}
+\newcommand{\mfk}{\mathfrak}
+\newcommand{\car}{\curvearrowright}
+\newcommand{\wh}{\widehat}
+\newcommand{\mat}{\left(\begin{array}}
+\newcommand{\tam}{\end{array}\right)}
+\newcommand{\NE}{\ol{\text{\textnormal{NE}}}}
+\newcommand{\hilb}{\text{\textnormal{-Hilb}}\,}
+\newcommand{\mR}{\mathcal{R}}
+\newcommand{\Hirz}{\text{\textnormal{Hirz}}}
+\newcommand{\dP}{\text{\textnormal{dP}}}
+\newcommand{\dimv}{\text{\textnormal{\underline{dim}}}}
+\newcommand{\ralg}{\on{Ru}^{\textnormal{alg}}}
+\newcommand{\ealg}{e^{\textnormal{alg}}}
+\newcommand{\calg}{c^{\textnormal{alg}}}
+\newcommand{\cech}{c^{\textnormal{ech}}}
+\newcommand{\casy}{c^{\textnormal{asy}}}
+\newcommand{\lf}{\lfloor}
+\newcommand{\rf}{\rfloor}
+\newcommand{\lc}{\left\lceil}
+\newcommand{\rc}{\right\rceil}
+\newcommand{\ip}{\text{\textnormal{IP}}}
+\newcommand{\neb}{\ol{\on{NE}}}
+\newcommand{\SW}{\on{SW}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\Ind}{\on{I}}
+\newcommand{\CZ}{\on{CZ}}
+\newcommand{\ECH}{\on{ECH}}
+\newcommand{\HM}{\widehat{HM}}
+\newcommand{\nefqc}{\on{nef}^\text{\textnormal{qc}}}
+\newcommand{\Nefqc}{\on{Nef}^\text{\textnormal{qc}}}
+\newcommand{\mY}{\mathcal{Y}}
+\newcommand{\rno}{\rVert}
+\newcommand{\lno}{\lVert}
+\newcommand{\mD}{\mathcal{D}}
+\newcommand{\bs}{\mathbf{s}}
+\newcommand{\mP}{\mathcal{P}}
+\newcommand{\laff}{\ell_{\text{\textnormal{aff}}}}
+\newcommand{\easy}{e^{\text{\textnormal{asy}}}}
+\newcommand{\se}{\overset{\text{\textnormal{s}}}{\hookrightarrow}}
+\newcommand{\br}{\mathbf{r}}
+
+\definecolor{deepgray}{HTML}{222222}
+\definecolor{cream}{HTML}{FFFFE0}
+\definecolor{ivory}{rgb}{1.0, 1.0, 0.94}
+\newcommand{\darkmode}{\pagecolor{deepgray}\color{ivory}}
+
+\newcommand{\vs}{\author[B.\,Wormleighton]{B.~Wormleighton}
+\address{Department of Mathematics \& Statistics\\Washington University in St.~Louis \\St.~Louis, MO\\63130\\USA}
+\email{benw@wustl.edu}}
+
+\newenvironment{dedication}
+  {
+   \vspace*{-15pt}
+   \itshape             
+   \center          
+  }
+  {
+   \par
+   \vspace{1pt}
+  }

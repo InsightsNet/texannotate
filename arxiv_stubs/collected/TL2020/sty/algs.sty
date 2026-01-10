@@ -1,0 +1,102 @@
+%%%%%% Path Splitting %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\algPathSplitting}{
+\begin{algorithm}[t!]
+\scriptsize
+\label{alg:path_splitting}
+$\mathcal{A} \leftarrow \emptyset$ \tcp{will store all pods before splitting them by color}
+$\textit{num\_pods} \leftarrow \textit{num\_threads} * 2$ \tcp{total number of pods.  This may be an overestimate, but the true number will never exceed this.}
+$\textit{wpp\_max} \leftarrow \ell + 1$ \tcp{initial maximum number of waypoints per pod}
+\While{\text{\textbf{not}} \textit{wpp\_max} * \textit{num\_pods} $> |\mathcal{W}|$}{
+    $\textit{wpp\_max} \mathrel{+}= 1$ \tcp{add 1 to the maximum number of waypoints}
+} % end of while
+$\textit{wpp\_min} \leftarrow \textit{wpp\_max} - 1$ \tcp{the minimum number of waypoints per pod will always be one less than the calculated maximum}
+$\textit{n\_min} \leftarrow \texttt{min}(\textit{wpp\_max} * \textit{num\_pods} - |\mathcal{W}|, \textit{num\_pods})$ \tcp{number of pods that will have \textit{wpp\_min} nodes per pod}
+$\textit{n\_max} \leftarrow \textit{num\_pods} - \textit{n\_min}$ \tcp{number of pods that will have \textit{wpp\_max} nodes per pod}
+$\textit{c} \leftarrow 0$ \tcp{count variable}
+\For{\textit{i} = 0...\textit{n\_min}}{
+    $\texttt{add\_pod}(\mathcal{W}, \mathcal{A}, \textit{c}, \textit{wpp\_min}, \ell)$
+} % end of for
+
+\For{\textit{i} = 0...\textit{n\_max}}{
+    $\texttt{add\_pod}(\mathcal{W}, \mathcal{A}, \textit{c}, \textit{wpp\_max}, \ell)$
+} % end of for
+$\mathcal{P}_B \leftarrow \emptyset$ \tcp{will store all blue pods}
+$\mathcal{P}_R \leftarrow \emptyset$ \tcp{will store all red pods}
+$\textit{curr\_color} \leftarrow \textcolor{RoyalBlue}{\textbf{blue}}$ \\
+\For{$\textit{i}=0...|\mathcal{A}|$}{
+    \If{$\textit{curr\_color} \equiv \textcolor{RoyalBlue}{\textbf{blue}}$}{
+        $\mathcal{P}_B \stackrel{+}\leftarrow \mathcal{A}[i]$ \\
+        $\textit{curr\_color} \leftarrow \textcolor{Red}{\textbf{red}}$
+    } 
+    \Else{
+        $\mathcal{P}_R \stackrel{+}\leftarrow \mathcal{A}[i]$ \\
+        $\textit{curr\_color} \leftarrow \textcolor{RoyalBlue}{\textbf{blue}}$
+    }
+}
+\Return{ $(\mathcal{P}_B, \mathcal{P}_R)$ }
+\caption{\footnotesize \texttt{split\_path\_into\_pods}($\mathcal{W}$, \textit{num\_threads}, $\ell$) }
+\end{algorithm}
+}
+
+
+%%%%%% add pod %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\algAddPod}{
+\begin{algorithm}[t!]
+\scriptsize
+\label{alg:add_pod}
+$\textit{curr\_pod} \leftarrow \emptyset$ \\
+\For{\textit{i}=0...\textit{pod\_size}}{
+    $\textit{curr\_pod} \stackrel{+}\leftarrow \mathcal{W}[\textit{c}]$ \\
+    $\textit{c} \mathrel{+}=1$ \\
+    \If{$\textit{c} \geq |\mathcal{W}|$}{
+        \If{$|\textit{curr\_pod}| \geq \ell$}{
+            $\mathcal{A} \stackrel{+}\leftarrow \textit{curr\_pod}$ \\
+            \Return
+        }
+        \Else{
+            \For{$\textit{j}=0...|\textit{curr\_pod}|$}{
+                $\mathcal{A}[|\mathcal{A}|-1] \stackrel{+}\leftarrow \textit{curr\_pod}[\textit{j}]$ \tcp{absorb current pod into previous pod}
+            }
+            \Return
+        }
+    }
+}
+$\mathcal{A} \stackrel{+}\leftarrow \textit{curr\_pod}$ \\
+\Return
+
+\caption{\footnotesize $\texttt{add\_pod}(\mathcal{W}, \mathcal{A}, \textit{c}, \textit{pod\_size}, \ell$ ) }
+\end{algorithm}
+}
+
+
+%%%%%% Strobe %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\algStrobe}{
+\begin{algorithm}[t!]
+\scriptsize
+\label{alg:strobe}
+$(\mathcal{P}_B, \mathcal{P}_R) \leftarrow \texttt{split\_path\_into\_pods}(\mathcal{W}, \textit{num\_threads}, \ell$) \\
+$\mathbf{X} \leftarrow \texttt{stack}(\mathcal{W})$ \tcp{stack waypoints into full state vector initial condition}
+$\textit{f\_prev} \leftarrow \infty$ \\
+\For{\textit{i}=0...\textit{num\_epochs}}{
+\For{\textit{j}=0...\textit{num\_threads} \textbf{in parallel}}{
+    $\textit{curr\_pod} \leftarrow \mathcal{P}_B[j]$ \\
+    $(\textit{a}, \textit{b}) \leftarrow \texttt{get\_bounding\_indices\_of\_pod}(\textit{curr\_pod})$ \\
+    $\mathbf{X}[\textit{a}: \textit{b}]^* \leftarrow \textcolor{RoyalBlue}{\textbf{\texttt{optimize}}}(\mathbf{X}, \textit{a}, \textit{b})$ \\
+    $\mathbf{X}[\textit{a}: \textit{b}] \leftarrow \mathbf{X}[\textit{a}: \textit{b}]^*$
+}
+\For{\textit{j}=0...\textit{num\_threads} \textbf{in parallel}}{
+    $\textit{curr\_pod} \leftarrow \mathcal{P}_R[j]$ \\
+    $(\textit{a}, \textit{b}) \leftarrow \texttt{get\_bounding\_indices\_of\_pod}(\textit{curr\_pod})$ \\
+    $\mathbf{X}[\textit{a}: \textit{b}]^* \leftarrow \textcolor{Red}{\textbf{\texttt{optimize}}}(\mathbf{X}, \textit{a}, \textit{b})$ \\
+    $\mathbf{X}[\textit{a}: \textit{b}] \leftarrow \mathbf{X}[\textit{a}: \textit{b}]^*$    
+}    
+$\textit{f} \leftarrow \mathbf{f}(\mathbf{X})$ \\
+$\Delta\textit{f} \leftarrow | \ \textit{f} - \textit{f\_prev} \ |$ \\
+\If{$\Delta\textit{f} < \textit{tol} $}{
+    \Return{$\mathbf{X}$}
+}    
+}
+\caption{\footnotesize \texttt{strobe}(\texttt{optimize}, $\mathcal{W}$,  \textit{num\_threads}, \textit{num\_epochs}, \textit{$\ell$}, \textit{tol}) }
+\end{algorithm}
+}
+

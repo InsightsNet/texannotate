@@ -1,0 +1,179 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  ref.: Thomas J. Reid , Floating Figures at the Right
+%        TUGboat Volume 8 (1987), No. 3 , p. 315
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  CAVEATs : - \everypar is set globally
+%            - the coupling to \LaTeX's figure apparatus is done by
+%              local definition of \@captype
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{*** FloatingFigure_Style Vers. 0.4, 08-MAY-1991, Kneser, GWDG ***}
+\newenvironment{floatingfigure}[1]%
+{% begin of 'begindef'    
+ \expandafter\ifx\csname oldoutput\endcsname\relax% ref. TeXbook Ex.7.7
+    \typeout{* FLOATFIG * error: not initialized !}\@@end\fi
+ \global\everypar={\tryfig\oldeverypar}% must be set globally !
+ \global\advance\ffigcount by 1
+ \iffigprocessing
+    {\count0=\ffigcount\advance\count0 by -1 
+     \message{* FLOATFIG * warning : Fl.-Figures \the\count0, \the\ffigcount
+              \space colliding !}%
+    }%
+ \fi 
+ \def\@captype{figure}
+ \global\figprocessingtrue
+ \global\setbox\figbox=\vbox\bgroup% begin of figbox
+                               \hrule height 0pt width #1 depth 0pt%
+                               \hsize=#1%
+}% end of 'begindef'    
+%
+{% begin of 'enddef'
+\egroup% end of \figbox
+\figinsert\par%
+}% end of 'enddef' of Floating_Figure_environment
+%
+\newbox\figbox
+\newbox\pagebox
+%
+\newcount\ffigcount
+\newcount\fftest
+\newcount\hangcount
+\newcount\nosuccesstryfig
+%
+\newdimen\figgutter   \figgutter=1truepc
+\newdimen\htdone      \htdone=0pt
+\newdimen\pageht
+\newdimen\startpageht
+%
+\newif\iftryingfig     \tryingfigfalse
+\newif\ifdoingfig      \doingfigfalse
+\newif\iffigprocessing \figprocessingfalse
+\newif\ifpageafterfig  \pageafterfigfalse
+\newif\ifoddpages
+\newif\ifoutput
+%
+\newtoks\outputpretest
+%
+\def\initfloatingfigs{%
+\message{** Make sure \string\initfloatingfigs\space being called immediately}
+\message{\space\space\space after \string\begin{document} !! **} 
+\edef\oldoutput{\the\output}%
+% ===== The modified output routine ======
+\output={\the\outputpretest%
+           \ifoutput\oldoutput\fi}
+\outputpretest={\outputtrue}
+\edef\oldeverypar{\the\everypar}
+}% end of \initfloatingfigs
+% 
+% =====Controlling the figure placement
+% 
+\def\dofigtest{%
+%   \message{DOFIGTEST entered +++++++++++++++++++++++++++++}%%$$%%
+%   \message{OUTPENALTY = \the\outputpenalty ++++++++++++++++++}%%$$%%
+%   \show\ifdoingfig%%$$%%
+   \ifnum\outputpenalty=-10005
+     \setbox\pagebox=\vbox{\unvbox255}%
+     \global\pageht=\ht\pagebox
+     \global\outputfalse
+     \unvbox\pagebox
+   \else
+     \global\outputtrue
+     \ifdoingfig
+         \global\pageafterfigtrue
+     \fi
+   \fi}% 
+% -----------
+\def\tryfig{%
+%     \message{TRYFIG entered ++++++++++++++++++++++++++}%%$$%%
+      \iftryingfig% ------------ Section A
+%       \message{TRYFIG : Section A entered ++++++++++++++++++++++++++}%%$$%%
+       {\everypar={\relax}\setbox0=\lastbox%
+       \parindent=\wd0 \parskip=0pt \par% 
+       \penalty-10005 \leavevmode}%
+       \dimen0=\vsize%
+       \advance\dimen0 by -\pageht%
+       \advance\dimen0 by -2\baselineskip%
+       \ifdim\dimen0>\ht\figbox%
+         \dimen0=0.3\baselineskip
+         \vrule depth \dimen0 width 0pt
+         \vadjust{\kern -\dimen0%
+         \vtop to \dimen0{%
+             \baselineskip=\dimen0%
+             \vss \vbox to 1ex{%
+             \ifodd\count0%
+               \hbox to \hsize{\hss\copy\figbox}% 
+               \global\oddpagestrue
+             \else% leftsetting
+               \hbox to \hsize{\copy\figbox\hss}%
+               \global\oddpagesfalse
+             \fi% \ifodd\count0
+             \vss}\null}}%
+       \global\tryingfigfalse% 
+       \global\doingfigtrue
+       \global\startpageht=\pageht
+       \global\htdone=0pt
+       \dohang
+       \ifnum\nosuccesstryfig>0%
+         \message{* FLOATFIG * Fl_fig. \the\ffigcount\space set on page 
+             \the\count0, shifted \the\nosuccesstryfig\space par(s) forward}%
+       \else
+         \message{* FLOATFIG * Fl_fig. \the\ffigcount\space set on page 
+                  \the\count0}%
+       \fi 
+     \else
+       \global\advance\nosuccesstryfig by 1
+     \fi
+     \else% ------------------- Section B
+%      \message{TRYFIG : Section B entered ++++++++++++++++++++++++++}%%$$%%
+     \ifdoingfig
+       {\everypar={\relax}\setbox0=\lastbox
+       \parindent=\wd0 \parskip=0pt \par
+         \penalty-10005 \leavevmode}%
+    \global\htdone=\pageht
+    \global\advance\htdone by -\startpageht
+    \ifpageafterfig
+      \global\doingfigfalse
+    \else
+      \dimen0=\ht\figbox%
+      \advance\dimen0 by 0.5\baselineskip%
+      \ifdim\htdone<\dimen0%
+         \dohang
+      \else
+         \global\doingfigfalse
+      \fi
+    \fi
+    \ifdoingfig\relax\else\global\figprocessingfalse\fi
+  \else% ----------------- Section C
+%    \message{TRYFIG : Section C entered ++++++++++++++++++++++++++}%%$$%%
+    \global\outputpretest={\outputtrue}%
+  \fi
+\fi
+}
+% ---------------
+\def\figinsert{%
+%   \message{FIGINSERT entered ++++++++++++++++++++++++++}%%$$%%
+   \global\nosuccesstryfig=0%
+   \global\outputpretest={\dofigtest}%
+   \global\tryingfigtrue \global\doingfigfalse%
+   \global\pageafterfigfalse}%
+%  ---------------   % 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\dohang{%
+   \dimen0=\ht\figbox%
+   \advance\dimen0 by -\htdone%
+   \advance\dimen0 by 1.49\baselineskip%
+   \hangcount=\dimen0%
+   \divide\hangcount by \baselineskip%
+   \dimen0=\wd\figbox%
+   \advance\dimen0 by \figgutter%
+   \ifoddpages%
+     \global\hangafter=-\hangcount% placing right
+     \global\hangindent=-\dimen0%
+   \else% \ifleftsetting
+     \global\hangafter=-\hangcount% placing left
+     \global\hangindent=\dimen0%
+   \fi% \ifoddpages%
+}% end of \dohang

@@ -1,0 +1,240 @@
+% putex.sty version 1.1a, modified from 1.1 to work with Heckman's definitions
+% Macros for hep-th preprints
+% Steven S. Gubser
+% All rights reserved.
+%
+% MODIFICATION HISTORY:
+% 1-22-04: version 1.0
+% 1-31-04: version 1.1: replaced doublespace with setspace, no longer include boxedminipage
+% 8-23-04: version 1.1a: modified to work with Heckman's definitions
+% 9-22-06: version 1.1b: modified info in header to work with test compiler for crystal melting note
+%
+
+\usepackage{color}
+\usepackage{setspace}
+\addtolength{\oddsidemargin}{-10mm}
+\addtolength{\parskip}{1mm}
+\addtolength{\topmargin}{2mm}
+%\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textheight}{22cm}
+\setlength{\footskip}{0.4in}
+%\setlength{\oddsidemargin}{0in}
+%\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{16.3cm}
+\renewcommand{\baselinestretch}{1.1}
+
+%--------+---------+---------+---------+---------+---------+---------+
+%Title page
+
+%Useful references for writing this were "The Latex Companion" by Goossens, Mittelbach, and Samarin, and of course Knuth's "The TeXBook."
+
+\gdef\@preprint{}
+\gdef\@title{}
+\gdef\@authors{}
+\gdef\@date{\today}
+\gdef\@institutions{}
+\gdef\@PACS{}
+
+\newcommand{\preprint}[1]{\gdef\@preprint{#1}}
+\renewcommand{\title}[1]{\gdef\@title{#1}}
+\newcommand{\authors}[1]{\gdef\@authors{#1}}
+\renewcommand{\date}[1]{\gdef\@date{#1}}
+\newcommand{\PACS}[1]{\gdef\@PACS{#1}}
+
+\gdef\@IsAbstractLong{}
+\long\gdef\@abstract{}
+\renewcommand{\abstract}[1]{\gdef\@abstract{#1}}
+\newcommand{\longabstract}[1]{\gdef\@abstract{#1}%
+\gdef\@IsAbstractLong{yes}}
+
+%institutions
+\xdef\@numberedinst{}
+\xdef\@unnumberedinst{}
+\newcount\instnum
+\instnum=0
+\gdef\@instused{}
+\newcommand{\institution}[2]{%
+\advance\instnum by1%
+\expandafter\xdef\csname #1\endcsname{%
+\the\instnum}%
+\xdef\@numberedinst{\@numberedinst%
+\cr\noalign{\vskip\InstitutionsSpacing\jot}%
+%\begin{center}%
+%\hbox to 0pt{\hskip-5pt${}^{\the\instnum}$}%
+#2%
+%\end{center}%
+}%
+\xdef\@unnumberedinst{\@unnumberedinst%
+\cr\noalign{\vskip\InstitutionsSpacing\jot}%
+#2%
+}}
+\newcommand\PUTeXinstitutions{%
+$$\vcenter{\openup\InstitutionSpacing\jot%
+\halign{\strut\span\hbox{##} \cr\InstitutionsHook%
+\ifx\@instused\@empty\@unnumberedinst\else\@numberedinst\fi \cr}}$$%
+}
+\newcommand{\worksat}[1]{\ensuremath{{}^{#1}}\gdef\@instused{yes}}
+
+\newcommand{\PreprintHook}{\tt}
+\newcommand{\PreprintSpacing}{0.85}
+\newcommand{\TitleHook}{\huge}
+\newcommand{\TitleSpacing}{2.3}
+\newcommand{\AuthorsHook}{\large}
+\newcommand{\AuthorsSpacing}{1}
+\newcommand{\InstitutionHook}{}
+\newcommand{\InstitutionSpacing}{-0.4}
+\newcommand{\InstitutionsHook}{}
+\newcommand{\InstitutionsSpacing}{3}
+\newcommand{\AbstractWordHook}{\bf}
+\newcommand{\AbstractHook}{}
+\newcommand{\AbstractSpacing}{1}
+\newcommand{\PACSHook}{}
+\newcommand{\PACSSpacing}{1}
+
+\newlength{\PreprintToTitle}\setlength{\PreprintToTitle}{\stretch{1}}
+\newlength{\TitleToAuthors}\setlength{\TitleToAuthors}{\stretch{1}}
+\newlength{\AuthorsToInstitutions}\setlength{\AuthorsToInstitutions}{0in}
+\newlength{\InstitutionsToAbstract}\setlength{\InstitutionsToAbstract}{\stretch{1}}
+\newlength{\AbstractToPACS}\setlength{\AbstractToPACS}{0in}
+\newlength{\PACSToDate}\setlength{\PACSToDate}{\stretch{1}}
+\newlength{\AbstractToDate}\setlength{\AbstractToDate}{\stretch{1}}
+\newlength{\AuthorsToDate}\setlength{\AuthorsToDate}{\stretch{1}}
+
+\renewcommand{\maketitle}{%
+%Environment
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}%
+\thispagestyle{empty}%
+%Preprint number
+\begin{flushright}\begin{spacing}{\PreprintSpacing}{\PreprintHook\@preprint}\end{spacing}\end{flushright}%
+\vspace{-0.7in}\vspace{\PreprintToTitle}%
+%Title
+\begin{center}\begin{spacing}{\TitleSpacing}{\TitleHook\@title}\end{spacing}\end{center}%
+\vspace{-0.8in}\vspace{\TitleToAuthors}%
+%Authors
+\begin{center}\begin{spacing}{\AuthorsSpacing}{\AuthorsHook\@authors}\end{spacing}\end{center}%
+\vspace{-0.5in}\vspace{\AuthorsToInstitutions}%
+%Institutions
+%\begin{center}%
+\PUTeXinstitutions%
+%\end{center}%
+\ifx\@IsAbstractLong\@empty%
+\vspace{-0.4in}\vspace{\InstitutionsToAbstract}
+%Abstract
+\begin{center}{\AbstractWordHook Abstract}\end{center}\begin{spacing}{\AbstractSpacing}\@abstract\end{spacing}%
+\ifx\@PACS\@empty%
+\vspace{-0.17in}\vspace{\AbstractToDate}%
+\else%
+\vspace{0.15in}\vspace{\AbstractToPACS}%
+%PACS codes
+\noindent PACS numbers: \@PACS%
+\vspace{-0.15in}\vspace{\PACSToDate}%
+\fi%
+\else\vspace{\AuthorsToDate}%
+\fi%
+%Date
+\begin{flushleft}\@date\end{flushleft}%
+\vspace{-0.15in}
+\ifx\@IsAbstractLong\@empty\relax\else%
+\newpage\thispagestyle{empty}%
+\null\vspace{\stretch{1}}%
+%Long abstract
+\begin{center}{\AbstractWordHook Abstract}\end{center}\begin{spacing}{\AbstractSpacing}\@abstract\end{spacing}%
+\ifx\@PACS\@empty\relax\else%
+\vspace{0.15in}\vspace{\AbstractToPACS}%
+%PACS codes
+\noindent PACS numbers: \@PACS%
+\fi%
+\vspace{\stretch{1.3}}\null%
+\fi%
+%Cleanup and reset footnotes.
+\newpage%
+\renewcommand{\thefootnote}{\arabic{footnote}}%
+\setcounter{footnote}{0}%
+\setcounter{page}{1}
+}
+
+%--------+---------+---------+---------+---------+---------+---------+
+%Colors:
+% p. 382 of the Guide describes colors.
+\newcommand{\Red}{\color [rgb]{0.8,0,0}}
+\newcommand{\Green}{\color [rgb]{0,0.7,0}}
+\newcommand{\Blue}{\color [rgb]{0,0,0.8}}
+\newcommand{\Black}{\color [rgb]{0,0,0}}
+\newcommand{\Grey}{\color [rgb]{0.3,0.3,0.3}}
+\newcommand{\Purple}{\color [rgb]{0.7,0,0.7}}
+\newcommand{\Orange}{\color [rgb]{0.9,0.4,0.4}}
+\newcommand{\Brown}{\color [rgb]{0.4,0.1,0.1}}
+
+%Markup:
+\def\error#1{{\Red [#1]}}
+\def\comment#1{{\Green [#1]}}
+\def\fixit#1{}
+\newenvironment{old}{\Brown \vskip0.2in\noindent OLD STUFF:}{\Black\vskip0.2in}
+
+%--------+---------+---------+---------+---------+---------+---------+
+%Macros to facilitate use of halign for complicated equations:
+\newcommand\TL{\hfil$\displaystyle{##}$}
+\newcommand\TR{$\displaystyle{{}##}$\hfil}
+\newcommand\TC{\hfil$\displaystyle{##}$\hfil}
+\newcommand\TT{\hbox{##}}
+\newcommand\JOT{\noalign{\vskip1\jot}}
+\def\seqalign#1#2{\vcenter{\openup1\jot
+  \halign{\strut #1\cr #2 \cr}}}
+
+%For adding more math operators:
+\def\mop#1{\mathop{\rm #1}\nolimits}
+
+%More math operators:
+\def\coth{\mop{coth}}
+\def\csch{\mop{csch}}
+\def\sech{\mop{sech}}
+\def\arccoth{\mop{arccoth}}
+\def\Re{\mop{Re}}
+\def\Im{\mop{Im}}
+\def\Vol{\mop{Vol}}
+\def\vol{\mop{vol}}
+\def\diag{\mop{diag}}
+\def\tr{\mop{tr}}
+\def\Disc{\mop{Disc}}
+\def\sgn{\mop{sgn}}
+%--------+---------+---------+---------+---------+---------+---------+
+
+%Approximately less than operators:
+\def\lsim{\mathrel{\mathstrut\smash{\ooalign{\raise2.5pt\hbox{$<$}\cr\lower2.5pt\hbox{$\sim$}}}}}
+\def\gsim{\mathrel{\mathstrut\smash{\ooalign{\raise2.5pt\hbox{$>$}\cr\lower2.5pt\hbox{$\sim$}}}}}
+
+%Nicest general slashing macro I can come up with:
+\def\slashed#1{{\ooalign{\hfil\hfil/\hfil\cr $#1$}}}
+
+%Young Tableaux macros:
+\def\idget{$\sqr55$\hskip-0.5pt}
+\def\endrow{\hskip0.5pt\cr\noalign{\vskip-1.5pt}}
+\def\endyoung{\hskip0.5pt\cr}
+%Example: in a paragraph or in mathmode, say
+%\oalign{\idget\idget\idget\idget\endrow
+%        \idget\idget\idget\endyoung}
+%See young.tex for more examples.
+
+%With ssg.bst one needs this definition unless you are going to
+%set up hyperlinking.
+\def\href#1#2{#2}
+
+%--------+---------+---------+---------+---------+---------+---------+
+%\eqn is similar to the command in harvmac.
+%
+\def\lbldef#1#2{\expandafter\gdef\csname #1\endcsname {#2}}
+\newcommand{\eqn}[3][]{\lbldef{#2}{(\ref{#2})}%
+\def\@eqnstyle{#1}%
+\ifx\@eqnstyle\@empty%
+\begin{equation} \eqalign{#3} \label{#2} \end{equation}%
+\else%
+\begin{equation} \seqalign{\span\TC}{#3} \label{#2} \end{equation}%
+\fi}
+\def\eqalign#1{\vcenter{\openup1\jot
+    \halign{\strut\span\TL & \span\TR\cr #1 \cr
+   }}}
+\def\eno#1{(\ref{#1})}
+%--------+---------+---------+---------+---------+---------+---------+
+

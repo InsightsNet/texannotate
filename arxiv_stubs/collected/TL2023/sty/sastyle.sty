@@ -1,0 +1,305 @@
+%% `sastyle.sty'  
+%%
+%% Author: Soner Albayrak <snralbayrak@gmail.com>
+%% Last modified July 4, 2020
+%%
+%% This file is based on DSD's dsdshorthand.sty file.
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sastyle}[2020/07/04]
+%
+%
+%%% PAGE SETUP
+\usepackage{geometry}
+\geometry{verbose,letterpaper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.6cm,rmargin=2.6cm}
+\setlength{\parskip}{0.1in}
+\hyphenpenalty=1000
+%
+%
+%%% FONT STYLE
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[oldstyle]{libertine}
+\RequirePackage[english]{babel}
+%
+%
+%%% DEFAULT PACKAGES
+\RequirePackage{amsmath,amssymb,amsfonts,mathtools} % Default math package
+		\numberwithin{equation}{section}
+		%\allowdisplaybreaks
+\RequirePackage{libertinust1math} % Change math font
+\RequirePackage[scr=boondoxo,bb=boondox]{mathalfa} % Loads math alphabets
+\RequirePackage{physics} % Default physics package
+\RequirePackage{bbold} % provides \mathbb command to get blackboard bold mathematics, \textbb for text, or \bbfamily for longer text.
+\RequirePackage{bm} % Provides bold math symbols via \bm{#}
+\RequirePackage{bbm} % Provides \mathbbm{#}. Amsmath also provides \mathbb{#} which is similar for letters but not numbers
+\RequirePackage[square, comma, sort&compress,numbers]{natbib} % reference management
+\RequirePackage[margin=10pt,font=small,labelfont=bf]{caption}
+\RequirePackage[pdftex,dvipsnames]{xcolor}
+		\definecolor{darkblue}{rgb}{0.1,0.1,.7}
+\RequirePackage[colorlinks, linkcolor=darkblue, citecolor=darkblue, urlcolor=darkblue, linktocpage]{hyperref} 
+\RequirePackage{graphicx}  % Allows including images
+%
+%
+%%% REFERENCE COMMANDS 
+\newcommand{\equref}[1]{eqn.~\eqref{#1}}
+\newcommand{\secref}[1]{section~#1}
+\newcommand{\figref}[1]{Figure.~(#1)}
+\newcommand{\tabref}[1]{Table.~(#1)}
+%
+%
+%%% SEVERAL MACROS
+\def\<#1\>{\expval{#1}}
+\newcommand   \rdr  [2] {\frac{\dd #1}{\dd #2}}
+\newcommand   \pdr  [2] {\frac{\partial #1}{\partial #2}}
+\newcommand   \tl  [1] {\widetilde{#1}}
+% \newcommand{\undertl}[1]{\mathord{\vtop{\ialign{##\crcr
+%				$\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
+%				$\hfil\tilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}} % Puts tilde under given variable
+% \def\blfootnote{\gdef\@thefnmark{}\@footnotetext} %FOOTNOTE WITHOUT NUMBER OR SYMBOL
+\renewcommand \.   {\cdot}
+\newcommand   \x   {\times}
+\newcommand   \aeq {\thickapprox}
+\newcommand   \mto {\mapsto}
+\newcommand   \half{\frac 1 2}
+\newcommand   \lptl{\raise .8ex\hbox{$^\leftarrow$} \hspace{-9pt} \partial} % derivatives with arrows
+\newcommand   \lrptl{\raise .8ex\hbox{$^\leftrightarrow$} \hspace{-9pt} \partial} % derivatives with arrows
+%
+%
+%%% EQUATION COMMANDS
+\newcommand \nn {\nonumber}
+\def\be#1\ee{\begin{equation}\begin{aligned}#1\end{aligned}\end{equation}}
+\makeatletter
+\DeclareRobustCommand\bea{\@ifnextchar[{\@@bea}{\@bea}}
+\def\@@bea[#1]#2\eea{\begin{subequations}\begin{align}#2\end{align}\label{#1}\end{subequations}}
+\def\@bea#1\eea{\begin{subequations}\begin{align}#1\end{align}\end{subequations}}
+\makeatother
+%
+%
+%%% CURLY L IN MATH MODE
+\mathcode`l="8000
+\begingroup
+\makeatletter
+\lccode`\~=`\l
+\DeclareMathSymbol{\lsb@l}{\mathalpha}{letters}{`l}
+\lowercase{\gdef~{\ifnum\the\mathgroup=\m@ne \ell \else \lsb@l \fi}}%
+\endgroup
+%
+%
+%%% SHORTHANDS FOR VARIABLES
+\newcommand{\zb}{\overline{z}}
+\newcommand{\yb}{\overline{y}}
+\newcommand{\hb}{\overline{h}}
+%
+%
+%%% RENDERING HYPERGEOMETRIC FUNCTION 
+% \newcommand*\pFqskip{8mu}
+% \catcode`,\active
+% \newcommand*\pFq{\begingroup
+%	\catcode`\,\active
+%	\def ,{\mskip\pFqskip\relax}%
+%	\dopFq
+% }
+% \catcode`\,12
+% \def\dopFq#1#2#3#4#5{%
+%	{}_{#1}F_{#2}\biggl[\genfrac..{0pt}{}{#3}{#4};#5\biggr]%
+%	\endgroup
+% }
+%
+%
+%%% TIKZ RELATED
+% \usepackage{tikz}
+% \usetikzlibrary{external}
+% \tikzexternalize[
+% mode=graphics if exists,
+% figure list=true,
+% prefix=figures/]
+%
+%
+%%% ADDITIONAL PACKAGES
+% \RequirePackage{amsthm}%ADD THEOREM ENVIRONMENTS
+% \RequirePackage{changepage} % The package provides commands to change the page layout in the middle of a document, and to robustly check for typesetting on odd or even pages. Instructions for use are at the end of the file.
+% \RequirePackage{colonequals} % Provides \colonequals
+% \RequirePackage{emptypage}%suppresses page numbers and headings from appearing on empty pages
+% \RequirePackage{fancyhdr}%ADD HEADER ENVIRONMENT
+% \RequirePackage{float} % adds new floats
+% \RequirePackage{mathrsfs}   % fancy script: \mathscr
+ %\RequirePackage{multicol}%ENABLE MULTI COLUMNS
+% 		As an example:
+%		\begin{tabular}{c@{\hskip 0.3in}c@{\hskip 0.3in}c}\end{tabular}
+% \RequirePackage{pdflscape} % Allows landscape pages
+% \RequirePackage{pifont} %For checkmark and xmark
+		% \newcommand{\xmark}{\ding{55}} %Define xmark
+		% \newcommand{\cmark}{\ding{51}} %Define checkmark
+% \RequirePackage{simplewick} % The package provides a simple means of drawing Wick contractions above and below expressions.
+% 		As an example:
+%		\newcommand{\propagator}[4]{\contraction{}{#1}{#2}{#3}#1#2#3#4}
+% \RequirePackage{slashed} % Enables Feynman's slashed notation
+% \RequirePackage[super]{nth} % Superscript nth, command is \nth{#}
+% \RequirePackage{tabularx} %FOR ADVANCED TABULAR
+%		 As an example:
+%		\begin{tabular}{c@{\hskip 0.3in}c@{\hskip 0.3in}c}\end{tabular}
+% \RequirePackage{xargs}   %Enables using more than one optional argument in new commands
+% \RequirePackage[all,cmtip]{xy} % provides diagrams
+%
+%
+%%% MAKE EQUATIONS NUMBERED BY SECTION
+%\numberwithin{equation}{section}
+%\renewcommand\theequation{\arabic{section}.\arabic{equation}}
+%
+%
+%%% FOOTNOTE PER PAGE
+% \RequirePackage{perpage}
+% \MakePerPage{footnote}
+% \renewcommand{\thefootnote}{\fnsymbol{footnote}}
+%
+%
+%%% ROMAN ENUMERATE
+% \RequirePackage{enumitem}
+% \setlist[enumerate,1]{label=(\emph{\roman*})}
+%
+%
+%%% GREEK LETTERS
+\renewcommand \a  {\alpha}
+\renewcommand \b  {\beta}
+\newcommand   \g  {\gamma}
+\newcommand   \G  {\Gamma}
+\newcommand   \de {\delta}
+\newcommand   \De {\Delta}
+\newcommand   \e  {\epsilon}
+\renewcommand \l  {\lambda}
+\renewcommand \L  {\Lambda}
+\renewcommand \r  {\rho}
+\newcommand   \f  {\phi}
+\newcommand   \vf {\varphi}
+\newcommand   \s  {\sigma}
+\newcommand   \w  {\omega}
+\renewcommand \O  {\Omega}
+\renewcommand \th {\theta}
+\newcommand   \ka {\kappa}
+\newcommand   \z  {\zeta}
+%
+%
+%%% BOLD LETTERS
+% some letters are commented out to not conflict with the usual TeX commands
+%% lowercase
+\newcommand   \ba {\mathbf{a}}
+\newcommand   \bb {\mathbf{b}}
+\newcommand   \bc {\mathbf{c}}
+\newcommand   \bd {\mathbf{d}}
+%\newcommand   \be {\mathbf{e}}
+%\newcommand   \bf {\mathbf{f}}
+\newcommand   \bg {\mathbf{g}}
+\newcommand   \bh {\mathbf{h}}
+\newcommand   \bi {\mathbf{i}}
+\newcommand   \bj {\mathbf{j}}
+\newcommand   \bk {\mathbf{k}}
+\newcommand   \bl {\mathbf{l}}
+%\newcommand   \bm {\mathbf{m}}
+\newcommand   \bn {\mathbf{n}}
+\newcommand   \bo {\mathbf{o}}
+\newcommand   \bp {\mathbf{p}}
+\newcommand   \bq {\mathbf{q}}
+\newcommand   \br {\mathbf{r}}
+\newcommand   \bs {\mathbf{s}}
+\newcommand   \bt {\mathbf{t}}
+\newcommand   \bu {\mathbf{u}}
+\newcommand   \bv {\mathbf{v}}
+\newcommand   \bw {\mathbf{w}}
+\newcommand   \bx {\mathbf{x}}
+\newcommand   \by {\mathbf{y}}
+\newcommand   \bz {\mathbf{z}}
+%% Uppercase
+\newcommand   \bA {\mathbf{A}}
+\newcommand   \bB {\mathbf{B}}
+\newcommand   \bC {\mathbf{C}}
+\newcommand   \bD {\mathbf{D}}
+\newcommand   \bE {\mathbf{E}}
+\newcommand   \bF {\mathbf{F}}
+\newcommand   \bG {\mathbf{G}}
+\newcommand   \bH {\mathbf{H}}
+\newcommand   \bI {\mathbf{I}}
+\newcommand   \bJ {\mathbf{J}}
+\newcommand   \bK {\mathbf{K}}
+\newcommand   \bL {\mathbf{L}}
+\newcommand   \bM {\mathbf{M}}
+\newcommand   \bN {\mathbf{N}}
+\newcommand   \bO {\mathbf{O}}
+\newcommand   \bP {\mathbf{P}}
+\newcommand   \bQ {\mathbf{Q}}
+\newcommand   \bR {\mathbf{R}}
+\newcommand   \bS {\mathbf{S}}
+\newcommand   \bT {\mathbf{T}}
+\newcommand   \bU {\mathbf{U}}
+\newcommand   \bV {\mathbf{V}}
+\newcommand   \bW {\mathbf{W}}
+\newcommand   \bX {\mathbf{X}}
+\newcommand   \bY {\mathbf{Y}}
+\newcommand   \bZ {\mathbf{Z}}
+%
+%
+%%% SPACES AND FIELDS
+\newcommand   \R  {\mathbb{R}}
+\newcommand   \Z  {\mathbb{Z}}
+\newcommand   \N  {\mathbb{N}}
+\newcommand   \C  {\mathbb{C}}
+\newcommand   \Q  {\mathbb{Q}}
+\newcommand   \Qp {\mathbb{Q}_p}
+\renewcommand \P  {\mathbb{P}}
+\newcommand   \A  {\mathbb{A}}
+%
+%
+%%% MULTI-LETTER FUNCTORS/FUNCTIONS
+\newcommand   \Ad    {\mathrm{Ad}}
+\newcommand   \SU    {\mathrm{SU}}
+\newcommand   \SO    {\mathrm{SO}}
+\newcommand   \ISO    {\mathrm{ISO}}
+\newcommand   \GL    {\mathrm{GL}}
+\newcommand   \SL    {\mathrm{SL}}
+\newcommand   \PSL   {\mathrm{PSL}}
+\newcommand   \PGL   {\mathrm{PGL}}
+\newcommand   \Sp    {\mathrm{Sp}}
+\newcommand   \Span  {\mathrm{Span}}
+\newcommand   \Aut   {\mathrm{Aut}}
+\renewcommand \Re    {\mathop{\mathrm{Re}}}
+\renewcommand \Im    {\mathop{\mathrm{Im}}}
+\newcommand   \Pf    {\mathrm{Pf}}
+\newcommand   \Ker   {\mathop{\mathrm{Ker}}}
+\newcommand   \Coker {\mathop{\mathrm{Coker}}}
+\newcommand   \Hom   {\mathrm{Hom}}
+\newcommand   \Mor   {\mathrm{Mor}}
+\newcommand   \Gal   {\mathrm{Gal}}
+\newcommand   \Sym   {\mathrm{Sym}}
+\newcommand   \codim {\mathop{\mathrm{codim}}}
+\newcommand   \ind   {\mathop{\mathrm{ind}}}
+\newcommand   \Vol   {\mathrm{Vol}}
+\newcommand   \vol   {\mathrm{vol}}
+%
+%
+%%% CALIGRAPHIC CAPITALS
+\newcommand   \cA {\mathcal{A}}
+\newcommand   \cB {\mathcal{B}}
+\newcommand   \cC {\mathcal{C}}
+\newcommand   \cD {\mathcal{D}}
+\newcommand   \cE {\mathcal{E}}
+\newcommand   \cF {\mathcal{F}}
+\newcommand   \cG {\mathcal{G}}
+\newcommand   \cH {\mathcal{H}}
+\newcommand   \cI {\mathcal{I}}
+\newcommand   \cJ {\mathcal{J}}
+\newcommand   \cK {\mathcal{K}}
+\newcommand   \cL {\mathcal{L}}
+\newcommand   \cM {\mathcal{M}}
+\newcommand   \cN {\mathcal{N}}
+\newcommand   \cO {\mathcal{O}}
+\newcommand   \cP {\mathcal{P}}
+\newcommand   \cQ {\mathcal{Q}}
+\newcommand   \cR {\mathcal{R}}
+\newcommand   \cS {\mathcal{S}}
+\newcommand   \cT {\mathcal{T}}
+\newcommand   \cU {\mathcal{U}}
+\newcommand   \cV {\mathcal{V}}
+\newcommand   \cW {\mathcal{W}}
+\newcommand   \cX {\mathcal{X}}
+\newcommand   \cY {\mathcal{Y}}
+\newcommand   \cZ {\mathcal{Z}}

@@ -1,4 +1,4 @@
-% JHEP bibliography style ver. 2.7
+% JHEP bibliography style ver. 2.10
 %
 % The bibtex output produced by inSPIRE, while far from perfect, is pretty
 % suitable for use with this style. Indeed, this style was designed with
@@ -575,7 +575,7 @@ FUNCTION {format.in.ed.booktitle}
     { "in " booktitle emphasize *
       editor empty$
 	'skip$
-	{ " (" * format.editors * ")" * }
+	{ ", " * format.editors * "" * }
       if$
     }
   if$
@@ -702,11 +702,20 @@ FUNCTION {format.incoll.inproc.crossref}
   " \cite{" * crossref * "}" *
 }
 
+%% Output either the collaboration name and no authors
+%% or the authors (if there is no collaboration)
+FUNCTION {format.author.or.collaboration}
+{
+  collaboration empty$
+    { format.authors "author" output.check }
+    { format.collaboration output }
+  if$
+}
+
 FUNCTION {article}
 {
   output.bibitem
-  format.collaboration output
-  format.authors "author" output.check
+  format.author.or.collaboration
   format.title "title" output.check
   blank.sep
 
@@ -757,8 +766,8 @@ FUNCTION {book}
     { format.editors "author and editor" output.check }
     { format.authors output.nonnull
       crossref missing$
-	{ "author and editor" editor either.or.check }
-	'skip$
+	    { "author and editor" editor either.or.check }
+	    'skip$
       if$
     }
   if$
@@ -784,8 +793,7 @@ FUNCTION {book}
 
 FUNCTION {booklet}
 { output.bibitem
-  format.collaboration output
-  format.authors output
+  format.author.or.collaboration
   title empty$
     { "empty title in " cite$ * warning$
       howpublished new.sentence.checka
@@ -847,37 +855,34 @@ FUNCTION {inbook}
 
 FUNCTION {incollection}
 { output.bibitem
-  format.collaboration output
-  format.authors "author" output.check
+  format.author.or.collaboration
   format.title "title" output.check
   blank.sep
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
       format.bvolume output
       format.number.series output
-      format.chapter.pages output
-      new.block
-      publisher "publisher" output.check
-      address output
-      format.edition output
-      format.date "year" output.check
+      format.paddress output
+      format.pages output
+      organization output
+      publisher output
+      format.date.paren "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
-      format.chapter.pages output
+      format.pages output
     }
   if$
-  new.block
   format.eprint output
-  new.block
-  % note output
-  formatfull.doi output
+  doi empty$
+    { format.url output }
+    { formatfull.doi output }
+  if$
   fin.entry
 }
 
 FUNCTION {inproceedings}
 { output.bibitem
-  format.collaboration output
-  format.authors "author" output.check
+  format.author.or.collaboration
   format.title "title" output.check
   blank.sep
   crossref missing$
@@ -894,11 +899,17 @@ FUNCTION {inproceedings}
       format.pages output
     }
   if$
-  format.eprint output
+
   doi empty$
     { format.url output }
     { formatfull.doi output }
   if$
+
+  doi empty$ url empty$ and
+    { format.eprint output }
+    { blank.sep format.eprint.paren output }
+  if$
+
   fin.entry
 }
 
@@ -1020,8 +1031,7 @@ FUNCTION {proceedings}
 
 FUNCTION {techreport}
 { output.bibitem
-  format.collaboration output
-  format.authors "author" output.check
+  format.author.or.collaboration
   format.title "title" output.check
   blank.sep
   format.tr.number output.nonnull
@@ -1036,8 +1046,7 @@ FUNCTION {techreport}
 
 FUNCTION {unpublished}
 { output.bibitem
-  format.collaboration output
-  format.authors "author" output.check
+  format.author.or.collaboration
   format.title.p "title" output.check
   blank.sep
   % note "note" output.check

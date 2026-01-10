@@ -1,0 +1,471 @@
+% File: corl_2023.sty 
+%
+% Latex templates for the Conference on Robot Learning (CoRL)
+%
+% This template is heavily inspired by the NIPS, ICML, ICLR and IEEE Transactions latex templates.
+% Hence we would like to thank: Roman Garnett and the previous mantainers of the NIPS style, Percy Liang and the previous mantainers of the ICML style, Hugo Larochelle for the ICLR style, and Michael Shell for the IEEE Transactions style.
+%
+% History:
+% 2017/04/16 - First revision by Roberto Calandra (roberto.calandra@berkeley.edu).
+%	       Main changes:
+%	       - The abstract is more compact compared to NIPS/ICML
+%	       - References are by default using natbib with squared numbers (e.g., [1])
+%	       - DOI fields from the bibtex are automatically converted to hyperlinks 
+%	       to the corresponding page
+%	       - acknowledgments are now a command, and the corresponding subsubsection is
+%	       automatically included only in the final version
+% 2017/06/12 - Modified to use corlabbrvnat.bst, which order the reference by order of appearance in the paper
+% 2017/06/13 - fixed typo
+% 2018/05/09 - Slightly modified for CoRL 2018 by Jun Morimoto (xmorimo@atr.jp)
+% 2019/01/28 - Slightly modified for CoRL 2019 by Jun Nakanishi (jnakanis@meijo-u.ac.jp)
+% 2020/02/02 - Slightly modified for CoRL 2020 by Cynthia Matuszek (cmat@umbc.edu)
+% 2020/08/19 - Added preprint option by Roberto Calandra (rcalandra@fb.com)
+% 2021/05/06 - Slightly modified for CoRL 2021 by Gerhard Neumann (gerhard.neumann@kit.edu)
+% 2022/03/09 - Slightly modified for CoRL 2022 by Minas Liarokapis (minas.liarokapis@auckland.ac.nz)
+% 2022/03/06 - Slightly modified for CoRL 2023 by Marc Toussaint (toussaint@tu-berlin.de)
+
+%
+% TODO: nohyperref is not working at the moment
+% 
+
+\NeedsTeXFormat{LaTeX2e}
+
+% Content to be changed from year to year
+\ProvidesPackage{corl_2023}[2023/06/15 CORL2023 submission/preprint/camera-ready style file]
+\newcommand{\@conferenceordinal}{7th}
+\newcommand{\@conferenceyear}{2023}
+\newcommand{\@conferencelocation}{Atlanta, USA}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Accepted options: [final,preprint,nonatbib,nohyperref]
+
+% Declare the final option, which creates camera-ready copy
+\newif\if@conferencefinal\@conferencefinalfalse
+\DeclareOption{final}{
+  \@conferencefinaltrue
+}
+
+% Declare the preprint option, which creates a camera-ready copy without the corl footnote
+\newif\if@preprinttype\@preprinttypefalse
+\DeclareOption{preprint}{
+  \@preprinttypetrue
+}
+
+% The natbib package is loaded by default. Declaring the nonatbib option, does not load natbib in case of package clash (users can pass options to natbib via \PassOptionsToPackage)
+\newif\if@natbib\@natbibtrue
+\DeclareOption{nonatbib}{
+  \@natbibfalse
+}
+
+% The hyperref package is loaded by default. Declaring the  nohyperref option, does not load the hyperref.
+\DeclareOption{nohyperref}{%
+  \gdef\nohyperref{1}
+}
+
+% Activate the options
+\ProcessOptions\relax
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Required packages:
+
+\RequirePackage{lineno}
+\RequirePackage{color}
+
+% Load natbib unless told otherwise
+\if@natbib
+  \RequirePackage[square,numbers]{natbib}
+  \bibliographystyle{corlabbrvnat}
+\fi
+
+% set page geometry
+\RequirePackage{hyperref}       % hyperlinks
+\RequirePackage[verbose=true,letterpaper]{geometry}
+\AtBeginDocument{
+  \newgeometry{
+    textheight=9in,
+    textwidth=5.5in,
+    top=1in,
+    headheight=12pt,
+    headsep=25pt,
+    footskip=30pt
+  }
+  \@ifpackageloaded{fullpage}
+    {\PackageWarning{corl_2023}{fullpage package not allowed! Overwriting formatting.}}
+    {}
+}
+
+
+\ifdefined\nohyperref\else\ifdefined\hypersetup
+  \definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+  \hypersetup{ %
+    pdftitle={},
+    pdfauthor={},
+    pdfsubject={Proceedings of the \@conferenceordinal\/ Conference on Robot Learning (CoRL \@conferenceyear)},
+    pdfkeywords={},
+    pdfborder=0 0 0,
+    pdfpagemode=UseNone,
+    colorlinks=true,
+    linkcolor=mydarkblue,
+    citecolor=mydarkblue,
+    filecolor=mydarkblue,
+    urlcolor=mydarkblue,
+    pdfview=FitH}
+
+  \ifdefined\isaccepted \else
+    \hypersetup{pdfauthor={Anonymous Submission}}
+  \fi
+\fi\fi
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+
+% fonts
+\renewcommand{\rmdefault}{ptm}
+\renewcommand{\sfdefault}{phv}
+
+% Create acknowledgments -- only if the option 'final' is activated
+\providecommand{\acknowledgments}{}
+\renewcommand{\acknowledgments}[1]{%
+\if@conferencefinal% 
+\subsubsection*{Acknowledgments} #1
+\fi
+\if@preprinttype% 
+\subsubsection*{Acknowledgments} #1
+\fi
+}
+
+
+% handle tweaks for camera-ready copy vs. submission copy
+\if@conferencefinal
+  \newcommand{\@noticestring}{%
+    \@conferenceordinal\/ Conference on Robot Learning
+    (CoRL \@conferenceyear), \@conferencelocation.%
+  }
+\else
+  \if@preprinttype
+    \newcommand{\@noticestring}{%
+      % Nothing here.
+    }
+  \else
+    \newcommand{\@noticestring}{%
+      Submitted to the \@conferenceordinal\/ Conference on Robot Learning (CoRL \@conferenceyear). Do not distribute.%
+    }
+
+    % line numbers for submission
+    \linenumbers
+
+    % fix incompatibilities between lineno and amsmath, if required, by
+    % transparently wrapping linenomath environments around amsmath
+    % environments
+    \AtBeginDocument{%
+     \@ifpackageloaded{amsmath}{%
+        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+          \renewenvironment{#1}%
+            {\linenomath\csname old#1\endcsname}%
+            {\csname oldend#1\endcsname\endlinenomath}%
+        }%
+        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+          \patchAmsMathEnvironmentForLineno{#1}%
+          \patchAmsMathEnvironmentForLineno{#1*}%
+        }%
+        \patchBothAmsMathEnvironmentsForLineno{equation}%
+        \patchBothAmsMathEnvironmentsForLineno{align}%
+        \patchBothAmsMathEnvironmentsForLineno{flalign}%
+        \patchBothAmsMathEnvironmentsForLineno{alignat}%
+        \patchBothAmsMathEnvironmentsForLineno{gather}%
+        \patchBothAmsMathEnvironmentsForLineno{multline}%
+      }{}
+    }
+  \fi
+\fi
+
+
+
+% The DOI will now automatically generate a URL link. Pretty cool!
+% + Fix for hyperref and DOI (https://www.tug.org/pipermail/tex-live/2012-August/032161.html)
+%-----------------------------
+\makeatletter
+\providecommand{\doi}[1]{%
+  \begingroup
+    \let\bibinfo\@secondoftwo
+    \urlstyle{rm}%
+    \href{http://dx.doi.org/#1}{%
+      doi:\discretionary{}{}{}%
+      \nolinkurl{#1}%
+    }%
+  \endgroup
+}
+% \makeatother
+% %-----------------------------
+
+\widowpenalty=10000
+\clubpenalty=10000
+\flushbottom
+\sloppy
+
+% font sizes with reduced leading
+\renewcommand{\normalsize}{%
+  \@setfontsize\normalsize\@xpt\@xipt
+  \abovedisplayskip      7\p@ \@plus 2\p@ \@minus 5\p@
+  \abovedisplayshortskip \z@ \@plus 3\p@
+  \belowdisplayskip      \abovedisplayskip
+  \belowdisplayshortskip 4\p@ \@plus 3\p@ \@minus 3\p@
+}
+\normalsize
+\renewcommand{\small}{%
+  \@setfontsize\small\@ixpt\@xpt
+  \abovedisplayskip      6\p@ \@plus 1.5\p@ \@minus 4\p@
+  \abovedisplayshortskip \z@  \@plus 2\p@
+  \belowdisplayskip      \abovedisplayskip
+  \belowdisplayshortskip 3\p@ \@plus 2\p@   \@minus 2\p@
+}
+\renewcommand{\footnotesize}{\@setfontsize\footnotesize\@ixpt\@xpt}
+\renewcommand{\scriptsize}{\@setfontsize\scriptsize\@viipt\@viiipt}
+\renewcommand{\tiny}{\@setfontsize\tiny\@vipt\@viipt}
+\renewcommand{\large}{\@setfontsize\large\@xiipt{14}}
+\renewcommand{\Large}{\@setfontsize\Large\@xivpt{16}}
+\renewcommand{\LARGE}{\@setfontsize\LARGE\@xviipt{20}}
+\renewcommand{\huge}{\@setfontsize\huge\@xxpt{23}}
+\renewcommand{\Huge}{\@setfontsize\Huge\@xxvpt{28}}
+
+% sections with less space
+\providecommand{\section}{}
+\renewcommand{\section}{%
+  \@startsection{section}{1}{\z@}%
+                {-2.0ex \@plus -0.5ex \@minus -0.2ex}%
+                { 1.5ex \@plus  0.3ex \@minus  0.2ex}%
+                {\large\bf\raggedright}%
+}
+\providecommand{\subsection}{}
+\renewcommand{\subsection}{%
+  \@startsection{subsection}{2}{\z@}%
+                {-1.8ex \@plus -0.5ex \@minus -0.2ex}%
+                { 0.8ex \@plus  0.2ex}%
+                {\normalsize\bf\raggedright}%
+}
+\providecommand{\subsubsection}{}
+\renewcommand{\subsubsection}{%
+  \@startsection{subsubsection}{3}{\z@}%
+                {-1.5ex \@plus -0.5ex \@minus -0.2ex}%
+                { 0.5ex \@plus  0.2ex}%
+                {\normalsize\bf\raggedright}%
+}
+\providecommand{\paragraph}{}
+\renewcommand{\paragraph}{%
+  \@startsection{paragraph}{4}{\z@}%
+                {1.5ex \@plus 0.5ex \@minus 0.2ex}%
+                {-1em}%
+                {\normalsize\bf}%
+}
+\providecommand{\subparagraph}{}
+\renewcommand{\subparagraph}{%
+  \@startsection{subparagraph}{5}{\z@}%
+                {1.5ex \@plus 0.5ex \@minus 0.2ex}%
+                {-1em}%
+                {\normalsize\bf}%
+}
+\providecommand{\subsubsubsection}{}
+\renewcommand{\subsubsubsection}{%
+  \vskip5pt{\noindent\normalsize\rm\raggedright}%
+}
+
+% float placement
+\renewcommand{\topfraction      }{0.85}
+\renewcommand{\bottomfraction   }{0.4}
+\renewcommand{\textfraction     }{0.1}
+\renewcommand{\floatpagefraction}{0.7}
+
+\newlength{\@nipsabovecaptionskip}\setlength{\@nipsabovecaptionskip}{7\p@}
+\newlength{\@nipsbelowcaptionskip}\setlength{\@nipsbelowcaptionskip}{\z@}
+
+\setlength{\abovecaptionskip}{\@nipsabovecaptionskip}
+\setlength{\belowcaptionskip}{\@nipsbelowcaptionskip}
+
+% swap above/belowcaptionskip lengths for tables
+\renewenvironment{table}
+  {\setlength{\abovecaptionskip}{\@nipsbelowcaptionskip}%
+   \setlength{\belowcaptionskip}{\@nipsabovecaptionskip}%
+   \@float{table}}
+  {\end@float}
+
+% footnote formatting
+\setlength{\footnotesep }{6.65\p@}
+\setlength{\skip\footins}{9\p@ \@plus 4\p@ \@minus 2\p@}
+\renewcommand{\footnoterule}{\kern-3\p@ \hrule width 12pc \kern 2.6\p@}
+\setcounter{footnote}{0}
+
+% paragraph formatting
+\setlength{\parindent}{\z@}
+\setlength{\parskip  }{5.5\p@}
+
+% list formatting
+\setlength{\topsep       }{4\p@ \@plus 1\p@   \@minus 2\p@}
+\setlength{\partopsep    }{1\p@ \@plus 0.5\p@ \@minus 0.5\p@}
+\setlength{\itemsep      }{2\p@ \@plus 1\p@   \@minus 0.5\p@}
+\setlength{\parsep       }{2\p@ \@plus 1\p@   \@minus 0.5\p@}
+\setlength{\leftmargin   }{3pc}
+\setlength{\leftmargini  }{\leftmargin}
+\setlength{\leftmarginii }{2em}
+\setlength{\leftmarginiii}{1.5em}
+\setlength{\leftmarginiv }{1.0em}
+\setlength{\leftmarginv  }{0.5em}
+\def\@listi  {\leftmargin\leftmargini}
+\def\@listii {\leftmargin\leftmarginii
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep
+              \topsep  2\p@ \@plus 1\p@    \@minus 0.5\p@
+              \parsep  1\p@ \@plus 0.5\p@ \@minus 0.5\p@
+              \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep
+              \topsep    1\p@ \@plus 0.5\p@ \@minus 0.5\p@
+              \parsep    \z@
+              \partopsep 0.5\p@ \@plus 0\p@ \@minus 0.5\p@
+              \itemsep \topsep}
+\def\@listiv {\leftmargin\leftmarginiv
+              \labelwidth\leftmarginiv
+              \advance\labelwidth-\labelsep}
+\def\@listv  {\leftmargin\leftmarginv
+              \labelwidth\leftmarginv
+              \advance\labelwidth-\labelsep}
+\def\@listvi {\leftmargin\leftmarginvi
+              \labelwidth\leftmarginvi
+              \advance\labelwidth-\labelsep}
+
+% create title
+\providecommand{\maketitle}{}
+\renewcommand{\maketitle}{%
+  \par
+  \begingroup
+    \renewcommand{\thefootnote}{\fnsymbol{footnote}}
+    % for perfect author name centering
+    \renewcommand{\@makefnmark}{\hbox to \z@{$^{\@thefnmark}$\hss}}
+    % The footnote-mark was overlapping the footnote-text,
+    % added the following to fix this problem               (MK)
+    \long\def\@makefntext##1{%
+      \parindent 1em\noindent
+      \hbox to 1.8em{\hss $\m@th ^{\@thefnmark}$}##1
+    }
+    \thispagestyle{empty}
+    \@maketitle
+    \@thanks
+    \@notice
+  \endgroup
+  \let\maketitle\relax
+  \let\thanks\relax
+}
+
+% rules for title box at top of first page
+\newcommand{\@toptitlebar}{
+  \hrule height 4\p@
+  \vskip 0.25in
+  \vskip -\parskip%
+}
+\newcommand{\@bottomtitlebar}{
+  \vskip 0.29in
+  \vskip -\parskip
+  \hrule height 1\p@
+  \vskip 0.09in%
+}
+
+%% keywords as first class citizens
+\def\keywords#1{%
+%  \ifdefined\isaccepted \else
+%    \par {\bf Keywords:} #1%
+%  \fi
+%  \ifdefined\nohyperref\else\ifdefined\hypersetup
+%    \hypersetup{pdfkeywords={#1}}
+%  \fi\fi
+ \ifdefined\isaccepted \else
+    \begin{quote}
+    \textbf{Keywords:} #1%
+    \end{quote}
+ \fi
+  \ifdefined\nohyperref\else\ifdefined\hypersetup
+    \hypersetup{pdfkeywords={#1}}
+  \fi\fi
+}
+
+
+% create title (includes both anonymized and non-anonymized versions)
+\providecommand{\@maketitle}{}
+\renewcommand{\@maketitle}{%
+  \vbox{%
+    \hsize\textwidth
+    \linewidth\hsize
+    \vskip 0.1in
+%     \@toptitlebar
+    \centering
+    {\LARGE\bf \@title\par}
+%     \@bottomtitlebar
+    \if@conferencefinal
+      \def\And{%
+        \end{tabular}\hfil\linebreak[0]\hfil%
+        \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+      }
+      \def\AND{%
+        \end{tabular}\hfil\linebreak[4]\hfil%
+        \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+      }
+      \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\@author\end{tabular}%
+    \else
+      \if@preprinttype
+        \def\And{%
+          \end{tabular}\hfil\linebreak[0]\hfil%
+          \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+        }
+        \def\AND{%
+          \end{tabular}\hfil\linebreak[4]\hfil%
+          \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+        }
+        \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\@author\end{tabular}%
+      \else
+        \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}
+          Anonymous Author(s) \\
+          Affiliation \\
+          Address \\
+          \texttt{email} \\
+        \end{tabular}%
+      \fi
+    \fi
+    \vskip 0.3in \@minus 0.1in
+  }
+}
+
+% add conference notice to bottom of first page
+\newcommand{\ftype@noticebox}{8}
+\newcommand{\@notice}{%
+  % give a bit of extra room back to authors on first page
+  \enlargethispage{2\baselineskip}%
+  \@float{noticebox}[b]%
+    \footnotesize\@noticestring%
+  \end@float%
+}
+
+% abstract styling
+\renewenvironment{abstract}%
+{%
+%   \vskip 0.075in%
+%   \centerline%
+%   {\large\bf Abstract}%
+%   \vspace{0.5ex}%
+  \begin{quote}%
+  \textbf{Abstract:}%
+}
+{
+  \par%
+  \vskip 1ex%
+%   \ifdefined\keywords
+%   \textbf{Keywords:}%
+%   \@keywords%
+%   \else
+%   \fi
+  \end{quote}%
+}
+
+\endinput

@@ -1,0 +1,366 @@
+%%
+%% This is file `paralist.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% paralist.dtx  (with options: `package')
+%% 
+%% Copyright 1998-2000 Bernd Schandl
+%% email schandl@gmx.net
+%% www   http://members.xoom.com/schandl/paralist
+%% 
+%% This file can be redistributed and/or modified under the terms
+%% of the LaTeX Project Public License distributed from CTAN
+%% archives in the directory macros/latex/base/lppl.txt; either
+%% version 1 of the license, or (at your option) any later version.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\ProvidesPackage{paralist}%
+          [2001/03/03 v2.0a Some new list environments (BS)]
+\NeedsTeXFormat{LaTeX2e}
+\newif\if@plnewitem\@plnewitemfalse
+\newif\if@plnewenum\@plnewenumfalse
+\newif\if@pldefblank\@pldefblankfalse
+\newif\if@plincreaseonly\@plincreaseonlyfalse
+\newif\if@plpointedenum\@plpointedenumfalse
+\newif\if@plpointlessenum\@plpointlessenumfalse
+\newif\if@plloadcfg
+\DeclareOption{newitem}{\@plnewitemtrue}
+\DeclareOption{newenum}{\@plnewenumtrue}
+\DeclareOption{defblank}{\@pldefblanktrue}
+\DeclareOption{increaseonly}{\@plincreaseonlytrue}
+\DeclareOption{pointedenum}{\@plpointedenumtrue}
+\DeclareOption{pointlessenum}{\@plpointlessenumtrue}
+\DeclareOption{cfg}{\@plloadcfgtrue}
+\DeclareOption{nocfg}{\@plloadcfgfalse}
+\ExecuteOptions{cfg}
+\ProcessOptions\relax
+\newlength{\pltopsep}
+\newlength{\plpartopsep}
+\newlength{\plitemsep}
+\newlength{\plparsep}
+\setlength{\pltopsep}{0pt}
+\setlength{\plpartopsep}{0pt}
+\setlength{\plitemsep}{0pt}
+\setlength{\plparsep}{0pt}
+\def\if@empty#1#2#3{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\@empty#2\else#3\fi}
+\def\pl@item[#1]{%
+  \if@noitemarg
+    \@noitemargfalse
+    \if@nmbrlist
+      \refstepcounter{\@listctr}%
+    \fi
+  \fi
+  \settowidth{\@tempdima}{#1}%
+  \ifdim\@tempdima>\z@{#1}\nobreakspace\fi
+  \ignorespaces
+  }
+\newtoks\pl@lab
+\def\pl@qmark{?}
+\def\pl@label#1#2{%
+  \edef\pl@the{\noexpand#1{\@enumctr}}%
+  \pl@lab\expandafter{\the\pl@lab\csname the\@enumctr\endcsname}%
+  \advance\@tempcnta1
+  \pl@loop}
+\def\pl@space{\afterassignment\pl@sp@ce\let\@tempa= }
+\def\pl@sp@ce{\pl@lab\expandafter{\the\pl@lab\space}\pl@loop}
+\def\pl@group#1{\pl@lab\expandafter{\the\pl@lab{#1}}\pl@loop}
+\def\pl@other#1{\pl@lab\expandafter{\the\pl@lab#1}\pl@loop}
+\def\pl@loop{\futurelet\pl@temp\pl@loop@}
+\def\pl@loop@{%
+  \ifx A\pl@temp         \def\@tempa{\pl@label\Alph  }\else
+  \ifx a\pl@temp         \def\@tempa{\pl@label\alph  }\else
+  \ifx i\pl@temp         \def\@tempa{\pl@label\roman }\else
+  \ifx I\pl@temp         \def\@tempa{\pl@label\Roman }\else
+  \ifx 1\pl@temp         \def\@tempa{\pl@label\arabic}\else
+  \ifx \@sptoken\pl@temp \let\@tempa\pl@space         \else
+  \ifx \bgroup\pl@temp   \let\@tempa\pl@group         \else
+  \ifx \@@@\pl@temp      \let\@tempa\@gobble          \else
+                         \let\@tempa\pl@other
+                         \pl@hook
+                 \fi\fi\fi\fi\fi\fi\fi\fi
+  \@tempa}
+\providecommand\pl@hook{}
+\def\@enumlabel@#1[#2]{%
+  \@tempcnta0
+  \pl@lab{}%
+  \let\pl@the\pl@qmark
+  \expandafter\pl@loop\@gobble#2\@@@
+  \ifnum\@tempcnta=1\else
+    \PackageWarning{paralist}{Incorrect label; no or multiple
+      counters.\MessageBreak The label is: \@gobble#2}%
+  \fi
+  \expandafter\edef\csname label\@enumctr\endcsname{\the\pl@lab}%
+  \expandafter\let\csname the\@enumctr\endcsname\pl@the
+  \csname c@\@enumctr\endcsname7
+  \if@plincreaseonly
+    \settowidth{\@tempdima}{\the\pl@lab\hspace{\labelsep}}%
+    \ifdim\@tempdima >
+      \csname leftmargin\romannumeral\@enumdepth\endcsname
+        \csname leftmargin\romannumeral\@enumdepth\endcsname
+          \@tempdima
+    \fi
+  \else
+    \expandafter\settowidth
+      \csname leftmargin\romannumeral\@enumdepth\endcsname
+      {\the\pl@lab\hspace{\labelsep}}%
+  \fi
+  #1}
+\def\@itemlabel@#1[#2]{%
+  \def\pl@itemitem{#2}%
+  \def\@itemitem{pl@itemitem}%
+  \if@plincreaseonly
+    \settowidth{\@tempdima}{#2\hspace{\labelsep}}%
+    \ifdim\@tempdima >
+      \csname leftmargin\romannumeral\@itemdepth\endcsname
+        \csname leftmargin\romannumeral\@itemdepth\endcsname
+          \@tempdima
+    \fi
+  \else
+    \expandafter\settowidth
+      \csname leftmargin\romannumeral\@itemdepth\endcsname
+      {#2\hspace{\labelsep}}%
+  \fi
+  #1}
+\def\asparaenum{%
+  \ifnum\@enumdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@enumdepth\@ne
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+  \fi
+  \@ifnextchar[{\@enumlabel@{\@asparaenum@}[}{\@asparaenum@}}
+\def\@asparaenum@{%
+  \expandafter\list\csname label\@enumctr\endcsname{%
+    \usecounter{\@enumctr}%
+    \labelwidth\z@
+    \labelsep.5em
+    \leftmargin\z@
+    \parsep\parskip
+    \itemsep\z@
+    \topsep\z@
+    \partopsep\parskip
+    \itemindent\parindent
+    \advance\itemindent\labelsep
+    \def\makelabel##1{##1}}}
+\let\endasparaenum\endlist
+\def\inparaenum{%
+  \ifnum\@enumdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@enumdepth\@ne
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+  \fi
+  \@ifnextchar[{\@enumlabel@{\@inparaenum@}[}{\@inparaenum@}}
+\def\@inparaenum@{%
+  \usecounter{\@enumctr}%
+  \def\@itemlabel{\csname label\@enumctr\endcsname}%
+  \let\@item\pl@item
+  \ignorespaces}
+\let\endinparaenum\ignorespacesafterend
+\def\compactenum{%
+  \ifnum\@enumdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@enumdepth\@ne
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+  \fi
+  \@ifnextchar[{\@enumlabel@{\@compactenum@}[}{\@compactenum@}}
+\def\@compactenum@{%
+  \expandafter\list\csname label\@enumctr\endcsname{%
+    \usecounter{\@enumctr}%
+    \parsep\plparsep
+    \itemsep\plitemsep
+    \topsep\pltopsep
+    \partopsep\plpartopsep
+    \def\makelabel##1{\hss\llap{##1}}}}
+\let\endcompactenum\endlist
+\if@plnewenum
+  \def\enumerate{%
+    \ifnum \@enumdepth >\thr@@
+      \@toodeep
+    \else
+      \advance\@enumdepth \@ne
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+    \fi
+    \@ifnextchar[{\@enumlabel@{\@enumerate@}[}{\@enumerate@}}
+  \def\@enumerate@{%
+    \expandafter\list\csname label\@enumctr\endcsname{%
+      \usecounter{\@enumctr}%
+      \def\makelabel##1{\hss\llap{##1}}}}
+\fi % \if@plnewenum
+\def\asparaitem{%
+  \ifnum\@itemdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@itemdepth\@ne
+    \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \fi
+  \@ifnextchar[{\@itemlabel@{\@asparaitem@}}{\@asparaitem@}}
+\def\@asparaitem@{%
+  \expandafter\list\csname\@itemitem\endcsname{%
+    \labelwidth\z@
+    \labelsep.5em
+    \leftmargin\z@
+    \parsep\parskip
+    \itemsep\z@
+    \topsep\z@
+    \partopsep\parskip
+    \itemindent\parindent
+    \advance\itemindent\labelsep
+    \def\makelabel##1{##1}}}
+\let\endasparaitem\endlist
+\def\inparaitem{%
+  \ifnum\@itemdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@itemdepth\@ne
+    \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \fi
+  \@ifnextchar[{\@itemlabel@{\@inparaitem@}}{\@inparaitem@}}
+\def\@inparaitem@{%
+  \def\@itemlabel{\csname\@itemitem\endcsname}%
+  \let\@item\pl@item
+  \ignorespaces}
+\let\endinparaitem\ignorespacesafterend
+\def\compactitem{%
+  \ifnum\@itemdepth>\thr@@
+    \@toodeep
+  \else
+    \advance\@itemdepth\@ne
+    \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \fi
+  \@ifnextchar[{\@itemlabel@{\@compactitem@}}{\@compactitem@}}
+\def\@compactitem@{%
+  \expandafter\list\csname\@itemitem\endcsname{%
+    \parsep\plparsep
+    \itemsep\plitemsep
+    \topsep\pltopsep
+    \partopsep\plpartopsep
+    \def\makelabel##1{\hss\llap{##1}}}}
+\let\endcompactitem\endlist
+\if@plnewitem
+  \def\itemize{%
+    \ifnum \@itemdepth >\thr@@
+      \@toodeep
+    \else
+      \advance\@itemdepth\@ne
+      \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+    \fi
+    \@ifnextchar[{\@itemlabel@{\@itemize@}}{\@itemize@}}
+  \def\@itemize@{%
+    \expandafter\list\csname\@itemitem\endcsname{%
+      \def\makelabel##1{\hss\llap{##1}}}}
+\fi % \if@plnewitem
+\def\compactdesc{%
+  \list{}{%
+    \parsep\plparsep
+    \itemsep\plitemsep
+    \topsep\pltopsep
+    \partopsep\plpartopsep
+    \labelwidth\z@
+    \itemindent-\leftmargin
+    \let\makelabel\descriptionlabel}}
+\let\endcompactdesc\endlist
+\if@pldefblank
+  \def\asparablank{%
+    \list{}{%
+      \labelwidth\z@
+      \labelsep\z@
+      \leftmargin\z@
+      \parsep\parskip
+      \itemsep\z@
+      \topsep\z@
+      \partopsep\parskip
+      \itemindent\parindent
+      \advance\itemindent\labelsep
+      \def\makelabel##1{##1}}}
+  \let\endasparablank\endlist
+  \def\inparablank{%
+    \let\@itemlabel\@empty
+    \let\@item\pl@item
+    \ignorespaces}
+  \let\endinparablank\ignorespacesafterend
+\fi % \if@pldefblank
+\def\defaultitem#1#2#3#4{%
+  \if@empty{#1}{}{\def\labelitemi{#1}}%
+  \if@empty{#2}{}{\def\labelitemii{#2}}%
+  \if@empty{#3}{}{\def\labelitemiii{#3}}%
+  \if@empty{#4}{}{\def\labelitemiv{#4}}}
+\def\defaultenum#1#2#3#4{%
+  \if@empty{#1}{}{%
+    \@tempdimb\leftmargini
+    \def\@enumctr{enumi}%
+    \@enumlabel@{\relax}[[#1]%
+    \leftmargini\@tempdimb}%
+  \if@empty{#2}{}{%
+    \@tempdimb\leftmarginii
+    \def\@enumctr{enumii}%
+    \@enumlabel@{\relax}[[#2]%
+    \leftmarginii\@tempdimb}%
+  \if@empty{#3}{}{%
+    \@tempdimb\leftmarginiii
+    \def\@enumctr{enumiii}%
+    \@enumlabel@{\relax}[[#3]%
+    \leftmarginiii\@tempdimb}%
+  \if@empty{#4}{}{%
+    \@tempdimb\leftmarginiv
+    \def\@enumctr{enumiv}%
+    \@enumlabel@{\relax}[[#4]%
+    \leftmarginiv\@tempdimb}%
+  \relax}
+\def\defaultleftmargin#1#2#3#4{%
+  \if@empty{#1}{}{\leftmargini#1}%
+  \if@empty{#2}{}{\leftmarginii#2}%
+  \if@empty{#3}{}{\leftmarginiii#3}%
+  \if@empty{#4}{}{\leftmarginiv#4}%
+  \relax}
+\def\pl@pointxxxenum{%
+  \def\theenumi{\arabic{enumi}}%
+  \def\theenumii{\theenumi.\arabic{enumii}}%
+  \def\theenumiii{\theenumii.\arabic{enumiii}}%
+  \def\theenumiv{\theenumiii.\arabic{enumiv}}%
+  \def\p@enumi{}%
+  \def\p@enumii{}%
+  \def\p@enumiii{}%
+  \def\p@enumiv{}}
+\def\pl@pointedenum{%
+  \def\labelenumi{\theenumi.}%
+  \def\labelenumii{\theenumii.}%
+  \def\labelenumiii{\theenumiii.}%
+  \def\labelenumiv{\theenumiv.}}
+\def\pl@pointlessenum{%
+  \def\labelenumi{\theenumi}%
+  \def\labelenumii{\theenumii}%
+  \def\labelenumiii{\theenumiii}%
+  \def\labelenumiv{\theenumiv}}
+\def\pointedenum{\pl@pointxxxenum\pl@pointedenum}
+\def\pointlessenum{\pl@pointxxxenum\pl@pointlessenum}
+\if@plpointedenum\pointedenum\fi
+\if@plpointlessenum\pointlessenum\fi
+\if@plloadcfg
+  \InputIfFileExists{paralist.cfg}{%
+    \typeout{Using the configuration file paralist.cfg}}{}
+\fi
+
+\endinput
+%%
+%% End of file `paralist.sty'.

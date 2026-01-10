@@ -1,0 +1,128 @@
+%%% NEJLT style file
+%%% (c) Leon Derczynski 2020
+%%%     hints from from ACM Large, CVPR, EMNLP2020, Political Analysis, LREC
+%%% Bibliography is URL-free ACL version (hyperref is a time sink)
+
+%% OPTIONS
+% draft mode
+\newif\ifcrversion
+\crversionfalse
+\DeclareOption{final}{\crversiontrue}
+% end options segment
+\ProcessOptions
+
+\RequirePackage{enumitem}
+
+%% LAYOUT AND GENERAL APPEARANCE
+% Libertine font
+\IfFileExists{libertine.sty}{}{\ClassWarning{\@classname}{Libertine package is missing; please upgrade}}
+% switch to biolinum, the libertine sans font
+\RequirePackage[tt=false, type1=true, sfdefault]{libertine}
+\RequirePackage[libertine]{newtxmath}
+% colour enabled
+\RequirePackage{xcolor}
+% simplify use of complex input glyphs
+\usepackage[utf8]{inputenc}
+% set page size and margins
+\RequirePackage[a4paper,portrait]{geometry}
+\geometry{
+    textwidth=170mm,
+    textheight=235mm,
+    footskip=12mm,
+    voffset=10mm
+}
+% try to balance page end
+\flushbottom
+% don't break lines unless we really have to
+\sloppy
+
+%% COLUMNS
+\twocolumn
+\setlength{\columnsep}{12mm}
+
+%% BIBLOGRAPHY
+\RequirePackage{natbib}
+% ease ACL format transitions
+\renewcommand\cite{\citep}
+\newcommand\shortcite{\citeyearpar}
+\newcommand\newcite{\citet}
+
+%% TITLE BLOCK
+\newlength\titlebox 
+\setlength\titlebox{50mm}
+% author blanking in drafts
+\newcommand\outauthor{
+ \begin{itemize}[leftmargin=0mm]
+ \itemsep=0pt\labelwidth=0mm\leftmargin=0mm
+ \ifcrversion
+  \item[] \@author
+ \else
+  \item[] {Anonymous authors}
+ \fi
+ \end{itemize}
+}
+% abstract box
+\def\abstract#1{\gdef\@abstract{
+  {
+    \setlength{\baselineskip}{10pt}
+    \noindent\rule{\textwidth}{0.2pt} 
+    \parbox{\textwidth}{\vskip 3mm \small {\bf Abstract } #1 \vskip 3mm \par}
+    \noindent\rule{\textwidth}{0.2pt}
+  }
+}}
+% title 
+\def\maketitle{\par
+ \begingroup
+   \def\thefootnote{\fnsymbol{footnote}}
+   \def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}}
+   \twocolumn[\@maketitle] \@thanks %twocol's already asserted but this is quick
+ \endgroup
+ \setcounter{footnote}{0} % reset footnotes
+ \let\maketitle\relax \let\@maketitle\relax % blank existing titles
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+% put everything in maketitle
+\def\@maketitle{
+%\vbox to \titlebox
+ \hsize\textwidth \linewidth\hsize 
+ {\LARGE \@title \par}
+ \vskip 10mm 
+ {
+  \def\and{\item[]}
+  \hbox to \linewidth
+  {\hfil}
+  {\large \outauthor}
+  }
+  \vskip 2mm
+  \@abstract 
+  \vskip 17mm
+    
+}
+
+
+%% ACCESSIBILITY
+
+
+%% HEADERS AND FOOTERS
+\RequirePackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{.8pt}
+\fancyfoot[C]{Northern European Journal of Language Technology}
+% add footer with issue, volume, pages, doi for non-draft
+\ifcrversion
+\else
+% confidential header for draft
+  \fancyhead[C]{\sc Confidential review copy. Do not distribute.}
+  %\fancyfoot[C]{\@title}
+\fi
+
+%% LINE NUMBERS FOR DRAFTING
+\ifcrversion
+\else
+ \RequirePackage{lineno}
+ \setlength\linenumbersep{1.5mm}
+ \definecolor{flagred}{RGB}{198, 12, 48}
+ \renewcommand{\linenumberfont}{\footnotesize\bfseries\textcolor{flagred}}
+ \linenumbers
+\fi

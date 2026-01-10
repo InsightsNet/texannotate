@@ -5730,6 +5730,7 @@ between column types.}%
     \setcounter{section}{0}%
     \setcounter{subsection}{0}%
     \setcounter{subsubsection}{0}%
+    \setcounter{subsubsubsection}{0}%
     \setcounter{paragraph}{0}%
     \gdef\thesection{A}%
     \gdef\thesectiondis{}% 
@@ -5760,6 +5761,7 @@ between column types.}%
     \setcounter{section}{-1}% we want \refstepcounter to use section 0
     \setcounter{subsection}{0}%
     \setcounter{subsubsection}{0}%
+    \setcounter{subsubsubsection}{0}%
     \setcounter{paragraph}{0}%
     \ifCLASSOPTIONromanappendices%
     \gdef\thesection{\Roman{section}}%
@@ -6304,7 +6306,15 @@ Use \@IEEEbackslash #2 instead.}}
 \def\IEEEcompsoctitleabstractindextext{\@IEEElegacywarn{IEEEcompsoctitleabstractindextext}{IEEEtitleabstractindextext}\IEEEtitleabstractindextext}
 \def\IEEEdisplaynotcompsoctitleabstractindextext{\@IEEElegacywarn{IEEEdisplaynotcompsoctitleabstractindextext}{IEEEdisplaynontitleabstractindextext}\IEEEdisplaynontitleabstractindextext}
 % provide some legacy IEEEtran environments
-
+\def\subsubsubsection{%
+  \@startsection
+    {subsubsubsection}                 % name
+    {4}                             % level
+    {\parindent}                    % indent
+    {0ex plus 0.1ex minus 0.1ex}    % beforeskip
+    {0ex}                           % afterskip
+    {\normalfont\normalsize\itshape}% style
+}%
 
 % V1.8a no more support for these legacy commands
 %\def\authorblockA{\@IEEElegacywarn{authorblockA}{IEEEauthorblockA}\IEEEauthorblockA}

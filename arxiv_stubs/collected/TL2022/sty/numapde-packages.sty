@@ -1,0 +1,228 @@
+% This LaTeX package defines and loads all commonly used packages. Class
+% options can be used if required to turn off undesired packages. Note that,
+% wherever possible, the configuration of each package is deferred to
+% numapde-style.sty.
+
+\ProvidesPackage{numapde-packages}
+
+% Packages which allow control flow
+\RequirePackage{ifthen}
+\RequirePackage{xifthen}
+\RequirePackage{ifxetex}
+
+% Define some Boolean variables which are going to be used for conditional loading
+\provideboolean{useamsthm}        \setboolean{useamsthm}{true}
+\provideboolean{usentheorem}      \setboolean{usentheorem}{false}
+\provideboolean{useBibLaTeX}      \setboolean{useBibLaTeX}{true}
+\provideboolean{usehyperref}      \setboolean{usehyperref}{true}
+\provideboolean{usecleveref}      \setboolean{usecleveref}{true}
+\provideboolean{useenumitem}      \setboolean{useenumitem}{true}
+\provideboolean{usealgpseudocode} \setboolean{usealgpseudocode}{false}
+\provideboolean{usebabel}         \setboolean{usebabel}{true}
+
+% Alter some default behavior, depending on the class loaded
+\@ifclassloaded{achemso}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{beamer}{%
+	\setboolean{useenumitem}{false}
+	\setboolean{usecleveref}{false}
+}{}
+\@ifclassloaded{cedram}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{cocv}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{elsarticle}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{etna}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{etna-numapde}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{frontiersFPHY}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifpackageloaded{icml2020}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifpackageloaded{icml2021}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{IEEEtran}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{ifacconf}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useamsthm}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{ij4uq}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{ij4uq-numapde}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{imanum}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useamsthm}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{interact}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{jnsao}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{m2an}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{mcom-l}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{numapde-book}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usentheorem}{true}
+}{}
+\@ifclassloaded{numapde-lecture-notes}{%
+	\setboolean{usealgpseudocode}{true}
+}{}
+\@ifclassloaded{siamart171218}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{usecleveref}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{siamart190516}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{usecleveref}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{siamonline171218}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{usecleveref}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{siamonline190516}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{usecleveref}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{svjour3}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{tikzposter-numapde}{%
+	\setboolean{usebabel}{false}
+}{}
+\@ifclassloaded{w-art}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{WileyNJD-v2}{%
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{ws-m3as}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+\@ifclassloaded{ws-m3as-numapde}{%
+	\setboolean{useamsthm}{false}
+	\setboolean{usebabel}{false}
+	\setboolean{useBibLaTeX}{false}
+}{}
+
+% Define some missing things for certain classes
+\@ifclassloaded{frontiersFPHY}{\newenvironment{description}{}{}}{}
+
+% Packages related to encodings (only for non-XeTeX)
+\ifthenelse{\boolean{xetex}}{%
+}{%
+	\RequirePackage[utf8]{inputenc}
+	\RequirePackage[T1]{fontenc}
+}
+
+% Localization and internationalization related packages
+\ifthenelse{\boolean{usebabel}}{\RequirePackage{babel}}{}
+
+% Math typesetting related packages
+\@ifpackageloaded{newtxmath}{}{%
+	\RequirePackage{amssymb}
+}
+\ifthenelse{\boolean{useamsthm}}{\RequirePackage{amsthm}}{}
+\ifthenelse{\boolean{usentheorem}}{\RequirePackage[amsthm,thmmarks,hyperref]{ntheorem}}{}
+\RequirePackage{mathtools}
+\RequirePackage{stmaryrd}
+
+% Source code typesetting related packages
+\RequirePackage{listings}
+
+% Number and unit typesetting related packages
+\RequirePackage{siunitx}
+
+% Packages related to tables and lists
+\RequirePackage{booktabs}
+\ifthenelse{\boolean{useenumitem}}{\RequirePackage{enumitem}}{}
+\ifthenelse{\boolean{useenumitem}}{\@ifpackageloaded{ntheorem}{}{\RequirePackage{moreenum}}}{}
+\RequirePackage{longtable}
+
+% Packages related to coloring
+\PassOptionsToPackage{svgnames}{xcolor}
+\RequirePackage{xcolor}
+
+% Packages which facilitate the definition of new commands
+\RequirePackage{xparse}
+\RequirePackage{xspace}
+
+% Packages related to typesetting of algorithms
+\ifthenelse{\boolean{usealgpseudocode}}{\RequirePackage{algpseudocode}}{}
+
+% Packages related to internationalization
+\RequirePackage{csquotes}
+
+% Packages related to referencing
+\ifthenelse{\boolean{useBibLaTeX}}{%
+	\RequirePackage[style=authoryear-comp,backend=biber]{biblatex}
+}{}
+
+\ifthenelse{\boolean{usehyperref}}{\RequirePackage{hyperref}}{}
+\ifthenelse{\boolean{usecleveref}}{\RequirePackage[nameinlink,capitalize,noabbrev]{cleveref}}{}
+
+% Packages related to changes tracking
+\RequirePackage[ulem=normalem,truncate=fit]{changes}
+
+% Packages related to icons (only for XeTeX)
+\ifthenelse{\boolean{xetex}}{%
+	\RequirePackage{academicons}
+}{}
+
+% Packages related to numbering
+\RequirePackage{chngcntr}
+
+% Packages for icons and such
+\RequirePackage{ccicons} % Creative Commons License icons

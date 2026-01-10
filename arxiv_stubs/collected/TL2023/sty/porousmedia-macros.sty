@@ -1,0 +1,66 @@
+% POROUS MEDIA GROUP
+% MACROS
+
+% ... GEOSX NAME
+
+\newcommand{\GEOSX}{\texttt{GEOSX}}
+\newcommand{\RAJA}{\texttt{RAJA}}
+\newcommand{\hypre}{\texttt{hypre}}
+\newcommand{\LvArray}{\texttt{LvArray}}
+\newcommand{\CHAI}{\texttt{CHAI}}
+
+% ... KEYWORDS
+\newcommand{\keywords}[1]{\noindent\textit{Keywords:} #1}
+
+% ... TENSORS
+
+\usepackage{xstring}
+\newcommand{\tensor}[2]{%
+    \IfEqCase*{#1}{%
+    {0}{#2}
+    {1}{\boldsymbol{#2}}
+    {2}{\boldsymbol{#2}}
+    {4}{\textbf{\sffamily{#2}}}
+    }[Did not match any given case!!]%
+}%
+
+% ... ALGEBRAIC VECTORS AND MATRICES
+
+\newcommand{\Mat}[1]{#1}
+\renewcommand{\Vec}[1]{%
+  \ifcat\noexpand#1\relax % check if the argument is a control sequence (Greek)
+    \boldsymbol{#1}% Greek
+  \else
+    \mathbf{#1}% single character
+  \fi
+}
+\newcommand{\blkVec}[1]{\mathbf{#1}}
+\newcommand{\blkMat}[1]{\mathbf{#1}}
+
+\newcommand{\sub}[1]{_\mathit{#1}}
+
+% ... SPECIAL SYMBOLS
+\newcommand{\celsius}{\textdegree\,C} % ... degrees Celsius macro
+\newcommand{\kelvin}{\textdegree\,K}  % ... degrees Kelvin macro
+
+\newcommand{\pressure}{p}
+\newcommand{\gravity}{\tensor{1}{g}}
+
+\newcommand{\fluidPhase}{\ell}
+\newcommand{\fluidPhaseDensity}{\rho_{\fluidPhase}}
+\newcommand{\fluidPhaseVelocity}{\tensor{1}{v}_{\fluidPhase}}
+\newcommand{\fluidPhaseMobility}{\lambda_{\fluidPhase}}
+\newcommand{\fluidPhaseSaturation}{s_{\fluidPhase}}
+\newcommand{\fluidPhaseSource}{q_{\fluidPhase}}
+\newcommand{\sumOverFluidPhases}[1]{\sum_{\fluidPhase={1}}^{#1}}
+
+\newcommand{\component}{c}
+\newcommand{\phaseComponentFraction}{x_{\component\fluidPhase}}
+
+\newcommand{\absolutePermeability}{\tensor{2}{\kappa}}
+\newcommand{\porosity}{\phi}
+
+% ... ... OPERATORS
+\newcommand{\gradient}{\nabla}
+\newcommand{\divergence}{\nabla \cdot}
+

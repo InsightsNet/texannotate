@@ -1,0 +1,103 @@
+% This package loads packages in addition to those included in
+% numapde-packages.sty. It also defines additional commands
+% specific to the publication.
+
+% Load and configure packages
+\RequirePackage{anyfontsize}
+\RequirePackage{numapde-manifolds}
+\usepackage{subcaption}
+\usepackage{overpic}
+\usepackage{nicefrac}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{spy}
+\usetikzlibrary{calc}
+
+% allows to write calligraphic lower case letter in math enviroments
+% \usepackage[cal=boondox]{mathalpha}
+
+% Load and configure algorithm2e
+\usepackage[ruled,vlined,linesnumbered,algo2e]{algorithm2e}
+
+% read this file required for the zoom of the images
+\input{zoom}
+
+% Configure cleveref
+\crefname{algocf}{alg.}{algs.}
+\Crefname{algocf}{Algorithm}{Algorithms}
+\Crefname{step}{step}{steps}
+\crefname{step}{Step}{Steps}
+\crefname{enumi}{Condition}{Conditions}
+\crefname{enumi}{condition}{conditions}
+\Crefname{statement}{Statement}{Statements}
+\crefname{statement}{statement}{statements}
+\Crefname{condition}{Condition}{Conditions}
+\crefname{condition}{condition}{conditions}
+
+% Define additional commands
+\newcommand{\newpenalty}{\varphi}
+\newcommand{\oldpenalty}{f}
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+\newcommand{\cy}{\mathpzc{y}}
+\newcommand{\Qref}{Q_\text{ref}}
+\newcommand{\vvec}{\operatorname{vec}}
+\newcommand{\powerset}[2][]{\cP\enclose[#1]{(}{#2}{)}}
+\newcommand{\lk}{\operatorname{lk}}
+\newcommand{\St}{\operatorname{St}}
+\newcommand{\closedSt}[1]{\overline{\operatorname{St}(#1)}}
+\newcommand{\zeromanifold}{\cM_0(\Delta)}
+\newcommand{\plusmanifold}{\cM_+(\Delta)}
+\newcommand{\planarmanifold}{\cM_+(\Delta;\Qref)}
+\newcommand{\fj}{\widehat{j}}
+\newcommand{\gmesh}{\namemd{Gmesh}}
+\newcommand{\Xiad}{\Xi_{\textup{ad}}}
+\newcommand{\Ver}{\operatorname{Ver}}
+\newcommand{\rhs}{r}
+\newcommand{\M}{\mathbb{M}}
+\DeclareMathOperator{\blkdiag}{blkdiag}
+
+% new commands for the different variants 
+\newcommand{\EucEuc}{Euclidean-Euclidean\xspace}
+\newcommand{\ElasEuc}{Elasticity-Euclidean\xspace}
+\newcommand{\CompEuc}{Complete-Euclidean\xspace}
+\newcommand{\CompComp}{Complete-Complete\xspace}
+
+% new commands for the different sets of parameters associated with the penalization
+\newcommand{\alphaPenalization}{\alpha^{\textup{penalty}}}
+\newcommand{\alphaMetric}{\alpha^{\textup{metric}}}
+
+% Advanced commands related to quantities in a triangle 
+% \edgelength{Q}{\ell}
+% \edgelength[auto]{Q}{\ell}[i_0,i_1,i_2]
+\NewDocumentCommand{\edgelength}{O{} m m o}{E_{#2}^{#3}\IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}}
+% \edgelengthTriangle{k}{\ell}
+\NewDocumentCommand{\edgelengthTriangle}{O{} m m o}{E_{#2}^{#3}}
+% \height{Q}{\ell}
+% \height[auto]{Q}{\ell}[i_0,i_1,i_2]
+\NewDocumentCommand{\height}{O{} m m o}{h_{#2}^{#3}\IfNoValueF{#4}{\enclose[#1]{(}{#4}{)}}}
+% \height{Q}{\ell}
+\NewDocumentCommand{\heightTriangle}{O{} m m}{h_{#2}^{#3}}
+% \area{Q}
+% \area[auto]{Q}[i_0,i_1,i_2]
+\NewDocumentCommand{\area}{O{} m o}{A_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}}
+% \areaTriangle{k}
+\NewDocumentCommand{\areaTriangle}{O{} m }{A_{#2}}
+% \circumradius{k}
+\NewDocumentCommand{\circumradius}{O{} m }{R_{#2}}
+% \interiorangle{k}{\ell}
+\NewDocumentCommand{\interiorangle}{O{} m m}{\theta_{#2}^{#3}}
+% \distance{Q}
+% \distance[auto]{Q}[i_0][[j_0,j_1]]
+\NewDocumentCommand{\distance}{O{} m o O{\cdot}}{d_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3;#4}{)}}}
+% \regularizedDistance{Q}
+% \regularizedDistance[auto]{Q}[i_0][[j_0,j_1]]
+\NewDocumentCommand{\regularizedDistance}{O{} m o O{\cdot}}{D_{#2}^\mu\IfNoValueF{#3}{\enclose[#1]{(}{#3;#4}{)}}}
+% Euclidean retraction
+% \retractEuc{Q}
+\NewDocumentCommand{\retractEuc}{ O{} m d() }{\retractionSymbol^{\textup{euc}}_{#2}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}}
+% define a command for the metric associated with the linear elasticity bilinear form
+\NewDocumentCommand{\riemannianLinElas}{ O{} m m O{} }{\enclose[#1]{(}{#2\,,\,#3}{)^{\textup{elas}}}_{#4}}
+% define a command for the riemannian norm associated with the euclidean metric
+%\eucldieanrieammaniannorm{d^n_i}[Q^n]
+\NewDocumentCommand{\euclideanriemanniannorm}{ O{} m O{} }{\norm[#1]{#2}_2^{}}

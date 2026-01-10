@@ -1,0 +1,236 @@
+% definition de macros pour les equations mathematiques
+
+% definitions de Gabriella
+
+\def\eq#1{(\ref{#1})}
+\def\pmb#1{\setbox0=\hbox{#1}%
+  \kern-.02em\copy0\kern-\wd0
+  \kern-.035em\copy0\kern-\wd0
+  \kern-.02em\raise.03em\box0 }
+  
+\newcommand{\matx}[1]{\mbox{\bf $#1$}}
+\newcommand{\vect}[1]{\mbox{{\boldmath $#1$}}}
+\newcommand{\ovec}[1]{\overline{\vect{#1}}}
+\newcommand{\overmat}[1]{\overline{\matx{#1}}}
+\newcommand{\hatmat}[1]{\hat{\matx{#1}}}
+\newcommand{\hatvec}[1]{\hat{\vect{#1}}}
+
+\newcommand{\mm}[1]{\mathbf{#1}}
+\newcommand{\vv}[1]{\mbox{{\boldmath $#1$}}}
+\newcommand{\cc}[1]{\mathcal{#1}}
+ 
+\newcommand{\ovv}[1]{\overline{\vv{#1}}}
+\newcommand{\omm}[1]{\overline{\mm{#1}}}
+\newcommand{\occ}[1]{\overline{\cal{#1}}}
+ 
+\newcommand{\tvv}[1]{\widetilde{\vv{#1}}}
+\newcommand{\tmm}[1]{\widetilde{\mm{#1}}}
+%\newcommand{\tcc}[1]{\widetilde{\cal{#1}}}
+ 
+ 
+\newcommand{\hvv}[1]{\widehat{\vv{#1}}}
+\newcommand{\hmm}[1]{\widehat{\mm{#1}}}
+\newcommand{\hcc}[1]{\widehat{\cal{#1}}}
+
+%\newcommand{\dvv}[1]{\stackrel{\bullet}{\vv{#1}}}
+%\newcommand{\dmm}[1]{\stackrel{\bullet}{\mm{#1}}}
+%\newcommand{\dcc}[1]{\stackrel{\bullet}{\cal{#1}}}
+
+\newcommand{\dvv}[1]{\dot{\vv{#1}}}
+\newcommand{\dmm}[1]{\dot{\mm{#1}}}
+\newcommand{\dcc}[1]{\dot{\cc{#1}}}
+
+%\newcommand{\crp}{\times}
+\newcommand{\tp}{^{\top}}
+\newcommand{\prj}{\simeq}
+\newcommand{\inverse}{^{-1}}
+\newcommand{\tpinv}{^{-\top}}
+\newcommand{\overstar}{^{\star}}
+\setlength{\parskip}{\medskipamount}
+\newcommand{\var}{\mbox{var}}
+
+\def\proof{\noindent\hspace{2em}{\it Proof: }}
+\def\endproof{\hspace*{\fill}~\par\endtrivlist\unskip}
+
+% definitions de Radu.
+\def\diag{\mbox{Diag}\:}
+\def\trace{\mbox{trace}\:}
+\def\rank{\mbox{rank}\:}
+\def\sign{\mbox{sign}\:}
+\def\spec{\mbox{spec}\:}
+\def\p3{\cc{P}^3}
+\def\avect{\mbox{\boldmath $a$}}
+\def\bvect{\mbox{\boldmath $b$}}
+\def\cvect{\mbox{\boldmath $c$}}
+\def\dvect{\mbox{\boldmath $d$}}
+\def\duvect{\mbox{\boldmath $du$}}
+\def\evect{\mbox{\boldmath $e$}}
+\def\fvect{\mbox{\boldmath $f$}}
+\def\gvect{\mbox{\boldmath $g$}}
+\def\hvect{\mbox{\boldmath $h$}}
+\def\ivect{\mbox{\boldmath $i$}}
+\def\jvect{\mbox{\boldmath $j$}}
+\def\kvect{\mbox{\boldmath $k$}}
+\def\lvect{\mbox{\boldmath $l$}}
+\def\mvect{\mbox{\boldmath $m$}}
+\def\nvect{\mbox{\boldmath $n$}}
+\def\ovect{\mbox{\boldmath $o$}}
+\def\pvect{\mbox{\boldmath $p$}}
+\def\qvect{\mbox{\boldmath $q$}}
+\def\rvect{\mbox{\boldmath $r$}}
+\def\svect{\mbox{\boldmath $s$}}
+\def\tvect{\mbox{\boldmath $t$}}
+\def\uvect{\mbox{\boldmath $u$}}
+\def\vvect{\mbox{\boldmath $v$}}
+\def\wvect{\mbox{\boldmath $w$}}
+\def\xvect{\mbox{\boldmath $x$}}
+\def\yvect{\mbox{\boldmath $y$}}
+\def\zvect{\mbox{\boldmath $z$}}
+
+\def\Avect{\mbox{\boldmath $A$}}
+\def\Bvect{\mbox{\boldmath $B$}}
+\def\Cvect{\mbox{\boldmath $C$}}
+\def\Dvect{\mbox{\boldmath $D$}}
+\def\Evect{\mbox{\boldmath $E$}}
+\def\Fvect{\mbox{\boldmath $F$}}
+\def\Gvect{\mbox{\boldmath $G$}}
+\def\Hvect{\mbox{\boldmath $H$}}
+\def\Ivect{\mbox{\boldmath $I$}}
+\def\Jvect{\mbox{\boldmath $J$}}
+\def\Kvect{\mbox{\boldmath $K$}}
+\def\Lvect{\mbox{\boldmath $L$}}
+\def\Mvect{\mbox{\boldmath $M$}}
+\def\Nvect{\mbox{\boldmath $N$}}
+\def\Ovect{\mbox{\boldmath $O$}}
+\def\Pvect{\mbox{\boldmath $P$}}
+\def\Qvect{\mbox{\boldmath $Q$}}
+\def\Rvect{\mbox{\boldmath $R$}}
+\def\Svect{\mbox{\boldmath $S$}}
+\def\Tvect{\mbox{\boldmath $T$}}
+\def\Uvect{\mbox{\boldmath $U$}}
+\def\Vvect{\mbox{\boldmath $V$}}
+\def\Wvect{\mbox{\boldmath $W$}}
+\def\Xvect{\mbox{\boldmath $X$}}
+\def\Yvect{\mbox{\boldmath $Y$}}
+\def\Zvect{\mbox{\boldmath $Z$}}
+
+\def\betavect{\mbox{\boldmath $\beta$}}
+\def\tauvect{\mbox{\boldmath $\tau$}}
+\def\nuvect{\mbox{\boldmath $\nu$}}
+\def\alphavect{\mbox{\boldmath $\alpha$}}
+\def\lambdavect{\mbox{\boldmath $\lambda$}}
+\def\muvect{\mbox{\boldmath $\mu$}}
+\def\xivect{\mbox{\boldmath $\xi$}}
+\def\chivect{\mbox{\boldmath $\chi$}}
+\def\epsvect{\mbox{\boldmath $\epsilon$}}
+\def\phivect{\mbox{\boldmath $\phi$}}
+\def\psivect{\mbox{\boldmath $\psi$}}
+\def\gammavect{\mbox{\boldmath $\gamma$}}
+\def\thetavect{\mbox{\boldmath $\theta$}}
+\def\Thetavect{\mbox{\boldmath $\Theta$}}
+
+\def\amat{\mbox{\bf a}}
+\def\bmat{\mbox{\bf b}}
+\def\cmat{\mbox{\bf c}}
+\def\dmat{\mbox{\bf d}}
+\def\emat{\mbox{\bf e}}
+\def\fmat{\mbox{\bf f}}
+\def\gmat{\mbox{\bf g}}
+\def\hmat{\mbox{\bf h}}
+\def\imat{\mbox{\bf i}}
+\def\jmat{\mbox{\bf j}}
+\def\kmat{\mbox{\bf k}}
+\def\lmat{\mbox{\bf l}}
+\def\mmat{\mbox{\bf m}}
+\def\nmat{\mbox{\bf n}}
+\def\omat{\mbox{\bf o}}
+\def\pmat{\mbox{\bf p}}
+\def\qmat{\mbox{\bf q}}
+\def\rmat{\mbox{\bf r}}
+\def\smat{\mbox{\bf s}}
+\def\tmat{\mbox{\bf t}}
+\def\umat{\mbox{\bf u}}
+\def\vmat{\mbox{\bf v}}
+\def\wmat{\mbox{\bf w}}
+\def\xmat{\mbox{\bf x}}
+\def\ymat{\mbox{\bf y}}
+\def\zmat{\mbox{\bf z}}
+
+\def\Amat{\mbox{\bf A}}
+\def\Bmat{\mbox{\bf B}}
+\def\Cmat{\mbox{\bf C}}
+\def\Dmat{\mbox{\bf D}}
+\def\Emat{\mbox{\bf E}}
+\def\Fmat{\mbox{\bf F}}
+\def\Gmat{\mbox{\bf G}}
+\def\Hmat{\mbox{\bf H}}
+\def\Imat{\mbox{\bf I}}
+\def\Jmat{\mbox{\bf J}}
+\def\Kmat{\mbox{\bf K}}
+\def\Lmat{\mbox{\bf L}}
+\def\Mmat{\mbox{\bf M}}
+\def\Nmat{\mbox{\bf N}}
+\def\Omat{\mbox{\bf O}}
+\def\Pmat{\mbox{\bf P}}
+\def\Qmat{\mbox{\bf Q}}
+\def\Rmat{\mbox{\bf R}}
+\def\Smat{\mbox{\bf S}}
+\def\Tmat{\mbox{\bf T}}
+\def\Umat{\mbox{\bf U}}
+\def\Vmat{\mbox{\bf V}}
+\def\Wmat{\mbox{\bf W}}
+\def\Xmat{\mbox{\bf X}}
+\def\Ymat{\mbox{\bf Y}}
+\def\Zmat{\mbox{\bf Z}}
+
+\def\betamat{\mbox{\boldmath $\beta$}}
+\def\Phimat{\mbox{\boldmath $\Phi$}}
+\def\Psimat{\mbox{\boldmath $\Psi$}}
+\def\Gammamat{\mbox{\boldmath $\Gamma$}}
+\def\Sigmamat{\mbox{\boldmath $\Sigma$}}
+\def\Lambdamat{\mbox{\boldmath $\Lambda$}}
+
+\def\Abarre{\overline{\Amat}}
+\def\Cbarre{\overline{\Cmat}}
+\def\Mbarre{\overline{\Mvect}}
+\def\Nbarre{\overline{\Nvect}}
+\def\Pbarre{\overline{\Pmat}}
+\def\Qbarre{\overline{\Qmat}}
+
+\def\Phivect{\mbox{\boldmath $\Phi$}}
+\def\zeromat{\mbox{\bf 0}}
+\def\zerovect{\mbox{\boldmath $0$}}
+\def\unmat{\mbox{\bf 1}}
+\def\unvect{\mbox{\bf 1}}
+
+\def\qquat{\mbox{\boldmath $q$}}
+
+\def\itilde{\mbox{\bf \~\i}}
+\def\jtilde{\mbox{\bf \~\j}}
+\def\ihat{\mbox{\bf \^\i}}
+\def\jhat{\mbox{\bf \^\j}}
+
+\def\ahat{\hat{\avect}}
+\def\uhat{\hat{u}}
+\def\vhat{\hat{v}}
+\def\what{\hat{w}}
+
+\def\Rcal{\cal R}
+\def\Pcal{\cal P}
+
+\newcommand{\Reel}{I\!\!R}
+
+\def\Ogvect{\mbox{\boldmath $\Omega$}}
+\def\sigvect{\mbox{\boldmath $\sigma$}}
+\def\Sigvect{\mbox{\boldmath $\Sigma$}}
+
+\def\spc{\ \ \ \ }
+\def\And{\mbox{\ \ \ and\ \ \ }}
+
+% vector: \vector{O}{M} puts an arrow on OM. 
+\newcommand{\vecteur}[2]{{\boxmaxdepth=1000pt\relax\overrightarrow{#1#2}}}
+
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{proposition}{Proposition}
+%\newtheorem{definition}{Definition}
+%\newtheorem{corollary}{Corollary}[proposition]

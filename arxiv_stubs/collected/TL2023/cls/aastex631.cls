@@ -1237,7 +1237,7 @@ when using acknowledgments. For more details, see:\\
 %%
 \global\setbox\ackbox=\vbox\bgroup
 \expandafter\ifx\csname internallinenumbers\endcsname\relax\else
-\begin{internallinenumbers}
+\ifnumlines\begin{internallinenumbers}\fi
 \fi
 \vskip 5.8mm plus 1mm minus 1mm
 \vskip1sp
@@ -1246,7 +1246,7 @@ when using acknowledgments. For more details, see:\\
 
 \def\endacknowledgments{
 \expandafter\ifx\csname internallinenumbers\endcsname\relax\else
-\end{internallinenumbers}
+\ifnumlines\end{internallinenumbers}\fi
 \fi
 \egroup%% completes ackbox
 \ifanonymous
@@ -1293,7 +1293,7 @@ For more details, see:\\
 %%
 \global\setbox\ackbox=\vbox\bgroup
 \expandafter\ifx\csname internallinenumbers\endcsname\relax\else
-\begin{internallinenumbers}
+\ifnumlines\begin{internallinenumbers}\fi
 \fi
 \vskip 5.8mm plus 1mm minus 1mm
 \vskip1sp
@@ -1302,7 +1302,7 @@ For more details, see:\\
 
 \def\endacknowledgements{
 \expandafter\ifx\csname internallinenumbers\endcsname\relax\else
-\end{internallinenumbers}
+\ifnumlines\end{internallinenumbers}\fi
 \fi
 \egroup%% completes ackbox
 \ifanonymous
@@ -2207,7 +2207,7 @@ width0pt\relax#1$}\ignorespaces}
  citecolor=xlinkcolor,     % color of links to bibliography
 filecolor=xlinkcolor,  % color of file links
 urlcolor=xlinkcolor,      % color of external links
-final=true
+final=true,
  ]{hyperref}
 
 

@@ -1,0 +1,379 @@
+%%%
+% COPIED FROM PREAMBLE
+%%%
+
+\usepackage{chngcntr} % make figure numbering in appendix work
+
+%use beamer blocks in normal article 
+\usepackage{tcolorbox}
+\usepackage{lipsum}
+\tcbuselibrary{skins,breakable}
+\usetikzlibrary{shadings,shadows}
+\newenvironment{block}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightGreen,colframe=DarkGreen,%
+    colbacklower=LimeGreen!75!LightGreen,%
+    title=#1]}%
+    {\endtcolorbox}
+    
+
+\usepackage{amsmath, amssymb, bm}
+\usepackage{caption} %Used to put figures in mini pages so that the figures don't float 
+\usepackage{booktabs}% for nice tables
+\usepackage{enumitem} %for no spacing in itemize
+\usepackage{graphicx}
+% Avoid warnings about inconsequential PDF metadata
+%\pdfsuppresswarningpagegroup=1 
+
+%\usepackage{algorithm}
+%\usepackage{algcompatible}
+%\usepackage{algpseudocode}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage[makeroom]{cancel}
+\usepackage{tabularx}
+%\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{mathtools}% for underbracket
+\usepackage{accents}
+\usepackage{tablefootnote}
+\usepackage[T1]{fontenc} % allows for weird symbols in author bibliography
+
+
+
+%http://tex.stackexchange.com/questions/107459/unnumbered-lines-in-algorithm
+%\usepackage{algcompatible}
+%\usepackage{algpseudocode}
+% \usepackage{pifont}
+%for nicer tables
+%https://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=blue,
+    filecolor=blue,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+  
+%for thicker cdot
+\makeatletter
+\newcommand*\bigcdot{\mathpalette\bigcdot@{.5}}
+\newcommand*\bigcdot@[2]{\mathbin{\vcenter{\hbox{\scalebox{#2}{$\m@th#1\bullet$}}}}}
+\makeatother
+
+
+% THEOREM STYLES 
+% Reference: https://www.overleaf.com/learn/latex/Theorems_and_proofs
+% I have decided to nujmber everything by section.  See 
+% https://tex.stackexchange.com/questions/45355/theorem-numbering-as-chapter-section-subsection-theorem-number
+\usepackage{amsthm}
+\numberwithin{equation}{subsection}
+\newtheorem{theorem}{Theorem}[subsection]
+\newtheorem{proposition}{Proposition}[subsection]
+\newtheorem{corollary}{Corollary}[subsection]
+\newtheorem{conjecture}{Conjecture}[subsection]
+\newtheorem{numberedalgorithm}{Algorithm}[subsection]
+
+%%%% AUTO ADD A TRIANGLE TO REMARKS,  QUESTIONS,  ETC.
+% Reference: https://tex.stackexchange.com/questions/48878/qed-symbol-in-a-custom-theorem-environment
+% Reference: https://ctan.math.washington.edu/tex-archive/macros/latex/contrib/thmtools/doc/thmtools-manual.pdf
+% Reference: https://tex.stackexchange.com/questions/16453/denoting-the-end-of-example-remark (for triangle instead of qed)
+% Remark:  Could use kwargs like  "sibling=remark " to share numbering across
+% multiple of these. 
+\usepackage{amsthm}
+\usepackage{thmtools}
+
+\declaretheoremstyle[
+  spaceabove=\topsep, spacebelow=\topsep,
+  headfont=\bfseries,
+  notefont=\bfseries, notebraces={(}{)},
+  bodyfont=\normalfont,
+  postheadspace=1em,
+  qed=$\triangle$,
+  within=subsection,
+]{mythmstyle}
+\declaretheorem[style=mythmstyle]{remark}
+\declaretheorem[style=mythmstyle]{question}
+\declaretheorem[style=mythmstyle]{definition}
+\declaretheorem[style=mythmstyle]{property}
+\declaretheorem[style=mythmstyle]{notation}
+\declaretheorem[style=mythmstyle]{exercise}
+\declaretheorem[style=mythmstyle]{problem}
+\declaretheorem[style=mythmstyle]{claim}
+\declaretheorem[style=mythmstyle]{lemma}
+\declaretheorem[style=mythmstyle]{example}
+% Old way of doing examples:
+%\newtheorem{example}{Example}[subsection]
+%% Reference on example as environment: https://tex.stackexchange.com/questions/21227/example-environment
+
+%%%%% AN ASIDE ENVIRONMENT 
+%\usepackage{framed}
+%
+%\newcommand{\optionrule}{\noindent\rule{1.0\textwidth}{0.75pt}}
+%
+%\newenvironment{aside}
+%  {\def\FrameCommand{\hspace{2em}}
+%   \MakeFramed {\advance\hsize-\width}\optionrule\small}
+%{\par\vskip-\smallskipamount\optionrule\endMakeFramed}
+
+
+%%EXAMPLE/SUBEXAMPLE THEOREM STYLE
+%%Reference: https://tex.stackexchange.com/questions/30799/enumerated-examples
+%\usepackage{etoolbox}% http://ctan.org/pkg/etoolbox
+%\newcounter{mycounter}
+%\newtheorem{example}{Example}[section]% Example
+%\newtheorem{subexample}{Example}[example]% Sub-example
+%\renewcommand{\thesubexample}{\theexample(\alph{subexample})}%
+%\AtBeginEnvironment{subexample}{%
+%\addtocounter{mycounter}{-1}
+%}%
+
+%%% COLORS
+\newcommand{\blue}[1]{\color{blue}{#1}  \color{black}}
+\newcommand{\red}[1]{\color{red}{#1}  \color{black}}
+\newcommand{\green}[1]{\color{green}{#1}  \color{black}}
+
+\definecolor{internationalorange}{rgb}{1.0, 0.31, 0.0}
+\newcommand{\alert}[1]{\color{internationalorange}{#1}  \color{black}}
+
+%%% GENERALLY USEFUL 
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\df}{\displaystyle\frac}
+\newcommand{\biggexp}[1]{\exp  \bigg\{ {#1} \bigg\} }
+\newcommand{\+}[1]{\ensuremath{{\boldsymbol #1}}} %another way to make bold symbols
+\newcommand{\cond}{\; | \;}
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\partialderiv}[2]{\df {\partial {#1}}{\partial {#2}} }
+\newcommand{\indep}{\perp \!\!\! \perp}
+\newcommand{\logdet}[1]{\log |{#1}|}
+
+%%% ARGMIN AND ARGMAX
+\DeclareMathOperator*{\argmax}{argmax} % thin space, limits underneath in displays
+\DeclareMathOperator*{\argmin}{argmin} % thin space, limits underneath in displays
+
+%%% TABLES 
+
+% attempt to force table to stay in subsubsection
+%reference: https://tex.stackexchange.com/questions/279/how-do-i-ensure-that-figures-appear-in-the-section-theyre-associated-with/235312#235312
+%\usepackage{placeins}
+%\let\Oldsection\section
+%\renewcommand{\section}{\FloatBarrier\Oldsection}
+%
+%\let\Oldsubsection\subsection
+%\renewcommand{\subsection}{\FloatBarrier\Oldsubsection}
+%
+%\let\Oldsubsubsection\subsubsection
+%\renewcommand{\subsubsection}{\FloatBarrier\Oldsubsubsection}
+
+%put a table next to figure
+%\usepackage{capt-of}
+
+% put footnotes in tables 
+%\usepackage{footnote}
+%\makesavenoteenv{tabular}
+%\makesavenoteenv{table}
+
+%%% LABELED FOOTNOTES FOR REPEATED REFERENCE
+%\usepackage{hyperref}
+%\usepackage{cleveref}[2012/02/15]% v0.18.4; 
+% 0.16.1 of May 2010 would be sufficient, but what is the exact day?
+%\crefformat{footnote}{#2\footnotemark[#1]#3}
+
+%Reference: https://tex.stackexchange.com/questions/10102/multiple-references-to-the-same-footnote-with-hyperref-support-is-there-a-bett/10116#10116
+
+%%% PROBABILITY
+\newcommand{\iid}{\stackrel{\text{iid}}{\sim}}
+\newcommand{\indsim}{\stackrel{\text{ind}}{\sim}}
+\newcommand{\IG}{\mathcal{I}\mathcal{G}}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\V}{\mathbb{V}}  %for variance
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\biggE}[2]{\E_{{#1}} \bigg[ {{#2}} \bigg]}
+%\newcommand{\H}{\mathbb{H}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\absdet}[1]{ \; \bigg\lvert \det{#1}  \bigg\rvert  \;}
+\newcommand{\logabsdet}[1]{ \log \absdet{#1}}
+\newcommand{\KL}[2] {\texttt{KL} \big({#1} \; \big|\big| \; {#2} \big)}
+\newcommand{\Q}{\mathcal{Q}}
+\newcommand{\ind}{\perp\kern-5pt\perp}
+\newcommand{\F}{\mathcal{F}} % for sigma fields 
+\newcommand{\G}{\mathcal{G}} %another sigma field 
+\newcommand{\B}{\mathcal{B}} %borel sets 
+\newcommand{\sigmafield}{\sigma-\text{field}}
+\newcommand{\ELBO}{\texttt{ELBO}}
+\newcommand{\X}{\mathcal{X}} %some space
+\renewcommand{\H}{\mathbb{H}} %entropy
+
+% DISTRIBUTIONS
+\newcommand{\Uniform}{\text{Uniform}}
+\newcommand{\Dirichlet}{\text{Dirichlet}}
+\newcommand{\Categorical}{\text{Categorical}}
+\newcommand{\MatrixNormal}{\text{MatrixNormal}}
+\newcommand{\Normal}{\mathcal{N}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\norm}{\mathcal{N}}
+\newcommand{\InverseGamma}{\mathcal{I}\mathcal{G}}
+\newcommand{\Wishart}{\mathcal{W}}
+\newcommand{\InverseWishart}{\Wishart^{-1}}
+\newcommand{\InvWish}{\Wishart^{-1}}
+\newcommand{\MNIW}{\text{MNIW}}
+\newcommand{\Multinomial}{\text{Multinomial}}
+\newcommand{\Binomial}{\text{Binomial}}
+\newcommand{\Bernoulli}{\text{Bernoulli}}
+\newcommand{\PG}{\text{PG}} %polyagamma
+\newcommand{\GammaDist}{\text{Gamma}}
+\newcommand{\TruncatedNormal}{\mathcal{T}\mathcal{N}}
+\newcommand{\MultivariateTruncatedNormal}{\mathcal{M} \mathcal{T} \mathcal{N}}
+
+%%% LINEAR ALGEBRA
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\trace}{\tr}
+
+%%% INTEGRALS
+\newcommand{\wrt}[1]{\; d \,{#1} \;} 
+
+%%% SETS
+\newcommand{\set}[1] { \{  {#1} \} }
+\newcommand{\bigset}[1]{\big\{ {#1} \big\}}
+\newcommand{\biggset}[1]{\bigg\{ {#1} \bigg\}}
+
+%%% CUPDOT
+\newcommand{\cupdot}{\sqcup}
+
+%%% EXPLANATIONS  
+%explaining equations 
+\newcommand{\explaineq}[1]{\stackrel{\text{#1}}{=}}
+%explain terms
+\newcommand{\explainterm}[2]{\underset{\textit{#1}}{#2}}
+%same as explainterm but you put the term first, explanation second
+\newcommand{\explain}[2]{\underset{\textit{#2}}{#1}}
+%explain terms with underbrace
+\newcommand{\explaintermbrace}[2]{\underbrace{#2}_{\text{#1}}}
+%same as explain term brace, but you put the term first, explanation second
+\newcommand{\explainbrace}[2]{\underbrace{#1}_{\text{#2}}}
+
+
+%%% SHADED BOXES
+%colored shaded boxes
+%Reference: https://github.com/matze/mtheme
+\newcommand{\bluebox}[2] { \tikz[baseline]{\node[fill=blue!20,anchor=base]({#1}) { {#2} } }}
+\newcommand{\redbox}[2] { \tikz[baseline]{\node[fill=red!20,anchor=base]({#1}) { {#2} } }}
+\newcommand{\greenbox}[2] { \tikz[baseline]{\node[fill=green!20,anchor=base]({#1}) { {#2} } }}
+\newcommand{\whitebox}[2] { \tikz[baseline]{\node[fill=white!20,anchor=base]({#1}) { {#2} } }}
+
+%these put a label beneath the shaded box, in the same color
+\newcommand{\labeledbox}[2]{\underset{{#1}}{{#2}}}
+\newcommand{\labeledbluebox}[2]{  \underset{\blue{#1}}{\bluebox{_dummy_}{#2}} }
+\newcommand{\labeledredbox}[2]{  \underset{\red{#1}}{\redbox{_dummy_}{#2}} }
+\newcommand{\labeledgreenbox}[2]{  \underset{\green{#1}}{\greenbox{_dummy_}{#2}} }
+
+%%% LABEL ONE EQUATION AT THE END OF ALIGN* ENVIROS
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+%reference:https://tex.stackexchange.com/questions/42726/align-but-show-one-equation-number-at-the-end
+%usage: add  "\numberthis \label{eqn}" at the end of the desired line, and refer to it by Equation \eqref{eqn}
+
+%% EQUATION REFERENCES
+% (refers to an equation in a paper style, with parentheses around it
+\newcommand{\eq}[1]{(\ref{#1})}
+%\newcommand{\eqref}[1]{Eq.  (\ref{#1})}
+
+%%%% TIKZ STUFF 
+%\usepackage{tikz}
+%\usetikzlibrary{bayesnet} %for plate notation  USE THIS PACKAGE!!!! Reference: https://stats.stackexchange.com/questions/16750/software-for-drawing-bayesian-networks-graphical-models/16869
+
+
+%
+%%% SIMPLE BIGG PARENTHESES AND BRACKETS
+\newcommand{\bp}[1]{\bigg(  {#1} \bigg)} %stands for big parentheses 
+\newcommand{\bb}[1]{\bigg[  {#1} \bigg]} %stands for big bracket 
+\newcommand{\bc}[1]{\bigg\{  {#1} \bigg\}} %stands for big curly 
+  
+%%% NICE ONES
+\usepackage{bbm}
+\newcommand{\one}{\mathbbm{1}}
+\newcommand{\indicate}[1]{1_{#1}}
+\newcommand{\indicateflat}[1]{1({#1})}
+
+%%% REMARK TITLE (Use italics and parentheses}
+\newcommand{\remarktitle}[1]{(\textit{{#1}})}
+
+ 
+%%% ADD LABELS TO ALIGN* ENVIRONMENT
+% Reference: https://tex.stackexchange.com/questions/42726/align-but-show-one-equation-number-at-the-end
+\newcommand\labelit{\addtocounter{equation}{1}\tag{\theequation}}
+
+%% CHECKMARK 
+\usepackage{pifont}% for cmark and xmark for checkmark and xmark
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\greencheck}{{\color{SeaGreen}\checkmark}}
+\newcommand{\redx}{\color{red}{\ding{55}}}
+
+%%% VECTORIZATION OPERATOR
+\newcommand{\vectorize}{\text{vec}}
+
+%%% TEXT SIZE SEGMENTS 
+\newcommand{\tinytext}[1]{\text{\tiny{{#1}}}}
+\newcommand{\smalltext}[1]{\text{\scriptsize{{#1}}}}
+
+
+%%% CEIL AND FLOOR
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+
+
+%%% MULTI-ROW (for tables)
+\usepackage{multirow}
+
+%%% WIDE COMMANDS
+\newcommand{\wt}[1]{\widetilde{#1}}
+\newcommand{\wh}[1]{\widehat{#1}}
+\newcommand{\wb}[1]{\bar{#1}}
+
+% \widebreve puts a hook over a character
+\makeatletter
+\def\widebreve{\mathpalette\wide@breve}
+\def\wide@breve#1#2{\sbox\z@{$#1#2$}%
+     \mathop{\vbox{\m@th\ialign{##\crcr
+\kern0.08em\brevefill#1{0.8\wd\z@}\crcr\noalign{\nointerlineskip}%
+                    $\hss#1#2\hss$\crcr}}}\limits}
+\def\brevefill#1#2{$\m@th\sbox\tw@{$#1($}%
+  \hss\resizebox{#2}{\wd\tw@}{\rotatebox[origin=c]{90}{\upshape(}}\hss$}
+\makeatletter
+
+
+%%% BE ABLE TO REFER TO FOOTNOTES
+% Reference:  https://tex.stackexchange.com/questions/167380/how-to-refer-to-a-footnote
+% and allow multiple footnotes 
+\usepackage[multiple]{footmisc}
+
+
+% CIRCLED NUMBERS 
+\newcommand*\tinycircled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {\tiny #1};}}
+
+% BIGGER DOT ACCENTS
+% Reference 
+\newcommand*{\widedot}[1]{%
+  \accentset{\mbox{\large\bfseries .}}{#1}}
+  
+% ALGORITHMS
+% Like what Kevin Chan used in
+% his Wasserstein time series paper: https://papers.nips.cc/paper/2021/file/ebb71045453f38676c40deb9864f811d-Paper.pdf#page=6 (
+% Construct one via \begin{algorithm2e}; \begin{algorithm} would use the algorithm package. 
+\usepackage[norelsize, linesnumbered, ruled, lined, boxed, commentsnumbered, algo2e]{algorithm2e}
+\usepackage{makecell}
+
+
+

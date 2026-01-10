@@ -1,0 +1,328 @@
+\ProvidesPackage{james}
+
+%Add standard packages
+\usepackage{amsmath,amssymb}
+\usepackage{mathrsfs} %get new maths font
+\usepackage{yhmath}
+\usepackage{graphics}
+\usepackage{xspace}
+\usepackage{enumerate}
+\usepackage{boxedminipage}
+\usepackage{tabularx}
+\usepackage{subfigure}
+\usepackage{subfloat}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc}
+\tikzset{cross/.style={cross out, draw, 
+    minimum size=2*(#1-\pgflinewidth), 
+         inner sep=2pt, outer sep=2pt}}
+\usepackage{pgfplots}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{epstopdf}
+\usepackage{multirow}
+\usepackage{color}
+\usepackage{placeins}
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+
+\usepackage{xifthen}
+
+
+%Add theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem*{para}{Floating paragraph}
+
+% Localise all numbering
+\numberwithin{equation}{section}
+\numberwithin{theorem}{section}
+\numberwithin{figure}{section}
+
+%improvements and comments
+\newcommand{\improve}[1]{\marginpar{\textcolor{blue}{\emph{Improve
+      }}}{\textbf{\textcolor{blue}{#1}}\xspace}}
+\newcommand{\todo}[1]{\marginpar{\textcolor{red}{\emph{To
+        do}}}\xspace\textbf{\textcolor{magenta}{#1}}\xspace}
+\newcommand{\help}[1]{\marginpar{\textcolor{red}{\emph{PLEASE
+        HELP}}}\xspace\textbf{\textcolor{red}{#1}}\xspace}
+\newcommand{\advise}[1]{\marginpar{\textcolor{red}{\emph{Please
+      advise}}}\xspace\textbf{\textcolor{red}{#1}}\xspace}
+\newcommand{\highlight}[1]{\textcolor{blue}{#1}}
+
+%macros needed to define integration
+\newcommand{\di}[1]{\ensuremath{\text{ }\mathrm{d} {#1}}} % integral dx
+\newcommand{\real}{\ensuremath{\mathbb{R}}}
+
+% Complex numbers macros
+\renewcommand{\Re}[1]{\ensuremath{\mathrm{Re}\bc{#1}}}
+\renewcommand{\Im}[1]{\ensuremath{\mathrm{Im}\bc{#1}}}
+
+%Spatial and temporal finite element meshes
+\newcommand{\tmeshr}{\ensuremath{\widetilde{\mathcal{M}}}}
+\newcommand{\tmesh}{\ensuremath{\mathcal{M}}}
+
+%lagrange nodes
+\newcommand{\lnodes}{\ensuremath{\mathcal{N}}}
+
+%brackets
+\newcommand{\bc}[1]{\ensuremath{\left(#1\right)}}
+\newcommand{\bs}[1]{\ensuremath{\left[#1\right]}}
+
+%ODE defined macros
+\renewcommand{\vec}[1]{\ensuremath{\boldsymbol{#1}}}
+\newcommand{\de}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\vec{\d}}}%
+  {\ensuremath{\vec{\d}\bc{#1}}}}
+\newcommand{\flow}[2]{%
+  \ifthenelse{\isempty{#2}}%
+  {\Psi_{#1}}%
+  {{\Psi_{#1}\bc{#2}}}}
+\newcommand{\id}[1]{\ensuremath{\mathbb{I}_{#1}}}
+\newcommand{\Agen}{\ensuremath{\mathfrak{A}}} % general linear operator
+\newcommand{\f}[1]{\ensuremath{\vec{f}\left(#1\right)}} %explicit RHS func
+\newcommand{\fg}[1]{\ensuremath{\vec{F}\left(#1\right)}} %general RHS func
+\newcommand{\flin}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\vec{\mathfrak{f}}}}%
+  {\ensuremath{\vec{\mathfrak{f}}\left(#1\right)}}} %time dependent RHS func
+\newcommand{\cpolyt}[1]{\ensuremath{\left( \cpoly{#1} \right)^D}}
+\newcommand{\dpolyt}[1]{\ensuremath{\left( \dpoly{#1} \right)^D}}
+\newcommand{\cpolytd}[2]{\ensuremath{\left( \cpoly{#1}\left(#2\right)
+    \right)^{D}}} 
+\newcommand{\dpolytd}[2]{\ensuremath{\left(\dpoly{#1}\left(#2\right)
+    \right)^{D}}}
+
+\newcommand{\ham}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{H}}}
+  {\ensuremath{\mathcal{H}\bc{#1}}}}
+\newcommand{\hamfun}[1]{\ensuremath{J \nabla \ham{#1}}}
+\newcommand{\bdot}[1]{\ensuremath{\dot{#1}}}
+\renewcommand{\bdot}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\frac{\mathrm{d}}{\mathrm{d}t}}}%
+  {\ensuremath{\frac{\mathrm{d}}{\mathrm{d}t}\left(#1\right)}}}
+\newcommand{\bbdot}[2]{%
+  \ifthenelse{\isempty{#2}}%
+  {\ensuremath{\frac{\mathrm{d}^{#1}}{\mathrm{d}^{#1}t}}}%
+  {\ensuremath{\frac{\mathrm{d}^{#1}}{\mathrm{d}^{#1}t}\left(#2\right)}}}
+
+\newcommand{\supnorm}[1]{\ensuremath{\sup_{[0,T]} \abs{#1}}}
+
+\newcommand{\interpol}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{I}}}%
+  {\ensuremath{\mathcal{I}\left(#1\right)}}}
+\newcommand{\asnorm}[1]{\ensuremath{\abs{#1}_A}}
+
+%Hamiltonian PDE macros
+\newcommand{\vdx}[1]{\ensuremath{\frac{\delta}{\delta{#1}}}}
+\newcommand{\vdxx}[2]{\ensuremath{\frac{\delta{#2}}{\delta{#1}}}}
+\newcommand{\poisson}{\ensuremath{\mathcal{P}}}
+\newcommand{\pb}[1]{\ensuremath{\{#1 \}_{\poisson}}}
+
+
+% multisym defined macros
+\newcommand{\dx}[1]{\ensuremath{h_{#1}}}
+\newcommand{\dt}[1]{\ensuremath{\tau_{#1}}}
+\newcommand{\selement}[1]{\ensuremath{\mathcal{J}_{#1}}}
+\newcommand{\telement}[1]{\ensuremath{\mathcal{I}_{#1}}}
+\newcommand{\aelement}[1]{\ensuremath{\mathcal{K}_{#1}}}
+
+\newcommand{\stint}{\ensuremath{\int_{\bs{0,T} \times S^1}}}
+\newcommand{\stlint}{\ensuremath{\int_{\telement{n} \times S^1}}}
+\newcommand{\slint}{\ensuremath{\int_{S^1}}}
+\newcommand{\tint}{\ensuremath{\int_{\telement{n}}}}
+\newcommand{\sltlint}{\ensuremath{\int_{\telement{n} \times \selement{m}}}}
+
+\renewcommand{\S}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{S}}}%
+  {\ensuremath{\mathcal{S}\bc{#1}}}}
+
+\newcommand{\V}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{V}}}%
+  {\ensuremath{\mathcal{V}(#1)}}}
+
+\newcommand{\Vp}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{V}'}}%
+  {\ensuremath{\mathcal{V}'(#1)}}}
+
+\newcommand{\mflux}{\ensuremath{{F}^1}}
+\newcommand{\mdensity}{\ensuremath{{D}^1}}
+\newcommand{\eflux}{\ensuremath{{F}^2}}
+\newcommand{\edensity}{\ensuremath{{D}^2}}
+
+\usepackage{txfonts}
+\newcommand{\dmflux}{\ensuremath{\varmathbb{F}^1}}
+\newcommand{\dmdensity}{\ensuremath{\varmathbb{D}^1}}
+\newcommand{\deflux}{\ensuremath{\varmathbb{F}^2}}
+\newcommand{\dedensity}{\ensuremath{\varmathbb{D}^2}}
+
+\newcommand{\ssnorm}[1]{\ensuremath{\left| #1 \right|_{\dmdensity}}}
+
+\newcommand{\sinner}[1]{\ensuremath{\left<#1\right>}}
+\renewcommand{\d}{\ensuremath{\,\mathrm{d}}}
+\newcommand{\gfunc}[1]{%
+  \ifthenelse{\isempty{#1}}{\ensuremath{\mathcal{BADDEF}}}%
+  {\ensuremath{{\left(#1\right)_x}}}}
+\newcommand{\gfuncplus}[1]{%
+  \ifthenelse{\isempty{#1}}{\ensuremath{\mathcal{G}^+}}%
+  {\ensuremath{\mathcal{G}^+\left(#1\right)}}}
+\newcommand{\gfuncminus}[1]{%
+  \ifthenelse{\isempty{#1}}{\ensuremath{\mathcal{G}^-}}%
+  {\ensuremath{\mathcal{G}^-\left(#1\right)}}}
+\newcommand{\dG}{\ensuremath{H^1_h}\xspace}
+\newcommand{\PG}[1]{%
+  \ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathcal{S}}}}%
+    {\ensuremath{\mathcal{S}\bc{#1}}}}
+\newcommand{\PGp}[1]{%
+  \ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathcal{S}^+}}}%
+    {\ensuremath{\mathcal{S}^+\bc{#1}}}}
+\newcommand{\PGm}[1]{%
+  \ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathcal{S}^-}}}%
+    {\ensuremath{\mathcal{S}^-\bc{#1}}}}
+\newcommand{\lrho}[1]{\ensuremath{\rho^{#1}}}
+\newcommand{\ltheta}[1]{\ensuremath{\theta^{#1}}}
+\newcommand{\abs}[1]{\ensuremath{\left| #1 \right|}}
+\newcommand{\norm}[2]{\ensuremath{\left\| #2 \right\|_{#1}}} 
+\newcommand{\tnorm}[2]{\norm{#2}{#1}}
+\newcommand{\hnorm}[2]{\ensuremath{\left| #2 \right|_{H^{#1}(\Omega)}}}
+\newcommand{\lnorm}[1]{\ensuremath{\norm{L_2(\Omega)}{#1}}} 
+\newcommand{\dgnorm}[1]{\ensuremath{\norm{dG}{#1}}}
+
+\newcommand{\bigoh}{\mathcal{O}}
+\newcommand{\bpoly}[1]{\mathbb{P}_{#1}}
+\newcommand{\cpoly}[1]{\mathbb{V}_{#1}^C}
+\newcommand{\dpoly}[1]{\mathbb{V}_{#1}}
+\newcommand{\bih}[1]{\ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathcal{A}_h}}}
+  {\ensuremath{\mathcal{A}_h\bc{#1}}}}
+
+\newcommand{\project}[1]{\proj{}{#1}}
+\newcommand{\icproject}[1]{\proj{0}{#1}}
+\newcommand{\cproject}[1]{\proj{c}{#1}}
+\newcommand{\sproject}[1]{\proj{\cpoly{p}}{#1}}
+\newcommand{\proj}[2]{\ifthenelse{\isempty{#2}}%
+  {\ensuremath{\Pi_{#1}}}%
+  {\ensuremath{\Pi_{#1}\bc{#2}}}}
+\newcommand{\dgproject}[1]{\proj{\dpoly{q}}{#1}}
+\newcommand{\interpolant}{\mathcal{I}}
+\newcommand{\lagrange}{\mathcal{L}}
+\renewcommand{\exp}[1]{\ensuremath{\mathrm{exp}\left(#1\right)}}
+\newcommand{\nonlin}[2]{\nlin{#1,#2}}
+\newcommand{\nlin}[1]{\ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathcal{K}}}%
+  {\ensuremath{\mathcal{K}\bc{#1}}}}
+
+\newcommand{\err}[1]{\ensuremath{\texttt{e}_{#1}}}
+
+\newcommand{\enorm}{\ensuremath{e_{u}}}
+\newcommand{\enormdg}{\ensuremath{e_{u_{dG}}}}
+\newcommand{\erru}{\ensuremath{e_u}}
+\newcommand{\errv}{\ensuremath{e_v}}
+\renewcommand{\log}[1]{\ensuremath{\mathrm{log}\left(#1\right)}}
+\renewcommand{\cosh}[1]{\ensuremath{\mathrm{cosh}\left(#1\right)}}
+\renewcommand{\sinh}[1]{\ensuremath{\mathrm{sinh}\left(#1\right)}}
+\renewcommand{\sin}[1]{\ensuremath{\mathrm{sin}\bc{#1}}}
+\renewcommand{\cos}[1]{\ensuremath{\mathrm{cos}\bc{#1}}}
+\newcommand{\sech}[1]{\ensuremath{\mathrm{sech}\left(#1\right)}}
+\newcommand{\jumpm}[1]{\ensuremath{\left\llbracket {#1}_m\right\rrbracket}}
+\newcommand{\jump}[1]{\ensuremath{\left\llbracket {#1}\right\rrbracket}}
+\newcommand{\avgm}[1]{\lbrace {#1}_m \rbrace}
+\newcommand{\avg}[1]{\lbrace {#1} \rbrace}
+\newcommand{\mass}[1]{\invariant{1}{#1}}
+\newcommand{\momentum}[1]{\invariant{2}{#1}}
+\newcommand{\energy}[1]{\invariant{3}{#1}}
+\newcommand{\invariant}[2]{\ifthenelse{\isempty{#2}}%
+  {\mathcal{F}_{#1}}%
+  {\mathcal{F}_{#1}{\bc{#2}}}}
+\newcommand{\denergy}[1]{\ifthenelse{\isempty{#1}}%
+  {\tilde{\mathcal{F}_3}}%
+  {\tilde{\mathcal{F}_3}\bc{#1}}}
+\newcommand{\ddenergy}[1]{\ifthenelse{\isempty{#1}}%
+  {\widehat{\mathcal{F}_3}}
+  {\widehat{\mathcal{F}_3}\bc{#1}}}
+\newcommand{\tmass}[1]{\mathbb{F}_1^{#1}}
+\newcommand{\tmomentum}[1]{\mathbb{F}_2^{#1}}
+\newcommand{\tenergy}[1]{\mathbb{F}_3^{#1}}
+\newcommand{\ddt}{\ensuremath{\frac{\d}{\d t}}}
+\newcommand{\ddx}{\ensuremath{\frac{\d}{\d x}}}
+\newcommand{\dsum}{\ensuremath{\oplus}}
+\newcommand{\dproduct}{\ensuremath{\otimes}}
+
+%% defocus specific macros
+\newcommand{\genergy}[1]{\ensuremath{F_{3}\bc{#1}}}
+\newcommand{\dlap}{\ensuremath{\mathfrak{A}}} %discrete laplacian,
+                                %probably not needed
+\newcommand{\Ru}{E^u}
+\newcommand{\Rv}{E^v}
+\newcommand{\DR}[1]{%
+  \ifthenelse{\isempty{#1}}{% %discrete reconstruction operator
+    {\ensuremath{\mathcal{D}}}}%
+    {\ensuremath{\mathcal{D}\bc{#1}}}}
+\newcommand{\Rapost}{\mathfrak{R}}
+\newcommand{\Ritz}[1]{%
+  \ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathcal{R}}}}%
+    {\ensuremath{\mathcal{R}\bc{#1}}}}
+\newcommand{\ritz}[1]{\Ritz{#1}}
+\newcommand{\elliptic}[1]{%
+  \ifthenelse{\isempty{#1}}{%
+    {\ensuremath{\mathscr{R}}}}%
+    {\ensuremath{\mathscr{R}\bc{#1}}}}
+\newcommand{\dxpatch}[1]{\widetilde{\dx{#1}}} %define a patch of elements
+\newcommand{\lritz}[1]{\ensuremath{\mathscr{L}^{#1}}}
+
+
+%% vmkdv specific macros
+\newcommand{\vmkdv}{vmKdV\xspace}
+\newcommand{\vnorm}[1]{\ensuremath{\left| #1 \right|}}
+\newcommand{\dfunkmapsto}[6][]{\ensuremath{
+    \begin{array}{rccl}
+      {#2}: & {#4} &  \to   & {#6}
+      \\
+      & {#3} &\mapsto & {#5#1}
+    \end{array}\quad}}
+\newcommand{\reals}{\ensuremath{\real \slash \{ 0 \}}}
+\newcommand{\geomat}[1]{\vec{#1}}
+\newcommand{\eye}{\operatorname{\bf I}}               % identity matrix
+\newcommand{\zeromat}{\operatorname{\bf O}}           % zero matrix
+\newcommand{\Ho}{\ensuremath{\texttt{H}}}
+\usepackage{hhline}
+\newcommand{\dof}{\ensuremath{\vec{X}}}
+\newcommand{\phase}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\mathbb{P}}}%
+  {\ensuremath{\mathbb{P}\left(#1\right)}}}
+\newcommand{\argmax}[1]{%
+  \ifthenelse{\isempty{#1}}%
+  {\ensuremath{\texttt{argmax}\xspace}}%
+  {\ensuremath{\underset{#1}{\texttt{argmax}\xspace}}}}
+
+
+%% adapt macros
+\newcommand{\tolc}{\ensuremath{\texttt{coarsen}}}
+\newcommand{\tolr}{\ensuremath{\texttt{refine}}}
+\newcommand{\dxmin}{\ensuremath{h_{\texttt{min}}}}
+\newcommand{\dxmax}{\ensuremath{h_{\texttt{max}}}}
+\newcommand{\inter}[1]{\ensuremath{\mathcal{I}^{#1}}}

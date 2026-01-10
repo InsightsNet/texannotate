@@ -1,0 +1,86 @@
+% ---------------------------------------------------------------
+%
+% FG2020.sty
+%
+% Adapted from:
+%
+% $Id: FG.sty,v 1.3 2005/10/24 19:56:15 awf Exp $
+%
+% by Paolo.Ienne@di.epfl.ch
+% some mods by awf@acm.org
+%
+% Adapted to FG2020 by xbaro@uoc.edu (2019/08/07)
+%
+% ---------------------------------------------------------------
+
+\usepackage{eso-pic}
+
+\newif\ifFGfinal
+\FGfinalfalse
+\def\FGfinalcopy{\global\FGfinaltrue}
+
+\font\FGtenhv  = phvb at 8pt
+
+%% --------- Page background marks: Ruler and confidentiality
+
+% ----- define vruler
+\makeatletter
+\newbox\FGrulerbox
+\newcount\FGrulercount
+\newdimen\FGruleroffset
+\newdimen\cv@lineheight
+\newdimen\cv@boxheight
+\newbox\cv@tmpbox
+\newcount\cv@refno
+\newcount\cv@tot
+% NUMBER with left flushed zeros  \fillzeros[<WIDTH>]<NUMBER>
+\newcount\cv@tmpc@ \newcount\cv@tmpc
+\def\fillzeros[#1]#2{\cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi
+\cv@tmpc=1 %
+\loop\ifnum\cv@tmpc@<10 \else \divide\cv@tmpc@ by 10 \advance\cv@tmpc by 1 \fi
+   \ifnum\cv@tmpc@=10\relax\cv@tmpc@=11\relax\fi \ifnum\cv@tmpc@>10 \repeat
+\ifnum#2<0\advance\cv@tmpc1\relax-\fi
+\loop\ifnum\cv@tmpc<#1\relax0\advance\cv@tmpc1\relax\fi \ifnum\cv@tmpc<#1 \repeat
+\cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi \relax\the\cv@tmpc@}%
+% \makevruler[<SCALE>][<INITIAL_COUNT>][<STEP>][<DIGITS>][<HEIGHT>]
+\def\makevruler[#1][#2][#3][#4][#5]{\begingroup\offinterlineskip
+\textheight=#5\vbadness=10000\vfuzz=120ex\overfullrule=0pt%
+\global\setbox\FGrulerbox=\vbox to \textheight{%
+{\parskip=0pt\hfuzz=150em\cv@boxheight=\textheight
+\cv@lineheight=#1\global\FGrulercount=#2%
+\cv@tot\cv@boxheight\divide\cv@tot\cv@lineheight\advance\cv@tot2%
+\cv@refno1\vskip-\cv@lineheight\vskip1ex%
+\loop\setbox\cv@tmpbox=\hbox to0cm{{\FGtenhv\hfil\fillzeros[#4]\FGrulercount}}%
+\ht\cv@tmpbox\cv@lineheight\dp\cv@tmpbox0pt\box\cv@tmpbox\break
+\advance\cv@refno1\global\advance\FGrulercount#3\relax
+\ifnum\cv@refno<\cv@tot\repeat}}\endgroup}%
+\makeatother
+% ----- end of vruler
+
+% \makevruler[<SCALE>][<INITIAL_COUNT>][<STEP>][<DIGITS>][<HEIGHT>]
+\def\FGruler#1{\makevruler[12pt][#1][1][3][1.16\textheight]\usebox{\FGrulerbox}}
+\AddToShipoutPicture{%
+\ifFGfinal\else
+  %\AtTextLowerLeft{%
+  % \color[gray]{.15}\framebox(\LenToUnit{\textwidth},\LenToUnit{\textheight}){}
+  %}
+\FGruleroffset=\textheight
+\advance\FGruleroffset by 100pt
+  \color[rgb]{.5,.5,1}
+  \AtTextUpperLeft{%
+    \put(\LenToUnit{-35pt},\LenToUnit{-\FGruleroffset}){%left ruler
+      \FGruler{\FGrulercount}}
+    \put(\LenToUnit{518pt},\LenToUnit{-\FGruleroffset}){%right ruler
+      \FGruler{\FGrulercount}}
+  }
+\def\pid{\parbox{1in}{\begin{center}\bf\sf{\small FG2020}\\\#\FGPaperID\end{center}}}
+  \AtTextUpperLeft{%paperID in corners
+    \put(\LenToUnit{-54pt},\LenToUnit{25pt}){\pid}
+    \put(\LenToUnit{475pt},\LenToUnit{25pt}){\pid}
+  }
+  \AtTextUpperLeft{%confidential
+    \put(0,\LenToUnit{25pt}){\parbox{\textwidth}{\centering\FGtenhv
+       FG2020 Submission. CONFIDENTIAL REVIEW COPY.  DO NOT DISTRIBUTE.}}
+  }
+\fi
+}

@@ -1,0 +1,89 @@
+\ProvidesPackage{color-edits}
+
+\def\@SuppressEdits{no}
+\DeclareOption{suppress}{%
+\def\@SuppressEdits{yes}
+}
+
+\def\@ShowDeletions{no}
+\DeclareOption{showdeletions}{\def\@ShowDeletions{yes}}
+
+\ProcessOptions
+
+% Provides useful macros for making recent edits by different authors
+% visible with colors in a jointly edited LaTeX document.
+% Different authors are added with \addauthor[FULLNAME]{AUTH}{color}
+% (the only exported command provided by this package).
+% Invocation of \addauthor generates four new commands
+% (where AUTH should be replaced by the supplied name of the author,
+% e.g., initials, or whatever else is used):
+% 1. \AUTHedit{text}: displayes the 'text' in the color assigned to the
+% author.
+% 2. \AUTHcomment{text}: generates '[AUTH: text]' in the color
+% assigned, i.e., annotates the text as a comment written by the
+% author.
+% 3. \AUTHmargincomment{text}: generates a marker in the author's
+% color at the given spot, and writes the text in the color in the
+% margin. 
+% 4. \AUTHdelete{text}: per default, displays a marker in the author's
+% color at the given spot, and marks in the margin that the author
+% deleted something in this place. (This allows co-authors to check
+% what was deleted.)
+% The optional argument FULLNAME will replace the short version of the
+% name (used for defining the commands) with the full name for
+% comments, margincomments, and deletions.
+%
+% As an example, \addauthor{dk}{blue} generates the commands
+% \dkedit{}, \dkcomment{}, \dkmargincomment{}, \dkdelete{}, all of
+% which display material in blue.
+%
+% The package allows two options:
+% 1. 'suppress' suppresses all comments and deletion markers, and
+% removes the coloring from text in \AUTHedit{}. Thus, it essentially
+% displays the text as it would be once all comments are explicitly
+% removed (though there may be small spacing issues, so they should
+% still be explicitly removed eventually).
+% 2. 'showdeletions' replaces the semantics of the \AUTHdelete{text}
+% command, so that instead the text is still displayed, but struck out
+% (and in the color of the coresponding author). This allows
+% co-authors to see more easily what has been deleted, without having
+% to check the source code.
+
+\usepackage{ifthen}
+\usepackage{color}
+%\usepackage[normalem]{ulem}
+
+\definecolor{@gray}{rgb}{0.5,0.5,0.5}
+
+\newcommand{\addauthor}[3][]{% 
+\ifthenelse{\equal{\@SuppressEdits}{yes}}{% suppressed
+\expandafter\long\expandafter\def\csname #2edit\endcsname ##1{##1}%
+\expandafter\long\expandafter\def\csname #2comment\endcsname ##1{}
+\expandafter\long\expandafter\def\csname #2margincomment\endcsname ##1{}
+\expandafter\long\expandafter\def\csname #2delete\endcsname ##1{}
+}{% not suppressed
+\expandafter\long\expandafter\def\csname #2edit\endcsname ##1{{\color{#3}##1}}
+\ifthenelse{\equal{#1}{}}{% no long name supplied
+\expandafter\long\expandafter\def\csname #2comment\endcsname ##1{{\color{#3}[#2: ##1]}}
+}{% long name supplied
+\expandafter\long\expandafter\def\csname #2comment\endcsname ##1{{\color{#3}[#1: ##1]}}
+}
+\ifthenelse{\equal{#1}{}}{% no long name supplied
+\expandafter\long\expandafter\def\csname #2margincomment\endcsname##1{{%
+\color{#3} $[\bullet]$\marginpar{\scriptsize\color{#3} [#2: ##1]}}}
+}{%
+\expandafter\long\expandafter\def\csname #2margincomment\endcsname##1{{%
+\color{#3} $[\bullet]$\marginpar{\scriptsize\color{#3} [#1: ##1]}}}
+}
+\ifthenelse{\equal{\@ShowDeletions}{yes}}{%
+\expandafter\long\expandafter\def\csname #2delete\endcsname ##1{{\color{@gray} ##1}}
+}{%
+\ifthenelse{\equal{#1}{}}{% no long name supplied
+\expandafter\long\expandafter\def\csname #2delete\endcsname ##1{{%
+\color{#3} $[\bullet]$\marginpar{\scriptsize\color{#3} #2 deleted here}}}
+}{% long name supplied
+\expandafter\long\expandafter\def\csname #2delete\endcsname ##1{{%
+\color{#3} $[\bullet]$\marginpar{\scriptsize\color{#3} #1 deleted here}}}
+}
+}%
+}}

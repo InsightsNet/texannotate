@@ -1,0 +1,162 @@
+%%
+%% This is file `ltl.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% ltl.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2013 by Malte Schmitz <malte@schmitz-sh.de>
+%% --------------------------------------------------------------------------
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{ltl}
+    [2013/03/05 v0.2 configurable LTL math operators]
+\RequirePackage{xkeyval}
+\RequirePackage{amsmath}
+% \RequirePackage{amssymb}
+\RequirePackage{tikz}
+\providecommand{\LTLcircle}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex]
+      (0,.6ex) circle (.8ex);
+  }}}{}
+\providecommand{\LTLcircleminus}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex]
+      (0,.6ex) circle (.8ex);
+    \draw[line width=.09ex,line cap=round]
+      (-.4ex,.6ex) -- (.4ex,.6ex);
+  }}}{}
+\providecommand{\LTLcircletilde}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex]
+      (0,.6ex) circle (.8ex);
+    \draw[line width=.09ex,line cap=round,rounded corners=0.2ex]
+      (-.4ex,.55ex) -- (-.2ex,.8ex) -- (.2ex,.4ex) -- (.4ex,.65ex);
+  }}}{}
+\providecommand{\LTLdiamond}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex,line join=round]
+      (0ex,.6ex) -- (.95ex,1.55ex) -- (1.9ex,.6ex) -- (.95ex,-.35ex) -- cycle;
+  }}}{}
+\providecommand{\LTLdiamondminus}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex,line join=round]
+      (0ex,.6ex) -- (.95ex,1.55ex) -- (1.9ex,.6ex) -- (.95ex,-.35ex) -- cycle;
+    \draw[line width=.09ex,line cap=round]
+      (.5ex,.6ex) -- (1.3ex,.6ex);
+  }}}{}
+\providecommand{\LTLsquare}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex,line join=round]
+      (0ex,-.2ex) -- (0ex,1.3ex) -- (1.5ex,1.3ex) -- (1.5ex,.-.2ex) -- cycle;
+  }}}{}
+\providecommand{\LTLsquareminus}{\operatorname{%
+  \tikz[baseline]{
+    \draw[line width=.12ex,line join=round]
+      (0ex,-.2ex) -- (0ex,1.3ex) -- (1.5ex,1.3ex) -- (1.5ex,.-.2ex) -- cycle;
+    \draw[line width=.09ex,line cap=round]
+      (.35ex,.6ex) -- (1.15ex,.6ex);
+  }}}{}
+\DeclareMathOperator{\LTLcirclew}{\LTLcircle_w}
+\DeclareMathOperator{\LTLcircleminusw}{\LTLcircleminus_w}
+\DeclareMathOperator{\LTLu}{\mathcal{U}}
+\DeclareMathOperator{\LTLuw}{\mathcal{U}_w}
+\DeclareMathOperator{\LTLb}{\mathcal{B}}
+\DeclareMathOperator{\LTLr}{\mathcal{R}}
+\DeclareMathOperator{\LTLs}{\mathcal{S}}
+\DeclareMathOperator{\LTLsw}{\mathcal{S}_w}
+\DeclareMathOperator{\LTLw}{\mathcal{W}}
+\DeclareMathOperator{\LTLf}{\mathsf{F}}
+\DeclareMathOperator{\LTLg}{\mathsf{G}}
+\DeclareMathOperator{\LTLx}{\mathsf{X}}
+\DeclareMathOperator{\LTLxw}{\mathcal{X}_w}
+\DeclareMathOperator{\LTLp}{\mathcal{P}}
+\DeclareMathOperator{\LTLpw}{\mathcal{P}_w}
+\DeclareMathOperator{\LTLh}{\mathsf{H}}
+\DeclareMathOperator{\LTLo}{\mathcal{O}}
+\providecommand{\LTLuntil}{\LTLu}
+\providecommand{\LTLrelease}{\LTLr}
+\providecommand{\LTLsince}{\LTLs}
+\providecommand{\LTLbrelease}{\overline{\LTLrelease}}
+
+\providecommand{\LTLweakuntil}{\relax}
+\providecommand{\LTLweaksince}{\relax}
+\providecommand{\LTLglobally}{\relax}
+\providecommand{\LTLfinally}{\relax}
+\providecommand{\LTLnext}{\relax}
+\providecommand{\LTLweaknext}{\relax}
+\providecommand{\LTLprevious}{\relax}
+\providecommand{\LTLweakprevious}{\relax}
+\providecommand{\LTLpastglobally}{\relax}
+\providecommand{\LTLpastfinally}{\relax}
+
+\newcommand{\ltl@define}{%
+  \ifKV@ltl@weakindex%
+    \let\LTLweakuntil\LTLuw
+    \let\LTLweaksince\LTLsw
+  \else
+    \let\LTLweakuntil\LTLw
+    \let\LTLweaksince\LTLb
+  \fi
+  \ifKV@ltl@characters%
+    \let\LTLglobally\LTLg
+    \let\LTLfinally\LTLf
+    \let\LTLnext\LTLx
+    \let\LTLweaknext\LTLxw
+    \let\LTLprevious\LTLp
+    \let\LTLweakprevious\LTLpw
+    \let\LTLpastglobally\LTLh
+    \let\LTLpastfinally\LTLo
+  \else
+    \let\LTLglobally\LTLsquare
+    \let\LTLfinally\LTLdiamond
+    \let\LTLnext\LTLcircle
+    \let\LTLweaknext\LTLcirclew
+    \let\LTLprevious\LTLcircleminus
+    \ifKV@ltl@weakindex
+      \let\LTLweakprevious\LTLcircleminusw
+    \else
+      \let\LTLweakprevious\LTLcircletilde
+    \fi
+    \let\LTLpastglobally\LTLsquareminus
+    \let\LTLhistorically\LTLsquareminus
+    \let\LTLpastfinally\LTLdiamondminus
+  \fi
+  \let\LTLeventually\LTLfinally
+  \let\LTLprev\LTLprevious
+  \let\LTLweakprev\LTLweakprevious
+  \let\LTLonce\LTLpastfinally
+  \let\LTLback\LTLweaksince
+}
+\define@boolkeys{ltl}{characters,weakindex}[true]
+\ProcessOptionsX<ltl>
+\ltl@define
+\newcommand{\ltlsetup}[1]{%
+  \setkeys{ltl}{#1}%
+  \ltl@define%
+}
+\DeclareMathOperator{\LTLpredict}{\rhd}
+\DeclareMathOperator{\LTLrecord}{\lhd}
+\DeclareMathOperator{\LTLstop}{stop}
+\DeclareMathOperator{\LTLimplication}{\rightarrow}
+\DeclareMathOperator{\LTLequivalent}{\leftrightarrow}
+\DeclareMathOperator{\LTLand}{\wedge}
+\DeclareMathOperator{\LTLor}{\vee}
+\DeclareMathOperator{\LTLfalse}{\bot}
+\DeclareMathOperator{\LTLtrue}{\top}
+\let\LTLimp\LTLimplication
+\let\LTLequ\LTLequivalent
+\endinput
+%%
+%% End of file `ltl.sty'.

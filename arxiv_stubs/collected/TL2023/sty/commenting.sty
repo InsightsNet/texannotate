@@ -1,0 +1,75 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{commenting}[2023/07/17 by JL Hee Lee (http://jaeheelee.de)]
+\RequirePackage{hyperref}
+\RequirePackage{ifdraft}
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{latexcolors}
+\RequirePackage{xspace}
+\RequirePackage{environ}
+\RequirePackage{soul}
+\RequirePackage{amssymb}
+\usepackage[T1]{fontenc}        % needed for «» symbols for inline comments.
+\RequirePackage[ruled,perpage]{manyfoot} %
+\DeclareNewFootnote{A}[fnsymbol]
+\ifdraft{%
+      \setkeys{Gin}{draft=false} %
+      \hypersetup{final} %
+      \renewcommand{\thefootnoteA}{\textcolor{princetonorange}{\textsf{\alph{footnoteA}}}} %
+      \interfootnotelinepenalty=\@M %
+      \newcommand{\added}[2]{{\leavevmode\color{#1}#2\textsf{\textsuperscript{#1}}}} %
+      \NewEnviron{colored}[1]{\leavevmode\color{#1}\BODY\textsf{\textsuperscript{#1}}} %
+      \newcommand{\deleted}[2]{{\leavevmode\color{#1}\st{#2}\textsf{\textsuperscript{#1}}}} %
+      \newcommand{\note}[2]{\protect{\color{#1}\footnoteA{\color{#1}\guillemotright#2\guillemotleft\textsf{\textsuperscript{#1}}}}} %
+      \newcommand{\inlinenote}[2]{{\noindent\footnotesize\leavevmode\color{#1}\guillemotright#2\guillemotleft\textsf{\textsuperscript{#1}}}} %
+    }{%
+      \newcommand{\added}[2]{#2} %
+      \newenvironment{colored}[1]{}{} %
+      \newcommand{\deleted}[2]{} %
+      \newcommand{\inlinenote}[2]{} %
+      \newcommand{\note}[2]{} %
+    }
+
+%%% color suggestions: harvardcrimson, yaleblue, dartmouthgreen
+\colorlet{JL}{electricindigo}
+\colorlet{WL}{harvardcrimson}
+\colorlet{TF}{yaleblue}
+\colorlet{XF}{cadmiumgreen}
+\colorlet{ML}{deepsaffron}
+
+% For adding footnote comments in color. Comments disappear when the draft mode is turned off.
+\newcommand{\jlfn}[1]{\note{JL}{#1}}
+\newcommand{\wlfn}[1]{\note{WL}{#1}}
+\newcommand{\tffn}[1]{\note{TF}{#1}}
+\newcommand{\xffn}[1]{\note{XF}{#1}}
+\newcommand{\mlfn}[1]{\note{ML}{#1}}
+
+% For adding inline comments in color. Comments disappear when the draft mode is turned off.
+\newcommand{\jlinline}[1]{\inlinenote{JL}{#1}}
+\newcommand{\wlinline}[1]{\inlinenote{WL}{#1}}
+\newcommand{\tfinline}[1]{\inlinenote{TF}{#1}}
+\newcommand{\xfnote}[1]{\inlinenote{XF}{#1}}
+\newcommand{\mlinline}[1]{\inlinenote{ML}{#1}}
+
+
+% For adding texts in color. The color disappears when the draft mode is turned off.
+\newcommand{\jladd}[1]{\added{JL}{#1}}
+\newcommand{\wladd}[1]{\added{WL}{#1}}
+\newcommand{\tfadd}[1]{\added{TF}{#1}}
+\newcommand{\xf}[1]{\added{XF}{#1}}
+\newcommand{\mladd}[1]{\added{ML}{#1}}
+
+% Environment versions of the preceding commands.
+\NewEnviron{jlenv}{\let\body\BODY\begin{colored}{JL}\body\end{colored}}
+\NewEnviron{wlenv}{\let\body\BODY\begin{colored}{WL}\body\end{colored}}
+\NewEnviron{tfenv}{\let\body\BODY\begin{colored}{TF}\body\end{colored}}
+\NewEnviron{xfenv}{\let\body\BODY\begin{colored}{XF}\body\end{colored}}
+\NewEnviron{mlenv}{\let\body\BODY\begin{colored}{ML}\body\end{colored}}
+
+% For deleting text. Text disappears when the draft mode is turned off.
+\newcommand{\jldel}[1]{\deleted{JL}{#1}}
+\newcommand{\wldel}[1]{\deleted{WL}{#1}}
+\newcommand{\tfdel}[1]{\deleted{TF}{#1}}
+\newcommand{\xfdel}[1]{\deleted{XF}{#1}}
+\newcommand{\mldel}[1]{\deleted{ML}{#1}}
+

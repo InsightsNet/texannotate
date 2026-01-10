@@ -1,0 +1,179 @@
+\ProvidesPackage{CLASSY_Preamble}
+
+% -------------------------------------------------------
+% PACKAGES:
+% -------------------------------------------------------
+\usepackage{apjfonts}
+\usepackage{graphics,graphicx,float}
+\usepackage{xfrac,amsmath} 
+\usepackage[]{units} 
+\usepackage{hyperref,enumitem}
+\usepackage{color,soul} 
+\DeclareUnicodeCharacter{2212}{-}
+%\usepackage{geometry}
+%\usepackage{pdflscape}
+
+
+% -------------------------------------------------------
+% STYLE SETTINGS:
+% -------------------------------------------------------
+\setcitestyle{notesep={; },round,aysep={},yysep={;}}
+
+% -------------------------------------------------------
+% COMMANDS:
+% -------------------------------------------------------
+% CLASSY PAPER NUMBERS:
+%\newcommand{\PI}{{Paper~I}}
+%\newcommand{\PII}{{Paper~II}}
+%\newcommand{\PIII}{{Paper~III}}
+\newcommand{\PIV}{{Paper~IV}}
+\newcommand{\PV}{{Paper~V}}
+\newcommand{\PVI}{{Paper~VI}}
+\newcommand{\PVII}{{Paper~VII}}
+\newcommand{\PVIII}{{Paper~VIII}}
+\newcommand{\PIX}{{Paper~IX}}
+\newcommand{\PX}{{Paper~X}}
+\newcommand{\PXI}{{Paper~XI}}
+\newcommand{\PXII}{{Paper~XII}}
+\newcommand{\PXIII}{{Paper~XIII}}
+\newcommand{\PXIV}{{Paper~XIV}}
+\newcommand{\PXV}{{Paper~XV}}
+\newcommand{\PXVI}{{Paper~XVI}}
+\newcommand{\PXVII}{{Paper~XVII}}
+\newcommand{\PXVIII}{{Paper~XVIII}}
+\newcommand{\PXIX}{{Paper~XIX}}
+\newcommand{\PXX}{{Paper~XX}}
+% CLASSY PUBLICATION REFERENCES:
+%\defcitealias{berg22}{\PI}
+%\defcitealias{james22}{\PII}
+%\defcitealias{xu2022}{\PIII}
+
+% -------------------------------------------------------
+% ACRONYMS:
+% -------------------------------------------------------
+\newcommand{\HST}{{\it HST}}
+\newcommand{\JWST}{{\it JWST}}
+
+% -------------------------------------------------------
+% TABLE SHORTHAND:
+% -------------------------------------------------------
+\newcommand{\ND}{{\nodata}}
+\newcommand{\CH}[1]{\colhead{#1}}
+\newcommand{\mc}[1]{\multicolumn{2}{c}{#1}}
+
+% -------------------------------------------------------
+% UNITS
+% -------------------------------------------------------
+\newcommand{\Ms}{{$M_{\star}$}}
+\newcommand{\Mo}{{$M_{\odot}$}}
+\newcommand{\Zo}{Z$_{\odot}$}
+\newcommand{\Lo}{L$_{\odot}$}
+\newcommand{\yr}{{yr$^{-1}$}}
+\newcommand{\cmsq}{{cm$^{-2}$}}
+\newcommand{\cmcu}{{cm$^{-3}$}}
+\newcommand{\s}{{s$^{-1}$}}
+\newcommand{\kms}{km\,s$^{-1}$}
+
+% -------------------------------------------------------
+% NEBULAR SYMBOLS:
+% -------------------------------------------------------
+\newcommand{\LOH}{{12$+$log(O/H)}}
+\newcommand{\Ne}{{$n_e$}}
+\newcommand{\Te}{{$T_e$}}
+\newcommand{\TO}{{$T_e$[\ion{O}{3}]}}
+\newcommand{\To}{{$T_e$[\ion{O}{2}]}}
+\newcommand{\TS}{{$T_e$[\ion{S}{3}]}}
+\newcommand{\TN}{{$T_e$[\ion{N}{2}]}}
+\newcommand{\ebv}{{$E(B-V)$}}
+% IONS:
+\newcommand{\LYA}{{Ly$\alpha$}}
+\newcommand{\hp}{H$^+$}
+\newcommand{\hep}{He$^+$}
+\newcommand{\hepp}{He$^{2+}$}
+\newcommand{\Sp}{S$^+$}
+\newcommand{\Spp}{S$^{2+}$}
+\newcommand{\cp}{C$^+$}
+\newcommand{\cpp}{C$^{2+}$}
+\newcommand{\cppp}{C$^{3+}$}
+\newcommand{\cfp}{C$^{4+}$}
+\newcommand{\op}{O$^+$}
+\newcommand{\nep}{Ne$^+$}
+\newcommand{\opp}{O$^{2+}$}
+\newcommand{\oppp}{O$^{3+}$}
+\newcommand{\ofp}{O$^{4+}$}
+\newcommand{\np}{N$^+$}
+\newcommand{\npp}{N$^{2+}$}
+\newcommand{\nppp}{N$^{3+}$}
+\newcommand{\nfp}{N$^{4+}$}
+\newcommand{\nepp}{Ne$^{2+}$}
+\newcommand{\neppp}{Ne$^{3+}$}
+\newcommand{\nefp}{Ne$^{4+}$}
+\newcommand{\arpp}{Ar$^{2+}$}
+\newcommand{\arppp}{Ar$^{3+}$}
+% EMISSION AND ABSORPTION LINES:
+% Allowed: a<ELEMENT>##
+\newcommand{\aHOn}{\ion{H}{1}}
+\newcommand{\aHTw}{\ion{H}{2}}
+\newcommand{\aHeOn}{\ion{He}{1}}
+\newcommand{\aHeTw}{\ion{He}{2}}
+\newcommand{\aCTw}{\ion{C}{2}}
+\newcommand{\aCFo}{\ion{C}{4}}
+\newcommand{\aOTw}{\ion{O}{2}}
+\newcommand{\aOFo}{\ion{O}{4}}
+\newcommand{\aOSi}{\ion{O}{6}}
+\newcommand{\aSFo}{\ion{S}{4}}
+\newcommand{\aSiFo}{\ion{Si}{4}}
+% Semiforbidden: sf<ELEMENT>##
+\newcommand{\sfCTh}{\ion{C}{3}]}
+\newcommand{\sfOTh}{\ion{O}{3}]}
+\newcommand{\sfNFo}{\ion{N}{4}]}
+\newcommand{\sfSiTh}{\ion{Si}{3}]}
+% Forbidden: f<ELEMENT>##
+\newcommand{\fCTh}{[\ion{C}{3}]}
+\newcommand{\fNTw}{[\ion{N}{2}]}
+\newcommand{\fOTw}{[\ion{O}{2}]}
+\newcommand{\fOTh}{[\ion{O}{3}]}
+\newcommand{\fOFo}{[\ion{O}{4}]}
+\newcommand{\fOFi}{[\ion{O}{5}]}
+\newcommand{\fOSi}{[\ion{O}{6}]}
+\newcommand{\fSTw}{[\ion{S}{2}]}
+\newcommand{\fSTh}{[\ion{S}{3}]}
+\newcommand{\fSFo}{[\ion{S}{4}]}
+\newcommand{\fSFi}{[\ion{S}{5}]}
+\newcommand{\fArTw}{[\ion{Ar}{2}]}
+\newcommand{\fArTh}{[\ion{Ar}{3}]}
+\newcommand{\fArFo}{[\ion{Ar}{4}]}
+\newcommand{\fArFi}{[\ion{Ar}{5}]}
+\newcommand{\fNeTw}{[\ion{Ne}{2}]}
+\newcommand{\fNeTh}{[\ion{Ne}{3}]}
+\newcommand{\fNeFo}{[\ion{Ne}{4}]}
+\newcommand{\fNeFi}{[\ion{Ne}{5}]}
+\newcommand{\fFeTw}{[\ion{Fe}{2}]}
+\newcommand{\fFeTh}{[\ion{Fe}{3}]}
+\newcommand{\fFeFo}{[\ion{Fe}{4}]}
+\newcommand{\fFeFi}{[\ion{Fe}{5}]}
+
+% -------------------------------------------------------
+% SYMBOLS:
+% -------------------------------------------------------
+% Greek letters:
+\newcommand{\A}{$\alpha$}
+\newcommand{\B}{$\beta$}
+\newcommand{\D}{$\delta$}
+\newcommand{\G}{$\gamma$}
+\newcommand\W{{$\lambda$}}
+% Small caps roman numerals:
+\def\i{\,{\sc i}}
+\def\ii{\,{\sc ii}}
+\def\iii{\,{\sc iii}}
+\def\iv{\,{\sc iv}}
+\def\v{\,{\sc v}}
+% Others:
+\newcommand{\M}{{\ $\mid$}}
+\newcommand{\PM}{{$\pm$}}
+\newcommand\C{{\checkmark}}
+\newcommand{\ds}{$^{\dagger \star}$}
+
+
+
+

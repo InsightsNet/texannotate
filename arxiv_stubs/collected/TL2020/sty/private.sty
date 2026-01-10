@@ -1,0 +1,757 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  General Settings   %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Bold
+\newcommand{\Bold}[1]{\textbf{#1}}
+
+%Bold Letters in Math Mode
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+%Italics
+\newcommand{\It}[1]{\textit{#1}}
+
+%Underline
+\newcommand{\ul}[1]{\underline{#1}}
+
+%Small Capital Letter
+\renewcommand{\sc}[1]{\textsc{#1}}
+
+%(Non-italic) Text (in Math Mode)
+\newcommand{\T}[1]{\text{#1}}
+
+%Longrightharpoonup, e.g. used for weak convergence 
+%in a functional analytic meaning
+\def\longrightharpoonup{\relbar\joinrel\rightharpoonup}
+
+\makeatletter
+\DeclareRobustCommand{\cev}[1]{%
+  \mathpalette\do@cev{#1}%
+}
+\newcommand{\do@cev}[2]{%
+  \fix@cev{#1}{+}%
+  \reflectbox{$\m@th#1\vec{\reflectbox{$\fix@cev{#1}{-}\m@th#1#2\fix@cev{#1}{+}$}}$}%
+  \fix@cev{#1}{-}%
+}
+\newcommand{\fix@cev}[2]{%
+  \ifx#1\displaystyle
+    \mkern#23mu
+  \else
+    \ifx#1\textstyle
+      \mkern#23mu
+    \else
+      \ifx#1\scriptstyle
+        \mkern#22mu
+      \else
+        \mkern#22mu
+      \fi
+    \fi
+  \fi
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  [Package] commath    %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%See the documentary of the commath-package, that has
+%a lot of useful functions included, such as
+% - non-italic "d" and "D"
+% - ordinary derivatives
+% - partial derivatives
+% - delimiters in different sizes
+% - curly braces in different sizes
+% - square brackets in different sizes
+% - all kinds of intervals
+% - evaluation of arguments at a particular condition
+% - absolute values in different sizes
+% - norms in different sizes
+% - nice formats for functions
+% - command to reference theorems
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Comments   %%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%There is a comment designed to show an implication:
+%\implies is the "implication arrow"
+
+%Binomial Coefficient "n choose k"
+%\binom{n}{k}
+
+%Equivalence Arrow
+%\iff
+
+\newcommand{\einf}{\textcolor{black}{\textbf{REF}}}
+
+\newcommand{\temp}[1]{\begin{mdframed}[style=temporary] #1 \end{mdframed}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Basic Mathematics   %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Bigger dot over symbols
+\newcommand{\dt}[1]{\accentset{\mbox{\large\bfseries .}}{#1}}
+
+%Universal Quantifier
+\newcommand{\fa}{\forall}
+
+%Existential Quantifier
+\newcommand{\ex}{\exists}
+
+%Boundary
+\newcommand{\bound}{\partial}
+
+%Boundary
+\newcommand{\der}{\partial}
+
+%Subset or equal
+\renewcommand{\SS}{\subseteq}
+
+%Closed ball
+\newcommand{\cB}{\overline{B}}
+
+%Closure cl
+\newcommand{\cl}{\operatorname{cl}}
+
+%Closure (as overline)
+\newcommand{\clos}[1]{\overline{#1}}
+
+%Closure (as overline w.r.t. a norm)
+\newcommand{\closnorm}[2]{\overline{#1}^{\norm{\cdot}_{#2}}}
+
+%Natural Numbers N
+\newcommand{\N}{\mathbb{N}}  
+
+%Natural Numbers including zero
+\newcommand{\NO}{\mathbb{N}_0}  
+
+%Integers Z
+%\newcommand{\Z}{\mathbb{Z}}  
+
+%Rational Numbers Q
+\newcommand{\Q}{\mathbb{Q}} 
+
+%Real Numbers R
+\newcommand{\R}{\mathbb{R}}
+
+%Rate function
+\newcommand{\rf}{\mathscr{I}}
+
+%Z
+\newcommand{\Z}{\mathbb{Z}}
+
+%Field K
+\newcommand{\K}{\mathbb{K}}
+
+%Nonnegative Real Numbers
+\newcommand{\Rnn}{\mathbb{R}_{\geq 0}}
+
+%Nonnegative Real Numbers
+\newcommand{\Rp}{\mathbb{R}_{> 0}}
+
+%Complex Numbers C
+%\newcommand{\C}{\mathbb{C}}  
+
+%Field (Algebra)
+\newcommand{\KRC}{\mathbb{K}}
+
+%Complex Conjugation
+\newcommand{\conj}[1]{\bar{#1}}
+
+%Imaginary Unit i in Math Mode (not italic!)
+\newcommand{\I}{\operatorname{i}}
+
+%Real Part of a Complex Number
+\renewcommand{\Re}{\operatorname{Re}}
+
+%Imaginary Part of a Complex Number
+\renewcommand{\Im}{\operatorname{Im}}
+
+%image
+\newcommand{\im}{\operatorname{im}}
+
+%Scalar Product / Inner Product, to be called with \SP{Arg1}{Arg2}
+%\newcommand{\scal}[2]{\langle #1,#2 \rangle}
+
+%Cross Product / Outer Product / Cartesian Product
+\newcommand{\x}{\times}
+
+%Isometric Isomorphy ("=" with tilde on top)
+\newcommand{\isom}{\cong}
+
+%Nice looking epsilon (normal epsilon) 
+\newcommand{\eps}{\varepsilon}
+
+%Setminus
+\newcommand{\wo}{\setminus}
+
+%Transpose
+\newcommand{\transp}{^\top}
+
+%Orthogonal Complement
+\newcommand{\OC}{\bot}
+
+%Orthogonality
+\newcommand{\ortho}{\bot}
+
+%Infinity Sign
+\newcommand{\8}{\infty}
+
+%Linear span
+\DeclareMathOperator{\spn}{span}
+
+%Distance
+\DeclareMathOperator{\dist}{dist}
+
+%Space of homomorphisms
+\DeclareMathOperator{\Hom}{Hom}
+
+%homogeneous part
+%\DeclareMathOperator{\hom}{hom}
+
+%Space of homomorphisms
+\DeclareMathOperator{\ran}{ran}
+
+%Degree
+\DeclareMathOperator{\dgr}{deg}
+
+%Symmetrisation
+\DeclareMathOperator{\sym}{Sym}
+
+%Identity
+\DeclareMathOperator{\id}{id}
+
+%exp-function
+\newcommand{\ee}{\mathrm{e}}
+
+%Hilbert-Schmidt-Norm
+\newcommand{\hs}{\text{HS}}
+
+%Fourier transform
+\newcommand{\FT}{\mathscr{F}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Norm with three bars, accessible by '\VERT'
+% Math symbol font matha
+\DeclareFontFamily{U}{matha}{\hyphenchar\font45}
+\DeclareFontShape{U}{matha}{m}{n}{
+      <5> <6> <7> <8> <9> <10> gen * matha
+      <10.95> matha10 <12> <14.4> <17.28> <20.74> <24.88> matha12
+      }{}
+\DeclareSymbolFont{matha}{U}{matha}{m}{n}
+\DeclareFontSubstitution{U}{matha}{m}{n}
+
+% Math symbol font mathb
+\DeclareFontFamily{U}{mathx}{\hyphenchar\font45}
+\DeclareFontShape{U}{mathx}{m}{n}{
+      <5> <6> <7> <8> <9> <10>
+      <10.95> <12> <14.4> <17.28> <20.74> <24.88>
+      mathx10
+      }{}
+\DeclareSymbolFont{mathx}{U}{mathx}{m}{n}
+\DeclareFontSubstitution{U}{mathx}{m}{n}
+
+% Symbol definition
+\DeclareMathDelimiter{\vvvert}{0}{matha}{"7E}{mathx}{"17}
+
+% Definition of the norm itself
+\newcommand{\triple}[1]{\left\vvvert #1 \right\vvvert}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Probability Theory %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Basics   %%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Omega
+\renewcommand{\O}{\Omega}
+
+%Sigma Algebra (Calligraphic F)
+\newcommand{\F}{\mathcal{F}}
+
+%Sigma Algebra (Calligraphic G)
+\newcommand{\G}{\mathcal{G}}
+
+%Hilbert space (Calligraphic H)
+\renewcommand{\H}{\mathcal{H}}
+
+%Sigma Algebra (Calligraphic A)
+\newcommand{\A}{\mathcal{A}}
+
+%Borel Sigma Algebra
+\newcommand{\B}{\mathcal{B}}
+
+%Calligraphic P
+\newcommand{\calp}{\mathcal{P}}
+
+%Continuous Linear Operators
+\renewcommand{\L}{\mathcal{L}}
+
+%Schwartz space
+\renewcommand{\S}{\mathcal{S}}
+
+%Vector Space of Continuous Functions
+\newcommand{\C}{\mathcal{C}}
+
+%Filtration F
+\newcommand{\FF}{\mathbb{F}} 
+
+%Filtration G
+\newcommand{\GG}{\mathbb{G}} 
+
+%Probability Measure 
+\renewcommand{\P}{\mathbb{P}} 
+
+%Probability Measure in Hairer's symbols
+%\def\P{{\symb P}}
+
+%Partition 
+\newcommand{\Part}{\mathcal{P}} 
+
+%Partition D
+\newcommand{\D}{\mathcal{D}} 
+
+%Expected Value
+\newcommand{\E}{\mathbb{E}} 
+
+%Covariance
+\DeclareMathOperator{\cov}{cov}
+
+%Expected Value in Hairer's symbols
+%\def\E{{\symb E}}
+
+%Conditional Expectation
+\newcommand{\condexp}[2]{\E \sbr[1]{{#1 \mid #2}}}
+
+%Variance
+\newcommand{\V}{\mathbb{V}} 
+
+%Space of (Local) Martingales
+\newcommand{\M}{\mathcal{M}}
+ 
+%Normal Distribution (Calligraphic N}
+\newcommand{\nd}{\mathcal{N}} 
+ 
+%Minimum
+\newcommand{\mini}{\wedge}
+
+%Gauss bracket
+\newcommand{\gauss}[1]{\big\lfloor #1 \big\rfloor}
+
+%Gauss bracket - small
+\newcommand{\gaus}[1]{\lfloor #1 \rfloor}
+
+%embedding
+\newcommand{\embed}{\hookrightarrow}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Stochastic Processes  %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%stochastic independence
+\newcommand\indep{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+%Quadratic Variation 
+\newcommand{\QV}[1]{\left\langle #1 \right\rangle}
+
+%Cross Variation, to be called with \CV{Arg1}{Arg2}
+\newcommand{\CV}[2]{\langle #1,#2 \rangle}
+
+%Wiener Measure (Calligraphic W)
+\newcommand{\W}{\mathcal{W}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%   Rough Paths Theory   %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Alpha
+\renewcommand{\a}{\alpha}
+
+%Beta
+\renewcommand{\b}{\beta}
+
+%Gamma
+\newcommand{\g}{\gamma}
+
+%Delta
+\renewcommand{\d}{\delta}
+
+%Lambda
+\renewcommand{\l}{\lambda}
+
+%Small omega
+\renewcommand{\o}{\omega}
+
+%Empty word = emptyset
+\newcommand{\emptyword}{\emptyset}
+
+%Estimate "after a constant"
+\newcommand{\aac}{\lesssim}
+
+%Norm on the space of (geometric) rough paths of lower regularity \alpha
+\newcommand{\norma}[1]{\triple{#1}_{\alpha}}
+
+%Bold X, to denote a (weakly) geometric rough path
+\newcommand{\X}{\mb{X}} 
+
+%Bold Y
+\newcommand{\Y}{\mb{Y}}
+
+%Space of controlled rough paths
+\newcommand{\crp}{\mathscr{D}_{\X}^{p\alpha}}
+
+%Space of controlled rough paths for \tilde{\X}
+\newcommand{\crpt}{\mathscr{D}_{\tilde{\X}}^{p\alpha}}
+
+%Norm on the space of controlled rough paths
+\newcommand{\crnorm}[1]{\norm{#1}_{\X,p\alpha}}
+
+%Norm on the space of controlled rough paths
+\newcommand{\crnorma}[1]{\norm{#1}_{\Cont^{\a}_\X}}
+
+%Bold x
+\newcommand{\bx}{\boldsymbol{X}}
+
+%Bold h
+\newcommand{\bh}{\boldsymbol{h}}
+
+%Bold w
+\newcommand{\bw}{\boldsymbol{W}}
+
+%Calligraphic X, to denote a controlled path
+\newcommand{\Xcal}{\mathcal{X}}
+
+%Calligraphic Y, to denote a controlled path
+\newcommand{\Ycal}{\mathcal{Y}}
+
+%Calligraphic Z, to denote a controlled path
+\newcommand{\Zcal}{\mathcal{Z}}
+
+%Unit element
+\newcommand{\1}{\mb{1}}
+
+%Adjoint operator
+\DeclareMathOperator{\ad}{ad}
+
+%Space of random variables
+\DeclareMathOperator{\rv}{RV}
+
+%Adjoint operator
+\newcommand{\kay}{\boldsymbol{k}}
+
+%Adjoint operator
+\DeclareMathOperator{\Lie}{Lie}
+
+%Adjoint operator
+\DeclareMathOperator{\grp}{G\Omega}
+
+%Adjoint operator
+\DeclareMathOperator{\wgrp}{WG\Omega}
+
+%Commutator
+\newcommand{\comm}[2]{[#1,#2]}
+
+%Step-p truncated tensor algebra over a Banach space V
+\newcommand{\tav}{T^{(p)}(V)}
+
+% Nilpotent lie group of order p in W
+\newcommand{\nlg}[2]{G^{(#1)}(#2)}
+
+% Small g in Frakturschrift to denote a Lie (sub-)algebra
+%\newcommand{\g}{\mathfrak{g}}
+
+%Brownian motion (dependent on n)
+\newcommand{\BN}[1][]{B_{#1}^N}
+
+%Brownian rough path lift (dependent on n)
+\newcommand{\BbN}[1][]{\mathbb{B}_{#1}^N}
+
+%Brownian rough path (dependent on n)
+\newcommand{\BBN}[1][]{\mathbf{B}_{#1}^N}
+
+%Brownian rough path lift 
+\newcommand{\Bb}[1][]{\mathbb{B}_{#1}}
+
+%Brownian rough path
+\newcommand{\BB}[1][]{\mathbf{B}_{#1}}
+
+%Homogeneous Hoelder rough path distance (with parameter)
+\renewcommand{\dh}[1]{d_{{#1}-\text{H\"ol}}}
+
+%Inhomogeneous Hoelder rough path distance (with parameter)
+\newcommand{\rhoh}[1]{\rho_{{#1}-\text{H\"ol}}}
+
+%Homogeneous p-var rough path distance (with parameter)
+\newcommand{\dvar}[1]{d_{{#1}-\text{var}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% Regularity Structures %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Regularity or homogeneity
+%\newcommand{\reg}[1]{\llbracket #1 \rrbracket}
+
+% Regularity or homogeneity
+\newcommand{\reg}[1]{\operatorname{deg}(#1)}
+
+% regularity structure
+\newcommand{\rs}{\mathscr{T}}
+
+% scaling
+\newcommand{\s}{\mathfrak{s}}
+
+% symbol tau
+\newcommand{\stau}{\symbol{\tau}}
+
+% Canonical lift to the space of models
+%\newcommand{\lift}{\mathscr{L}}
+\newcommand{\lift}{\Psi}
+
+% minus for regularity
+\newcommand{\minus}{\raisebox{-0.2em}{\scalebox{0.6}[1.0]{$-$}}}
+
+% Mathbold Pi
+\newcommand{\Pib}{\mathbf{\Pi}}
+
+% Mathsf Pi (for minimal admissible models)
+\newcommand{\Pim}{\mathsf{\Pi}}
+
+% Extended model: extension e_h
+\newcommand{\eh}{\operatorname{e}_h}
+
+% Extended model: extension e_h_delta
+\newcommand{\ehd}{\operatorname{e}_{h_\delta}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  SPDEs  %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Laplace operator
+\DeclareMathOperator{\laplace}{\Delta}
+
+% Symbol for the torus
+\renewcommand{\T}{\mathbb{T}}
+
+%Tensor Product
+\newcommand{\tp}{\otimes}
+
+%Symmetric Tensor Product
+\newcommand{\stp}{\widehat{\otimes}}
+
+%Wick product
+\renewcommand{\wp}{\mathbin{\diamond}}
+
+%Wick product (double dots)
+\def\wick#1{{:} #1 {:}}
+
+%Boldface Psi
+\DeclareMathOperator{\Psib}{\mathbf{\Psi}}
+
+%Boldface \tilde{Psi}
+\DeclareMathOperator{\Tpsib}{\mathbf{\tilde{\Psi}}}
+
+%Boldface Phi
+\DeclareMathOperator{\Phib}{\mathbf{\Phi}}
+
+%Boldface E
+\DeclareMathOperator{\BE}{\mathbf{E}}
+
+%Boldface \tilde{E}
+\DeclareMathOperator{\TBE}{\mathbf{\tilde{E}}}
+
+%Boldface s
+\DeclareMathOperator{\bs}{\mathbf{s}}
+
+%Boldface r
+\DeclareMathOperator{\br}{\mathbf{r}}
+
+%Boldface i
+\DeclareMathOperator{\bi}{\boldsymbol{i}}
+
+%Boldface e
+\DeclareMathOperator{\be}{\mathbf{e}}
+
+%Sans-serif e
+\DeclareMathOperator{\se}{\mathsf{e}}
+
+%\bar{y}
+\newcommand{\by}{\bar{y}}
+
+%\tilde{z}
+\newcommand{\tz}{\tilde{z}}
+
+%Boldface Lambda (for multi-indices)
+\newcommand{\MI}{\mathbf{\Lambda}}
+
+%Widehat (Renormalisation)
+\newcommand{\wh}[1]{\widehat{#1}}
+
+%Bold Z (but as a mathematical symbol)
+\newcommand{\bz}{\boldsymbol{Z}}
+
+%Bold \tilde{Z} (but as a mathematical symbol)
+\newcommand{\tbz}{\boldsymbol{\tilde{Z}}}
+
+%Bold \hat{Z} (but as a mathematical symbol)
+\newcommand{\hbz}{\boldsymbol{\hat{Z}}}
+
+%Bold \bar{Z} (but as a mathematical symbol)
+\newcommand{\bbz}{\boldsymbol{\bar{Z}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%  Convergence  %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Convergence (almost sure or normal convergence)
+\newcommand{\conv}{\longrightarrow}
+
+%Convergence in L^p
+\newcommand{\lpconv}{\overset{L^p}{\longrightarrow}}
+
+%Convergence in Measure
+\newcommand{\measconv}[1]{\overset{#1}{\longrightarrow}}
+
+%Convergence in Probability
+\newcommand{\probconv}{\overset{\P}{\longrightarrow}}
+
+%Weak Convergences of Measures (Probability Theory)
+\newcommand{\weakconv}{\Longrightarrow}
+
+%Weak Convergence (Functional Analysis)
+\newcommand{\wconv}{\stackrel{w}{\longrightarrow}}
+
+%Canonical Embedding (Functional Analysis)
+\newcommand{\ce}{\iota}
+
+%Weak-*-Convergence (Functional Analysis)
+\newcommand{\wsconv}{\overset{*}{\longrightharpoonup}}
+
+%Algebraic Tensor Product
+\newcommand{\atp}{\otimes_{\text{alg}}}
+
+%"alg" in non-italics in Math Mode
+\newcommand{\alg}{\text{alg}}
+
+%Define a principal value integral sign, i.e. a integral sign with a bar.
+ \def\Xint#1{\mathchoice
+      {\XXint\displaystyle\textstyle{#1}}%
+      {\XXint\textstyle\scriptstyle{#1}}%
+      {\XXint\scriptstyle\scriptscriptstyle{#1}}%
+      {\XXint\scriptscriptstyle\scriptscriptstyle{#1}}%
+      \!\int}
+   \def\XXint#1#2#3{{\setbox0=\hbox{$#1{#2#3}{\int}$}
+        \vcenter{\hbox{$#2#3$}}\kern-.5\wd0}}
+   \def\ddashint{\Xint=}
+   \def\dashint{\Xint-}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%%%%%%%%%  [Package] ntheorem    %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Definition of Environments for Theorems, Lemmata, 
+%Propositions and Definitions
+%\theoremstyle{break}
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont} 
+%\theoremsymbol{\ensuremath{\bullet}}
+\theoremsymbol{\ensuremath{\varspade}}
+\theorempreskip{0.3cm}
+\theoremseparator{\vspace{0.1em}}%\medskip
+
+\newtheorem{thm}{Theorem}
+
+\newtheorem{theorem}{Theorem}[section]
+
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{assumption}[theorem]{Assumption}
+
+\newtheorem{example}[theorem]{Example}
+
+\newtheorem{proposition}[theorem]{Proposition}
+
+\newtheorem{notation}[theorem]{Notation}
+
+\newtheorem{definition}[theorem]{Definition}
+
+\newtheorem{remark}[theorem]{Remark}
+
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newframedtheorem{fproposition}[theorem]{Proposition}
+
+\theoremstyle{break}
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont} 
+\theoremsymbol{}
+\theoremseparator{\vspace{0.01em}}%\medskip 
+
+\theoreminframepreskip{0cm}
+\theoreminframepostskip{0cm}
+\theoremframepreskip{0.5cm}
+\theoremframepostskip{0.5cm}
+\newframedtheorem{framedtheorem}{Theorem}[section]
+
+
+
+%Definition of an Environment for Proofs 
+\theoremstyle{nonumberbreak}
+\theoremheaderfont{\itshape}
+\theorembodyfont{\upshape} 
+\theoremseparator{.} 
+\theoremsymbol{\rule{1ex}{1ex}}
+\newtheorem{proof}{Proof}
+
+%Definition of an Environment for Proofs 
+\theoremstyle{nonumberbreak}
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\upshape} 
+\theoremseparator{} 
+\theoremsymbol{\ensuremath{\bullet}}
+\newtheorem{problem}{Problem}%[section]
+
+\newcommand{\tref}[1]{\textit{\thref{#1}}}
+
+\theoremstyle{break}
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont} 
+\theoremsymbol{\ensuremath{\varspade}}
+\theorempreskip{0.3cm}
+\theoremseparator{\vspace{0.1em}}
+
+\newtheorem*{theoremnn}{Theorem}[section]
+
+\newtheorem{theoremb}{Theorem}[section]
+
+\newtheorem{lemmab}[theorem]{Lemma}
+
+\newtheorem{exampleb}[theorem]{Example}
+
+\newtheorem*{question}[theorem]{Question}
+
+\newtheorem{propositionb}[theorem]{Proposition}
+
+\newtheorem{notationb}[theorem]{Notation}
+
+\newtheorem{definitionb}[theorem]{Definition}
+
+\newtheorem{remarkb}[theorem]{Remark}
+
+\newtheorem{corollaryb}[theorem]{Corollary}
+

@@ -160,7 +160,7 @@ FUNCTION {default.ALTinterwordstretchfactor} { "4" }
 % #0 turns off the "dashification" of repeated (i.e., identical to those
 % of the previous entry) names. IEEE normally does this.
 % #1 enables
-FUNCTION {default.is.dash.repeated.names} { #1 }
+FUNCTION {default.is.dash.repeated.names} { #0 }
 
 
 % The default name format control string.
@@ -197,10 +197,6 @@ FUNCTION {banner.message}
 { is.print.banners.to.terminal
      { "-- IEEEtran.bst version" " " * bst.file.version *
        " (" * bst.file.date * ") " * "by Michael Shell." *
-       top$
-       "-- " bst.file.website *
-       top$
-       "-- See the " quote$ * "IEEEtran_bst_HOWTO.pdf" * quote$ * " manual for usage information." *
        top$
      }
      { skip$ }

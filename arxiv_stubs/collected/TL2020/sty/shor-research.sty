@@ -1,0 +1,82 @@
+\usepackage{amsmath,amssymb,amsthm,enumitem,mathtools,hyperref}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{conj}[thm]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{question}[thm]{Question}
+\newcommand{\NR}{\textit{NR}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\NZ}{\mathbb{N}_0}
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\atext}[1]{\text{\quad #1\quad}}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+\newcommand{\Floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\gens}[1]{\langle #1 \rangle}
+\DeclareMathOperator{\Ap}{Ap}
+%\newcommand{\IncludeMyBibfiles}{\bibliography{my-pubs,books,articles,misc}}
+
+% The command below makes \pmod look better.
+\makeatletter
+\let\@@pmod\pmod
+\DeclareRobustCommand{\pmod}{\@ifstar\@pmods\@@pmod}
+\def\@pmods#1{\mkern4mu({\operator@font mod}\mkern 6mu#1)}
+\makeatother
+
+\usepackage{comment}
+\usepackage{newverbs}
+\usepackage{parskip}
+\usepackage{changepage}
+\usepackage{color}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+\specialcomment{remarks}
+{
+
+\vspace{2mm}\noindent
+\begin{adjustwidth}{5mm}{0mm}
+\begingroup\color{blue}
+}
+{
+\endgroup
+\end{adjustwidth}
+
+\vspace{2mm}
+}
+
+\specialcomment{aremarks}
+{
+
+\vspace{2mm}\noindent
+\begin{adjustwidth}{5mm}{0mm}
+\begingroup\color{Green}
+}
+{
+\endgroup
+\end{adjustwidth}
+
+\vspace{2mm}
+}
+
+\specialcomment{hide}{}{}
+\excludecomment{hide}
+
+\newverbcommand{\cverb}{\small\color{purple}}{}
+
+\specialcomment{ToBeRemoved}{\begingroup\color{Purple}}{\endgroup}
+%\excludecomment{ToBeRemoved}
+%\excludecomment{remarks}
+
+\begingroup
+    \makeatletter
+    \@for\theoremstyle:=definition,remark,plain\do{
+        \expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{
+            \addtolength\thm@preskip\parskip
+            }
+        }
+\endgroup

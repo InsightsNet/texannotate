@@ -1,0 +1,87 @@
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{mathtools}
+%\usepackage{epstopdf}
+\usepackage{color}
+%\usepackage{changes}
+%\usepackage{hyperref}
+\usepackage{cancel}
+%\usepackage{subcaption}
+\usepackage[hang,raggedright,tight]{subfigure}%centerlast
+%\usepackage{subfig}
+%\usepackage{subfigure}%centerlast
+\usepackage[displaymath, mathlines]{lineno} % line numbers; activate with \linenumbers %options [switch, modulo]
+%\usepackage{tabularx}
+
+
+% the below is a fix for the lineno package to make it more compatible with the align envirorment (paragraphs including aligns are not numbered otherwise)
+\newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+  \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+  \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+  \renewenvironment{#1}%
+     {\linenomath\csname old#1\endcsname}%
+     {\csname oldend#1\endcsname\endlinenomath}}% 
+\newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+  \patchAmsMathEnvironmentForLineno{#1}%
+  \patchAmsMathEnvironmentForLineno{#1*}}%
+\AtBeginDocument{%
+\patchBothAmsMathEnvironmentsForLineno{equation}%
+\patchBothAmsMathEnvironmentsForLineno{align}%
+\patchBothAmsMathEnvironmentsForLineno{flalign}%
+\patchBothAmsMathEnvironmentsForLineno{alignat}%
+\patchBothAmsMathEnvironmentsForLineno{gather}%
+\patchBothAmsMathEnvironmentsForLineno{multline}%
+}
+
+\usepackage[english]{babel}
+%\addto\extrasenglish{% for use of \autoref
+%	\renewcommand{\itemautorefname}{Measure}%
+%	\renewcommand{\equationautorefname}{Eq.}%
+%	\renewcommand{\figureautorefname}{Fig.}%
+%  \renewcommand{\sectionautorefname}{Section}%
+%  \renewcommand{\subsectionautorefname}{Subsection}%
+%  \renewcommand{\subsubsectionautorefname}{Subsection}%
+%	\renewcommand{\appendixautorefname}{Appendix}%
+%  }
+%\usepackage[font=normal,belowskip=5pt,aboveskip=2pt]{caption}
+%\usepackage[belowskip=5pt,aboveskip=1pt,subrefformat=parens]{subcaption} %[skip = 2p]
+
+\usepackage{changes}
+%\usepackage{subfigure}
+
+\usepackage{tikz}
+\usetikzlibrary{intersections}
+\usetikzlibrary{calc}
+
+\usetikzlibrary{arrows}
+\everymath{\displaystyle}
+\tikzset{
+    %Define standard arrow tip
+    >=stealth',
+    %Define style for boxes
+    punkt/.style={
+           rectangle,
+           rounded corners,
+           draw=black, very thick,
+           text width=6.5em,
+           minimum height=2em,
+           text centered},
+    % Define arrow style
+    pil/.style={
+           ->,
+           thick,
+           shorten <=2pt,
+           shorten >=2pt,}
+}
+
+\usetikzlibrary{decorations.markings}
+\tikzset{mylabel/.style  args={at #1 #2  with #3}{
+    postaction={decorate,
+    decoration={
+      markings,
+      mark= at position #1
+      with  \node [#2] {#3};
+ } } } }

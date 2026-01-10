@@ -1,0 +1,585 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  CMS Common definitions style file
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ptdr-definitions}[ 2021/01/12  CMS Additional Macro Definitions v2]
+\RequirePackage{xspace}
+\RequirePackage{amsmath}
+
+% Some shorthand
+% turn off italics
+\newcommand {\etal}{\mbox{et al.}\xspace} %et al. - no preceding comma
+\newcommand {\ie}{\mbox{i.e.}\xspace}     %i.e.
+\newcommand {\eg}{\mbox{e.g.}\xspace}     %e.g.
+\newcommand {\etc}{\mbox{etc.}\xspace}     %etc.
+\newcommand {\vs}{\mbox{\textsl{vs.}}\xspace}      %vs.
+\newcommand {\mdash}{\ensuremath{\text{---}}} % for use within formulas
+\providecommand {\NA}{\ensuremath{\text{---}}}    % for Not applicable (or available). Needs to be renewcommanded for APS to \cdots
+
+% some terms whose definition we may change
+\newcommand {\Lone}{Level-1\xspace} % Level-1 or L1 ?
+\newcommand {\Ltwo}{Level-2\xspace}
+\newcommand {\Lthree}{Level-3\xspace}
+
+% Some software programs (alphabetized)
+\newcommand{\ACERMC} {\textsc{AcerMC}\xspace}
+\newcommand{\ALPGEN} {{\textsc{alpgen}}\xspace}
+\newcommand{\BLACKHAT} {{\textsc{BlackHat}}\xspace}
+\newcommand{\CALCHEP} {{\textsc{CalcHEP}}\xspace}
+\newcommand{\CHARYBDIS} {{\textsc{charybdis}}\xspace}
+\newcommand{\CMKIN} {\textsc{cmkin}\xspace}
+\newcommand{\CMSIM} {{\textsc{cmsim}}\xspace}
+\newcommand{\CMSSW} {{\textsc{cmssw}}\xspace}
+\newcommand{\COBRA} {{\textsc{cobra}}\xspace}
+\newcommand{\COCOA} {{\textsc{cocoa}}\xspace}
+\newcommand{\COMPHEP} {\textsc{CompHEP}\xspace}
+\newcommand{\EVTGEN} {{\textsc{evtgen}}\xspace}
+\newcommand{\FAMOS} {{\textsc{famos}}\xspace}
+\newcommand{\FASTJET} {{\textsc{FastJet}}\xspace}
+\newcommand{\FEWZ} {{\textsc{fewz}}\xspace}
+\newcommand{\GARCON} {\textsc{garcon}\xspace}
+\newcommand{\GARFIELD} {{\textsc{garfield}}\xspace}
+\newcommand{\GEANE} {{\textsc{geane}}\xspace}
+\newcommand{\GEANTfour} {{\textsc{Geant4}}\xspace}
+\newcommand{\GEANTthree} {{\textsc{geant3}}\xspace}
+\newcommand{\GEANT} {{\textsc{geant}}\xspace}
+\newcommand{\HDECAY} {\textsc{hdecay}\xspace}
+\newcommand{\HERWIG} {{\textsc{herwig}}\xspace}
+\newcommand{\HERWIGpp} {{\textsc{herwig++}}\xspace}
+\newcommand{\POWHEG} {{\textsc{powheg}}\xspace}
+\newcommand{\HIGLU} {{\textsc{higlu}}\xspace}
+\newcommand{\HIJING} {{\textsc{hijing}}\xspace}
+\newcommand{\HYDJET} {{\textsc{hydjet}}\xspace}
+\newcommand{\IGUANA} {\textsc{iguana}\xspace}
+\newcommand{\ISAJET} {{\textsc{isajet}}\xspace}
+\newcommand{\ISAPYTHIA} {{\textsc{isapythia}}\xspace}
+\newcommand{\ISASUGRA} {{\textsc{isasugra}}\xspace}
+\newcommand{\ISASUSY} {{\textsc{isasusy}}\xspace}
+\newcommand{\ISAWIG} {{\textsc{isawig}}\xspace}
+\newcommand{\MADGRAPH} {\textsc{MadGraph}\xspace}
+\newcommand{\MCATNLO} {\textsc{mc@nlo}\xspace}
+\newcommand{\MCFM} {\textsc{mcfm}\xspace}
+\newcommand{\MILLEPEDE} {{\textsc{millepede}}\xspace}
+\newcommand{\ORCA} {{\textsc{orca}}\xspace}
+\newcommand{\OSCAR} {{\textsc{oscar}}\xspace}
+\newcommand{\PHOTOS} {\textsc{photos}\xspace}
+\newcommand{\PROSPINO} {\textsc{prospino}\xspace}
+\newcommand{\PYTHIA} {{\textsc{pythia}}\xspace}
+\newcommand{\SHERPA} {{\textsc{sherpa}}\xspace}
+\newcommand{\TAUOLA} {\textsc{tauola}\xspace}
+\newcommand{\TOPREX} {\textsc{TopReX}\xspace}
+\newcommand{\XDAQ} {{\textsc{xdaq}}\xspace}
+\newcommand{\MGvATNLO}{\MADGRAPH{}5\_a\MCATNLO}
+\newcommand{\TOPpp}{\textsc{Top++}\xspace}
+\newcommand{\GENEVA}{\textsc{geneva}\xspace}
+
+%  Experiments
+\newcommand {\DZERO}{D0\xspace}     %etc.
+
+
+% Measurements and units...
+
+\newcommand{\de}{\ensuremath{^\circ}}
+\newcommand{\ten}[1]{\ensuremath{\times \text{10}^\text{#1}}}
+\newcommand{\unit}[1]{\ensuremath{\text{\,#1}}\xspace}
+\newcommand{\mum}{\ensuremath{\,\mu\text{m}}\xspace}
+\newcommand{\micron}{\ensuremath{\,\mu\text{m}}\xspace}
+\newcommand{\cm}{\ensuremath{\,\text{cm}}\xspace}
+\newcommand{\mm}{\ensuremath{\,\text{mm}}\xspace}
+\newcommand{\mus}{\ensuremath{\,\mu\text{s}}\xspace}
+\newcommand{\keV}{\ensuremath{\,\text{ke\hspace{-.08em}V}}\xspace}
+\newcommand{\MeV}{\ensuremath{\,\text{Me\hspace{-.08em}V}}\xspace}
+\newcommand{\MeVns}{\ensuremath{\text{Me\hspace{-.08em}V}}\xspace} % no leading thinspace
+\newcommand{\GeV}{\ensuremath{\,\text{Ge\hspace{-.08em}V}}\xspace}
+\newcommand{\GeVns}{\ensuremath{\text{Ge\hspace{-.08em}V}}\xspace} % no leading thinspace
+\newcommand{\gev}{\GeV}
+\newcommand{\TeV}{\ensuremath{\,\text{Te\hspace{-.08em}V}}\xspace}
+\newcommand{\TeVns}{\ensuremath{\text{Te\hspace{-.08em}V}}\xspace} % no leading thinspace
+\newcommand{\PeV}{\ensuremath{\,\text{Pe\hspace{-.08em}V}}\xspace}
+\newcommand{\keVc}{\ensuremath{{\,\text{ke\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c}}\xspace}
+\newcommand{\MeVc}{\ensuremath{{\,\text{Me\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c}}\xspace}
+\newcommand{\GeVc}{\ensuremath{{\,\text{Ge\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c}}\xspace}
+\newcommand{\GeVcns}{\ensuremath{{\text{Ge\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c}}\xspace} % no leading thinspace
+\newcommand{\TeVc}{\ensuremath{{\,\text{Te\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c}}\xspace}
+\newcommand{\keVcc}{\ensuremath{{\,\text{ke\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c^\text{2}}}\xspace}
+\newcommand{\MeVcc}{\ensuremath{{\,\text{Me\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c^\text{2}}}\xspace}
+\newcommand{\GeVcc}{\ensuremath{{\,\text{Ge\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c^\text{2}}}\xspace}
+\newcommand{\GeVccns}{\ensuremath{{\text{Ge\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c^\text{2}}}\xspace} % no leading thinspace
+\newcommand{\TeVcc}{\ensuremath{{\,\text{Te\hspace{-.08em}V\hspace{-0.16em}/\hspace{-0.08em}}c^\text{2}}}\xspace}
+
+\newcommand{\abinv} {\mbox{\ensuremath{\,\text{ab}^{-1}}}\xspace}
+\newcommand{\fbinv} {\mbox{\ensuremath{\,\text{fb}^{-1}}}\xspace}
+\newcommand{\pbinv} {\mbox{\ensuremath{\,\text{pb}^{-1}}}\xspace}
+\newcommand{\nbinv} {\mbox{\ensuremath{\,\text{nb}^{-1}}}\xspace}
+\newcommand{\mubinv} {\ensuremath{\,\mu\text{b}^{-1}}\xspace}
+\newcommand{\mbinv} {\ensuremath{\,\text{mb}^{-1}}\xspace}
+\newcommand{\percms}{\ensuremath{\,\text{cm}^{-2}\,\text{s}^{-1}}\xspace}
+\newcommand{\lumi}{\ensuremath{\mathcal{L}}\xspace}
+\newcommand{\Lumi}{\ensuremath{\mathcal{L}}\xspace}%both upper and lower
+%
+% Need a convention here:
+\newcommand{\LvLow}  {\ensuremath{\mathcal{L}=\text{10}^\text{32}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+\newcommand{\LLow}   {\ensuremath{\mathcal{L}=\text{10}^\text{33}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+\newcommand{\lowlumi}{\ensuremath{\mathcal{L}=\text{2}\times \text{10}^\text{33}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+\newcommand{\LMed}   {\ensuremath{\mathcal{L}=\text{2}\times \text{10}^\text{33}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+\newcommand{\LHigh}  {\ensuremath{\mathcal{L}=\text{10}^\text{34}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+\newcommand{\hilumi} {\ensuremath{\mathcal{L}=\text{10}^\text{34}\,\text{cm}^\text{$-$2}\,\text{s}^\text{$-$1}}\xspace}
+
+% Physics symbols ...
+
+\newcommand{\PT}{\ensuremath{p_{\mathrm{T}}}\xspace}
+\newcommand{\pt}{\ensuremath{p_{\mathrm{T}}}\xspace}
+\newcommand{\ET}{\ensuremath{E_{\mathrm{T}}}\xspace}
+\newcommand{\HT}{\ensuremath{H_{\mathrm{T}}}\xspace}
+\newcommand{\mT}{\ensuremath{m_{\mathrm{T}}}\xspace}
+\newcommand{\mTii}{\ensuremath{m_{\mathrm{T2}}}\xspace}
+\newcommand{\et}{\ensuremath{E_{\mathrm{T}}}\xspace}
+\newcommand{\Em}{\ensuremath{E\hspace{-0.6em}/}\xspace}
+\newcommand{\Pm}{\ensuremath{p\hspace{-0.5em}/}\xspace}
+\newcommand{\PTm}{\ensuremath{{p}_\mathrm{T}\hspace{-1.02em}/\kern 0.5em}\xspace}
+\newcommand{\PTslash}{\PTm}
+\newcommand{\ETm}{\ensuremath{E_{\mathrm{T}}^{\text{miss}}}\xspace}
+\newcommand{\MET}{\ETm}
+\newcommand{\ETmiss}{\ETm}
+\newcommand{\ptmiss}{\ensuremath{\pt^\text{miss}}\xspace}
+\newcommand{\ETslash}{\ensuremath{E_{\mathrm{T}}\hspace{-1.1em}/\kern0.45em}\xspace}
+\newcommand{\VEtmiss}{\ensuremath{{\vec E}_{\mathrm{T}}^{\text{miss}}}\xspace}
+\newcommand{\ptvec}{\ensuremath{{\vec p}_{\mathrm{T}}}\xspace}
+\newcommand{\ptvecmiss}{\ensuremath{{\vec p}_{\mathrm{T}}^{\kern1pt\text{miss}}}\xspace}
+\newcommand{\tauh}{\ensuremath{\PGt_\mathrm{h}}\xspace}
+\newcommand{\sqrtsNN}{\ensuremath{\sqrt{\smash[b]{s_{_{\mathrm{NN}}}}}}\xspace}
+\newcommand{\mht}{\ensuremath{H_{\mathrm{T}}^{\text{miss}}}\xspace}
+\newcommand{\htvecmiss}{\ensuremath{\vec{H}_{\text{T}}^{\text{miss}}}\xspace}
+
+% roman face derivative
+\newcommand{\dd}[2]{\ensuremath{\frac{\cmsSymbolFace{d} #1}{\cmsSymbolFace{d} #2}}}
+\newcommand{\ddinline}[2]{\ensuremath{\cmsSymbolFace{d} #1/\cmsSymbolFace{d} #2}}
+\newcommand{\rd}{\ensuremath{\cmsSymbolFace{d}}}
+\newcommand{\re}{\ensuremath{\cmsSymbolFace{e}}}
+% absolute value
+\newcommand{\abs}[1]{\ensuremath{\lvert #1 \rvert}}
+% misc
+\newcommand{\CL}{\ensuremath{\text{CL}}\xspace} % needs to be overridden to C.L. for APS. Look out for \CL.
+\newcommand{\CLs}{\ensuremath{\text{CL}_\text{s}}\xspace}
+\newcommand{\CLsb}{\ensuremath{\text{CL}_\text{s+b}}\xspace}
+
+
+
+\ifthenelse{\boolean{cms@italic}}{\newcommand{\cmsSymbolFace}[1]{#1}}{\newcommand{\cmsSymbolFace}[1]{\mathrm{#1}}}
+
+% Particle names which track the italic/non-italic face convention
+\newcommand{\zp}{{\PZpr}\xspace} % plain Z'
+\newcommand{\JPsi}{{\PJGy}\xspace} % J/Psi (no mass)
+\newcommand{\Z}{{\PZ}\xspace} % plain Z (no superscript 0)
+\newcommand{\ttbar}{{\PQt{}\PAQt}\xspace} % t-tbar
+
+% Extensions for missing names in PENNAMES % note now has xspace, to match syntax in PENNAMES2
+\newcommand{\cPgn}{\PGn} % generic neutrino
+\providecommand{\Pgn}{\PGn}
+\newcommand{\cPagn}{\PAGn} % generic anti-neutrino
+\providecommand{\Pagn}{\PAGn}
+\newcommand{\cPgg}{\PGg} % gamma
+\newcommand{\cPJgy}{\PJGy} % J/Psi (no mass)
+\newcommand{\cPZ}{\PZ} % plain Z (no superscript 0)
+\newcommand{\cPZpr}{\PZpr} % plain Z'
+\newcommand{\cPqt}{\PQt} % t for t quark
+\newcommand{\cPqb}{\PQb} % b for b quark
+\newcommand{\cPqc}{\PQc} % c for c quark
+\newcommand{\cPqs}{\PQs} % s for s quark
+\newcommand{\cPqu}{\PQu} % u for u quark
+\newcommand{\cPqd}{\PQd} % d for d quark
+\newcommand{\cPq}{\PQq} % generic quark
+\newcommand{\cPg}{\Pg} % generic gluon
+\newcommand{\cPG}{\PXXG} % Graviton
+\newcommand{\cPaqt}{\PAQt} % t for t anti-quark
+\newcommand{\cPaqb}{\PAQb} % b for b anti-quark
+\newcommand{\cPaqc}{\PAQc} % c for c anti-quark
+\newcommand{\cPaqs}{\PAQs} % s for s anti-quark
+\newcommand{\cPaqu}{\PAQu} % u for u anti-quark
+\newcommand{\cPaqd}{\PAQd} % d for d anti-quark
+\newcommand{\cPaq}{\PAQq} % generic anti-quark
+\newcommand{\cPKstz}{\ensuremath{\PK^{\ast0}}\xspace}
+% in-between: ought to be in heppennames2, but isn't
+\newcommand{\PQT}{{\HepParticle{T}{}{}}\Xspace}
+\newcommand{\PQB}{{\HepParticle{B}{}{}}\Xspace}
+% our extensions for pennames2
+\providecommand{\Pepm}{\ensuremath{\Pe^\pm}\xspace}
+\providecommand{\Pemp}{\ensuremath{\Pe^\mp}\xspace}
+\providecommand{\PGmpm}{\ensuremath{\PGm^\pm}\xspace}
+\providecommand{\PGmmp}{\ensuremath{\PGm^\mp}\xspace} % not available in pennames2, AFAIK
+\providecommand{\PGUPnS}{\PGUP{nS}\xspace}% maps to \PGUP[nS]
+\providecommand{\PV}{{\HepParticle{V}{}{}}\Xspace} % generic vector boson
+\providecommand{\Pell}{\HepParticle{\ell}{}{}\Xspace} % generic lepton (like \Pl, but using \ell)
+\providecommand{\PQQ}{\HepParticle{Q}{}{}\Xspace} % generic heavy quark
+\providecommand{\PAQQ}{\HepAntiParticle{Q}{}{}\Xspace} % generic heavy antiquark
+
+% for APS style tables
+\ifthenelse{\boolean{cms@external}}{%
+\newenvironment{scotch}[1]{\protect\centering\ruledtabular\tabular{#1}}{\endtabular\endruledtabular}
+\newenvironment{scotch*}[1]{\protect\centering\ruledtabular\tabular{#1}}{\endtabular\endruledtabular}
+}{
+\newenvironment{scotch}[1]{\protect\centering\tabular{#1}}{\endtabular}
+\newenvironment{scotch*}[1]{\protect\centering\tabular{#1}\hline}{\hline\endtabular}
+\newenvironment{turnpage}[1]{#1}{}
+}
+% Other
+\newcommand{\MD}{\ensuremath{{M_\mathrm{D}}}\xspace}% ED mass
+\newcommand{\Mpl}{\ensuremath{{M_\mathrm{Pl}}}\xspace}% Planck mass
+\newcommand{\Rinv} {\ensuremath{{R}^{-1}}\xspace}
+
+% SM (still to be classified)
+
+\newcommand{\AFB}{\ensuremath{A_\text{FB}}\xspace}
+\newcommand{\wangle}{\ensuremath{\sin^{2}\theta_{\text{eff}}^\text{lept}(M^2_{\Z})}\xspace}
+\newcommand{\stat}{\ensuremath{\,\text{(stat)}}\xspace}
+\newcommand{\syst}{\ensuremath{\,\text{(syst)}}\xspace}
+\newcommand{\thy}{\ensuremath{\,\text{(theo)}}\xspace}
+\newcommand{\lum}{\ensuremath{\,\text{(lumi)}}\xspace}
+\newcommand{\kt}{\ensuremath{k_{\mathrm{T}}}\xspace}
+
+\newcommand{\BC}{\HepParticle{B}{c}{}{}\xspace}
+\newcommand{\bbarc}{\ensuremath{\PAQb\PQc}\xspace}
+\newcommand{\bbbar}{\ensuremath{\PQb\PAQb}\xspace}
+\newcommand{\ccbar}{\ensuremath{\PQc\PAQc}\xspace}
+\newcommand{\qqbar}{\ensuremath{\PQq\PAQq}\xspace}
+\newcommand{\bspsiphi}{\ensuremath{\PBs \to \JPsi\, \PGf}\xspace}
+\newcommand{\EE}{\Pep{}\Pem\xspace}
+\newcommand{\MM}{\PGmp{}\PGmm\xspace}
+\newcommand{\TT}{\PGtm{}\PGtp\xspace}
+
+%%%  E-gamma definitions
+\newcommand{\HGG}{\ensuremath{\PH\to\PGg\PGg}}
+\newcommand{\GAMJET}{\ensuremath{\PGg + \text{jet}}}
+\newcommand{\PPTOJETS}{\ensuremath{\Pp\Pp\to\text{jets}}}
+\newcommand{\PPTOGG}{\ensuremath{\Pp\Pp\to\PGg\PGg}}
+\newcommand{\PPTOGAMJET}{\ensuremath{\Pp\Pp\to\PGg + \text{jet}}}
+\newcommand{\MH}{\ensuremath{M_{\PH}}}
+\newcommand{\RNINE}{\ensuremath{R_\mathrm{9}}}
+\newcommand{\DR}{\ensuremath{\Delta R}}
+
+
+
+
+
+%%%%%%
+% From Albert De Roeck for original TDRs
+%
+
+\newcommand{\ga}{\ensuremath{\gtrsim}}
+\newcommand{\la}{\ensuremath{\lesssim}}
+%
+\newcommand{\swsq}{\ensuremath{\sin^2\theta_{\PW}}\xspace}
+\newcommand{\cwsq}{\ensuremath{\cos^2\theta_{\PW}}\xspace}
+\newcommand{\tanb}{\ensuremath{\tan\beta}\xspace}
+\newcommand{\tanbsq}{\ensuremath{\tan^{2}\beta}\xspace}
+\newcommand{\sidb}{\ensuremath{\sin 2\beta}\xspace}
+\newcommand{\alpS}{\ensuremath{\alpha_\mathrm{S}}\xspace}
+\newcommand{\alpt}{\ensuremath{\tilde{\alpha}}\xspace}
+
+\newcommand{\QL}{\HepParticle{Q}{L}{}{}\xspace}
+\newcommand{\sQ}{\HepSusyParticle{Q}{}{}{}\xspace}
+\newcommand{\sQL}{\HepSusyParticle{Q}{L}{}{}\xspace}
+\newcommand{\ULC}{\HepParticle{U}{L}{C}{}\xspace}
+\newcommand{\sUC}{\HepSusyParticle{U}{}{C}{}\xspace}
+\newcommand{\sULC}{\HepSusyParticle{U}{L}{C}{}\xspace}
+\newcommand{\DLC}{\HepParticle{D}{L}{C}{}\xspace}
+\newcommand{\sDC}{\HepSusyParticle{D}{}{C}{}\xspace}
+\newcommand{\sDLC}{\HepSusyParticle{D}{L}{C}{}\xspace}
+\newcommand{\LL}{\HepParticle{L}{L}{}{}\xspace}
+\newcommand{\sL}{\HepSusyParticle{L}{}{}{}\xspace}
+\newcommand{\sLL}{\HepSusyParticle{L}{L}{}{}\xspace}
+\newcommand{\ELC}{\HepParticle{E}{L}{C}{}\xspace}
+\newcommand{\sEC}{\HepSusyParticle{E}{}{C}{}\xspace}
+\newcommand{\sELC}{\HepSusyParticle{E}{L}{C}{}\xspace}
+\newcommand{\sEL}{\HepSusyParticle{E}{L}{}{}\xspace}
+\newcommand{\sER}{\HepSusyParticle{E}{R}{}{}\xspace}
+\newcommand{\sFer}{\HepSusyParticle{f}{}{}{}\xspace}
+\newcommand{\sQua}{\PSQ}
+\newcommand{\sUp}{\PSQu}
+\newcommand{\suL}{\PSQuL}
+\newcommand{\suR}{\PSQuR}
+\newcommand{\sDw}{\PSQd}
+\newcommand{\sdL}{\PSQdL}
+\newcommand{\sdR}{\PSQdR}
+\newcommand{\sTop}{\PSQt}
+\newcommand{\stL}{\PSQtL}
+\newcommand{\stR}{\PSQtR}
+\newcommand{\stone}{\PSQtDo}
+\newcommand{\sttwo}{\PSQtDt}
+\newcommand{\sBot}{\PSQb}
+\newcommand{\sbL}{\PSQbL}
+\newcommand{\sbR}{\PSQbR}
+\newcommand{\sbone}{\PSQbDo}
+\newcommand{\sbtwo}{\PSQbDt}
+\newcommand{\sLep}{\PSl}
+\newcommand{\sLepC}{\HepSusyParticle{l}{}{C}{}\xspace}
+\newcommand{\sEl}{\PSe}
+\newcommand{\sElC}{\HepSusyParticle{e}{}{C}{}\xspace}
+\newcommand{\seL}{\PSeL}
+\newcommand{\seR}{\PSeR}
+\newcommand{\snL}{\HepSusyParticle{\PGn}{L}{}{}\xspace}
+\newcommand{\sMu}{\PSGm}
+\newcommand{\sNu}{\PSGn}
+\newcommand{\sTau}{\PSGt}
+\newcommand{\Glu}{\Pg}
+\newcommand{\sGlu}{\PSg}
+\newcommand{\Wpm}{\PWpm}
+\newcommand{\sWpm}{\PSWpm}
+\newcommand{\Wz}{\HepParticle{W}{}{0}{}\xspace}
+\newcommand{\sWz}{\HepSusyParticle{W}{}{0}{}\xspace}
+\newcommand{\sWino}{\PSW}
+\newcommand{\Bz}{\HepParticle{B}{}{0}\xspace}
+\newcommand{\sBz}{\HepSusyParticle{B}{}{0}\xspace}
+\newcommand{\sBino}{\HepSusyParticle{B}{}{}\xspace}
+\newcommand{\Zz}{\PZz}
+\newcommand{\sZino}{\PSZz}
+\newcommand{\sGam}{\PSGg}
+\newcommand{\chiz}{\PSGcz}
+\newcommand{\chip}{\PSGcp}
+\newcommand{\chim}{\PSGcm}
+\newcommand{\chipm}{\PSGcpm}
+\newcommand{\Hone}{\HepParticle{H}{d}{}\xspace}
+\newcommand{\sHone}{\HepSusyParticle{H}{d}{}\xspace}
+\newcommand{\Htwo}{\HepParticle{H}{u}{}\xspace}
+\newcommand{\sHtwo}{\HepSusyParticle{H}{u}{}\xspace}
+\newcommand{\sHig}{\HepSusyParticle{H}{}{}{}\xspace}
+\newcommand{\sHa}{\HepSusyParticle{H}{a}{}{}\xspace}
+\newcommand{\sHb}{\HepSusyParticle{H}{b}{}{}\xspace}
+\newcommand{\sHpm}{\HepSusyParticle{H}{}{\pm}{}\xspace}
+\newcommand{\hz}{\PShz}
+\newcommand{\Hz}{\PHz}
+\newcommand{\Az}{\PSAz}
+\newcommand{\Hpm}{\PSHpm}
+\newcommand{\sGra}{\PXXSG}
+%
+\newcommand{\mtil}{\ensuremath{\widetilde{m}}\xspace}
+%
+\newcommand{\rpv}{\ensuremath{\rlap{\kern.2em/}R}\xspace}
+\newcommand{\LLE}{\ensuremath{LL\bar{E}}\xspace}
+\newcommand{\LQD}{\ensuremath{LQ\bar{D}}\xspace}
+\newcommand{\UDD}{\ensuremath{\overline{UDD}}\xspace}
+\newcommand{\Lam}{\ensuremath{\lambda}\xspace}
+\newcommand{\Lamp}{\ensuremath{\lambda'}\xspace}
+\newcommand{\Lampp}{\ensuremath{\lambda''}\xspace}
+%
+\newcommand{\spinbd}[2]{\ensuremath{\bar{#1}_{\dot{#2}}}\xspace}
+
+%pennames to heppenames2 translation
+%no longer include mass
+%PDstpm
+%PKst
+%
+%no j subscript, no tilde
+%PSHpm
+%PSHz
+%
+%Added overbar
+%PagXz
+%
+%Removed overbar
+%PgXz
+%
+\newcommand{\PAz}{\PSAz}
+\newcommand{\PDiz}{\PDzDoP{2420}}
+\newcommand{\PDstiiz}{\PDstzDtP{2460}}
+\newcommand{\PDstz}{\PDstzP{2010}}
+\newcommand{\PHpm}{\PSHpm}
+\newcommand{\PJgy}{\PJGyP{1S}}
+\newcommand{\PKia}{\PKDoP{1400}}
+\newcommand{\PKii}{\PKDtP{1770}}
+\newcommand{\PKi}{\PKDoP{1270}}
+\newcommand{\PKsta}{\PKstP{1370}}
+\newcommand{\PKstb}{\PKstP{1680}}
+\newcommand{\PKstiii}{\PKstDTP{1780}}
+\newcommand{\PKstii}{\PKstDtP{1430}}
+\newcommand{\PKstiv}{\PKstDfP{2045}}
+\newcommand{\PKstz}{\PKstDzP{1430}}
+\newcommand{\PNa}{\HepParticleResonanceFormalFull{\PN}{}{}{1440}{}{}{P}{11}{}\xspace}
+\newcommand{\PNb}{\HepParticleResonanceFormalFull{\PN}{}{}{1520}{}{}{D}{13}{}\xspace}
+\newcommand{\PNc}{\HepParticleResonanceFormalFull{\PN}{}{}{1535}{}{}{S}{11}{}\xspace}
+\newcommand{\PNd}{\HepParticleResonanceFormalFull{\PN}{}{}{1650}{}{}{S}{11}{}\xspace}
+\newcommand{\PNe}{\HepParticleResonanceFormalFull{\PN}{}{}{1675}{}{}{D}{15}{}\xspace}
+\newcommand{\PNf}{\HepParticleResonanceFormalFull{\PN}{}{}{1680}{}{}{F}{15}{}\xspace}
+\newcommand{\PNg}{\HepParticleResonanceFormalFull{\PN}{}{}{1700}{}{}{D}{13}{}\xspace}
+\newcommand{\PNh}{\HepParticleResonanceFormalFull{\PN}{}{}{1710}{}{}{P}{11}{}\xspace}
+\newcommand{\PNi}{\HepParticleResonanceFormalFull{\PN}{}{}{1720}{}{}{P}{13}{}\xspace}
+\newcommand{\PNj}{\HepParticleResonanceFormalFull{\PN}{}{}{2190}{}{}{G}{17}{}\xspace}
+\newcommand{\PNk}{\HepParticleResonanceFormalFull{\PN}{}{}{2220}{}{}{H}{19}{}\xspace}
+\newcommand{\PNl}{\HepParticleResonanceFormalFull{\PN}{}{}{2250}{}{}{G}{19}{}\xspace}
+\newcommand{\PNm}{\HepParticleResonanceFormalFull{\PN}{}{}{2600}{}{}{I}{1,11}{}\xspace}
+\newcommand{\PSHz}{\HepParticle{\PSH}{}{0}{}}
+\newcommand{\PSgg}{\PSGg}
+\newcommand{\PSgm}{\PSGm}
+\newcommand{\PSgn}{\PSGn}
+\newcommand{\PSgt}{\PSGt}
+\newcommand{\PSgxpm}{\PSGcpm}
+\newcommand{\PSgxz}{\PSGcz}
+\newcommand{\PSq}{\PSQ}
+\newcommand{\PZgc}{\PZGc}
+\newcommand{\PZge}{\PZGe}
+\newcommand{\PZgy}{\PZGy}
+\newcommand{\PZi}{\HepParticle{Z}{1}{}\xspace}
+\newcommand{\PaBz}{\PABz}
+\newcommand{\PaB}{\PAB}
+\newcommand{\PaDz}{\PADz}
+\newcommand{\PaD}{\PAD}
+\newcommand{\PaKz}{\PAKz}
+\newcommand{\PaSq}{\PASQ}
+\newcommand{\PagL}{\PAGL}
+\newcommand{\PagOp}{\HepAntiParticle{\PGO}{}{+}\xspace}
+\newcommand{\PagSm}{\HepAntiParticle{\PGS}{}{-}\xspace}
+\newcommand{\PagSp}{\HepAntiParticle{\PGS}{}{+}\xspace}
+\newcommand{\PagSz}{\HepAntiParticle{\PGS}{}{0}\xspace}
+\newcommand{\PagXp}{\HepAntiParticle{\PGX}{}{+}\xspace}
+\newcommand{\PagXz}{\HepAntiParticle{\PGX}{}{0}\xspace}
+\newcommand{\Pagne}{\PAGne}
+\newcommand{\Pagngm}{\PAGnGm}
+\newcommand{\Pagngt}{\PAGnGt}
+\newcommand{\Paii}{\PaDtP{1320}}
+\newcommand{\Pai}{\PaDoP{1260}}
+\newcommand{\Pap}{\PAp}
+\newcommand{\Paqb}{\PAQqb}
+\newcommand{\Paqc}{\PAQqc}
+\newcommand{\Paqd}{\PAQqd}
+\newcommand{\Paqs}{\PAQqs}
+\newcommand{\Paqt}{\PAQqt}
+\newcommand{\Paqu}{\PAQqu}
+\newcommand{\Paq}{\PAQq}
+\newcommand{\Paz}{\PaDzP{980}}
+\newcommand{\Pbgcia}{\PGcbDoP{2P}}
+\newcommand{\Pbgciia}{\PGcbDtP{2P}}
+\newcommand{\Pbgcii}{\PGcbDtP{1P}}
+\newcommand{\Pbgci}{\PGcbDoP{1P}}
+\newcommand{\Pbgcza}{\PGcbDzP{2P}}
+\newcommand{\Pbgcz}{\PGcbDzP{1P}}
+\newcommand{\Pbi}{\PbDoP{1235}}
+\newcommand{\PcgLp}{\PGLpc}
+\newcommand{\PcgS}{\PGScP{2455}}
+\newcommand{\PcgXp}{\PGXpc}
+\newcommand{\PcgXz}{\PGXzc}
+\newcommand{\Pcgcii}{\PGccDtP{1P}}
+\newcommand{\Pcgci}{\PGccDoP{1P}}
+\newcommand{\Pcgcz}{\PGccDzP{1S}}
+\newcommand{\Pcgh}{\PGhcP{1S}}
+\newcommand{\Pfia}{\PfDoP{1390}}
+\newcommand{\Pfib}{\PfDoP{1510}}
+\newcommand{\Pfiia}{\PfDtP{1720}}
+\newcommand{\Pfiib}{\PfDtP{2010}}
+\newcommand{\Pfiic}{\PfDtP{2300}}
+\newcommand{\Pfiid}{\PfDtP{2340}}
+\newcommand{\Pfiipr}{\PfprDtP{1525}}
+\newcommand{\Pfii}{\PfDtP{1270}}
+\newcommand{\Pfiv}{\PfDfP{2050}}
+\newcommand{\Pfi}{\PfDoP{1285}}
+\newcommand{\Pfza}{\PfDzP{1400}}
+\newcommand{\Pfzb}{\PfDzP{1590}}
+\newcommand{\Pfz}{\PfDzP{975}}
+\newcommand{\PgD}{\PGD}
+\newcommand{\PgDa}{\HepParticleResonanceFormalFull{\PGD}{}{}{1232}{}{}{P}{33}{}\xspace}
+\newcommand{\PgDb}{\HepParticleResonanceFormalFull{\PGD}{}{}{1620}{}{}{S}{31}{}\xspace}
+\newcommand{\PgDc}{\HepParticleResonanceFormalFull{\PGD}{}{}{1700}{}{}{D}{33}{}\xspace}
+\newcommand{\PgDd}{\HepParticleResonanceFormalFull{\PGD}{}{}{1900}{}{}{S}{31}{}\xspace}
+\newcommand{\PgDe}{\HepParticleResonanceFormalFull{\PGD}{}{}{1905}{}{}{F}{35}{}\xspace}
+\newcommand{\PgDf}{\HepParticleResonanceFormalFull{\PGD}{}{}{1910}{}{}{P}{31}{}\xspace}
+\newcommand{\PgDh}{\HepParticleResonanceFormalFull{\PGD}{}{}{1920}{}{}{P}{33}{}\xspace}
+\newcommand{\PgDi}{\HepParticleResonanceFormalFull{\PGD}{}{}{1930}{}{}{D}{35}{}\xspace}
+\newcommand{\PgDj}{\HepParticleResonanceFormalFull{\PGD}{}{}{1950}{}{}{F}{37}{}\xspace}
+\newcommand{\PgDk}{\HepParticleResonanceFormalFull{\PGD}{}{}{2420}{}{}{H}{3,11}{}\xspace}
+\newcommand{\PgL}{\PGL}
+\newcommand{\PgLa}{\HepParticleResonanceFormalFull{\PGL}{}{}{1405}{}{}{S}{01}{}}
+\newcommand{\PgLb}{\HepParticleResonanceFormalFull{\PGL}{}{}{1520}{}{}{D}{03}{}}
+\newcommand{\PgLc}{\HepParticleResonanceFormalFull{\PGL}{}{}{1600}{}{}{P}{01}{}}
+\newcommand{\PgLd}{\HepParticleResonanceFormalFull{\PGL}{}{}{1670}{}{}{S}{01}{}}
+\newcommand{\PgLe}{\HepParticleResonanceFormalFull{\PGL}{}{}{1690}{}{}{D}{03}{}}
+\newcommand{\PgLf}{\HepParticleResonanceFormalFull{\PGL}{}{}{1800}{}{}{S}{01}{}}
+\newcommand{\PgLg}{\HepParticleResonanceFormalFull{\PGL}{}{}{1810}{}{}{P}{01}{}}
+\newcommand{\PgLh}{\HepParticleResonanceFormalFull{\PGL}{}{}{1820}{}{}{F}{05}{}}
+\newcommand{\PgLi}{\HepParticleResonanceFormalFull{\PGL}{}{}{1830}{}{}{D}{05}{}}
+\newcommand{\PgLj}{\HepParticleResonanceFormalFull{\PGL}{}{}{1890}{}{}{P}{03}{}}
+\newcommand{\PgLk}{\HepParticleResonanceFormalFull{\PGL}{}{}{2100}{}{}{G}{07}{}}
+\newcommand{\PgLl}{\HepParticleResonanceFormalFull{\PGL}{}{}{2110}{}{}{F}{05}{}}
+\newcommand{\PgLm}{\HepParticleResonanceFormalFull{\PGL}{}{}{2350}{}{}{H}{09}{}}
+\newcommand{\PgO}{\PGO}
+\newcommand{\PgOm}{\PGOm}
+\newcommand{\PgOma}{\PGOmP{2250}}
+\newcommand{\PgS}{\PGS}
+\newcommand{\PgSa}{\HepParticleResonanceFormalFull{\PGS}{}{}{1385}{}{}{P}{13}{}\xspace}
+\newcommand{\PgSb}{\HepParticleResonanceFormalFull{\PGS}{}{}{1660}{}{}{P}{11}{}\xspace}
+\newcommand{\PgSc}{\HepParticleResonanceFormalFull{\PGS}{}{}{1670}{}{}{D}{13}{}\xspace}
+\newcommand{\PgSd}{\HepParticleResonanceFormalFull{\PGS}{}{}{1750}{}{}{S}{11}{}\xspace}
+\newcommand{\PgSe}{\HepParticleResonanceFormalFull{\PGS}{}{}{1775}{}{}{D}{15}{}\xspace}
+\newcommand{\PgSf}{\HepParticleResonanceFormalFull{\PGS}{}{}{1915}{}{}{F}{15}{}\xspace}
+\newcommand{\PgSg}{\HepParticleResonanceFormalFull{\PGS}{}{}{1940}{}{}{D}{13}{}\xspace}
+\newcommand{\PgSh}{\HepParticleResonanceFormalFull{\PGS}{}{}{2030}{}{}{F}{17}{}\xspace}
+\newcommand{\PgSi}{\PGSP{2050}}
+\newcommand{\PgSm}{\PGSm}
+\newcommand{\PgSp}{\PGSp}
+\newcommand{\PgSz}{\PGSz}
+\newcommand{\PgU}{\PGU}
+\newcommand{\PgUa}{\PGUP{1S}}
+\newcommand{\PgUb}{\PGUP{2S}}
+\newcommand{\PgUc}{\PGUP{3S}}
+\newcommand{\PgUd}{\PGUP{4S}}
+\newcommand{\PgUe}{\PGUP{10860}}
+\newcommand{\PgUf}{\PGUP{11020}}
+\newcommand{\PgX}{\PGX}
+\newcommand{\PgXa}{\HepParticleResonanceFormalFull{\PGX}{}{}{1530}{}{}{P}{13}{}\xspace}
+\newcommand{\PgXb}{\PGXP{1690}}
+\newcommand{\PgXc}{\HepParticleResonanceFormalFull{\PGX}{}{}{1820}{}{}{D}{13}{}\xspace}
+\newcommand{\PgXd}{\PGXP{1950}}
+\newcommand{\PgXe}{\PGXP{2030}}
+\newcommand{\PgXm}{\PGXm}
+\newcommand{\PgXz}{\HepParticle{\PGX}{}{0}{}}
+\newcommand{\Pgfa}{\PGfP{1680}}
+\newcommand{\Pgfiii}{\PGfDTP{1850}}
+\newcommand{\Pgf}{\PGfP{1020}}
+\newcommand{\Pgg}{\PGg}
+\newcommand{\Pgha}{\PGhP{1295}}
+\newcommand{\Pghb}{\PGhP{1440}}
+\newcommand{\Pghpr}{\PGhprP{958}}
+\newcommand{\Pgh}{\PGh}
+\newcommand{\Pgmm}{\PGmm}
+\newcommand{\Pgmp}{\PGmp}
+\newcommand{\Pgm}{\PGm}
+\newcommand{\Pgne}{\PGne}
+\newcommand{\Pgngm}{\PGnGm}
+\newcommand{\Pgngt}{\PGnGt}
+\newcommand{\Pgoa}{\PGoP{1390}}
+\newcommand{\Pgob}{\PGoP{1600}}
+\newcommand{\Pgoiii}{\PGoDTP{1670}}
+\newcommand{\Pgo}{\PGoP{783}}
+\newcommand{\Pgpa}{\PGpP{1300}}
+\newcommand{\Pgpii}{\PGpDtP{1670}}
+\newcommand{\Pgpm}{\PGpm}
+\newcommand{\Pgppm}{\PGppm}
+\newcommand{\Pgpp}{\PGpp}
+\newcommand{\Pgpz}{\PGpz}
+\newcommand{\Pgp}{\PGp}
+\newcommand{\Pgra}{\PGrP{1450}}
+\newcommand{\Pgrb}{\PGrP{1700}}
+\newcommand{\Pgriii}{\PGrDTP{1690}}
+\newcommand{\Pgr}{\PGrP{770}}
+\newcommand{\Pgt}{\PGt}
+\newcommand{\Pgya}{\PGyP{3770}}
+\newcommand{\Pgyb}{\PGyP{4040}}
+\newcommand{\Pgyc}{\PGyP{4160}}
+\newcommand{\Pgyd}{\PGyP{4415}}
+\newcommand{\Pgy}{\PGyP{2S}}
+\newcommand{\Phia}{\PhDoP{1170}}
+\newcommand{\Pqb}{\PQqb}
+\newcommand{\Pqc}{\PQqc}
+\newcommand{\Pqd}{\PQqd}
+\newcommand{\Pqs}{\PQqs}
+\newcommand{\Pqt}{\PQqt}
+\newcommand{\Pqu}{\PQqu}
+\newcommand{\Pq}{\PQq}
+\newcommand{\PsDipm}{\PDpmsDoP{2536}}
+\newcommand{\PsDm}{\PDms}
+\newcommand{\PsDp}{\PDps}
+\newcommand{\PsDst}{\HepParticle{\PD}{s}{\ast}\xspace}
+%
+\endinput

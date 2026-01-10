@@ -1,0 +1,99 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mediabb}[2006/10/26 v1.9 iNOUE Koich! <inoue@ma.ns.musashi-tech.ac.jp>]
+\@ifpackageloaded{graphics}{}{\RequirePackage[dvipdfm]{graphicx}}
+\define@key{Gin}{usebb}[true]{\expandafter\let\expandafter\if@usebb\csname if#1\endcsname}
+\let\if@usebb\iffalse
+\define@key{Gin}{mediaboxonly}[/MediaBox]{\@ifundefined{Gread@find@#1}%
+  {\def\Gread@rect@box{/MediaBox}\expandafter\let\expandafter\if@Gread@find@only\csname if#1\endcsname}%
+  {\def\Gread@rect@box{#1}\let\if@Gread@find@only\iftrue}}
+\let\if@Gread@find@only\iffalse
+\def\Gread@rect@box{/MediaBox}
+\define@key{Gin}{autoebb}[always]{\csname Gread@ebb@#1\endcsname}
+\def\Gread@ebb@always{\let\if@Gread@ebb@always\iftrue}
+\let\if@Gread@ebb@always\iffalse
+\let\Gread@ebb@true\Gread@ebb@always
+\def\Gread@ebb@never{\let\if@Gread@ebb@never\iftrue}
+\let\Gread@ebb@false\Gread@ebb@never
+\let\if@Gread@ebb@never\iffalse
+\let\Ginclude@pdf\Ginclude@eps
+\def\Gread@pdf#1{%
+  \begingroup
+    \if@usebb\else
+      \@tempcnta\z@
+      \loop
+      \ifnum\@tempcnta<\@xxxii
+        \catcode\@tempcnta14
+        \advance\@tempcnta\@ne
+      \repeat
+	  \@tempcnta127
+      \loop
+      \ifnum\@tempcnta<\@cclvi
+        \catcode\@tempcnta14
+        \advance\@tempcnta\@ne
+      \repeat
+      \let\do\@makeother\dospecials\catcode`\ 10
+      \catcode\endlinechar10
+      \immediate\openin\@inputcheck#1
+      \ifeof\@inputcheck
+        \@latex@error{File `#1' not found}\@ehc
+      \else
+        \Gread@true
+        \let\@tempa\@empty
+        \let\@tempb\@empty
+        \loop
+          \read\@inputcheck to\@tempc
+          \ifeof\@inputcheck
+            \Gread@false
+          \else
+            \edef\@tempa{\@tempb\@tempc}\let\@tempb\@tempc
+            \edef\@tempc{\@tempa\Gread@rect@box}%
+            \csname Gread@find@\Gread@rect@box\expandafter\endcsname\@tempc[\@nnil]\\%
+          \fi
+        \ifGread@
+        \repeat
+        \immediate\closein\@inputcheck
+      \fi
+    \fi
+    \ifGin@bbox
+    \else
+      \Gread@bmp{\Gin@base.bb}%
+    \fi
+  \endgroup
+  \expandafter\Gread@parse@bb\@gtempa\\}
+\def\def@Gread@find#1#2{\ifx\@nnil#2\expandafter\@gobble\else
+    \@namedef{Gread@find@#1}##1#1##2[##3##4]##5\\{%
+      \ifx\@nnil##3\else
+        \gdef\@gtempa{##3##4 }%
+        \if@Gread@find@only
+          \Gread@false
+        \else
+          \def\Gread@rect@box{#1}%
+        \fi
+        \Gin@bboxtrue
+      \fi
+      \if@Gread@find@only\else
+        \csname Gread@find@#2\expandafter\endcsname\@tempa#2[\@nnil]\\%
+      \fi}%
+    \expandafter\def@Gread@find\fi{#2}}
+\def@Gread@find{/MediaBox}{/CropBox}{/BleedBox}{/TrimBox}{/ArtBox}\@nnil
+\@namedef{Gread@find@/ArtBox}#1/ArtBox#2[#3#4]#5\\{%
+  \ifx\@nnil#3\else
+    \gdef\@gtempa{#3#4 }%
+    \Gread@false
+    \Gin@bboxtrue
+  \fi}
+\def\Gread@bmp#1{%
+  \if@Gread@ebb@never\else
+    \if@Gread@ebb@always\else
+      \immediate\openin\@inputcheck#1 %
+      \ifeof\@inputcheck
+        \Gread@ebb@always
+      \else
+        \immediate\closein\@inputcheck
+      \fi
+    \fi
+    \immediate\write18{\if@Gread@ebb@always\else[ '\Gin@base\Gin@ext' -nt '\Gin@base.bb' ] && \fi
+      \ifx\@nnil\filename@area\@nnil\else cd '\filename@area' && \fi ebb '\filename@base\Gin@ext'}%
+  \fi
+  \Gread@eps{#1}}
+\DeclareGraphicsRule{.pdf}{pdf}{*}{}

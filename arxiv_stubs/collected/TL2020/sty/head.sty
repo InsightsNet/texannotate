@@ -1,0 +1,109 @@
+%  Latex2e version of the head.sty. It gives 3 position running headers
+%  and footers with optional horizontal lines below header and above
+%  the footer.
+%
+%  User Commands are:
+%	\lhead{text} [default blank]		Sets Left Header
+%	\chead{text} [default blank]		Sets Central Header
+%	\rhead{text} [default blank]		Sets Right Header
+%	\lfoot{text} [default blank]		Sets Left footer
+%	\cfoot{text} [default pageno]		Sets Central footer
+%	\rfoot{text} [default blank]		Sets Right footer
+%	\headruleheight{length}	[default 0]	Sets header rule thickness
+%	\footruleheight{length} [default 0]	Sets footer rule thickness
+%	\ruleseparation{length} [default 1ex]	Distance to rule above/below
+%                                               header or footer.
+% 
+%   This version is compatible with the old 2.09 head.sty with the
+%   additions of the rules.
+%
+%   Will Hossack, The University of Edinburgh 
+%
+%	Version 1.0				8/2/97
+%
+%	Define the internal command buffers and lengths  to hold the 
+%	Header/Footer parameters
+%
+\typeout{Head style Version 1.0}
+\newcommand{\@LeftHead}{}
+\newcommand{\@CentreHead}{}
+\newcommand{\@RightHead}{}
+\newcommand{\@LeftFoot}{}
+\newcommand{\@CentreFoot}{\rm\thepage}
+\newcommand{\@RightFoot}{}
+\newlength{\@HeadRuleHeight}
+\newlength{\@FootRuleHeight}
+\newlength{\@RuleSeparation}
+\setlength{\@RuleSeparation}{1ex}
+\newlength{\@HeadRuleSeparation}
+\newlength{\@FootRuleSeparation}
+%
+%	Define the user commands. They all just set command buffers
+%	or lengths.
+%
+\newcommand{\lhead}[1]{\renewcommand{\@LeftHead}{#1}}
+\newcommand{\chead}[1]{\renewcommand{\@CentreHead}{#1}}
+\newcommand{\rhead}[1]{\renewcommand{\@RightHead}{#1}}
+\newcommand{\lfoot}[1]{\renewcommand{\@LeftFoot}{#1}}
+\newcommand{\cfoot}[1]{\renewcommand{\@CentreFoot}{#1}}
+\newcommand{\rfoot}[1]{\renewcommand{\@RightFoot}{#1}}
+\newcommand{\headruleheight}[1]{\setlength{\@HeadRuleHeight}{#1}}
+\newcommand{\footruleheight}[1]{\setlength{\@FootRuleHeight}{#1}}
+\newcommand{\ruleseparation}[1]{\setlength{\@RuleSeparation}{#1}}
+%
+%       Two intenal commands to build the actual headers and footers. 
+%           
+%	There are FOUR parts to each header/footer, there being 
+% 	Left, Centre and Right text parts and the Rule. Each is set
+% 	in a mbox of width zero to they their lengths will not effect
+%	their position on the page. The position of the rule is calculated
+%       as follows:
+%       Header:   RuleSeparation+HeadRuleHeight BELOW the box containing header
+%	Footer:   RuleSeparation ABOVE box containing footer.
+%
+\newcommand{\@ThreePartHead}[3]{%
+    \settodepth{\@HeadRuleSeparation}{#1 #2 #3}%
+    \addtolength{\@HeadRuleSeparation}{\@RuleSeparation}%
+    \addtolength{\@HeadRuleSeparation}{\@HeadRuleHeight}%
+    \makebox[0pt][l]{#1}\hfil% 
+    \makebox[0pt]{\rule[-\@HeadRuleSeparation]{\textwidth}{\@HeadRuleHeight}}%
+    \makebox[0pt]{{#2}}\hfil% 
+    \makebox[0pt][r]{#3}}
+\newcommand{\@ThreePartFoot}[3]{%
+    \settoheight{\@FootRuleSeparation}{#1 #2 #3}%
+    \addtolength{\@FootRuleSeparation}{\@RuleSeparation}%
+    \makebox[0pt][l]{#1}\hfil% 
+    \makebox[0pt]{\rule[\@FootRuleSeparation]{\textwidth}{\@FootRuleHeight}}%
+    \makebox[0pt]{{#2}}\hfil% 
+    \makebox[0pt][r]{#3}}
+%
+%	Use the ThreePartxxxx macros above to redefine the LaTeX
+%	internal commands of @odd/even/head/foot that are used to
+%	formatted the header and footer sections of the page.
+%	Remember if we are in twoside mode then reverse the
+%	Right/Left on the even pages.
+%
+\newcommand{\ps@threepartheading}{
+	\renewcommand{\@oddhead}{\@ThreePartHead{\@LeftHead}%
+				{\@CentreHead}{\@RightHead}}
+	\renewcommand{\@oddfoot}{\@ThreePartFoot{\@LeftFoot}%
+				{\@CentreFoot}{\@RightFoot}}
+	\if@twoside
+		\renewcommand{\@evenhead}{\@ThreePartHead{\@RightHead}
+			{\@CentreHead}{\@LeftHead}}
+		\renewcommand{\@evenfoot}{\@ThreePartFoot{\@RightFoot}
+			{\@CentreFoot}{\@LeftFoot}}
+	\else
+		\renewcommand{\@evenhead}{\@ThreePartHead{\@LeftHead}
+			{\@CentreHead}{\@RightHead}}
+		\renewcommand{\@evenfoot}{\@ThreePartFoot{\@LeftFoot}
+			{\@CentreFoot}{\@RightFoot}}
+	\fi
+	}
+%
+%             Do the actual work .....
+%
+\ps@threepartheading
+
+
+

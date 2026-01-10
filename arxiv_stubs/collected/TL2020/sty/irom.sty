@@ -1,0 +1,70 @@
+% This file contains some basic latex packages and commands
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{irom}[2021/01/10 IROM Macro Package]
+
+% Conventions:
+% - \X denotes \mathcal{X} 
+% - \XX denotes \mathbb{X}
+
+% Packages
+
+% Graphics and Tables
+\RequirePackage{xcolor}% load a color package
+\RequirePackage{graphicx} % The standard graphics inclusion package
+\RequirePackage{subfigure} % Subfigures
+
+% Math
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+\RequirePackage{etoolbox}
+
+% This section toggles options for the package.
+% A common usecase for adding an option would be to define
+% macros or options that a single individual in the lab
+% likes to use in their documents. Ideally, this is restricted to
+% custom package configurations or style options, since we would like to keep
+% most commands standard across the lab.
+\newtoggle{vince}
+\DeclareOption{vince}{\toggletrue{vince}}
+\ProcessOptions\relax
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\EE}{\mathbb{E}}
+\renewcommand{\SS}{\mathbb{S}}
+\newcommand{\DD}{\mathbb{D}}
+
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\KL}{\DD}
+
+\iftoggle{vince}{%
+\RequirePackage[mathcal]{eucal}
+
+\RequirePackage[capitalise]{cleveref}
+\crefformat{equation}{(#2#1#3)}
+\crefrangeformat{equation}{(#3#1#4) to~(#5#2#6)}
+\crefname{figure}{Figure}{Figures}
+}
+
+
+
+\newcommand{\transp}[1]{{#1}^{\mathrm{T}}}
+\newcommand{\bd}[1]{\mathbf{bd}\ #1}
+\newcommand{\dom}[1]{\mathbf{dom}\ #1}
+\newcommand{\intr}[1]{\mathbf{int}\ #1}
+\newcommand{\conv}[1]{\mathbf{conv}\ #1}
+\newcommand{\fn}[1]{\texttt{#1}}
+\newcommand{\eval}[3]{\left.#1\right\rvert_{#2}^{#3}}
+\renewcommand{\vec}[1]{\mathrm{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\inv}[1]{{#1}^{-1}}
+\newcommand{\norm}[2][]{\left\|#2\right\|_{#1}}
+\newcommand{\tr}[1]{\textrm{tr}\left(#1\right)}
+\newcommand{\const}[0]{\textrm{const.}}
+
+\newcommand{\OPT}{\mathcal{OPT}}
+
+\newcommand{\ani}[1]{{\normalsize{\textbf{{\color{red}[AM:\ #1]}}}}}
+\newcommand{\sush}[1]{{\normalsize{\textbf{{\color{green}[SV:\ #1]}}}}}
+\newcommand{\vince}[1]{{\normalsize{\textbf{{\color{blue}[VP:\ #1]}}}}}

@@ -1,0 +1,431 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Set paper type as A4
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\paperwidth=210mm
+\paperheight=297mm
+\topmargin=-0.65cm
+\oddsidemargin=-0.4cm
+\evensidemargin=-0.4cm
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[notext]{kpfonts}
+\usepackage{baskervald}
+
+\emergencystretch 2em
+\renewcommand{\baselinestretch}{1.1}
+
+%%%%%%%%%%%%%%%%%%%%%%
+% Useful math packages
+%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+%\usepackage{textcomp}
+%\usepackage[foot]{amsaddr}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Support for nicer environments to be used
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{verbatim} % Environment for commenting out blocks of text & for better verbatim
+%\usepackage{subfigure} % make it possible to include more than one captioned figure/table
+%\usepackage{enumerate} % Customizable enumerate environment
+%\usepackage{multicol} % Good multi-column support
+%\usepackage{pdflscape} % Mid-document landscape for PDF's
+\usepackage{fancyhdr} % Improved header style
+%\usepackage{titling}
+\usepackage{graphicx}
+%\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage{microtype}
+
+%%%%%%%%%%%%%%%%
+% Hyperlinks
+%%%%%%%%%%%%%%%%
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage[bookmarks,colorlinks]{hyperref}
+
+% Colors for hyperlinks:
+
+\definecolor{darkred}{rgb}{0.5, 0.0, 0.0}
+\definecolor{darkgreen}{rgb}{0.0, 0.3, 0.0}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.5}
+\definecolor{darkmagenta}{rgb}{0.5, 0.0, 0.5}
+\hypersetup{linkcolor=darkgreen,citecolor=darkblue,filecolor=darkred,urlcolor=darkmagenta}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Layout the page properly according to standard printing guidelines
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\textwidth}{16.9cm} % Standard print size
+\setlength{\textheight}{23.9cm} % Standard print size
+\setlength{\headheight}{24pt}
+
+\pdfoutput=1
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Modifications to the standard 'amsart.cls' class
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Journal references
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\journalname{\'Epijournal de G\'eom\'etrie Alg\'ebrique}
+\def\articlewebsite{\href{https://epiga.episciences.org/}{\ttfamily{epiga.episciences.org}}}
+
+% Article references
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\EpigaVolumeYear}[2]{
+  \newcommand{\numvolume}{#1}
+  \newcommand{\yearvolume}{#2}
+}
+\newcommand{\EpigaArticleNr}[1]{
+  \newcommand{\articlenumber}{#1}
+}
+\def\articlereference{Volume \numvolume\ (\yearvolume), Article No. \articlenumber}
+
+% Article dates
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\ReceivedOn}[1]{
+  \newcommand{\receiveddate}{#1}
+}
+\newcommand{\InFinalFormOn}[1]{
+  \newcommand{\finalreceiveddate}{#1}
+}
+\newcommand{\AcceptedOn}[1]{
+  \newcommand{\accepteddate}{#1}
+}
+\def\articledates{\setbox0=\hbox{\finalreceiveddate\unskip}\ifdim\wd0=0pt
+  Received by the Editors on \receiveddate. \\ Accepted on \accepteddate.%
+\else
+  Received by the Editors on \receiveddate, and in final form on \finalreceiveddate. \\ Accepted on \accepteddate.%
+\fi}
+
+\newcommand{\commentskip}{\vskip3pt plus 1pt minus 1pt\noindent}
+
+% Title and abstracts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\AbstractInEnglish}[1]{
+  \newcommand{\AbstractText}{#1}
+}
+
+\renewcommand{\abstractname}{Abstract}
+
+\newcommand{\DisplayAbstractInEnglish}{\noindent{\bf\abstractname.} \AbstractText \smallskip}
+
+\renewcommand{\keywordsname}{Keywords}
+\newcommand{\keywordsnamefr}{Mots-cl\'es}
+\newcommand{\KeyWords}[1]{\newcommand{\KeyWordsText}{#1}}
+\newcommand{\MSCclass}[1]{\newcommand{\MSCclassText}{#1}}
+
+\newcommand{\DisplayKeyWords}{\noindent{\bf\keywordsname.} \KeyWordsText \smallskip}
+
+\newcommand{\MSCclassname}{2020 Mathematics Subject Classification}
+\newcommand{\MSCclassnamefr}{Classification math\'ematique par mati\`eres (MSC 2020)}
+\newcommand{\DisplayMSCclass}{\noindent{\bf\MSCclassname.} \MSCclassText \smallskip}
+
+% Environment for preliminaries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+
+\makeatletter
+
+\newenvironment{prelims}[1][]{
+\enlargethispage{-3.6cm}
+\par
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \fontsize{10}{12pt}\selectfont
+%  \def\contentsname{{\normalsize\bf\TOCname}}
+  \item[\itshape
+  #1]\ignorespaces
+  \begin{changemargin}{1.4cm}{1.4cm}
+}{%
+  \end{changemargin}
+  \endtrivlist\@endpefalse
+  \vfill
+\footnotesize
+%\addtolength\textheight{-\the\addressesheight}
+%\vspace{-\the\addressesheight}
+\begin{changemargin}{0cm}{0cm}
+\rule{7cm}{.5pt}  \\[0.5ex]
+\articledates
+
+\bigskip
+\displayaddresses
+
+\smallskip
+\acknow
+
+\bigskip
+\license
+\end{changemargin}
+}
+
+\makeatother
+
+
+\makeatletter
+
+\renewcommand{\thanks}[1]{}
+\newcommand{\acknow}{\ \vspace{-5mm}}
+\newcommand{\acknowledgement}[1]{\def\acknow{\vspace{2mm} #1}}
+\newcommand{\contributor}{}
+\newcommand{\dedicatedto}{}
+\newcommand{\dedicationspace}{0.8cm}
+\newcommand{\contributionspace}{0.5cm}
+\newcommand{\contribution}[1]{\def\contributor{
+
+\vspace{\contributionspace} {\bf #1}}}
+\newcommand{\dedication}[1]{\def\dedicatedto{
+
+\vspace{\dedicationspace} {\it #1}}}
+
+\newcommand{\license}{\copyright \ by the author(s) \hfill This work is licensed under
+\url{http://creativecommons.org/licenses/by-sa/4.0/}}
+
+
+\makeatother
+
+
+% First page
+%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+
+\def\displayaddresses{}
+%\newlength{\addressesheight}
+%\setlength{\addressesheight}{0pt}
+
+\let\@pigaauthor\author
+\renewcommand{\author}[1]{
+  \g@addto@macro{\displayaddresses}{
+
+\noindent#1}
+  \@pigaauthor{#1}
+}
+\let\@pigaaddress\address
+\renewcommand{\address}[1]{
+  \g@addto@macro{\displayaddresses}{
+
+\noindent#1}
+  \@pigaaddress{#1}
+}
+\let\@pigaemail\email
+\renewcommand{\email}[1]{
+  \g@addto@macro{\displayaddresses}{
+
+\noindent{\it e-mail:~}#1}
+  \@pigaemail{#1}
+}
+
+\def\@setaddresses{}
+
+\makeatother
+
+\makeatletter
+\let\@pigaheadrule\headrule
+\def\headrule{}
+\makeatother
+
+\fancypagestyle{firstpage}{%
+\newlength\FHoffset
+\setlength\FHoffset{0.5cm}
+
+\addtolength\headwidth{2\FHoffset}
+\setlength\headheight{4.1cm}
+
+%\addtolength\textheight{-3cm}
+%\setlength\textheight{20.4cm}
+
+\fancyheadoffset{\FHoffset}
+  \fancyhf{}%
+  \chead{
+  \begin{tabular}[b]{l}
+  {\normalsize\it\journalname}  \\[0.05cm]
+  {\footnotesize \articlewebsite} \\[0.1cm]
+  {\footnotesize \articlereference} \\[0.05cm] \
+\end{tabular}\hfill
+\includegraphics[width=3cm]{epiga-logo.png}\hspace{-0.25cm}
+\begin{center} \rule{15cm}{.5pt} \end{center}
+}
+   \cfoot[l]{}}%
+
+\newcommand{\titleupskip}{\vspace{0cm}}
+\newcommand{\titleskip}{\vspace{1cm}}
+\newcommand{\authorskip}{\vspace{0.5cm}}
+\newcommand{\removetitleupskip}{}
+\newcommand{\removetitleskip}{}
+\newcommand{\removeauthorskip}{}
+\newcommand{\removeabove}[1]{\renewcommand{\removetitleupskip}{\vspace{-#1}}}
+\newcommand{\removebetween}[1]{\renewcommand{\removetitleskip}{\vspace{-#1}}}
+\newcommand{\removebelow}[1]{\renewcommand{\removeauthorskip}{\vspace{-#1}}}
+
+\makeatletter
+\def\@settitle{\begin{center}
+%  \baselineskip14\p@\relax
+    \begingroup
+    \def\uppercasenonmath##1{}
+    \bfseries\LARGE\baselineskip=14pt\lineskiplimit=2pt\lineskip=2pt \@title
+    \endgroup
+ \end{center}
+ \titleskip
+ \removetitleskip
+}
+\let\@pigasetauthors\@setauthors
+\def\@setauthors{\begin{center}
+%  \baselineskip14\p@\relax
+    \begingroup
+    \let\MakeUppercase\large
+    \bfseries \@pigasetauthors
+    \contributor
+    \dedicatedto
+    \endgroup
+  \end{center}
+  \authorskip
+  \removeauthorskip
+}
+\let\@pigamaketitle\maketitle
+\renewcommand{\maketitle}{
+   \ \titleupskip \removetitleupskip
+   \@pigamaketitle
+}
+\makeatother
+
+\newcommand{\titlemark}[1]{\newcommand{\titleinheader}{#1}}
+\newcommand{\authormark}[1]{\newcommand{\authorsinheader}{#1}}
+%\newcommand{\sectionmark}{section}
+
+%%%%%%%%%%%%%%%%%%%%%
+% headers
+%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\pagestyle{fancy}
+
+\fancyhead{} % clear all header fields
+\fancyhead[LR]{ \ifnum \c@page=1
+\else
+\ifodd\thepage{\footnotesize {\bf \titleinheader}
+\hfill{\bf\thepage} \\[0.5mm]
+\@pigaheadrule
+}\else
+{\footnotesize{\bf\thepage}\hfill {\bf \authorsinheader} \\[0.5mm]
+\@pigaheadrule}\fi\fi}
+\fancyfoot{}
+\makeatother
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% sections appearance
+%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{titlesec}
+
+\titlespacing*{\section}
+{0pt}{3ex plus 1ex minus .2ex}{2.5ex plus .2ex}
+\titlespacing*{\subsection}
+{0pt}{2ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}
+{0pt}{2ex plus 1ex minus .2ex}{1.5ex}
+
+\newcommand*{\justifyheading}{\raggedright}
+\titleformat{\section}{\normalfont \Large \bfseries \justifyheading}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalfont \large \bfseries \justifyheading}{\thesubsection.}{0.5em}{}
+\titleformat{\subsubsection}[runin]{\normalfont \normalsize \bfseries \justifyheading}{\thesubsubsection.}{0.5em}{}[.\protect{\rule[3pt]{10pt}{0.5pt}}]
+
+%%%%%%%%%%%%%%%%%%%%%
+% table of contents appearance
+%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{titletoc}
+\renewcommand\contentsname{}
+
+%\makeatletter
+%\let\@pigatableofcontents\tableofcontents
+%\newcommand{\@pigatocstyle}{\large\bfseries\justifyheading}
+%\renewcommand{\tableofcontents}{\begingroup
+%\let\MakeUppercase\@pigatocstyle
+%\@pigatableofcontents
+%\endgroup}
+%\makeatother
+\renewcommand{\contentsnamefont}{\bfseries\Large\justifyheading}
+\titlecontents{section}[1.7em]{\addvspace{0.8pc}\bfseries} {\contentslabel[\thecontentslabel.]{1.5em}} {\hspace*{-1.5em}}{\titlerule*[1pc]{.}\contentspage}
+\titlecontents{subsection}[2.2em]{\addvspace{0.5pc}\bfseries} {\contentslabel[\thecontentslabel.]{2em}} {\hspace*{-2em}}{\titlerule*[1pc]{.}\contentspage}
+
+
+% center the toc heading
+\renewcommand{\contentsname}{\Large\bfseries Contents}
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% Lists
+%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\let\@pigaitemize\itemize
+\renewcommand{\itemize}{
+\@pigaitemize \setlength{\itemsep}{4pt} }
+\let\@pigaenumerate\enumerate
+\renewcommand{\enumerate}{
+\@pigaenumerate \setlength{\itemsep}{4pt} }
+\let\@pigadescription\description
+\renewcommand{\description}{
+\@pigadescription \setlength{\itemsep}{4pt} } \makeatother
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% Figures and tables
+%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[font=small,labelfont=bf]{caption}
+
+%%%%%%%%%%%%%%%%%%%%%
+% Footnotes
+%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\thefootnote}{(\arabic{footnote})}
+
+%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%
+
+%\newcommand{\bibliographymark}[1]{\setbox\epi@evenhead=\hbox{{\scriptsize #1}}}
+
+\makeatletter
+\let\@pigabibliography\thebibliography
+\renewcommand{\thebibliography}[1]{%
+  \@pigabibliography{#1}%
+  \setlength{\itemsep}{5pt}%
+  \addcontentsline{toc}{section}{References}
+  \normalsize
+}
+\makeatother
+
+\newcommand{\DOIstring}[1]{\gdef\DOIfi@ld{#1}}
+
+\providecommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\thinspace}
+\providecommand{\arXiv}[2][]{\href{https://arxiv.org/abs/#2}{arXiv:#1#2}}
+\providecommand{\MR}{\relax\ifhmode\unskip\space\fi MR }
+\providecommand{\MRhref}[2]{\href{http://www.ams.org/mathscinet-getitem?mr=#1}{#2}}
+\providecommand{\href}[2]{#2}

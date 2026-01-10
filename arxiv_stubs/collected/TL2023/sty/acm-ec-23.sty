@@ -1,0 +1,28 @@
+% Formatting commands for ACM-EC 2023, with accompanying sample TeX file.
+% hacks to the acmart class by Kevin Leyton-Brown; Jan 1 2017
+% updated by Edith Elkind, Jan 2018
+% updated by Jingyan Wang, Jan 2019
+% tweaked, updated, and re-hacked for the latest acmart by Yannai Gonczarowski, Nov 2019
+% tweaked, updated, and re-hacked for the latest acmart by Yannai Gonczarowski, Dec 2020
+% updated by Sven Seuken and Yannai Gonczarowski, Jan 2022
+% updated by Yannai Gonczarowski, Jan 2023
+
+\acmConference{}{}{} % just to avoid errors; overriding headers/footers below anyway
+\startPage{0} % for the title page
+\settopmatter{printacmref=false, printccs=false, printfolios=false}
+\AtBeginDocument{
+\fancypagestyle{firstpagestyle}{% override header/footer style used by maketitle of acmart
+	\renewcommand{\headrulewidth}{0pt}%
+	\fancyhf{}%
+	\fancyfoot[L]{\footnotesize{\emph{Manuscript submitted for review to the 24nd ACM Conference on Economics \& Computation (EC\textquotesingle 23).}}}%
+}
+\fancypagestyle{acmec}{% header/footer style for pages other than the title page
+	\renewcommand{\headrulewidth}{0pt}%
+	\fancyhf{}%
+	\fancyhead[C]{\footnotesize{\mbox{\shortauthors}}}
+	\fancyhead[R]{\thepage}%
+}
+\pagestyle{acmec}
+\renewcommand{\footnotetextcopyrightpermission}[1]{} % remove copyright block
+\renewcommand{\footnotetextauthorsaddresses}[1]{} % remove author address block
+}

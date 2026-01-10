@@ -1,0 +1,106 @@
+% LaTeX style file for Brides Conference Proceedings
+%
+% 11 May 2006
+%
+% Helmer Aslaksen
+% Department of Mathematics
+% National University of Singapore
+% Singapore 117543
+% aslaksen@math.nus.edu.sg
+% www.math.nus.edu.sg/aslaksen/
+%
+% To use this file, please put it in the same directory as your TeX file
+% (or some other place where TeX will find it),
+% add the 11pt option
+% \documentclass[11pt]{article}
+% to get 11 point type,
+% add the line
+% \usepackage{Bridges_LaTeX_Style} to your preamble to load this package,
+% and add
+% \thispagestyle{empty}
+% after \maketitle to remove page numbers on the first page.
+%
+%% LaTeX indents each paragraph (except the first in each section)
+% and does not leave space between paragraphs.
+% If you prefer to not indent and leave a line between each paragraph,
+% then add the line \paragraphspace to your preamble.
+
+% To get 2.5cm margins on all pages.
+\usepackage[margin=2.5cm,noheadfoot]{geometry}
+
+\renewcommand{\rmdefault}{ptm}	% Use Times Roman font.
+
+% Use Times Roman font for mathematics.  This is commented out because
+% the package may be missing (which makes everything uncompilable).
+%\usepackage{mathptmx}
+
+\pagestyle{empty}			% Remove page numbers.
+\setlength{\parindent}{0.3in}	% Set the indentation at the start of paragraphs.
+
+
+\setlength{\parskip}{.5ex}		% Set a spacing between paragraphs.
+%\setlength{\parskip}{1ex}
+% Otherwise, paragraphs are a little harder to read.
+
+% LaTeX adds space before the title and uses 17 point non bold font.
+% I've removed space to make the top margin 3 cm on the first page
+% and changed the text to 16 point bold.
+% The author's name and address is set in 12 point by default.
+\def\@maketitle{%
+  \newpage
+  \null
+  \vspace*{-0.6cm}%
+  \begin{center}%
+  \let \footnote \thanks
+    {\fontsize{16}{18}\selectfont\bfseries \@title \par}%
+    \vskip 1.5em%
+    {\large
+      \lineskip .5em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+    \vskip 1em%
+    {\large \@date}%
+  \end{center}%
+  \par
+  \vskip 1.5em}
+
+% Makes abstract heading 12 point bold and text 9 point.
+\renewenvironment{abstract}{%
+        \footnotesize
+        \begin{center}%
+          {\bfseries\large \abstractname\vspace{-.5em}\vspace{\z@}}%
+        \end{center}%
+        \quotation}
+
+% Remove the indentation of the first line of paragraphs in the abstract
+% and add space between the lines in the paragraph.
+\renewenvironment{quotation}
+               {\list{}{\listparindent 0em%
+                        \itemindent    \listparindent
+                        \rightmargin   \leftmargin
+                        \parsep        9\p@ \@plus\p@}%
+                \item\relax}
+               {\endlist}
+
+% Makes the first part of figure and table captions bold.
+\def\fnum@figure{\textbf{\figurename\nobreakspace\thefigure}}
+
+\def\fnum@table{\textbf{\tablename\nobreakspace\thetable}}
+
+\long\def\@makecaption#1#2{
+  \vskip 0pt
+  \setlength{\baselineskip}{0pt}
+  \setbox\@tempboxa\hbox{{\bf #1\kern2pt}: \textit{#2}}
+  \ifdim \wd\@tempboxa <\hsize
+    \hbox to\hsize{\hfil\box\@tempboxa\hfil}
+  \else
+    \hbox to \hsize{\hfil \parbox{.9\linewidth}{{\bf #1\kern2pt}: \textit{#2}} \hfil}
+  \fi}
+
+% Makes the section headings 12 point bold.
+% (Could have been done differently.)
+\let\BRIDGES@startsection\@startsection
+
+\renewcommand{\@startsection}[6]{\BRIDGES@startsection%
+{#1}{#2}{#3}{#4}{#5}{\centering\normalfont\large\bfseries{#6}}}

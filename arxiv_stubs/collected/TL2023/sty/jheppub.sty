@@ -16,7 +16,7 @@
 %
 % This work consists of the file jheppub.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{jheppub}[2018/12/04 v.1.1227]
+\ProvidesPackage{jheppub}[2013/03/21 r534]
 
 
 \gdef\@fpheader{Prepared for submission to JHEP}
@@ -35,17 +35,18 @@
 \RequirePackage{epsfig}
 \RequirePackage{graphicx}
 \ifnatbibsort\RequirePackage[numbers,sort&compress]{natbib}\else\RequirePackage[numbers,compress]{natbib}\fi
+\RequirePackage{color}
 \RequirePackage[colorlinks=true
-  ,urlcolor=blue
-  ,anchorcolor=blue
-  ,citecolor=blue
-  ,filecolor=blue
-  ,linkcolor=blue
-  ,menucolor=blue
-  ,pagecolor=blue
-  ,linktocpage=true
-  ,pdfproducer=medialab
-  ,pdfa=true
+,urlcolor=blue
+,anchorcolor=blue
+,citecolor=blue
+,filecolor=blue
+,linkcolor=blue
+,menucolor=blue
+,pagecolor=blue
+,linktocpage=true
+,pdfproducer=medialab
+,pdfa=true
 ]{hyperref}
 
 \def\@subheader{\@empty}
@@ -223,7 +224,7 @@
 % Keywords
 \if!\@keywords!\else\noindent{\textsc{Keywords:}} \@keywords\afterKeywordsSpace\fi
 % Arxivnumber
-\if!\@arxivnumber!\else\noindent{\textsc{ArXiv ePrint:}} \href{https://arxiv.org/abs/\@arxivnumber}{\@arxivnumber}\afterArxivSpace\fi
+\if!\@arxivnumber!\else\noindent{\textsc{ArXiv ePrint:}} \href{http://arxiv.org/abs/\@arxivnumber}{\@arxivnumber}\afterArxivSpace\fi
 % Dedication
 \if!\@dedicated!\else\vbox{\small\it\raggedleft\@dedicated}\afterDedicatedSpace\fi
 %
@@ -258,7 +259,7 @@
 \renewcommand\bottomfraction{.6}
 \setcounter{totalnumber}{5}
 \renewcommand\textfraction{0}
-\renewcommand\floatpagefraction{0.8}
+\renewcommand\floatpagefraction{1}
 
 \textwidth  .72\paperwidth
 \setlength\@tempdima{.76\paperheight}
@@ -331,10 +332,10 @@
                                    {1.75ex \@plus1ex \@minus.2ex}%
                                    {-1em}%
                                    {\normalfont\normalsize\bfseries}}
-\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\z@}%
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
                                    {1.75ex \@plus1ex \@minus .2ex}%
                                    {-1em}%
-                                   {\normalfont\normalsize\itshape}}
+                                   {\normalfont\normalsize\bfseries}}
 
 
 %Caption of figure and table

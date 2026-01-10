@@ -1,0 +1,24 @@
+\newif\ifblackandwhite
+% \blackandwhitetrue
+
+
+\usepackage[hmargin=2cm,vmargin=2.5cm]{geometry}
+\usepackage{etoolbox}
+\usepackage{longtable}%
+
+\usepackage{pdflscape}
+% \usepackage[svgnames, dvipsnames]{xcolor}
+\usepackage{colortbl}%
+\newcommand{\myrowcolour}{\rowcolor[gray]{0.925}}
+\usepackage{booktabs}
+
+\ifblackandwhite
+  \newcommand{\cheading}[2]{\textbf{#1\hfill #2}}
+  \newcommand{\highest}[1]{\textbf{#1}}% == highest score for question
+\else
+  \newcommand{\cheading}[2]{\textcolor{Maroon}{\textbf{#1\hfill #2}}}
+  \newcommand{\highest}[1]{\textcolor{Maroon}{\textbf{#1}}}%
+\fi
+
+\usepackage[tableposition=below]{caption}
+\captionsetup[longtable]{skip=1em}

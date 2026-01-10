@@ -1,0 +1,425 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{clevethm}[2019/07/18 automatizes clevereferencing for amsthm theorems]
+
+
+% Options ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+% :: StringOptions ::
+%  noload = {pkg1,pkg2..}  avoids loading given packages (if possible)
+%
+% :: BoolOptions ::
+%  breakspaces             allows breakspaces before label (Lemma 1 VS Lemma~1)
+%  nameinlink              same as in cleveref
+%  capitalize              same as in cleveref
+
+	\RequirePackage{kvoptions}
+	\RequirePackage{kvsetkeys}
+
+	\DeclareStringOption{noload}
+	\DeclareBoolOption[false]{breakspaces}
+	\DeclareBoolOption[true]{nameinlink}
+	\DeclareBoolOption[false]{capitalize}
+
+	\DeclareDefaultOption{\PackageWarningNoLine{clevethm}{Unknown option `\CurrentOption'}}
+
+	\SetupKeyvalOptions{
+		family=clevethm,
+		prefix=clevethm@,
+		setkeys=\kvsetkeys,
+	}
+
+	\ProcessKeyvalOptions*\relax
+
+
+% Packages ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	% Mandatory packages
+	\RequirePackage{calc}
+	\RequirePackage{enumitem}
+	\RequirePackage{etoolbox}
+	\RequirePackage{pgffor}
+	\RequirePackage{xargs}
+	\RequirePackage{xstring}
+
+	% Optional packages
+	% 
+	% \clevethm@RequirePackage
+	%	loads packages if not otherwise specified in <noload> option
+	\StrSubstitute{\clevethm@noload}{ }{}[\clevethm@noloadPackageList]
+	\newcommand{\clevethm@ifloadable}[3]{%
+		\IfSubStr{,\clevethm@noloadPackageList,}{,#1,}{#3}{#2}
+	}
+	\newcommand{\clevethm@RequirePackage}[2][]{%
+		\clevethm@ifloadable{#2}{\RequirePackage[#1]{#2}}{}
+	}
+
+	\clevethm@RequirePackage{hyperref}
+
+	\@ifpackageloaded{hyperref}{}{%
+		\def\texorpdfstring#1#2{#1}
+	}
+
+	% cleveref (mandatory, to be loaded last)
+	% Define cleveref's options
+	\def\clevethm@cleveref@opts{}
+	\foreach \x in {nameinlink,capitalize} {
+		\ifbool{clevethm@\x}{
+			\ifx\clevethm@cleveref@opts\empty
+				\xdef\clevethm@cleveref@opts{\x}
+			\else
+				\xdef\clevethm@cleveref@opts{\clevethm@cleveref@opts,\x}
+			\fi
+		}{}
+	}
+	\RequirePackage[\clevethm@cleveref@opts]{cleveref}
+
+
+
+
+
+% Lists ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	% Default options for lists; overwrite with \setlistoptions[list environment,depth]{options}
+	\newcommand{\setlistoptions}[2][]{%
+		\ifstrempty{#1}{% set all five lists
+			\def\@listenv{enumerate}\SetEnumitemKey{\@listenv}{#2}%
+			\def\@listenv{enumerateq}\SetEnumitemKey{\@listenv}{#2}%
+			\def\@listenv{enumerator}\SetEnumitemKey{\@listenv}{#2}%
+			\def\@listenv{enumeratass}\SetEnumitemKey{\@listenv}{#2}%
+			\def\@listenv{enumeratprop}\SetEnumitemKey{\@listenv}{#2}%
+			\def\@listenv{proofitemize}\SetEnumitemKey{\@listenv}{#2}%
+		}{% set only list #1
+			\def\@listenv{#1}\SetEnumitemKey{\@listenv}{#2}%
+		}%
+	}
+	\setlistoptions{itemsep=2pt, labelsep=3pt, leftmargin=*, align=right, before={\hspace*{0pt}}}
+	\def\sublistsep{-}
+	
+	\newcommandx{\setlistlabel}[2][1={}]{%\setlistlabel[list name/list name,depth]{label format}
+		\ifstrempty{#1}{% set all five lists and depths
+			\def\@listdep{1}%
+			\def\@listenv{enumerate}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumerateq}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumerator}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumeratass}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumeratprop}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			%
+			\def\@listdep{2}%
+			\def\@listenv{enumerate}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumerateq}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumerator}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumeratass}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			\def\@listenv{enumeratprop}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+		}{%
+			\IfSubStr{#1}{,}{% set only given list and depth
+				\StrBefore{#1}{,}[\@listenv]%
+				\StrBehind{#1}{,}[\@listdep]%
+				\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+			}{%
+				\IfInteger{#1}{% set all five lists with given depth
+					\def\@listdep{#1}%
+					\def\@listenv{enumerate}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+					\def\@listenv{enumerateq}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+					\def\@listenv{enumerator}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+					\def\@listenv{enumeratass}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+					\def\@listenv{enumeratprop}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+				}{% set all depths with given list
+					\def\@listenv{#1}%
+					\def\@listdep{1}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+					\def\@listdep{2}\@namedef{\@listenv label\romannumeral\@listdep}{#2}%
+				}%
+			}%
+		}%
+	}
+
+	\setlistlabel[enumerate,1]{\textit{(\roman*)}}
+	\setlistlabel[enumerateq,1]{\textit{(\alph*)}}
+	\setlistlabel[enumerator,1]{\textit{(\Alph*)}}
+	\setlistlabel[enumeratass,1]{{\sc a\oldstylenums{\arabic*}}}
+	\setlistlabel[enumeratprop,1]{{\sc p\oldstylenums{\arabic*}}}
+	\setlistlabel[proofitemize,1]{\(\spadesuit\)}
+
+	\setlistlabel[2]{\oldstylenums{\arabic*}.}
+
+	% create lists
+	\newlist{proofitemize}{itemize}{1}
+	\newlist{enumerateq}{enumerate}{2}
+	\newlist{enumerator}{enumerate}{2}
+	\newlist{enumeratass}{enumerate}{2}
+	\newlist{enumeratprop}{enumerate}{2}
+
+	% set list options
+	\setlist[proofitemize]{
+		proofitemize,
+		label=\proofitemizelabeli,
+		itemindent=\widthof{\proofitemizelabeli\hspace{\labelsep}},
+	}
+	
+	\def\@listdep{1}
+	\def\@listenv{enumerate}   \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratelabeli}
+	\def\@listenv{enumerateq}  \setlist[\@listenv,\@listdep]{\@listenv, label=\enumerateqlabeli}
+	\def\@listenv{enumerator}  \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratorlabeli}
+	\def\@listenv{enumeratass} \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratasslabeli}
+	\def\@listenv{enumeratprop}\setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratproplabeli}
+	\def\@listdep{2}
+	\def\@listenv{enumerate}   \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratelabelii,    ref=\theenumi        \sublistsep\enumeratelabelii}
+	\def\@listenv{enumerateq}  \setlist[\@listenv,\@listdep]{\@listenv, label=\enumerateqlabelii,   ref=\theenumerateqi  \sublistsep\enumerateqlabelii}
+	\def\@listenv{enumerator}  \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratorlabelii,   ref=\theenumeratori  \sublistsep\enumeratorlabelii}
+	\def\@listenv{enumeratass} \setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratasslabelii,  ref=\theenumeratassi \sublistsep\enumeratasslabelii}
+	\def\@listenv{enumeratprop}\setlist[\@listenv,\@listdep]{\@listenv, label=\enumeratproplabelii, ref=\theenumeratpropi\sublistsep\enumeratproplabelii}
+
+
+	% Cleveref aliasing
+	\crefalias{enumerateqi}{enumi}
+	\crefalias{enumeratori}{enumi}
+
+	\crefalias{enumerateqii}{enumi}
+	\crefalias{enumeratorii}{enumi}
+
+	\crefname{enumeratassi}{requirement}{requirements}
+	\Crefname{enumeratassi}{Requirement}{Requirements}
+	\crefalias{enumeratassii}{enumeratassi}
+
+	\crefname{enumeratpropi}{property}{properties}
+	\Crefname{enumeratpropi}{Property}{Properties}
+	\crefalias{enumeratpropii}{enumeratpropi}
+
+
+% CleveTheorems ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	% Possibly useless 
+	% 	% duplicate counter http://tex.stackexchange.com/a/33901
+	% 	\newcommand*\@duplicatecounter[2]{%
+	% 		\expandafter\let\csname c@#1\expandafter\endcsname\csname c@#2\endcsname
+	% 	}
+	% 	\newcounter{myEnumCounter}%
+
+	\newcommandx\CreateNewTheorem[5][{1={}},{3={}},{5={}}]{%\createNewTheorem[1=cref name]{2=label}[3=counter]{4=TheoremName}[5=number by]
+		% Update the list of theorems
+		\@ifundefined{clevethm@thmlist}{%
+			\xdef\clevethm@thmlist{#2/#4}%
+		}{
+			\xdef\clevethm@thmlist{\clevethm@thmlist,#2/#4}%
+		}
+		\ifstrempty{#3}{
+			\ifstrempty{#5}{
+				\newtheorem{#2}{#4}
+			}{
+				\newtheorem{#2}{#4}[#5]
+			}
+		}{
+			\ifstrempty{#5}{
+				\newtheorem{#2}[#3]{#4}
+			}{% this case should give an error (either #3 or #5 must be empty)
+				\newtheorem{#2}[#3]{#4}[#5]
+			}
+		}
+		\BeforeBeginEnvironment{#2}{%
+			\ifhmode\unskip\fi%
+		}
+		% The command \@Cref#2 contains Cref label
+		% The command \@cref#2 contains cref label
+		\@namedef{@Cref#2}{\MakeUppercase #4}
+		\ifstrempty{#1}{
+			\@namedef{@cref#2}{\MakeLowercase #4}
+		}{%
+			\@namedef{@cref#2}{#1}
+		}
+		
+		\Crefname{#2}{\@nameuse{@Cref#2}}{\@nameuse{@Cref#2}s}
+		\crefname{#2}{\@nameuse{@cref#2}}{\@nameuse{@cref#2}s}
+		
+		% Define lists for creating suitable cleveref aliases
+		\newlist{enum#2}{enumerate}{2}
+		\newlist{enum#2eq}{enumerate}{2}
+		\newlist{enum#2or}{enumerate}{2}
+		\newlist{enum#2ass}{enumerate}{2}
+		\newlist{enum#2prop}{enumerate}{2}
+
+		\setlist[enum#2,    1]{enumerate,    label=\enumeratelabeli,    ref=\@nameuse{the#2}\enumeratelabeli}
+		\setlist[enum#2eq,  1]{enumerateq,   label=\enumerateqlabeli,   ref=\@nameuse{the#2}\enumerateqlabeli}
+		\setlist[enum#2or,  1]{enumerator,   label=\enumeratorlabeli,   ref=\@nameuse{the#2}\enumeratorlabeli}
+		\setlist[enum#2ass, 1]{enumeratass,  label=\enumeratasslabeli,  ref=\@nameuse{the#2}.\enumeratasslabeli}
+		\setlist[enum#2prop,1]{enumeratprop, label=\enumeratproplabeli, ref=\@nameuse{the#2}.\enumeratproplabeli}
+		
+		\setlist[enum#2,    2]{enumerate,    label=\enumeratelabelii,    ref=\csname theenum#2i\endcsname\sublistsep\enumeratelabelii}
+		\setlist[enum#2eq,  2]{enumerateq,   label=\enumerateqlabelii,   ref=\csname theenum#2eqi\endcsname\sublistsep\enumerateqlabelii}
+		\setlist[enum#2or,  2]{enumerator,   label=\enumeratorlabelii,   ref=\csname theenum#2ori\endcsname\sublistsep\enumeratorlabelii}
+		\setlist[enum#2ass, 2]{enumeratass,  label=\enumeratasslabelii,  ref=\csname theenum#2assi\endcsname\sublistsep\enumeratasslabelii}
+		\setlist[enum#2prop,2]{enumeratprop, label=\enumeratproplabelii, ref=\csname theenum#2propi\endcsname\sublistsep\enumeratproplabelii}
+
+		% cleveref aliasing
+		\crefalias{enum#2i}{#2}
+		\crefalias{enum#2eqi}{#2}
+		\crefalias{enum#2ori}{#2}
+		
+		\crefalias{enum#2ii}{#2}
+		\crefalias{enum#2eqii}{#2}
+		\crefalias{enum#2orii}{#2}
+
+		\crefname{enum#2assi}{requirement}{requirements}
+		\Crefname{enum#2assi}{Requirement}{Requirements}
+		\crefname{enum#2assii}{requirement}{requirements}
+		\Crefname{enum#2assii}{Requirement}{Requirements}
+		\crefname{enum#2propi}{property}{properties}
+		\Crefname{enum#2propi}{Property}{Properties}
+		\crefname{enum#2propii}{property}{properties}
+		\Crefname{enum#2propii}{Property}{Properties}
+
+		% Overwrite enumerate environments within theorem environment
+		\AtBeginEnvironment{#2}{%
+			% enumerate
+			\expandafter\let\expandafter\enumerate\csname enum#2\endcsname
+			\expandafter\let\expandafter\endenumerate\csname endenum#2\endcsname
+			% enumeratass
+			\expandafter\let\expandafter\enumeratass\csname enum#2ass\endcsname
+			\expandafter\let\expandafter\endenumeratass\csname endenum#2ass\endcsname
+			% enumerateq
+			\expandafter\let\expandafter\enumerateq\csname enum#2eq\endcsname
+			\expandafter\let\expandafter\endenumerateq\csname endenum#2eq\endcsname
+			% enumerator
+			\expandafter\let\expandafter\enumerator\csname enum#2or\endcsname
+			\expandafter\let\expandafter\endenumerator\csname endenum#2or\endcsname
+			% enumeratprop
+			\expandafter\let\expandafter\enumeratprop\csname enum#2prop\endcsname
+			\expandafter\let\expandafter\endenumeratprop\csname endenum#2prop\endcsname
+		}%
+	}
+
+
+
+
+
+% Proofs in appendix ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	\newif\ifclevethm@thmfound
+
+	\newcommand{\ifisthm}[3]{% \ifisthm{<label>}{then}{else}
+		\global\clevethm@thmfoundfalse
+		\@ifundefined{r@#1}{#3}{%
+			\cref@gettype{#1}{\this@thm}%
+			\foreach \thmlabel/\thmname in \clevethm@thmlist {%
+				\ifclevethm@thmfound\else
+					\ifx\this@thm\thmlabel
+						\global\clevethm@thmfoundtrue
+					\fi%
+				\fi
+			}%
+			\ifclevethm@thmfound #2\else #3\fi
+		}%
+	}%
+
+	\let\@proofsection\section\relax
+	\newcommand{\proofsection}[1]{%
+		\ifisthm{#1}{%
+			\@proofsection{Proof of \texorpdfstring{\Cref{#1}}{\S\ref{#1}}}%
+		}{%
+			\@proofsection{Proofs of \texorpdfstring{\Cref{#1}}{\S\ref{#1}}}%
+		}%
+		\label{proof#1}%
+	}
+
+	\newcommand{\appendixproof@toc}{subsection}
+	\newenvironmentx{appendixproof}[2][2={}]{%
+		\par\noindent
+		\hrule height 0pt\relax
+		\phantomsection
+		\global\clevethm@thmfoundfalse
+		\@ifundefined{r@#1}{%
+			\PackageWarning{clevethm}{appendixproof theorem reference `#1' undefined}%
+		}{%
+			\cref@gettype{#1}{\this@thm}%
+			\foreach \thmlabel/\thmname in \clevethm@thmlist {%
+				\ifx\this@thm\thmlabel
+					\addcontentsline{toc}{\appendixproof@toc}{Proof of \thmname{} \ref{#1}}%
+					\global\clevethm@thmfoundtrue
+				\fi
+			}%
+		}%
+		\ifclevethm@thmfound\else
+			\addcontentsline{toc}{\appendixproof@toc}{Proof of \ref{#1}}%
+			\PackageWarning{clevethm}{Couldn't find theorem name for label `#1', omitted in appendixproof bookmark}%
+		\fi
+		\label{proof:#1}%
+		\ifstrempty{#2}{%
+			\begin{proof}[\textbf{Proof of \Cref{#1}}\appendixproofnameref{#1}]%
+		}{%
+			\if\empty#2
+				\begin{proof}[\textbf{Proof of \Cref{#1}}]%
+			\else
+				\begin{proof}[\textbf{Proof of \Cref{#1}}#2]%
+			\fi
+		}%
+	}{%
+		\end{proof}%
+		\hrule height 0pt\relax
+	}
+
+	% https://tex.stackexchange.com/a/63374/21001
+	\long\def\cana@extract#1#2#3#4#5{\unexpanded{#3}}
+	\def\cana@relax{\relax}
+	\newcommand{\appendixproofnameref}[1]{%
+		\@ifundefined{r@#1}\relax{%
+			\edef\cana@temp{%
+				\expandafter\expandafter\expandafter\cana@extract\csname r@#1\endcsname%
+			}%
+			\ifdefempty{\cana@temp}{}{\ (\nameref*{#1})}%
+		}%
+	}
+
+
+% Tweaks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	% Breakable spaces before labels
+	\ifclevethm@breakspaces
+		\patchcmd{\@crefdefineformat}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\@crefdefineformat}}%
+		\patchcmd{\@crefrangedefineformat}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\@crefrangedefineformat}}%
+		\patchcmd{\@crefdefinemultiformat}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\@crefdefinemultiformat}}%
+		\patchcmd{\@crefrangedefinemultiformat}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\@crefrangedefinemultiformat}}%
+		%
+		\AtBeginDocument{%
+			\@ifundefined{crefrangeconjunction}{}{%
+				\patchcmd{\crefrangeconjunction}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefrangeconjunction}}%
+				\patchcmd{\crefpairconjunction}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefpairconjunction}}%
+				\patchcmd{\creflastconjunction}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\creflastconjunction}}%
+				\patchcmd{\crefpairgroupconjunction}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefpairgroupconjunction}}%
+				\patchcmd{\creflastgroupconjunction}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\creflastgroupconjunction}}%
+			}%
+			\@ifundefined{crefrangeconjunction@preamble}{}{%
+				\patchcmd{\crefrangeconjunction@preamble}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefrangeconjunction@preamble}}%
+				\patchcmd{\crefpairconjunction@preamble}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefpairconjunction@preamble}}%
+				\patchcmd{\creflastconjunction@preamble}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\creflastconjunction@preamble}}%
+				\patchcmd{\crefpairgroupconjunction@preamble}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\crefpairgroupconjunction@preamble}}%
+				\patchcmd{\creflastgroupconjunction@preamble}{\nobreakspace}{\ }{}{\PackageWarningNoLine{clevethm}{Couldn't patch \protect\creflastgroupconjunction@preamble}}%
+			}%
+		}
+	\fi
+
+
+	% Fix algorithmic line referencing
+	\@ifpackageloaded{hyperref}{
+		\@ifpackageloaded{algorithmic}{
+			\crefname{ALC@unique}{line}{lines}
+			\Crefname{ALC@unique}{Line}{Lines}
+
+			\newcounter{algorithmH}
+			\setcounter{algorithmH}{0}
+			\providecommand\theHALC@unique{\arabic{algorithmH}.\arabic{ALC@unique}}
+			\AtBeginEnvironment{algorithmic}{%
+				\stepcounter{algorithmH}%
+				\setcounter{ALC@unique}{0}%
+				\let\olditem\item
+				\renewcommand{\item}{\olditem\phantomsection}%
+			}
+		}{}
+		\@ifpackageloaded{algorithmicx}{
+			\newcounter{algorithmH}
+			\setcounter{algorithmH}{0}
+			\providecommand\theHALG@line{\arabic{algorithmH}.\arabic{ALG@line}}
+			\AtBeginEnvironment{algorithmic}{%
+				\stepcounter{algorithmH}%
+			}
+		}{}
+	}{}
+
+\endinput

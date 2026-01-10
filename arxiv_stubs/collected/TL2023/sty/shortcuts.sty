@@ -1,0 +1,24 @@
+\usepackage{color}
+\newcommand{\authnote}[2]{{\bf \textcolor{blue}{#1}: \em \textcolor{red}{#2}}}
+
+% This command is to highlight internal reviewers' comments and suggestion
+\newcommand{\reviewer}[3]{{\textcolor{red}{(\textit{\textbf{#1}})} \textcolor{gray}{\st{#2}} \textcolor{blue}{#3}}}
+
+%% Uncomment the following line to remove author notes from the paper
+%% for submission
+%% \renewcommand{\authnote}[2]{}
+
+\newcommand{\baigd}[1]{\authnote{baigd}{#1}}
+\newcommand{\mhmeng}[1]{\authnote{mark}{#1}}
+\newcommand{\teo}[2]{\reviewer{teo}{#1}{#2}}
+\newcommand{\liuhuo}[2]{\authnote{liuhuo}{#1}}
+\renewcommand{\paragraph}[1]{\par\noindent\textbf{#1}.}
+
+\usepackage{soul}
+\newcommand{\replace}[2]{\textcolor{red}{\st{#1}}\textcolor{blue}{#2}}
+\newcommand{\add}[1]{\textcolor{blue}{#1}}
+\newcommand{\remove}[1]{\textcolor{red}{\st{#1}}}
+\newcommand{\suggest}[1]{{\textcolor{blue}{#1}}}
+\newcommand{\highlight}[1]{{\textcolor{magenta}{#1}}}
+
+\newcommand{\codename}{\textsc{Paoding}\xspace}

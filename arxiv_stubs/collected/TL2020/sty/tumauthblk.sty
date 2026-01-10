@@ -1,0 +1,191 @@
+% File: tumauthblk.sty Copyright (C) 2019 The LaTeX4EI Team
+% Provides macros for author blocks (authors, affiliations, ORCIDs,
+% e-mail addresses) to be used in the document classes.
+%
+% It may be distributed and/or modified under the conditions of the
+% LaTeX Project Public License (LPPL), either version 1.3c of this
+% license or (at your option) any later version. The latest version
+% of this license is in the file
+%
+%    https://www.latex-project.org/lppl.txt
+%
+% This file is part of the "tum-templates bundle" (The Work in LPPL)
+% and all files in that bundle must be distributed together.
+%
+%
+% ----------------------------------------------------------------------------
+%
+% The development version of the bundle can be found at
+%
+%    https://gitlab.lrz.de/latex4ei/tum-templates
+%
+% for those people who are interested.
+%
+% ----------------------------------------------------------------------------
+%
+% Version history:
+% v1.0 2020/10/01 Initial version.
+% v2.0 2021/04/19 Implement pgfkey 'author list', change letter symbol font,
+%                 add links to email symbols and addresses.
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tumauthblk}[2021/04/19 v2.0]
+
+
+% .:: Required packages
+% ----------------------------------------------------------------------------
+
+\RequirePackage{etoolbox}
+\RequirePackage{graphicx}
+\RequirePackage[hidelinks,breaklinks]{hyperref}
+\RequirePackage{marvosym}
+\RequirePackage{pgffor}
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+
+
+% .:: Handling affiliations
+% ----------------------------------------------------------------------------
+
+\newcounter{AffilCount}
+
+\newcommand{\affil}[2][]{
+  \stepcounter{AffilCount}
+
+  % get current automatic affilation number
+  \edef\@tmp@mark@{\theAffilCount}
+
+  % store affiliation information
+  \pgfqkeys{/TUM/affiliations/\theAffilCount}{
+    name/.initial = {#2},
+    mark/.initial,
+    mark/.expand once=\@tmp@mark@,
+    #1
+  }
+}
+
+% print affiliation mark (only when there is more than one affiliation)
+\newcommand{\@affilmark}[1]{%
+  \ifnumgreater{\theAffilCount}{1}{\textsuperscript{\mdseries{#1}}}{}%
+}
+
+% print affiliation block
+\newcommand{\theAffil}{%
+  \foreach \x in {1,...,\theAffilCount}{%
+    \@affilmark{\pgfkeysvalueof{/TUM/affiliations/\x/mark}}%
+    \pgfkeysvalueof{/TUM/affiliations/\x/name}\par%
+  }%
+}
+
+
+% .:: Handling authors
+% ----------------------------------------------------------------------------
+
+\newcounter{AuthorCount}
+
+\renewcommand{\author}[2][]{
+  \stepcounter{AuthorCount}
+
+  % get current automatic affilation number
+  \edef\@tmp@affil@{\number\numexpr\theAffilCount+1\relax}
+
+  % store author information
+  \pgfqkeys{/TUM/authors/\theAuthorCount}{
+    name/.initial = {#2},
+    email/.initial,
+    orcid/.initial,
+    affil/.initial,
+    affil/.expand once=\@tmp@affil@,
+    #1
+  }
+
+  % store author names in a comma separated list
+  %\begin{noindent}
+  \ifnumequal{\theAuthorCount}{1}{
+    \pgfkeys{/TUM/author list/.initial = {#2}}
+  }{
+    \pgfkeys{/TUM/author list/.append = {, #2}}
+  }
+  %\end{noindent}
+}
+
+% author separator (typically `,`)
+\newcommand{\@auth@sep@}{,}
+
+% author final separator (typically, `and`)
+\provideName{\@auth@fsep@}{and}{und}
+
+% print author list
+\renewcommand{\@author}{%
+  \foreach \x in {1,...,\theAuthorCount}{%
+    \mbox{\pgfkeysvalueof{/TUM/authors/\x/name}}%
+    \edef\@tmp@orcid@{\pgfkeysvalueof{/TUM/authors/\x/orcid}}%
+    \ifdefempty{\@tmp@orcid@}{}{\,\theORCIDSymbol{\@tmp@orcid@}}%
+    \@affilmark{\pgfkeysvalueof{/TUM/authors/\x/affil}}%
+    \edef\@tmp@email@{\pgfkeysvalueof{/TUM/authors/\x/email}}%
+    \ifdefempty{\@tmp@email@}{}{\textsuperscript{\,%
+        \href{mailto:\@tmp@email@}{\theEmailSymbol}}}%
+    \ifnumless{\x}{\theAuthorCount}{%
+      \ifnumequal{\x}{\theAuthorCount-1}{%
+        \ifnumgreater{\theAuthorCount}{2}{%
+          \@auth@sep@{}}{} \@auth@fsep@{} %
+      }{\@auth@sep@{} }%
+    }{}%
+  }%
+}
+
+
+% .:: Handling e-mail addresses
+% ----------------------------------------------------------------------------
+
+% set e-mail address for current author
+\newcommand{\email}[1]{\pgfkeys{/TUM/authors/\theAuthorCount/email=#1}}
+
+% e-mail symbol
+\newcommand{\theEmailSymbol}{%
+  \resizebox{!}{1ex}{\color{TUMBlue}\mdseries\Letter}}
+
+% separator between email addresses (default \par)
+\newcommand{\@email@sep@}{\par}
+
+% print e-mail addresses
+\newcommand{\theEmail}{%
+  \foreach \x in {1,...,\theAuthorCount}{%
+    \edef\@tmp@email@{\pgfkeysvalueof{/TUM/authors/\x/email}}%
+    \ifdefempty{\@tmp@email@}{}{%
+      \theEmailSymbol{}~\href{mailto:\@tmp@email@}{\@tmp@email@}\@email@sep@%
+    }%
+  }%
+}
+
+
+% .:: Handling ORCIDs
+% ----------------------------------------------------------------------------
+
+% set ORCID for current author
+\newcommand{\orcid}[1]{\pgfkeys{/TUM/authors/\theAuthorCount/orcid=#1}}
+
+% ORCID symbol with web-link
+\newrobustcmd{\theORCIDSymbol}[1]{%
+  \href{http://orcid.org/#1}{%
+    \includegraphics[height=\fontcharht\font`\O]{resources/orcid.pdf}%
+  }%
+}
+
+
+% .:: Process package options
+% ----------------------------------------------------------------------------
+
+\pgfqkeys{/TUM/authblk}{
+  printmail/.is choice,
+  printmail/multiline/.code = {\renewcommand{\@email@sep@}{\par}},
+  printmail/oneline/.code = {\renewcommand{\@email@sep@}{\hspace{1em}}},
+}
+
+% process package options
+\ProcessPgfOptions{/TUM/authblk}
+
+% print debug info to logfile
+\typeout{Global options after tumauthblk option parsing.}
+\typeout{classoptions: \@classoptionslist}
+\typeout{unused classoptions: \@unusedoptionlist}

@@ -1,0 +1,101 @@
+% ----------------------------------------------------------------------------
+% specc.sty: style definitions for SpecC (listings, etc.)
+% ----------------------------------------------------------------------------
+% edited by:	A. Gerstlauer
+% last update:	May 5, 2000
+% ----------------------------------------------------------------------------
+
+\newif\if@subfig
+\@subfigfalse
+
+% options
+\DeclareOption{subfigure}{\@subfigtrue}
+\ProcessOptions
+
+\usepackage{listings}
+
+\lstloadlanguages{C++}
+
+\lstdefinelanguage{specc}[ANSI]{C++}
+  {morekeywords={behavior,bit,bool,buffered,callback,channel,delta,event,false,%
+                falling,fsm,fsmd,implements,import,in,inout,interface,%
+		interrupt,note,notify,notifyone,out,par,pipe,piped,range,%
+		rising,signal,timing,trap,true,try,wait,waitfor}}
+
+\newcommand{\specclonglisting}{
+	\renewcommand{\baselinestretch}{1.0}
+	\lstset{language=specc,%
+	        numbers=left,%
+                numberstyle=\ttfamily\scriptsize,%
+		stepnumber=5,%
+		numbersep=5pt,%
+		basicstyle=\footnotesize,%
+		basewidth=0.54em}}
+		
+\newcommand{\simplelisting}{
+	\lstset{language=specc,%
+		basicstyle=\small,%
+		basewidth=0.6em,%
+		spread=-1.0in}}
+
+\newcommand{\inlinelisting}{
+	\lstset{language=specc,%
+		basicstyle=\ttfamily,%
+		basewidth=0.54em}}%
+
+\newcommand{\figurelisting}{
+	\renewcommand{\baselinestretch}{1.0}
+	\lstset{language=specc,%
+	        numbers=left,%
+                numberstyle=\ttfamily\tiny,%
+		stepnumber=5,%
+		numbersep=5pt,%
+		xleftmargin=14pt,%
+		escapechar=\%,%
+		basicstyle=\scriptsize,%
+		basewidth=0.6em}}
+
+\newcommand{\wideinlinelisting}{
+	\lstset{language=specc,%
+		basicstyle=\small,%
+		basewidth=0.6em,%
+		spread=-1.0in}}
+
+
+%% Create new program environment
+
+\newfloatlist[chapter]{program}{lop}{List of Listings}{Listing}
+\addtolength{\cftbeforeloptitleskip}{\baselineskip}
+\addtolength{\cftafterloptitleskip}{\baselineskip}
+\renewcommand{\cftafterloptitle}{\addcontentsline{toc}{chapter}{List of Listings}}
+\newcommand{\cftbeforeprogramchapterskip}{\protect\addvspace {10\protect\p@ }}
+
+\newenvironment{myprogram}[3][]%
+{\begin{minipage}{#3}
+   \hrule
+   \figurelisting
+   %\smallskip
+   \lstinputlisting[#1]{#2}
+   %\smallskip
+   \hrule
+   \vspace{7pt}
+ \end{minipage}}%
+{ }
+
+\newenvironment{mylisting}[4][]%
+{\begin{program}[#4]
+  \begin{myprogram}[#1]{#2}{#3}
+ \end{myprogram}
+ \vspace{-7pt}}%
+{ \end{program}}
+
+\newcommand{\lstref}[1]{Listing~\ref{#1}}
+
+% make it work with subfigure package (i.e. "subprograms")
+\if@subfig
+\newsubfloat{program}
+\newfloatpagesoff{subprogram}
+\fi
+
+
+% --- EOF --------------------------------------------------------------------

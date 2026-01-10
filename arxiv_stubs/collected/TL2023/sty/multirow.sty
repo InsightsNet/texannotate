@@ -1,0 +1,23 @@
+\def\multirowsetup{\raggedright} 
+\def\multirow#1{\relax\@ifnextchar
+  [{\@multirow{#1}}{\@multirow{#1}[0]}}
+\def\@multirow#1[#2]#3{\@ifnextchar [{\@xmultirow{#1}[#2]{#3}}%
+  {\@xmultirow{#1}[#2]{#3}[0pt]}}
+\def\@xmultirow#1[#2]#3[#4]#5{\@tempcnta=#1%
+  \@tempdima\@tempcnta\ht\@arstrutbox
+  \advance\@tempdima\@tempcnta\dp\@arstrutbox
+  \ifnum\@tempcnta<0\@tempdima=-\@tempdima\fi
+  \advance\@tempdima#2\bigstrutjot
+  \if*#3\setbox0\vtop to \@tempdima{\vfill\multirowsetup
+    \hbox{\strut#5\strut}\vfill}%
+  \else
+      \setbox0\vtop to \@tempdima{\hsize#3\@parboxrestore
+                \vfill \multirowsetup \strut#5\strut\par\vfill}%
+  \fi
+  \ht0\z@\dp0\z@
+  \ifnum\@tempcnta<0\advance\@tempdima-\dp\@arstrutbox
+  \else\@tempdima=\ht\@arstrutbox
+     \ifnum#2>0 \advance\@tempdima\bigstrutjot \fi
+  \fi
+  \advance\@tempdima#4\relax\leavevmode\vtop{\vskip-\@tempdima\box0\vss}}
+\@ifundefined{bigstrutjot}{\newdimen\bigstrutjot \bigstrutjot\jot}{}

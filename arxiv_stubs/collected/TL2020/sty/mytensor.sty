@@ -1,0 +1,333 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                   %%
+%%     Author:  Roel Van Beeumen     %%
+%%     Version: September 4, 2020    %%
+%%                                   %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- PARAMETERS --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tparmin}{2.5mm}
+\newcommand{\tparMin}{5mm}
+\newcommand{\tparleg}{4.5mm}
+\newcommand{\tparsep}{8mm}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- TT STYLES --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\tikzstyle{mat}=%
+  [draw,circle,minimum size=\tparMin,inner sep=0]
+\tikzstyle{tt3}=%
+  [draw,rectangle,rounded corners,minimum size=\tparMin,inner sep=0]
+\tikzstyle{opH}=%
+  [draw,rectangle,fill=black!10,minimum size=\tparMin,inner sep=0]
+\tikzstyle{tt3trans}=%
+  [draw=gray,rectangle,rounded corners,minimum size=\tparMin,inner sep=0]
+\tikzstyle{opHtrans}=%
+  [draw=gray,rectangle,fill=white,minimum size=\tparMin,inner sep=0]
+%
+%
+%%%%%%%%%%%%%%%%%%%%
+%%% --- LEGS --- %%%
+%%%%%%%%%%%%%%%%%%%%
+%
+% left leg
+\newcommand{\lleg}[2][\tparleg]{%
+\draw (#2) -- ($(#2)-(#1,0mm)$);}
+% right leg
+\newcommand{\rleg}[2][\tparleg]{%
+\draw (#2) -- ($(#2)+(#1,0mm)$);}
+% above leg
+\newcommand{\aleg}[2][\tparleg]{%
+\draw (#2) -- ($(#2)+(0mm,#1)$);}
+% below leg
+\newcommand{\bleg}[2][\tparleg]{%
+\draw (#2) -- ($(#2)-(0mm,#1)$);}
+%
+% left leg (thick)
+\newcommand{\llegt}[2][\tparleg]{%
+\draw[very thick] (#2) -- ($(#2)-(#1,0mm)$);}
+% right leg (thick)
+\newcommand{\rlegt}[2][\tparleg]{%
+\draw[very thick] (#2) -- ($(#2)+(#1,0mm)$);}
+% above leg (thick)
+\newcommand{\alegt}[2][\tparleg]{%
+\draw[very thick] (#2) -- ($(#2)+(0mm,#1)$);}
+% below leg (thick)
+\newcommand{\blegt}[2][\tparleg]{%
+\draw[very thick] (#2) -- ($(#2)-(0mm,#1)$);}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- MATRICES --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% first matrix
+\newcommand{\fmat}[3][\tparsep]{%
+\node[mat,node distance=#1] (#2) {\footnotesize#3};}
+%
+% unconnected left matrix
+\newcommand{\ulmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [left of=#3] {\footnotesize#4};}
+% unconnected right matrix
+\newcommand{\urmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [right of=#3] {\footnotesize#4};}
+% unconnected above matrix
+\newcommand{\uamat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [above of=#3] {\footnotesize#4};}
+% unconnected above left matrix
+\newcommand{\ualmat}[4][\tparsep]{%
+\node[mat] (#2) [above left=#1 of #3] {\footnotesize#4};}
+% unconnected above right matrix
+\newcommand{\uarmat}[4][\tparsep]{%
+\node[mat] (#2) [above right=#1 of #3] {\footnotesize#4};}
+% unconnected below matrix
+\newcommand{\ubmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [below of=#3] {\footnotesize#4};}
+% unconnected below left matrix
+\newcommand{\ublmat}[4][\tparsep]{%
+\node[mat] (#2) [below left=#1 of #3] {\footnotesize#4};}
+% unconnected below right matrix
+\newcommand{\ubrmat}[4][\tparsep]{%
+\node[mat] (#2) [below right=#1 of #3] {\footnotesize#4};}
+%
+% connected left matrix
+\newcommand{\lmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [left of=#3] {\footnotesize#4} edge (#3);}
+% connected right matrix
+\newcommand{\rmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [right of=#3] {\footnotesize#4} edge (#3);}
+% connected above matrix
+\newcommand{\amat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [above of=#3] {\footnotesize#4} edge (#3);}
+% connected below matrix
+\newcommand{\bmat}[4][\tparsep]{%
+\node[mat,node distance=#1] (#2) [below of=#3] {\footnotesize#4} edge (#3);}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%
+%%% --- CORES --- %%%
+%%%%%%%%%%%%%%%%%%%%%
+%
+% first core
+\newcommand{\fcor}[3][\tparsep]{%
+\node[tt3,node distance=#1] (#2) {\footnotesize#3};}
+%
+% unconnected left core
+\newcommand{\ulcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [left of=#3] {\footnotesize#4};}
+% unconnected right core
+\newcommand{\urcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [right of=#3] {\footnotesize#4};}
+% unconnected above core
+\newcommand{\uacor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [above of=#3] {\footnotesize#4};}
+% unconnected above left core
+\newcommand{\alcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [above left=#1 of #3] {\footnotesize#4};}
+% unconnected above right core
+\newcommand{\arcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [above right=#1 of #3] {\footnotesize#4};}
+% unconnected below core
+\newcommand{\ubcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [below of=#3] {\footnotesize#4};}
+% unconnected below left core
+\newcommand{\blcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [below left=#1 of #3] {\footnotesize#4};}
+% unconnected below right core
+\newcommand{\brcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [below right=#1 of #3] {\footnotesize#4};}
+%
+% connected left core
+\newcommand{\lcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [left of=#3] {\footnotesize#4} edge (#3);}
+% connected right core
+\newcommand{\rcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [right of=#3] {\footnotesize#4} edge (#3);}
+% connected above core
+\newcommand{\acor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [above of=#3] {\footnotesize#4} edge (#3);}
+% connected below core
+\newcommand{\bcor}[4][\tparsep]{%
+\node[tt3,node distance=#1] (#2) [below of=#3] {\footnotesize#4} edge (#3);}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- CORES (with physical leg) --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% first core
+\newcommand{\fcore}[3][\tparsep]{%
+\fcor[#1]{#2}{#3} \bleg{#2}}
+% left core
+\newcommand{\lcore}[4][\tparsep]{%
+\lcor[#1]{#2}{#3}{#4} \bleg{#2}}
+% above core
+\newcommand{\acore}[4][\tparsep]{%
+\acor[#1]{#2}{#3}{#4} \bleg{#2}}
+% right core
+\newcommand{\rcore}[4][\tparsep]{%
+\rcor[#1]{#2}{#3}{#4} \bleg{#2}}
+%
+% unconnected left core
+\newcommand{\ulcore}[4][\tparsep]{%
+\ulcor[#1]{#2}{#3}{#4} \bleg{#2}}
+% unconnected right core
+\newcommand{\urcore}[4][\tparsep]{%
+\urcor[#1]{#2}{#3}{#4} \bleg{#2}}
+% unconnected above core
+\newcommand{\uacore}[4][\tparsep]{%
+\uacor[#1]{#2}{#3}{#4} \bleg{#2}}
+% unconnected below core
+\newcommand{\ubcore}[4][\tparsep]{%
+\ubcor[#1]{#2}{#3}{#4} \bleg{#2}}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%
+%%% --- NODES --- %%%
+%%%%%%%%%%%%%%%%%%%%%
+%
+% first node
+\newcommand{\fnode}[3][\tparsep]{%
+\node[node distance=#1] (#2) {#3};}
+%
+% left node
+\newcommand{\lnode}[4][\tparsep]{%
+\node[node distance=#1] (#2) [left of=#3] {#4};}
+% right node
+\newcommand{\rnode}[4][\tparsep]{%
+\node[node distance=#1] (#2) [right of=#3] {#4};}
+% above node
+\newcommand{\anode}[4][\tparsep]{%
+\node[node distance=#1] (#2) [above of=#3] {#4};}
+% above left node
+\newcommand{\alnode}[4][\tparsep]{%
+\node (#2) [above left=#1 of #3] {#4};}
+% above right node
+\newcommand{\arnode}[4][\tparsep]{%
+\node (#2) [above right=#1 of #3] {#4};}
+% below node
+\newcommand{\bnode}[4][\tparsep]{%
+\node[node distance=#1] (#2) [below of=#3] {#4};}
+% below left node
+\newcommand{\blnode}[4][\tparsep]{%
+\node (#2) [below left=#1 of #3] {#4};}
+% below right node
+\newcommand{\brnode}[4][\tparsep]{%
+\node (#2) [below right=#1 of #3] {#4};}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- OPERATORS --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% first operator
+\newcommand{\foper}[3][\tparsep]{%
+\node[opH,node distance=#1] (#2) {\footnotesize#3};}
+%
+% operator
+\newcommand{\oper}[4][]{%
+\node[opH,#1] (#2) at #3 {\footnotesize#4};}
+%
+% left operator
+\newcommand{\loper}[4][\tparsep]{%
+\node[opH,node distance=#1] (#2) [left of=#3] {\footnotesize#4};}
+% right operator
+\newcommand{\roper}[4][\tparsep]{%
+\node[opH,node distance=#1] (#2) [right of=#3] {\footnotesize#4};}
+% above operator
+\newcommand{\aoper}[4][\tparsep]{%
+\node[opH,node distance=#1] (#2) [above of=#3] {\footnotesize#4};}
+% below operator
+\newcommand{\boper}[4][\tparsep]{%
+\node[opH,node distance=#1] (#2) [below of=#3] {\footnotesize#4};}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- INDICES --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%
+%
+% left tensor index
+\newcommand{\ltind}[3][0.7mm]{%
+\node[left] at ($(#2)+(#1,0mm)$) {\scriptsize#3};}
+% right tensor index
+\newcommand{\rtind}[3][0.7mm]{%
+\node[right] at ($(#2)-(#1,0mm)$) {\scriptsize#3};}
+% above tensor index
+\newcommand{\atind}[3][0.7mm]{%
+\node[above] at ($(#2)-(0mm,#1)$) {\scriptsize#3};}
+% below tensor index
+\newcommand{\btind}[3][0.7mm]{%
+\node[below] at ($(#2)+(0mm,#1)$) {\scriptsize#3};}
+%
+% above left tensor index
+\newcommand{\altind}[3][0.7mm]{%
+\node[above left] at ($(#2)+(#1,-#1)$) {\scriptsize#3};}
+% above right tensor index
+\newcommand{\artind}[3][0.7mm]{%
+\node[above right] at ($(#2)+(-#1,-#1)$) {\scriptsize#3};}
+% below left tensor index
+\newcommand{\bltind}[3][0.7mm]{%
+\node[below left] at ($(#2)+(#1,#1)$) {\scriptsize#3};}
+% below right tensor index
+\newcommand{\brtind}[3][0.7mm]{%
+\node[below right] at ($(#2)+(-#1,#1)$) {\scriptsize#3};}
+%
+\newcommand{\brphind}[3][0.7mm]{%
+\node[below right] at ($(#2)+(-#1,#1)-(0mm,3.5mm)$) {\scriptsize#3};}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- DIMENSIONS --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% tensor dimension (horizontal)
+\newcommand{\tdimh}[3][0.75mm]{%
+\draw ($(#2)-(#1,#1)$) -- ($(#2)+(#1,#1)$);
+\node[above] at (#2) {\scriptsize#3};}
+% tensor dimension (vertical)
+\newcommand{\tdimv}[3][0.75mm]{%
+\draw ($(#2)-(#1,#1)$) -- ($(#2)+(#1,#1)$);
+\node[right] at ($(#2)-(0.5mm,0mm)$) {\scriptsize#3};}
+% tensor dimension (vertical+above)
+\newcommand{\tdimva}[3][0.75mm]{%
+\draw ($(#2)-(#1,#1)$) -- ($(#2)+(#1,#1)$);
+\node[above right] at ($(#2)-(0.25mm,2mm)$) {\scriptsize#3};}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% --- MISCELLANEOUS --- %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% left inf
+\newcommand{\linf}[3][\tparsep]{%
+\node[node distance=#1] (#2) [left of=#3] {\footnotesize\,$\cdots$} edge (#3);}
+% right inf
+\newcommand{\rinf}[3][\tparsep]{%
+\node[node distance=#1] (#2) [right of=#3] {\footnotesize\,$\cdots$} edge (#3);}
+%
+% unconnected left inf
+\newcommand{\ulinf}[3][\tparsep]{%
+\node[node distance=#1] (#2) [left of=#3] {\footnotesize\,$\cdots$};}
+% unconnected right inf
+\newcommand{\urinf}[3][\tparsep]{%
+\node[node distance=#1] (#2) [right of=#3] {\footnotesize\,$\cdots$};}
+%
+% ring (up)
+\newcommand{\ringup}[3][\tparMin]{%
+\draw[rounded corners] (#2) -- ($(#2)-(5.5mm,0mm)$) -- ($(#2)+(-5.5mm,#1)$) --
+                       ($(#3)+(5.5mm,#1)$)  -- ($(#3)+(5.5mm,0mm)$) -- (#3);}
+% ring (down)
+\newcommand{\ringdown}[3][\tparMin]{%
+\draw[rounded corners] (#2) -- ($(#2)-(5.5mm,0mm)$) -- ($(#2)-(5.5mm,#1)$) --
+                       ($(#3)+(5.5mm,-#1)$) -- ($(#3)+(5.5mm,0mm)$) -- (#3);}
+%
+% vec(I)
+\newcommand{\veceye}[3][\tparmin]{%
+\draw (#2) -- ($(#2)+(#1,0mm)$) to[out=0,in=0] ($(#3)+(#1,0mm)$) -- (#3);}
+% vec(I)^T
+\newcommand{\veceyet}[3][\tparmin]{%
+\draw (#2) -- ($(#2)-(#1,0mm)$) to[out=180,in=180] ($(#3)-(#1,0mm)$) -- (#3);}

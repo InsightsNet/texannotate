@@ -1,6 +1,7 @@
 %%
 %% This is file `ifacconf.cls',
 %% generated with the docstrip utility.
+%% Modified by Juan a. de la Puente on 2022-02-11
 %%
 %% The original source files were:
 %%
@@ -16,11 +17,11 @@
 %% For distribution of the original source see the terms
 %% for copying and modification in the file pergamon.dtx.
 %% 
-\def\filedate{2008/04/14}
-\def\fileversion{3.2ModD}
-\def\@journal{IFAC conferences}
-\def\@shortjnl{ifacconf}
-\def\@issn{}
+\def\filedate{2022/02/11}
+\def\fileversion{1.3}
+\def\@journal{IFAC-PapersOnline}
+\def\@shortjnl{ifacol}
+\def\@issn{2405-8963}
 \def\@shortjid{ifacconf}
 \def\@company{IFAC}
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
@@ -1055,6 +1056,7 @@
   \let\frontmatter\relax \let\endfrontmatter\relax
   \let\@maketitle\relax  \let\@@maketitle\relax
   \normal@text
+  \endNoHyper
 }
 \let\maketitle\relax
 \newdimen\t@xtheight
@@ -1400,7 +1402,7 @@
     \normalsize\it\centering \@dedicated
     \fi}
 \def\@alph#1{\ifcase#1\or a\or b\or c\or d\or e\or f\or g\or h\or i\or j\or
-k\or \ell\or m\or n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or
+k\or l\or m\or n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or
 y\or z\or aa\or ab\or ac\or ad\or ae\or af\or ag\or ah\or ai\or aj\or
 ak\or a\ell\or am\or an\or ao\or ap\or aq\or ar\or as\or at\or au\or av\or
 aw\or ay\or az\or ba\or bb\or bc\or bd\or be\or bf\or bg\or bh\or bi\or

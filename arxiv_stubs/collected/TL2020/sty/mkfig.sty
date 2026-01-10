@@ -1,0 +1,53 @@
+%  ****************************************
+%  *           EPS INCLUSIONS             *
+%  ****************************************
+
+% Include Rokicki's epsf.sty file explicitly.
+
+\@ifundefined{epsfbox}{\@input{epsf.sty}}{\relax}
+
+% Simplified EPS inclusion macros so we can see how this goes...
+% These are layered on Rokicki's dvips material, and are dependent
+% on the author's use of that DVI driver.
+%
+%    \plotone{EPSFILE}
+%    \plottwo{EPSFILE}{EPSFILE}
+%    \plotfiddle{EPSFILE}{VSIZE}{ROT}{HSF}{VSF}{HTRANS}{VTRANS}
+%
+% \plotone inserts the plot in a space that is \columnwidth wide; the
+% plot is scaled so the horizontal dimension fits in the text width,
+% and the vertical dimension is scaled to maintain the aspect ratio.
+% \plottwo inserts two plots next to each other in one \columnwidth,
+% sort of like "two-up" mode.
+%
+%    EPSFILE    name of file with EPS
+%
+% The following arguments are for the \plotfiddle macro which formats
+% the \special itself, prepares vspace, etc.  This completely bypasses
+% Rokicki's macros that attempt to rationalize the EPS BoundingBox with
+% the LaTeX page dimensions.
+%
+%    VSIZE      vertical white space to allow for plot
+%    ROT        rotation angle
+%    HSF        horiz scale factor
+%    VSF        vert scale factor
+%    HTRANS     horiz translation
+%    VTRANS     vert translation
+
+%\epsfverbosetrue
+
+\def\eps@scaling{.95}
+\def\epsscale#1{\gdef\eps@scaling{#1}}
+
+\def\plotone#1{\centering \leavevmode
+    \epsfxsize=\eps@scaling\columnwidth \epsfbox{#1}}
+
+\def\plottwo#1#2{\centering \leavevmode
+    \epsfxsize=.45\columnwidth \epsfbox{#1} \hfil
+    \epsfxsize=.45\columnwidth \epsfbox{#2}}
+
+\def\plotfiddle#1#2#3#4#5#6#7{\centering \leavevmode
+    \vbox to#2{\rule{0pt}{#2}}
+    \special{psfile=#1 voffset=#7 hoffset=#6 vscale=#5 hscale=#4 angle=#3}}
+
+%\@input{abbrevs.sty}

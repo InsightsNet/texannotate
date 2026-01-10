@@ -1,0 +1,171 @@
+%!TEX root = ./emsnewsletter-template.tex
+
+\setlength{\columnsep}{6truemm}
+\RequirePackage[%
+	a4paper,%
+	width=178mm,%
+	lines=60]{geometry}
+\RequirePackage{fancyhdr}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhf{}
+\lhead{\bfseries\footnotesize Newsletter of the EMS -- Manuscript}
+\rhead{\bfseries\footnotesize Page \thepage}
+\pagestyle{fancy}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{1em}
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage{amsmath,amsthm,amsfonts,amssymb}
+\RequirePackage{txfonts}
+\renewcommand{\sfdefault}{phv}
+
+\RequirePackage{graphicx}
+\RequirePackage[font=small,%
+  labelfont=bf,%
+  textfont=bf,%
+  labelsep=colon,%
+  singlelinecheck=false,%
+  aboveskip=3pt,%
+  justification=raggedright]{caption} 
+
+\AtBeginDocument{\twocolumn}
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
+    \def\@makefnmark{\rlap{\@textsuperscript{\normalfont\@thefnmark}}}%
+    \long\def\@makefntext##1{\parindent 1em\noindent
+            \hb@xt@1.8em{%
+                \hss\@textsuperscript{\normalfont\@thefnmark}}##1}%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@  
+      \@maketitle
+    \fi
+    \thispagestyle{fancy}\@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+  \global\let\@maketitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+  \global\let\and\relax
+}
+\def\@maketitle{%
+  \newpage
+    {\thispagestyle{fancy}%
+    \large\bfseries \noindent\@title \par}%
+    \vskip 1.5em%
+    {%
+      \lineskip .5em%
+%      \begin{tabular}[t]{c}%
+        \noindent
+        \@author
+%      \end{tabular}
+   \par}%
+  \par
+  \vskip 2em}
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {2.3ex \@plus.2ex}%
+                                   {\normalfont\normalsize\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3ex\@plus -1ex \@minus -.2ex}%
+                                     {1.25ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3ex\@plus -1ex \@minus -.2ex}%
+                                     {1.25ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+
+\setlength\leftmargini{2em}
+\def\@listi{\leftmargin\leftmargini
+            \parsep 0\p@ \@plus2\p@ 
+            \topsep 0\p@ \@plus2\p@ 
+            \itemsep0\p@ \@plus2\p@}
+\let\@listI\@listi
+
+\renewcommand{\refname}{References}
+\renewenvironment{thebibliography}[1]
+     {\section*{\refname}%
+      \list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \setlength{\itemsep}{0pt}
+            \setlength{\parsep}{.5ex plus .5ex}
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \footnotesize
+      \sloppy 
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+      
+\renewenvironment{quote}
+               {\list{}{%
+                   \rightmargin0em%
+                   \leftmargin2em%
+                   \topsep0pt%
+                   \parsep0pt}%
+                \item 
+                  \relax}
+               {\endlist}
+               
+\renewenvironment{abstract}
+                {\setlength{\parindent}{0pt}\itshape}
+                {\vspace{1\baselineskip}\par}               
+               
+\newenvironment{info}
+                {\setlength{\parindent}{0pt}\vspace{2\baselineskip}\par\itshape}
+                {}
+
+\RequirePackage{endnotes}
+\let\footnote\endnote
+\newcommand{\printnotes}{%
+  \begingroup
+  \renewcommand{\notesname}{Notes}
+  \setlength{\parindent}{0pt}
+  \def\enotesize{\footnotesize}
+  \theendnotes
+  \endgroup}
+  
+\def\enoteformat{\rightskip\z@ \leftskip=1.5em \parindent=0em 
+   \leavevmode\llap{\makebox[1.5em]{\hfill\@theenmark.\hspace{.5em}}}}
+
+\RequirePackage{url}  
+\urlstyle{same}
+% \RequirePackage[bookmarks=false,colorlinks=true,breaklinks=true,
+%    linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+% \RequirePackage{breakurl}
+  
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+

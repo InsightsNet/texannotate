@@ -1,0 +1,97 @@
+% POROUS MEDIA GROUP
+% COMMON STYLE FILE
+
+% ... PAGE SIZE AND MARGINS
+
+\usepackage{geometry}
+\geometry{letterpaper, margin=0.80in}
+
+% ... AUTHOR AND AFFILIATION BLOCK
+
+\usepackage{authblk}
+\renewcommand\Authfont{\normalsize}
+\renewcommand\Affilfont{\small\itshape}
+\renewcommand\Authands{, }
+
+% ... BIBLIOGRAPHY
+
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{porousmedia-unsrturl}
+
+% ... MATH
+
+\usepackage{amsmath,amssymb,amsfonts,amscd,mathtools} % ... AMS math packages
+\usepackage{newtxtext,newtxmath}
+\usepackage{stmaryrd}
+
+% ... TABLES
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{group-separator = {,}}
+
+% ... FIGURES 
+
+\usepackage{graphicx} % ... provides \includegraphics functionality
+
+% ... CAPTIONS
+
+\usepackage{subcaption}
+\captionsetup{size=small}
+\captionsetup[sub]{size=small}
+\captionsetup[table]{skip=5pt}
+
+% ... ALGORITHMS + PSEUDO CODE
+
+\usepackage{algorithmicx} % ... algorithm typesetting (one of many similar packages!)
+
+% ... CODE LISTING
+
+\usepackage{listings}
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\scriptsize,
+    frame=tb, % draw a frame at the top and bottom of the code block
+    backgroundcolor = \color{yellow!10},
+    tabsize=4, % tab space width
+    showstringspaces=false, % don't mark spaces in strings
+    numbers=left, % display line numbers on the left
+    commentstyle=\itshape\color{green!50!black}, %comment color
+    keywordstyle=\color{blue}, % keyword color
+    stringstyle=\color{red} % string color
+}
+
+% ... TIKZ VECTOR GRAPHICS
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16} 
+
+% ... REFERENCES
+
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[capitalise,noabbrev,sort&compress,]{cleveref}
+
+% ... DOCUMENT STYLING
+
+\usepackage{xcolor} % ... color handling extensions
+\usepackage{lineno} % ... add line numbering to manuscripts
+\modulolinenumbers[5] % ... number every nth line
+
+% ... OTHER
+
+\usepackage{lipsum} % ... provide dummy Lorem Ipsum text
+
+
+
+\setlength{\marginparwidth}{10.0cm}
+\usepackage[textsize=small,linecolor=red,backgroundcolor=red!25,bordercolor=red]
+  {todonotes}
+\newcommand\todoin[2][]{\todo[inline, caption={2do}, #1]{
+\begin{minipage}{\textwidth-4pt}#2\end{minipage}}}
+
+
+\usepackage[toc,page]{appendix} 
+
+
+
+

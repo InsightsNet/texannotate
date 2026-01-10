@@ -114,6 +114,12 @@ results/
 | `LPSB_LATEXML_CACHE` | Enable LaTeXML cache reuse across runs (default: 1) |
 | `LPSB_LATEXML_CACHE_ROOT` | Host cache root dir (default: `latexml_cache/`) |
 
+### LaTeXML cache + `--reuse-containers`
+
+When using container reuse, LaTeXML runs via `docker exec`. In that mode, caches still persist because
+each TeX Live container is started with a host mount for `latexml_cache/TL<year>/` and with
+`HOME`/`XDG_CACHE_HOME` pointing into that mount.
+
 ## Batch input discovery rules
 
 `--batch <DIR>` supports two common corpus layouts:

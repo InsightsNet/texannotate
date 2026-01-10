@@ -1,0 +1,52 @@
+\usepackage{xcolor}
+\usepackage[colorlinks=true,
+        raiselinks=true,
+        linkcolor=blue,
+        citecolor=MidnightBlue,
+        urlcolor=ForestGreen,
+        pdfauthor={Anonymous},
+		pdftitle={None},
+        pdfkeywords={none},
+        pdfsubject={scribbles},
+        plainpages=false]{hyperref}
+\usepackage{braket}
+\usepackage{amsmath, amssymb, latexsym, amsfonts}
+\usepackage{graphicx, caption, subcaption}
+\usepackage[nodisplayskipstretch]{setspace}
+\usepackage{physics}
+\usepackage{mathtools}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
+\renewcommand{\thetable}{\arabic{section}.\arabic{table}}
+\usepackage{cite}
+\usepackage{tikz}
+\usepackage{svg}
+\usetikzlibrary{matrix}
+\usetikzlibrary{calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+%%%%%%%Thm_like_environment%%%%%%
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{defn}{Defintion}[section]
+\newtheorem{rmk}{Remark}[section]
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\mapsto}{\ensuremath{\longmapsto}}
+\newcommand{\lra}{\ensuremath{\longrightarrow}}
+%%%%%%%Operatorsandnotation%%%%%
+\DeclareMathOperator{\T}{T}
+%%%%%%%%%
+\newcommand{\R}[1][]{\ensuremath{\mathbb{R}^{#1}}}
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+%%%%%%%%%%%%%%
+%\newcommand{\:}{\colon}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\Open}[1]{\mathcal{O}({#1})}
+\newcommand{\Ball}{\mathcal{B}}
+\newcommand{\ball}[3][]{\Ball_{#1}\left(#2,#3\right)}
+%%%%%%%%%%%%%%%%%

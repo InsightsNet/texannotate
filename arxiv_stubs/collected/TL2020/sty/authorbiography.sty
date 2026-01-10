@@ -1,0 +1,208 @@
+\NeedsTeXFormat{LaTeX2e}%
+\ProvidesPackage{authorbiography}%
+
+\usepackage{graphicx}%
+\usepackage{xparse}%
+\usepackage{textcomp}%
+
+\usepackage{tocloft}
+
+\usepackage{morewrites}%
+\usepackage{wrapfig}%
+\usepackage{xkeyval}%
+\usepackage{etoolbox}%
+
+\usepackage{tcolorbox}%
+
+\newwrite\authorbibfile%
+
+\AtBeginDocument{%
+  \immediate\openout\authorbibfile=\jobname.aub%
+}%
+
+
+\newlength{\AuthorbioTopSkip}%
+\newlength{\AuthorbioBottomSkip}%
+\setlength{\AuthorbioTopSkip}{\baselineskip}%
+\setlength{\AuthorbioBottomSkip}{\baselineskip}%
+
+
+
+
+\define@key{authorbio}{wraplines}[10]{%
+\def\AuthorbioKVMacroWraplines{#1}%
+}
+
+\define@key{authorbio}{imagewidth}[4cm]{%
+\def\AuthorbioKVMacroImagewidth{#1}%
+}
+
+\define@key{authorbio}{overhang}[10pt]{%
+\def\AuthorbioKVMacroOverhang{#1}%
+}
+
+
+\define@key{authorbio}{imagepos}[l]{%
+\def\AuthorbioKVMacroImagepos{#1}%
+}
+
+\define@key{authorbio}{yearofbirth}[]{
+  \def\AuthorbioKVMacroYearofbirth{#1}%
+}%
+
+\define@key{authorbio}{yearofdeath}[]{
+\def\AuthorbioKVMacroYearofdeath{#1}%
+}%
+
+
+\define@key{authorbio}{BiographyName}[1]{%
+\def\AuthorbioKVMacroBiographyName{#1}%
+}%
+
+
+\newtoggle{AuthorBiographyInTOC}%
+\settoggle{AuthorBiographyInTOC}{false}%
+
+\define@boolkey{authorbio}{totoc}[false]{%
+  \ifKV@authorbio@totoc
+  \toggletrue{AuthorBiographyInTOC}
+  \else
+  \togglefalse{AuthorBiographyInTOC}
+  \fi
+}%
+
+
+\newcommand{\listofauthorbiographiesname}{List of Author Biographies}
+
+\newlistof{authorbiographies}{bio}{\listofauthorbiographiesname}
+
+\presetkeys{authorbio}{imagepos=l,imagewidth=4cm,wraplines=15,overhang=20pt,totoc=false}{}%
+
+\newcommand*{\authorbiography@@singlename}{Biography of author}%
+\newcommand*{\authorbiography@@name}{Biographies of authors}%
+
+
+
+\DeclareExpandableDocumentCommand{\authorbiographyname}{+m}{%
+  \IfNoValueTF{#1}{%
+    \authorbiography@@name%
+  }{%
+    \ifnumgreater{#1}{1}{%
+      \authorbiography@@name}{%
+      \ifnumequal{#1}{1}{%
+        \authorbiography@@singlename%
+      }{}%
+    }%
+  }%
+}%
+
+
+
+\NewDocumentCommand{\Authorbiography}{+o}
+{%
+  \immediate\closeout\authorbibfile%
+  \csundef{AuthorbioKVMacroBiographyName}%
+  \clearpage
+  \ifnumgreater{\value{authorbiographies}}{0}{% Only add a page/entries if the authorbiographies counter is greater than 0
+    \IfValueTF{#1}{%
+      \setkeys*{authorbio}{#1}%
+      \iftoggle{AuthorBiographyInTOC}{%
+        \ifcsdef{AuthorbioKVMacroBiographyName}{%
+          \ifcsdef{chapter}{%
+            \chapter*{\AuthorbioKVMacroBiographyName}% %Check for KOMA addchap etc later on.
+            \markboth{\AuthorbioKVMacroBiographyName}{\AuthorbioKVMacroBiographyName}%
+            \addcontentsline{toc}{chapter}{\AuthorbioKVMacroBiographyName}%
+          }{%
+            \section*{\AuthorbioKVMacroBiographyName}%   
+            \markboth{\AuthorbioKVMacroBiographyName}{\AuthorbioKVMacroBiographyName}
+            \addcontentsline{toc}{section}{\AuthorbioKVMacroBiographyName}%
+          }%
+        }{%
+          \ifcsdef{chapter}{%
+            \chapter*{\authorbiographyname{\number\value{authorbiographies}}}%
+            \addcontentsline{toc}{chapter}{\authorbiographyname{\number\value{authorbiographies}}}%
+          }{% Assume that \section* exists ;-)
+            \section*{\authorbiographyname{\number\value{authorbiographies}}}%
+            \addcontentsline{toc}{section}{\authorbiographyname{\number\value{authorbiographies}}}
+          }%
+          \markboth{\authorbiographyname{\number\value{authorbiographies}}}{\authorbiographyname{\number\value{authorbiographies}}}%
+        }%
+      }{}%
+    }{% No further ado, just add a (chapter) header to the page
+      \ifcsdef{chapter}{%
+        \chapter*{\authorbiographyname{\number\value{authorbiographies}}}%
+      }{% Assume that \section* exists ;-)
+        \section*{\authorbiographyname{\number\value{authorbiographies}}}%
+      }%
+      \markboth{\authorbiographyname{\number\value{authorbiographies}}}{\authorbiographyname{\number\value{authorbiographies}}}%
+    }%
+    \InputIfFileExists{\jobname.aub}{\typeout{authorbiographies: Inputting file successfully}}{\typeout{Error: File \jobname.aub does not exist}}%
+  }% End of \ifnumgreater...
+}%
+
+
+
+\NewDocumentCommand{\authorbiographyyearofdeathstyle}{+o}{%
+  \textbf{\textdied #1)}%
+}%
+
+\NewDocumentCommand{\authorbiographyyearofbirthstyle}{+o}{%
+  \textbf{(\textborn #1}%
+}%
+
+
+\NewDocumentCommand{\writeauthorlifeinfo}{+o}{%
+  \global\undef\AuthorbioKVMacroYearofbirth%
+  \global\undef\AuthorbioKVMacroYearofdeath%
+  \IfValueTF{#1}{%
+    \setkeys*{authorbio}{#1}%
+    \ifcsdef{AuthorbioKVMacroYearofbirth}{%
+      \authorbiographyyearofbirthstyle[\AuthorbioKVMacroYearofbirth]%
+      \ifcsdef{AuthorbioKVMacroYearofdeath}{%
+        , \authorbiographyyearofdeathstyle[\AuthorbioKVMacroYearofdeath]%
+      }{%
+        \textbf{)} % No year of death given ...unknown or still alive
+      }%
+    }{% No year of birth give, but perhaps a year of death?
+      \ifcsdef{AuthorbioKVMacroYearofdeath}{%
+        (\textborn ? , \authorbiographyyearofdeathstyle[\AuthorbioKVMacroYearofdeath]%
+      }{%
+        % Do nothing
+      }%
+    }%
+  }{% No argument given, do nothing
+  }%
+}%
+
+
+
+\NewDocumentCommand{\authorbiography}{+o+m+m+m}{%
+  \csundef{AuthorbioKVMacroWraplines}%
+  \setkeys*{authorbio}{#1}%
+  \IfNoValueTF{#3}{%
+    \typeout{Warning: No author name}%  Needs improvement
+  }{%
+    \refstepcounter{authorbiographies}%
+    \addcontentsline{bio}{section}{\protect{#3}}% Should be improved!
+    \immediate\write\authorbibfile{%
+      \string\begin{tcolorbox}[floatplacement=htp,float,boxrule=0pt,boxsep=0pt,left=0pt,right=0pt,top=0pt,bottom=0pt,arc=0mm,auto outer arc,width=\textwidth]%
+%      \string\vskip\AuthorbioTopSkip%
+      \string\begin{wrapfigure}[\AuthorbioKVMacroWraplines]{\AuthorbioKVMacroImagepos}[\AuthorbioKVMacroOverhang]{\AuthorbioKVMacroImagewidth}%
+        \string\centering%
+        \string\includegraphics\expandafter[\XKV@rm]{#2}% Use the \XKV@rm macro for possible remaining macros designed only for \includegraphics 
+        \string\end{wrapfigure}%
+      \unexpanded{\noindent}%
+      \unexpanded{\textbf{#3}}%
+      \writeauthorlifeinfo[#1]%
+      \string\par^^J
+      \string\noindent^^J%
+      \unexpanded{#4}%
+ %     \string\vskip\AuthorbioBottomSkip%
+      \string\end{tcolorbox}%
+    }%
+  }%
+}%
+
+
+
+\endinput%

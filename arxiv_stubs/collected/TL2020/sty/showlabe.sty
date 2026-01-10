@@ -1,0 +1,139 @@
+%% 
+%% This is file `showlabels.sty', generated 
+%% on <1996/5/31> with the docstrip utility (2.2h).
+%% 
+%% The original source files were:
+%% 
+%% showlabels.dtx  (with options: `package')
+%% Style to display labels in the margin 
+
+\def\filename{showlabels}
+\def\fileversion{v1.2}
+\def\filedate{1996/05/12}
+\def\docdate{1996/05/12}
+%\NeedsTeXFormat{LaTeX2e}
+%\ProvidesPackage{showlabels}[\filedate\space\fileversion]
+\typeout{Package: `showlabels' \fileversion\space<\filedate>}
+\wlog{Documentation}
+\newif\ifSL@noAMS
+\expandafter\ifx\csname maketag@@@\endcsname\relax
+  \SL@noAMStrue
+\else
+  \SL@noAMSfalse
+  \typeout{with AMS-LaTeX equation tags}
+\fi
+\ifSL@noAMS
+  \let\@@eqnnum=\@eqnnum
+  \def\@eqnnum{\@@eqnnum
+  \ifx\SL@labeln@me\relax
+    \SL@eqnlrtext{???}%
+  \else
+    \SL@eqnlrtext{\SL@labeln@me}%
+    \global\def\SL@labeln@me{\relax}%
+  \fi}
+  \global\def\SL@labeln@me{\relax}
+\else
+  \let\@maketag@@@=\maketag@@@
+  \def\maketag@@@#1{\@maketag@@@{#1}%
+  \ifx\df@label\@empty
+  \else
+    \SL@eqnlrtext{\df@label}%
+  \fi}
+\fi
+\def\SL@gobblethree#1#2#3{}
+\def\prlabelname#1{%
+\expandafter\expandafter\expandafter\SL@gobblethree
+    \expandafter\string\csname r@#1\endcsname}
+\let\@@makecaption\@makecaption
+\long\def\@makecaption#1#2{{\def\label##1{{\small\tt
+        \{\prlabelname{##1}\}\space}\SL@label{##1}}%
+        \@@makecaption{#1}{#2}}}
+\let\SL@label\label
+\def\label#1{\@bsphack\SL@label{#1}%
+  \ifmmode
+    \ifSL@noAMS
+      \xdef\SL@labeln@me{\prlabelname{#1}}%
+    \fi
+  \else
+    {\setbox0=\vbox to 0pt{\vss
+      \hbox to \columnwidth{\SL@lrtext{#1}}}%
+    \dp0=0pt
+    \ifvmode
+      \nointerlineskip\box0\nobreak
+    \else
+      \vadjust{\box0\nobreak}%
+    \fi}%
+  \fi
+  \@esphack}
+\def\SL@margintext#1{{\small\sl\{#1\}}}
+\def\SL@righttext#1{\hfill\rlap{\quad\SL@margintext{#1}}}
+\def\SL@lefttext #1{\llap{\SL@margintext{#1}\quad}\hfill}
+\def\SL@alternatetext{%
+  \if@outerlabels
+    \ifodd\c@page
+      \let\SL@next\SL@righttext\else
+      \let\SL@next\SL@lefttext\fi
+  \else
+    \ifodd\c@page
+      \let\SL@next\SL@lefttext\else
+      \let\SL@next\SL@righttext\fi
+  \fi
+  \SL@next}
+\def\SL@twocoltext{%
+  \if@firstcolumn
+    \let\SL@next\SL@lefttext
+  \else
+    \let\SL@next\SL@righttext
+  \fi
+  \SL@next}
+\def\SL@eqnrighttext#1{\rlap{\quad\SL@margintext{#1}}}
+\def\SL@eqnlefttext #1{\hbox to 0pt{\kern -\columnwidth
+        \llap{\SL@margintext{#1}\quad}\hss}}
+\def\SL@eqnalternatetext{%
+  \if@outerlabels
+    \ifodd\c@page
+      \let\SL@next\SL@eqnrighttext\else
+      \let\SL@next\SL@eqnlefttext\fi
+  \else
+    \ifodd\c@page
+      \let\SL@next\SL@eqnlefttext\else
+      \let\SL@next\SL@eqnrighttext\fi
+  \fi
+  \SL@next}
+\def\SL@eqntwocoltext{%
+  \if@firstcolumn
+    \let\SL@next\SL@eqnlefttext
+  \else
+    \let\SL@next\SL@eqnrighttext
+  \fi
+  \SL@next}
+\newif\if@outerlabels
+\@outerlabelstrue
+%\DeclareOption{outer}{\@outerlabelstrue}
+%\DeclareOption{inner}{\@outerlabelsfalse}
+%\ProcessOptions
+\if@twocolumn
+  \let\SL@lrtext\SL@twocoltext
+  \let\SL@eqnlrtext\SL@eqntwocoltext
+\else
+  \if@outerlabels
+    \if@twoside
+          \let\SL@lrtext\SL@alternatetext
+          \let\SL@eqnlrtext\SL@eqnalternatetext
+    \else
+      \let\SL@lrtext\SL@righttext
+      \let\SL@eqnlrtext\SL@eqnrighttext
+    \fi
+  \else
+    \if@twoside
+          \let\SL@lrtext\SL@alternatetext
+          \let\SL@eqnlrtext\SL@eqnalternatetext
+    \else
+      \let\SL@lrtext\SL@lefttext
+      \let\SL@eqnlrtext\SL@eqnlefttext
+    \fi
+  \fi
+\fi
+\endinput
+%% 
+%% End of file `showlabels.sty'.

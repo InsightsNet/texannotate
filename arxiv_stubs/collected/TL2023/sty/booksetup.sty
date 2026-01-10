@@ -1,0 +1,223 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                                                                                                         %%%
+%%% This package is used as manuscript-wise, Authors need to redefine below as per Manuscript.              %%%
+%%%                                                                                                         %%%
+%%% Called internally by elsstylefix if found in current path                                               %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% Labels Definitions - Below labels text can be changed by authors
+
+\def\listfigurename{List of Figures}
+\def\listtablename{List of Tables}
+\def\abstractname{Abstract}
+\def\keywordname{Keywords}
+\def\pointshead{Chapter Points}
+\def\partname{Part}
+\def\Sectname{Section}
+\def\chaptername{Chapter}
+\def\Partminicontentsname{Contents}
+\def\Sectminicontentsname{Contents}
+\def\Chapterminicontentsname{Contents}
+\def\figurename{Fig.}
+\def\tablename{Table}
+\def\exercisename{Exercises}
+\def\boxname{BOX}
+\def\textboxname{Box}
+\def\acknowledgmenthead{Acknowledgments}
+\def\addresshead{Useful Addresses}
+\def\appendixname{Appendix}
+\def\glossaryhead{Glossary}
+\def\refname{References}
+\def\indexname{Index}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% Numbering Format
+
+%% Default Counters
+\def\thepart{\@Roman\c@part}
+\def\theSect {\@Alph\c@Sect}
+\def\thechapter{\if@NumberedChapter\@arabic\c@chapter\fi}
+\def\thesection {\if@NumberedChapter\@arabic\c@chapter.\fi\@arabic\c@section}
+\def\thesubsection{\thesection.\@arabic\c@subsection}
+\def\thesubsubsection{\thesubsection.\@arabic\c@subsubsection}
+%\AtBeginDocument{\def\tagform@#1{\maketag@@@{(\ignorespaces#1\unskip\@@italiccorr)}}}
+\def\theequation{\@arabic\c@equation}
+\def\thefigure{\@arabic\c@figure}
+\def\thetable{\@arabic\c@table}
+\def\thebox{\thechapter.\@arabic\c@box}
+\def\thetextbox{\thechapter.\@arabic\c@textbox}
+
+%% Customizing the symbols
+\def\@fnsymbol#1{\ensuremath{\ifcase#1\or *\or **\or \dagger\or \ddagger\or
+   \mathsection\or \mathparagraph\or \|\or \dagger\dagger
+   \or \ddagger\ddagger \else\@ctrerr\fi}}
+
+%% For Spellout Numbers for Parts
+\@spelloutfalse %% Switch true/false
+\def\@spellout#1{\ifcase#1\or One \or Two \or Three \or Four \or Five \or Six \or Seven \or Eight \or Nine \or
+Ten \or Eleven \or Twelve \or Thirteen \or Fourteen \or Fifteen \or Sixteen \or Seventeen \or Eighteen \or Nineteen \or Twenty\fi}
+
+%% Switch for Continuous and Chapterwise Counters (disable the below for Continous numbering)
+\@addtoreset{figure}{chapter}
+\@addtoreset{table}{chapter}
+\@addtoreset{equation}{chapter}
+\@addtoreset{footnote}{chapter}
+\@addtoreset{box}{chapter}
+\@addtoreset{textbox}{chapter}
+
+%% Affiliation and Opening footnotes numbering
+\affilnumbering{alph}           %% Numbering style for Addresses
+\chapfootnotenumbering{arabic}      %% Numbering style for Chapter footnote
+\aufootnotenumbering{arabic}        %% Numbering style for Author footnote
+\currauthornumbering{alph}          %% Numbering style for Curresponding author
+
+%% Counter format for Enumerate (Numbered List)
+\renewcommand\theenumi{\@arabic\c@enumi}
+\renewcommand\theenumii{\@alph\c@enumii}
+\renewcommand\theenumiii{\textendash}
+\renewcommand\theenumiv{\@Alph\c@enumiv}
+
+%% Counter format for Enumerate (Numbered List)
+\def\labelenumi{\normalfont\theenumi.}
+\def\labelenumii{\normalfont\theenumii.}
+\def\labelenumiii{\normalfont\theenumiii}
+\def\labelenumiv{\normalfont\theenumiv.}
+
+%% Counter format for Itemize (Bullet List)
+\def\labelitemi{\textbullet}
+\def\labelitemii{\textbullet}
+\def\labelitemiii{\textendash}
+\def\labelitemiv{\textperiodcentered}
+
+%% For Exercises/Problems counters
+\def\theexenumi{\thechapter.\@arabic\c@enumi}
+\def\theexenumii{\thechapter.\@alph\c@enumii}
+\def\theexenumiii{\thechapter.\@roman\c@enumiii}
+
+%% For Exercises/Problems label formatting
+\def\exlabelenumi{\theexenumi.}
+\def\exlabelenumii{\theexenumii.}
+\def\exlabelenumiii{\theexenumiii.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% Default Counter Depths
+
+\setcounter{secnumdepth}{3}
+%\setcounter{minitocdepth}{3}
+\setcounter{tocdepth}{3}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% Enunciation Styles
+
+\RequirePackage{amsthm}
+\let\proof\relax
+\let\endproof\relax
+\newif\ifproofthm
+\newif\ifformalpara
+\def\@endtheorem{\ifproofthm\qed\global\proofthmfalse\fi\endtrivlist\@endpefalse}
+
+%%%%%%%%%%%%%%%%%% StyleOne Definition
+\newtheoremstyle{elsplain}
+{11pt}                  % Space above
+{11pt}                  % Space below
+{\normalfont\itshape}   % Body font
+{0pt}                   % Indent amount
+{\bfseries}             % Theorem head font
+{.}                     % Punctuation after theorem head
+{.35em}                 % Space after theorem headi
+{\@ifempty{#2}{%        % Optional head on unnumbered
+    \@ifempty{#3}{\thmname{#1}}{\thmnote{{\the\thm@headfont#3}}}%
+}{%                     % Main head on numbered
+    \thmname{#1}\thmnumber{\@ifnotempty{#1}{ }\@upn{#2}}\thmnote{ {\the\thm@notefont(#3)}}%
+}}%
+%
+%%%%%%%%%%%%%%%%%% StyleTwo Definition
+\newtheoremstyle{elsdefinition}%
+{11pt}                  % Space above
+{11pt}                  % Space below
+{\normalfont}           % Body font
+{0pt}                   % Indent amount
+{\bfseries}             % Theorem head font
+{.}                     % Punctuation after theorem head
+{.35em}                 % Space after theorem headi
+{\@ifempty{#2}{%        % Optional head on unnumbered
+    \@ifempty{#3}{\thmname{#1}}{\thmnote{{\the\thm@headfont#3}}}%
+}{%                     % Main head on numbered
+    \thmname{#1}\thmnumber{\@ifnotempty{#1}{ }\@upn{#2}}\thmnote{ {\the\thm@notefont(#3)}}%
+}}%
+%
+%%%%%%%%%%%%%%%%%% StyleThree Definition
+\newtheoremstyle{elsremark}
+{11pt}                  % Space above
+{11pt}                  % Space below
+{\normalfont}           % Body font
+{0pt}                   % Indent amount
+{\bfseries}             % Theorem head font
+{.}                     % Punctuation after theorem head
+{.35em}                 % Space after theorem headi
+{\@ifempty{#2}{%        % Optional head on unnumbered
+    \@ifempty{#3}{\thmname{#1}}{\thmnote{{\the\thm@headfont#3}}}%
+}{%                     % Main head on numbered
+    \thmname{#1}\thmnumber{\@ifnotempty{#1}{ }\@upn{#2}}\thmnote{ {\the\thm@notefont(#3)}}%
+}}%
+%
+%%%%%%%%%%%%%%%%%% StyleFour Definition
+\newtheoremstyle{elsnote}
+{11pt}                  % Space above
+{11pt}                  % Space below
+{\normalfont}           % Body font
+{0pt}                   % Indent amount
+{\itshape}              % Theorem head font
+{.}                     % Punctuation after theorem head
+{.35em}                 % Space after theorem headi
+{\@ifempty{#2}{%        % Optional head on unnumbered
+    \@ifempty{#3}{\thmname{#1}}{\thmnote{{\the\thm@headfont#3}}}%
+}{                      % Main head on numbered
+    \thmname{#1}\thmnumber{\@ifnotempty{#1}{ }\@upn{#2}}\thmnote{ {\the\thm@notefont(#3)}}%
+}}%
+%
+%%%%%%%%%%%%%%%%%% StyleFive Definition
+\newtheoremstyle{elsproof}
+{11pt}                  % Space above
+{11pt}                  % Space below
+{\normalfont}           % Body font
+{0pt}                   % Indent amount
+{\itshape}              % Theorem head font
+{.}                     % Punctuation after theorem head
+{.35em}                 % Space after theorem headi
+{\global\proofthmtrue\thmname{#1}}% Theorem head spec (can be left empty, meaning `normal')
+
+%% List of Enunciation under StyleOne
+\theoremstyle{elsplain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{application}{Application}
+\newtheorem{corollary}{Corollary}
+%% for unnumbered
+\newtheorem*{corollary*}{Corollary}
+\newtheorem*{theorem*}{Theorem}
+
+%% List of Enunciation under StyleTwo
+\theoremstyle{elsdefinition}
+\newtheorem{definition}{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{example}{Example}
+%% for unnumbered
+\newtheorem*{discussion}{Discussion}
+\newtheorem*{hint}{Hint}
+
+%% List of Enunciation under StyleThree
+\theoremstyle{elsremark}
+\newtheorem{remark}{Remark}
+%% for unnumbered
+\newtheorem*{remark*}{Remark}
+\newtheorem*{exercise}{Exercise}
+\newtheorem*{proof*}{Proof}
+
+%% List of Enunciation under StyleFour
+\theoremstyle{elsproof}
+\newtheorem{proof}{Proof}
+

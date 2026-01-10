@@ -1,0 +1,244 @@
+\usepackage{microtype}
+% \RequirePackage{amsmath,amsthm,amsfonts,amssymb,bm,latexsym}
+\let\Bbbk\relax
+\RequirePackage{amsmath,amsfonts,amssymb,bm,latexsym}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage[disable]{todonotes}
+\usetikzlibrary{fadings}
+\usetikzlibrary{mindmap,trees}
+\usetikzlibrary{arrows,automata,shapes,positioning,shadows,trees}
+\usetikzlibrary{shapes,snakes,shadows}
+\usetikzlibrary{shapes.arrows}
+\usetikzlibrary{calc,shapes, positioning}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{matrix,chains,positioning,decorations.pathreplacing,arrows}
+\usetikzlibrary{bayesnet}
+%\usetikzlibrary{arrows.new}
+\usepackage[edges]{forest}
+\usetikzlibrary{shadows.blur}
+\usetikzlibrary{shapes.geometric}
+
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{pgfmath,pgffor}
+\usepgfplotslibrary{colorbrewer}
+% initialize Set1-4 from colorbrewer (we're comparing 4 classes),
+\pgfplotsset{compat = 1.14, cycle list/Set1-8}
+\usetikzlibrary{pgfplots.statistics, pgfplots.colorbrewer}
+\pgfplotsset{compat=1.8}
+
+
+\tikzstyle{edge}=[-latex',draw=black!90,shorten <=1pt,shorten >=1pt]
+\tikzstyle{redge}=[latex'-,draw=black!90,shorten <=1pt,shorten >=1pt]
+\tikzstyle{dedge}=[latex'-latex',draw=black!90,shorten <=1pt,shorten >=1pt]
+
+\tikzstyle{block}=[draw, text width=5em,align=center,shape=rectangle, rounded corners, , align=center]
+\tikzstyle{nobox}=[align=center]
+\definecolor{emb}{RGB}{209,228,252}
+\definecolor{hidden-blue}{RGB}{194,232,247}
+% \definecolor{hidden-orange}{RGB}{243,202,120}
+\definecolor{hidden-orange}{RGB}{224,224,224}
+% \definecolor{hidden-orange}{RGB}{10,128,122}
+\definecolor{hidden-yellow}{RGB}{242,244,193}
+\definecolor{output-purple}{RGB}{219,203,231}
+\definecolor{output-green}{RGB}{204,231,207}
+% \definecolor{hiddendraw}{RGB}{205, 44, 36}
+\definecolor{hiddendraw}{RGB}{10,128,122}
+
+%%% mycolor
+% \definecolor{myred}{RGB}{247,226,231}
+% \definecolor{myblue}{RGB}{216,226,234}
+% \definecolor{mypurple}{RGB}{233,229,241}
+% \definecolor{myyellow}{RGB}{252,238,221}
+% \definecolor{mygreen}{RGB}{204,231,207}
+
+
+% \definecolor{myred}{HTML}{8EACCD}
+% \definecolor{mypurple}{HTML}{D2E0FB}
+% \definecolor{myyellow}{HTML}{F9F3CC}
+% \definecolor{mygreen}{HTML}{D7E5CA}
+
+\definecolor{myred}{HTML}{F8F6F4} %{F875AA}
+% \definecolor{mypurple}{HTML}{FFDFDF}
+\definecolor{myyellow}{HTML}{FFF6F6}
+% \definecolor{mygreen}{HTML}{D2E0FB} %{AEDEFC}
+
+\definecolor{myblue}{RGB}{224,235,250}
+\definecolor{mygreen}{HTML}{d6e9ca} %{AEDEFC}
+\definecolor{mypurple}{HTML}{d3ccd6 }
+
+\tikzstyle{emb-purple}=[
+    rectangle,
+    draw=output-purple!50!purple,
+    fill=output-purple,
+    %rounded corners,
+    text opacity=1,
+    minimum height=1.5em,
+    minimum width=1.5em,
+    inner sep=0pt,
+    align=center,
+    fill opacity=.5,
+    ]
+
+\tikzstyle{emb-blue}=[
+    rectangle,
+    draw=emb!50!blue,
+    fill=emb,
+    %rounded corners,
+    text opacity=1,
+    minimum height=1.5em,
+    minimum width=1.5em,
+    inner sep=0pt,
+    align=center,
+    fill opacity=.5,
+]
+
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+{1ex \@plus1ex \@minus.2ex}%
+ {-1em}%
+ {\normalfont\normalsize\bfseries}}
+\makeatother
+
+
+\def\ba{\mathbf{a}}
+\def\bb{\mathbf{b}}
+\def\bc{\mathbf{c}}
+\def\bd{\mathbf{d}}
+\def\be{\mathbf{e}}
+\def\bbf{\mathbf{f}}
+\def\bg{\mathbf{g}}
+\def\bh{\mathbf{h}}
+\def\bi{\mathbf{i}}
+\def\bj{\mathbf{j}}
+\def\bk{\mathbf{k}}
+\def\bl{\mathbf{l}}
+\def\bm{\mathbf{m}}
+\def\bn{\mathbf{n}}
+\def\bo{\mathbf{o}}
+\def\bp{\mathbf{p}}
+\def\bq{\mathbf{q}}
+\def\br{\mathbf{r}}
+\def\bs{\mathbf{s}}
+\def\bt{\mathbf{t}}
+\def\bu{\mathbf{u}}
+\def\bv{\mathbf{v}}
+\def\bw{\mathbf{w}}
+\def\bx{\mathbf{x}}
+\def\by{\mathbf{y}}
+\def\bz{\mathbf{z}}
+\def\bA{\mathbf{A}}
+\def\bB{\mathbf{B}}
+\def\bC{\mathbf{C}}
+\def\bD{\mathbf{D}}
+\def\bE{\mathbf{E}}
+\def\bF{\mathbf{F}}
+\def\bG{\mathbf{G}}
+\def\bH{\mathbf{H}}
+\def\bI{\mathbf{I}}
+\def\bJ{\mathbf{J}}
+\def\bK{\mathbf{K}}
+\def\bL{\mathbf{L}}
+\def\bM{\mathbf{M}}
+\def\bN{\mathbf{N}}
+\def\bO{\mathbf{O}}
+\def\bP{\mathbf{P}}
+\def\bQ{\mathbf{Q}}
+\def\bR{\mathbf{R}}
+\def\bS{\mathbf{S}}
+\def\bT{\mathbf{T}}
+\def\bU{\mathbf{U}}
+\def\bV{\mathbf{V}}
+\def\bW{\mathbf{W}}
+\def\bX{\mathbf{X}}
+\def\bY{\mathbf{Y}}
+\def\bZ{\mathbf{Z}}
+
+\def\ca{\mathcal{a}}
+\def\cb{\mathcal{b}}
+\def\cc{\mathcal{c}}
+\def\cd{\mathcal{d}}
+\def\ce{\mathcal{e}}
+\def\cf{\mathcal{f}}
+\def\cg{\mathcal{g}}
+\def\ch{\mathcal{h}}
+\def\ci{\mathcal{i}}
+\def\cj{\mathcal{j}}
+\def\ck{\mathcal{k}}
+\def\cl{\mathcal{l}}
+\def\cm{\mathcal{m}}
+\def\cn{\mathcal{n}}
+\def\co{\mathcal{o}}
+\def\cp{\mathcal{p}}
+\def\cq{\mathcal{q}}
+\def\ccr{\mathcal{r}}
+\def\cs{\mathcal{s}}
+\def\ct{\mathcal{t}}
+\def\cu{\mathcal{u}}
+\def\cv{\mathcal{v}}
+\def\cw{\mathcal{w}}
+\def\cx{\mathcal{x}}
+\def\cy{\mathcal{y}}
+\def\cz{\mathcal{z}}
+\def\cA{\mathcal{A}}
+\def\cB{\mathcal{B}}
+\def\cC{\mathcal{C}}
+\def\cD{\mathcal{D}}
+\def\cE{\mathcal{E}}
+\def\cF{\mathcal{F}}
+\def\cG{\mathcal{G}}
+\def\cH{\mathcal{H}}
+\def\cI{\mathcal{I}}
+\def\cJ{\mathcal{J}}
+\def\cK{\mathcal{K}}
+\def\cL{\mathcal{L}}
+\def\cM{\mathcal{M}}
+\def\cN{\mathcal{N}}
+\def\cO{\mathcal{O}}
+\def\cP{\mathcal{P}}
+\def\cQ{\mathcal{Q}}
+\def\cR{\mathcal{R}}
+\def\cS{\mathcal{S}}
+\def\cT{\mathcal{T}}
+\def\cU{\mathcal{U}}
+\def\cV{\mathcal{V}}
+\def\cW{\mathcal{W}}
+\def\cX{\mathcal{X}}
+\def\cY{\mathcal{Y}}
+\def\cZ{\mathcal{Z}}
+
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\softmax}{softmax}
+\DeclareMathOperator*{\LSTM}{LSTM}
+\DeclareMathOperator*{\BiLSTM}{BiLSTM}
+\DeclareMathOperator*{\KL}{KL}
+\DeclareMathOperator*{\CRF}{CRF}
+\DeclareMathOperator*{\FF}{FF}
+\def\tran{^\mathrm{\scriptscriptstyle T}}
+
+\DeclareMathOperator*{\Softmax}{\mathrm{softmax}}
+\DeclareMathOperator*{\Att}{Att}
+\DeclareMathOperator*{\LayerNorm}{LayerNorm}
+\DeclareMathOperator*{\ReLU}{ReLU}
+
+\newenvironment{itemize*}%
+ {\begin{itemize}%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parskip}{0pt}}%
+ {\end{itemize}}
+ \newenvironment{enumerate*}%
+ {\begin{enumerate}%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parskip}{0pt}}%
+ {\end{enumerate}}
+
+%table
+ \usepackage{array}
+\usepackage{ragged2e}
+\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}

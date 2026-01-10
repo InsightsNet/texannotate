@@ -1,0 +1,38 @@
+\ProvidesPackage{ahtitle}
+
+\newcommand*{\institution}[1]{\gdef\@institution{#1}}
+\newcommand*{\@institution}{\@empty}
+
+\newcommand*{\subjclass}[1]{\gdef\@subjclass{#1}}
+\newcommand*{\@subjclass}{\@empty}
+
+\newcommand*{\keywords}[1]{\gdef\@keywords{#1}}
+\newcommand*{\@keywords}{\@empty}
+
+\renewcommand*{\maketitle}{
+	{\noindent\rule{\textwidth}{1pt}}
+	
+	\vspace{10pt}
+	
+	\noindent\Large\textsc{\@title}
+	
+	\vspace{20pt}
+	
+	\noindent{\large\@author} 
+
+	\noindent {\itshape \normalsize\@institution} 
+	
+	\vspace{15pt}
+}
+
+\newcommand*{\makeaftertitle}{
+	\noindent\normalsize\textit{Current version:} \today
+	
+	%\noindent\normalsize\textit{Keywords:} \@keywords
+	
+	\vspace{10pt}
+	
+	{\noindent\rule{\textwidth}{1pt}}
+}
+\endinput
+

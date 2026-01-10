@@ -9,14 +9,14 @@
 % set page geometry
 \usepackage[verbose=true,letterpaper]{geometry}
 \AtBeginDocument{
-	\newgeometry{
-		textheight=9in,
-		textwidth=6.5in,
-		top=1in,
-		headheight=14pt,
-		headsep=25pt,
-		footskip=30pt
-	}
+  \newgeometry{
+    textheight=9in,
+    textwidth=6.5in,
+    top=1in,
+    headheight=14pt,
+    headsep=25pt,
+    footskip=30pt
+  }
 }
 
 \widowpenalty=10000
@@ -24,43 +24,36 @@
 \flushbottom
 \sloppy
 
-
-
-\newcommand{\headeright}{A Preprint}
-\newcommand{\undertitle}{A Preprint}
-\newcommand{\shorttitle}{\@title}
-
 \usepackage{fancyhdr}
 \fancyhf{}
 \pagestyle{fancy}
-\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrulewidth}{0pt}
 \fancyheadoffset{0pt}
-\rhead{\scshape \footnotesize \headeright}
-\chead{\shorttitle}
+\rhead{\scshape Preprint - \today}
 \cfoot{\thepage}
 
 
 %Handling Keywords
-\def\keywordname{{\bfseries \emph{Keywords}}}%
+\def\keywordname{{\bfseries \emph Keywords}}%
 \def\keywords#1{\par\addvspace\medskipamount{\rightskip=0pt plus1cm
-		\def\and{\ifhmode\unskip\nobreak\fi\ $\cdot$
-		}\noindent\keywordname\enspace\ignorespaces#1\par}}
+\def\and{\ifhmode\unskip\nobreak\fi\ $\cdot$
+}\noindent\keywordname\enspace\ignorespaces#1\par}}
 
 % font sizes with reduced leading
 \renewcommand{\normalsize}{%
-	\@setfontsize\normalsize\@xpt\@xipt
-	\abovedisplayskip      7\p@ \@plus 2\p@ \@minus 5\p@
-	\abovedisplayshortskip \z@ \@plus 3\p@
-	\belowdisplayskip      \abovedisplayskip
-	\belowdisplayshortskip 4\p@ \@plus 3\p@ \@minus 3\p@
+  \@setfontsize\normalsize\@xpt\@xipt
+  \abovedisplayskip      7\p@ \@plus 2\p@ \@minus 5\p@
+  \abovedisplayshortskip \z@ \@plus 3\p@
+  \belowdisplayskip      \abovedisplayskip
+  \belowdisplayshortskip 4\p@ \@plus 3\p@ \@minus 3\p@
 }
 \normalsize
 \renewcommand{\small}{%
-	\@setfontsize\small\@ixpt\@xpt
-	\abovedisplayskip      6\p@ \@plus 1.5\p@ \@minus 4\p@
-	\abovedisplayshortskip \z@  \@plus 2\p@
-	\belowdisplayskip      \abovedisplayskip
-	\belowdisplayshortskip 3\p@ \@plus 2\p@   \@minus 2\p@
+  \@setfontsize\small\@ixpt\@xpt
+  \abovedisplayskip      6\p@ \@plus 1.5\p@ \@minus 4\p@
+  \abovedisplayshortskip \z@  \@plus 2\p@
+  \belowdisplayskip      \abovedisplayskip
+  \belowdisplayshortskip 3\p@ \@plus 2\p@   \@minus 2\p@
 }
 \renewcommand{\footnotesize}{\@setfontsize\footnotesize\@ixpt\@xpt}
 \renewcommand{\scriptsize}{\@setfontsize\scriptsize\@viipt\@viiipt}
@@ -74,42 +67,42 @@
 % sections with less space
 \providecommand{\section}{}
 \renewcommand{\section}{%
-	\@startsection{section}{1}{\z@}%
-	{-2.0ex \@plus -0.5ex \@minus -0.2ex}%
-	{ 1.5ex \@plus  0.3ex \@minus  0.2ex}%
-	{\large\bf\raggedright}%
+  \@startsection{section}{1}{\z@}%
+                {-2.0ex \@plus -0.5ex \@minus -0.2ex}%
+                { 1.5ex \@plus  0.3ex \@minus  0.2ex}%
+                {\large\bf\raggedright}%
 }
 \providecommand{\subsection}{}
 \renewcommand{\subsection}{%
-	\@startsection{subsection}{2}{\z@}%
-	{-1.8ex \@plus -0.5ex \@minus -0.2ex}%
-	{ 0.8ex \@plus  0.2ex}%
-	{\normalsize\bf\raggedright}%
+  \@startsection{subsection}{2}{\z@}%
+                {-1.8ex \@plus -0.5ex \@minus -0.2ex}%
+                { 0.8ex \@plus  0.2ex}%
+                {\normalsize\bf\raggedright}%
 }
 \providecommand{\subsubsection}{}
 \renewcommand{\subsubsection}{%
-	\@startsection{subsubsection}{3}{\z@}%
-	{-1.5ex \@plus -0.5ex \@minus -0.2ex}%
-	{ 0.5ex \@plus  0.2ex}%
-	{\normalsize\bf\raggedright}%
+  \@startsection{subsubsection}{3}{\z@}%
+                {-1.5ex \@plus -0.5ex \@minus -0.2ex}%
+                { 0.5ex \@plus  0.2ex}%
+                {\normalsize\bf\raggedright}%
 }
 \providecommand{\paragraph}{}
 \renewcommand{\paragraph}{%
-	\@startsection{paragraph}{4}{\z@}%
-	{1.5ex \@plus 0.5ex \@minus 0.2ex}%
-	{-1em}%
-	{\normalsize\bf}%
+  \@startsection{paragraph}{4}{\z@}%
+                {1.5ex \@plus 0.5ex \@minus 0.2ex}%
+                {-1em}%
+                {\normalsize\bf}%
 }
 \providecommand{\subparagraph}{}
 \renewcommand{\subparagraph}{%
-	\@startsection{subparagraph}{5}{\z@}%
-	{1.5ex \@plus 0.5ex \@minus 0.2ex}%
-	{-1em}%
-	{\normalsize\bf}%
+  \@startsection{subparagraph}{5}{\z@}%
+                {1.5ex \@plus 0.5ex \@minus 0.2ex}%
+                {-1em}%
+                {\normalsize\bf}%
 }
 \providecommand{\subsubsubsection}{}
 \renewcommand{\subsubsubsection}{%
-	\vskip5pt{\noindent\normalsize\rm\raggedright}%
+  \vskip5pt{\noindent\normalsize\rm\raggedright}%
 }
 
 % float placement
@@ -126,10 +119,10 @@
 
 % swap above/belowcaptionskip lengths for tables
 \renewenvironment{table}
-{\setlength{\abovecaptionskip}{\@belowcaptionskip}%
-	\setlength{\belowcaptionskip}{\@abovecaptionskip}%
-	\@float{table}}
-{\end@float}
+  {\setlength{\abovecaptionskip}{\@belowcaptionskip}%
+   \setlength{\belowcaptionskip}{\@abovecaptionskip}%
+   \@float{table}}
+  {\end@float}
 
 % footnote formatting
 \setlength{\footnotesep }{6.65\p@}
@@ -154,109 +147,109 @@
 \setlength{\leftmarginv  }{0.5em}
 \def\@listi  {\leftmargin\leftmargini}
 \def\@listii {\leftmargin\leftmarginii
-	\labelwidth\leftmarginii
-	\advance\labelwidth-\labelsep
-	\topsep  2\p@ \@plus 1\p@    \@minus 0.5\p@
-	\parsep  1\p@ \@plus 0.5\p@ \@minus 0.5\p@
-	\itemsep \parsep}
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep
+              \topsep  2\p@ \@plus 1\p@    \@minus 0.5\p@
+              \parsep  1\p@ \@plus 0.5\p@ \@minus 0.5\p@
+              \itemsep \parsep}
 \def\@listiii{\leftmargin\leftmarginiii
-	\labelwidth\leftmarginiii
-	\advance\labelwidth-\labelsep
-	\topsep    1\p@ \@plus 0.5\p@ \@minus 0.5\p@
-	\parsep    \z@
-	\partopsep 0.5\p@ \@plus 0\p@ \@minus 0.5\p@
-	\itemsep \topsep}
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep
+              \topsep    1\p@ \@plus 0.5\p@ \@minus 0.5\p@
+              \parsep    \z@
+              \partopsep 0.5\p@ \@plus 0\p@ \@minus 0.5\p@
+              \itemsep \topsep}
 \def\@listiv {\leftmargin\leftmarginiv
-	\labelwidth\leftmarginiv
-	\advance\labelwidth-\labelsep}
+              \labelwidth\leftmarginiv
+              \advance\labelwidth-\labelsep}
 \def\@listv  {\leftmargin\leftmarginv
-	\labelwidth\leftmarginv
-	\advance\labelwidth-\labelsep}
+              \labelwidth\leftmarginv
+              \advance\labelwidth-\labelsep}
 \def\@listvi {\leftmargin\leftmarginvi
-	\labelwidth\leftmarginvi
-	\advance\labelwidth-\labelsep}
+              \labelwidth\leftmarginvi
+              \advance\labelwidth-\labelsep}
 
 % create title
 \providecommand{\maketitle}{}
 \renewcommand{\maketitle}{%
-	\par
-	\begingroup
-	\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-	% for perfect author name centering
-	\renewcommand{\@makefnmark}{\hbox to \z@{$^{\@thefnmark}$\hss}}
-	% The footnote-mark was overlapping the footnote-text,
-	% added the following to fix this problem               (MK)
-	\long\def\@makefntext##1{%
-		\parindent 1em\noindent
-		\hbox to 1.8em{\hss $\m@th ^{\@thefnmark}$}##1
-	}
-	\thispagestyle{empty}
-	\@maketitle
-	\@thanks
-	%\@notice
-	\endgroup
-	\let\maketitle\relax
-	\let\thanks\relax
+  \par
+  \begingroup
+    \renewcommand{\thefootnote}{\fnsymbol{footnote}}
+    % for perfect author name centering
+    \renewcommand{\@makefnmark}{\hbox to \z@{$^{\@thefnmark}$\hss}}
+    % The footnote-mark was overlapping the footnote-text,
+    % added the following to fix this problem               (MK)
+    \long\def\@makefntext##1{%
+      \parindent 1em\noindent
+      \hbox to 1.8em{\hss $\m@th ^{\@thefnmark}$}##1
+    }
+    \thispagestyle{empty}
+    \@maketitle
+    \@thanks
+    %\@notice
+  \endgroup
+  \let\maketitle\relax
+  \let\thanks\relax
 }
 
 % rules for title box at top of first page
 \newcommand{\@toptitlebar}{
-	\hrule height 2\p@
-	\vskip 0.25in
-	\vskip -\parskip%
+  \hrule height 2\p@
+  \vskip 0.25in
+  \vskip -\parskip%
 }
 \newcommand{\@bottomtitlebar}{
-	\vskip 0.29in
-	\vskip -\parskip
-	\hrule height 2\p@
-	\vskip 0.09in%
+  \vskip 0.29in
+  \vskip -\parskip
+  \hrule height 2\p@
+  \vskip 0.09in%
 }
 
 % create title (includes both anonymized and non-anonymized versions)
 \providecommand{\@maketitle}{}
 \renewcommand{\@maketitle}{%
-	\vbox{%
-		\hsize\textwidth
-		\linewidth\hsize
-		\vskip 0.1in
-		\@toptitlebar
-		\centering
-		{\LARGE\sc \@title\par}
-		\@bottomtitlebar
-		\textsc{\undertitle}\\
-		\vskip 0.1in
-		\def\And{%
-		\end{tabular}\hfil\linebreak[0]\hfil%
-		\begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
-		}
-		\def\AND{%
-		\end{tabular}\hfil\linebreak[4]\hfil%
-		\begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
-		}
-		\begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\@author\end{tabular}%
-		\vskip 0.4in \@minus 0.1in \center{\@date}   \vskip 0.2in
-	}
+  \vbox{%
+    \hsize\textwidth
+    \linewidth\hsize
+    \vskip 0.1in
+    \@toptitlebar
+    \centering
+    {\LARGE\sc \@title\par}
+    \@bottomtitlebar
+    \textsc{}\\
+    \vskip 0.1in
+    \def\And{%
+      \end{tabular}\hfil\linebreak[0]\hfil%
+      \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+    }
+    \def\AND{%
+      \end{tabular}\hfil\linebreak[4]\hfil%
+      \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
+    }
+    \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\@author\end{tabular}%
+  \vskip 0.4in \@minus 0.1in \center{\today}   \vskip 0.2in
+  }
 }
 
 % add conference notice to bottom of first page
 \newcommand{\ftype@noticebox}{8}
 \newcommand{\@notice}{%
-	% give a bit of extra room back to authors on first page
-	\enlargethispage{2\baselineskip}%
-	\@float{noticebox}[b]%
-	\footnotesize\@noticestring%
-	\end@float%
+  % give a bit of extra room back to authors on first page
+  \enlargethispage{2\baselineskip}%
+  \@float{noticebox}[b]%
+    \footnotesize\@noticestring%
+  \end@float%
 }
 
 % abstract styling
 \renewenvironment{abstract}
 {
-	\centerline
-	{\large \bfseries \scshape Abstract}
-	\begin{quote}
-	}
-	{
-	\end{quote}
+  \centerline
+  {\large \bfseries \scshape Abstract}
+  \begin{quote}
+}
+{
+  \end{quote}
 }
 
 \endinput

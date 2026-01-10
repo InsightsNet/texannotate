@@ -1,0 +1,355 @@
+\typeout{Il Yong Chun, ECE, Purdue}
+\typeout{Document Style `bobby' Mar 29th, 2014}
+
+%%% Packages used %%%
+%\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{amsfonts,amssymb,amsthm}
+\usepackage{amsmath}
+\usepackage{algorithm,algorithmic}
+
+\usepackage[pdftex]{graphicx}
+\usepackage{epsfig} % for postscript graphics files
+\usepackage{epstopdf}
+\epstopdfsetup{update}
+\usepackage{rotating}
+%\usepackage{subfigure}
+\usepackage{multirow}
+%\usepackage{subfig}
+%\usepackage[caption=false,font=footnotesize]{subfig}
+
+\usepackage{dblfloatfix}
+
+\usepackage{cite}
+\usepackage{url}
+
+\usepackage[usenames,dvipsnames]{color}
+
+\usepackage[normalem]{ulem}
+
+\usepackage{accents}
+
+\usepackage{bm}
+\usepackage{upgreek}
+\newcommand{\upgreek}[1]{{
+\renewcommand{\theta}{\uptheta}
+\renewcommand{\rho}{\uprho}
+\renewcommand{\nu}{\upnu}
+\renewcommand{\psi}{\uppsi}
+\renewcommand{\omega}{\upomega}
+#1 }}
+
+%\renewcommand*{\thefootnote}{\arabic{footnote}}
+
+%%% Vector/Matrix Notation %%%
+\newcommand*{\mb}[1]{{\mathbf{#1}}}
+
+%%% Functions/Operators %%%
+\newcommand*{\supp}{\mathrm{supp}}
+\newcommand*{\diag}{\mathrm{diag}}
+\newcommand*{\sgn}{\mathrm{sign}}
+\DeclareMathOperator*{\esssup}{ess\,sup}
+\DeclareMathOperator*{\essinf}{ess\,inf}
+%\newcommand*{\argmin}[1]{{\underset{#1}{\operatorname{argmin}}}}
+%\newcommand*{\argmax}[1]{{\underset{#1}{\operatorname{argmax}}}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+%\DeclareMathOperator*{\argmin}{\arg\!\min}
+%\DeclareMathOperator*{\argmax}{\arg\!\max}
+\newcommand*{\snc}{\mathrm{sinc}}
+\newcommand*{\spn}{\mathrm{span}}
+\newcommand*{\mix}{\mbox{\tiny mix}}
+\newcommand*{\ord}[1]{\cO \left ( #1 \right ) }
+\newcommand*{\ordu}[1]{\cO ( #1  ) }
+\newcommand*{\tr}{\mathrm{tr}}
+\newcommand*{\dom}{\mathrm{dom}}
+%\newcommand*{\Tr}{\mathsf{T}}
+%\newcommand*{\Hr}{\mathsf{H}}
+
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+\newlength{\dhatheight}
+\newcommand{\doublehat}[1]{%
+    \settoheight{\dhatheight}{\ensuremath{\hat{#1}}}%
+    \addtolength{\dhatheight}{-0.35ex}%
+    \hat{\vphantom{\rule{1pt}{\dhatheight}}%
+    \smash{\hat{#1}}}}
+
+%%% Norms and Inner Products %%%
+\newcommand*{\nm}[1]{{\left\|#1\right \|}}
+\newcommand*{\nmu}[1]{{\|#1\|}}
+\newcommand{\tnm}[1]{\mbox{$|\!|\!|$}#1\mbox{$|\!|\!|$}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\absu}[1]{|#1|}
+\newcommand*{\ip}[2]{\langle #1, #2 \rangle}
+\newcommand*{\ipr}[2]{\left ( #1, #2 \right )}
+\newcommand*{\ipl}[2]{\left < #1, #2 \right >}
+
+%%%% Equations Tools %%%%
+\newcommand{\nin}{\noindent}
+\def\R#1{(\ref{#1})}
+
+%%%% Various Characters %%%
+\def\Re{\mathrm{Re}\,}
+\def\Im{\mathrm{Im}\,}
+\def\D{\,\mathrm{d}}
+\def\I{\mathrm{i}}
+\def\E{\mathrm{e}}
+\newcommand*{\rth}{\mathrm{th}}
+\def\imath{\mathrm{i}}
+
+%%% Colours %%%
+\newcommand*{\BLUE}[1]{{\color{blue}#1}}
+\newcommand*{\RED}[1]{{\color{red}#1}}
+\newcommand*{\GREEN}[1]{{\color{green}#1}}
+\newcommand*{\CY}[1]{{\color{cyan}#1}}
+\newcommand*{\MG}[1]{{\color{magenta}#1}}
+\DefineNamedColor{named}{Purple}{cmyk}{0.45,0.86,0,0}
+\newcommand*{\PURP}[1]{{\color[named]{Purple}#1}}
+\DefineNamedColor{named}{JungleGreen} {cmyk}{0.99,0,0.52,0}
+\newcommand*{\GR}[1]{{\color[named]{JungleGreen}#1}}
+\DefineNamedColor{named}{orange} {rgb}{1,0.55,0}
+\newcommand*{\ORNG}[1]{{\color[named]{orange}#1}}
+
+\usepackage[normalem]{ulem}
+\newcommand*{\MGS}[1]{{\color{magenta}\sout{#1}}}
+\newcommand*{\RDS}[1]{{\color{red}\sout{#1}}}
+\newcommand*{\CYS}[1]{{\color{cyan}\sout{#1}}}
+\newcommand*{\PS}[1]{{\color[named]{Purple}\sout{#1}}}
+
+%%%% Equation environments %%%%
+\newcommand{\be}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\bes}[1]{\begin{equation*} #1 \end{equation*}}
+\newcommand{\ea}[1]{\begin{align} #1 \end{align}}
+\newcommand{\eas}[1]{\begin{align*} #1 \end{align*}}
+\newcommand{\nn}{\nonumber}
+
+%\numberwithin{equation}{section}
+
+%%%%% Theorem etc environments %%%%%
+
+%%% create theorems, etc. with upright font, no italic
+\def\newtheoremup#1{%
+  \@ifnextchar[{\@othmup{#1}}{\@nthmup{#1}}}
+\def\@nthmup#1#2{%
+  \@ifnextchar[{\@xnthmup{#1}{#2}}{\@ynthmup{#1}{#2}}}
+\def\@xnthmup#1#2[#3]{%
+  \expandafter\@ifdefinable\csname #1\endcsname
+    {\@definecounter{#1}\@newctr{#1}[#3]%
+     \expandafter\xdef\csname the#1\endcsname{%
+       \expandafter\noexpand\csname the#3\endcsname \@thmcountersep
+          \@thmcounterup{#1}}%
+     \global\@namedef{#1}{\@thmup{#1}{#2}}%
+     \global\@namedef{end#1}{\@endtheoremup}}}
+\def\@ynthmup#1#2{%
+  \expandafter\@ifdefinable\csname #1\endcsname
+    {\@definecounter{#1}%
+     \expandafter\xdef\csname the#1\endcsname{\@thmcounterup{#1}}%
+     \global\@namedef{#1}{\@thmup{#1}{#2}}%
+     \global\@namedef{end#1}{\@endtheoremup}}}
+\def\@othmup#1[#2]#3{%
+  \@ifundefined{c@#2}{\@nocounterr{#2}}%
+    {\expandafter\@ifdefinable\csname #1\endcsname
+    {\global\@namedef{the#1}{\@nameuse{the#2}}%
+  \global\@namedef{#1}{\@thmup{#2}{#3}}%
+  \global\@namedef{end#1}{\@endtheoremup}}}}
+\def\@thmup#1#2{%
+  \refstepcounter{#1}%
+  \@ifnextchar[{\@ythmup{#1}{#2}}{\@xthmup{#1}{#2}}}
+\def\@xthmup#1#2{%
+  \@begintheoremup{#2}{\csname the#1\endcsname}\ignorespaces}
+\def\@ythmup#1#2[#3]{%
+  \@opargbegintheoremup{#2}{\csname the#1\endcsname}{#3}\ignorespaces}
+\def\@thmcounterup#1{\noexpand\arabic{#1}}
+\def\@thmcountersep{.}
+\def\@begintheoremup#1#2{\trivlist
+   \item[\hskip \labelsep{\bfseries #1\ #2.}]\upshape}
+\def\@opargbegintheoremup#1#2#3{\trivlist
+      \item[\hskip \labelsep{\bfseries #1\ #2\ (#3).}]\upshape}
+\def\@endtheoremup{\endtrivlist}
+
+\newtheorem{theorem}{Theorem}
+\newtheoremup{remark}[theorem]{Remark}
+\newtheoremup{example}[theorem]{Example}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{summary}[theorem]{Summary}
+
+%\numberwithin{theorem}{section}
+
+\newcommand{\thm}[1]{\begin{theorem} #1 \end{theorem}}
+\newcommand{\prob}[1]{\begin{problem} #1 \end{problem}}
+\newcommand{\prop}[1]{\begin{proposition} #1 \end{proposition}}
+\newcommand{\rem}[1]{\begin{remark} #1 \end{remark}}
+\newcommand{\lem}[1]{\begin{lemma} #1 \end{lemma}}
+\newcommand{\cor}[1]{\begin{corollary} #1 \end{corollary}}
+\newcommand{\defn}[1]{\begin{definition} #1 \end{definition}}
+\newcommand{\prf}[1]{\begin{proof} #1 \end{proof}}
+\newcommand{\examp}[1]{\begin{example} #1 \end{example}}
+
+%%%% Bullet point environments %%%%
+\newenvironment{mybullet} % Bullet environment
+{
+    \begin{list}{$\bullet$ \quad}{}
+        \setlength{\topsep}{0pt}
+        \setlength{\parskip}{0pt}
+        \setlength{\partopsep}{0pt}
+        \setlength{\parsep}{0pt}
+        \setlength{\itemsep}{0pt}
+}
+{
+    \end{list}
+}
+\newcommand{\bull}[1]{\begin{mybullet} #1 \end{mybullet}}
+\newcommand{\bulls}[1]{\begin{itemize} #1 \end{itemize}}
+
+\newenvironment{myenumerate} % Enumerate environment
+{    \begin{enumerate}
+        \setlength{\topsep}{0pt}
+        \setlength{\parskip}{0pt}
+        \setlength{\partopsep}{0pt}
+        \setlength{\parsep}{0pt}
+        \setlength{\itemsep}{0pt}
+}{\end{enumerate}}
+\newcommand{\enum}[1]{\begin{myenumerate} #1 \end{myenumerate}}
+\newcommand{\enums}[1]{\begin{enumerate} #1 \end{enumerate}}
+
+% Widecheck
+\makeatletter
+\DeclareRobustCommand\widecheck[1]{{\mathpalette\@widecheck{#1}}}
+\def\@widecheck#1#2{%
+    \setbox\z@\hbox{\m@th$#1#2$}%
+    \setbox\tw@\hbox{\m@th$#1%
+       \widehat{%
+          \vrule\@width\z@\@height\ht\z@
+          \vrule\@height\z@\@width\wd\z@}$}%
+    \dp\tw@-\ht\z@
+    \@tempdima\ht\z@ \advance\@tempdima2\ht\tw@ \divide\@tempdima\thr@@
+    \setbox\tw@\hbox{%
+       \raise\@tempdima\hbox{\scalebox{1}[-1]{\lower\@tempdima\box
+\tw@}}}%
+    {\ooalign{\box\tw@ \cr \box\z@}}}
+\makeatother
+
+%Widebar
+\newlength{\widebarargwidth}
+\newlength{\widebarwidth}
+\newlength{\widebarargheight}
+\newlength{\widebarargdepth}
+\DeclareRobustCommand{\widebar}[1]{%
+  \settowidth{\widebarargwidth}{\ensuremath{#1}}%
+  \settoheight{\widebarargheight}{\ensuremath{#1}}%
+  \settodepth{\widebarargdepth}{\ensuremath{#1}}%
+  \addtolength{\widebarargwidth}{-0.2\widebarargheight}%
+  \addtolength{\widebarargwidth}{-0.2\widebarargdepth}%
+  \makebox[0pt][l]{\addtolength{\widebarargheight}{0.3ex}%
+    \hspace{0.2\widebarargheight}%
+    \hspace{0.2\widebarargdepth}%
+    \hspace{0.5\widebarargwidth}%
+    \setlength{\widebarwidth}{0.6\widebarargwidth}%
+    \addtolength{\widebarwidth}{0.3ex}%
+    \makebox[0pt][c]{\rule[\widebarargheight]{\widebarwidth}{0.1ex}}}%
+  {#1}}
+
+%Script letters
+\newcommand*{\cA}{\mathcal{A}}
+\newcommand*{\cB}{\mathcal{B}}
+\newcommand*{\cC}{\mathcal{C}}
+\newcommand*{\cD}{\mathcal{D}}
+\newcommand*{\cE}{\mathcal{E}}
+\newcommand*{\cF}{\mathcal{F}}
+\newcommand*{\cG}{\mathcal{G}}
+\newcommand*{\cH}{\mathcal{H}}
+\newcommand*{\cI}{\mathcal{I}}
+\newcommand*{\cJ}{\mathcal{J}}
+\newcommand*{\cK}{\mathcal{K}}
+\newcommand*{\cL}{\mathcal{L}}
+\newcommand*{\cM}{\mathcal{M}}
+\newcommand*{\cN}{\mathcal{N}}
+\newcommand*{\cQ}{\mathcal{Q}}
+\newcommand*{\cR}{\mathcal{R}}
+\newcommand*{\cO}{\mathcal{O}}
+\newcommand*{\cP}{\mathcal{P}}
+\newcommand*{\cS}{\mathcal{S}}
+\newcommand*{\cU}{\mathcal{U}}
+\newcommand*{\cT}{\mathcal{T}}
+\newcommand*{\cV}{\mathcal{V}}
+\newcommand*{\cW}{\mathcal{W}}
+\newcommand*{\cX}{\mathcal{X}}
+\newcommand*{\cY}{\mathcal{Y}}
+\newcommand*{\cZ}{\mathcal{Z}}
+
+%Bold face letters
+\newcommand*{\bbA}{\mathbb{A}}
+\newcommand*{\bbB}{\mathbb{B}}
+\newcommand*{\bbC}{\mathbb{C}}
+\newcommand*{\bbD}{\mathbb{D}}
+\newcommand*{\bbE}{\mathbb{E}}
+\newcommand*{\bbF}{\mathbb{F}}
+\newcommand*{\bbG}{\mathbb{G}}
+\newcommand*{\bbH}{\mathbb{H}}
+\newcommand*{\bbI}{\mathbb{I}}
+\newcommand*{\bbJ}{\mathbb{J}}
+\newcommand*{\bbK}{\mathbb{K}}
+\newcommand*{\bbL}{\mathbb{L}}
+\newcommand*{\bbM}{\mathbb{M}}
+\newcommand*{\bbN}{\mathbb{N}}
+\newcommand*{\bbQ}{\mathbb{Q}}
+\newcommand*{\bbR}{\mathbb{R}}
+\newcommand*{\bbO}{\mathbb{O}}
+\newcommand*{\bbP}{\mathbb{P}}
+\newcommand*{\bbS}{\mathbb{S}}
+\newcommand*{\bbU}{\mathbb{U}}
+\newcommand*{\bbT}{\mathbb{T}}
+\newcommand*{\bbV}{\mathbb{V}}
+\newcommand*{\bbW}{\mathbb{W}}
+\newcommand*{\bbX}{\mathbb{X}}
+\newcommand*{\bbY}{\mathbb{Y}}
+\newcommand*{\bbZ}{\mathbb{Z}}
+
+%Roman letters
+\newcommand*{\rA}{\mathrm{A}}
+\newcommand*{\rB}{\mathrm{B}}
+\newcommand*{\rC}{\mathrm{C}}
+\newcommand*{\rD}{\mathrm{D}}
+\newcommand*{\rE}{\mathrm{E}}
+\newcommand*{\rF}{\mathrm{F}}
+\newcommand*{\rG}{\mathrm{G}}
+\newcommand*{\rH}{\mathrm{H}}
+\newcommand*{\rI}{\mathrm{I}}
+\newcommand*{\rJ}{\mathrm{J}}
+\newcommand*{\rK}{\mathrm{K}}
+\newcommand*{\rL}{\mathrm{L}}
+\newcommand*{\rM}{\mathrm{M}}
+\newcommand*{\rN}{\mathrm{N}}
+\newcommand*{\rQ}{\mathrm{Q}}
+\newcommand*{\rR}{\mathrm{R}}
+\newcommand*{\rO}{\mathrm{O}}
+\newcommand*{\rP}{\mathrm{P}}
+\newcommand*{\rS}{\mathrm{S}}
+\newcommand*{\rU}{\mathrm{U}}
+\newcommand*{\rT}{\mathrm{T}}
+\newcommand*{\rV}{\mathrm{V}}
+\newcommand*{\rW}{\mathrm{W}}
+\newcommand*{\rX}{\mathrm{X}}
+\newcommand*{\rY}{\mathrm{Y}}
+\newcommand*{\rZ}{\mathrm{Z}}
+
+%Upright Roman
+\def\thetabf{\bm{\upgreek{\theta}}}
+\def\rhobf{\bm{\upgreek{\rho}}}
+%\def\rhobf{\hbox{\boldmath$\rho$\unboldmath}}
+\def\nubf{\bm{\upgreek{\nu}}}
+\def\psibf{\bm{\upgreek{\psi}}}
+\def\omegabf{\bm{\upgreek{\omega}}}
+
+\def\Thetabf{\mbox{$\bf \Theta$}}
+\def\Lambdabf{\mbox{$\bf \Lambda $}}
+\def\Gammabf{\mbox{$\bf \Gamma $}}
+
+%Roman numerals
+\newcommand{\Romnum}[1]{\uppercase\expandafter{\romannumeral#1}}
+\newcommand{\romnum}[1]{\romannumeral#1\relax}

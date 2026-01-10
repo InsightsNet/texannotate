@@ -1,0 +1,103 @@
+\usepackage{amsfonts, amsmath, amssymb, array, color, enumerate, epsf, feynmp, graphicx, grffile, hyperref,mathrsfs}
+
+%
+
+\textheight 8.5in \textwidth 6.5in
+\oddsidemargin 0pt \evensidemargin 0pt \topmargin -.35in
+\def\baselinestretch{1.1}
+\addtolength{\parskip}{1ex}
+\jot=.5ex
+
+%
+
+\DeclareGraphicsRule{*}{mps}{*}{}
+
+%
+
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\makeatletter\@addtoreset{equation}{section}\makeatother
+
+%
+
+\setlength\arraycolsep{2pt}
+
+%
+
+\def\bH {\mathbb{H}}
+\def\bR {\mathbb{R}}
+\def\bZ {\mathbb{Z}}
+\def\CP {\mathbb{C P}}
+
+\def\bC {\mathbb{C}}
+
+\def\bI {\mathbb{I}}
+\def\bx {\mathbf{x}}
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\bea{\begin{eqnarray}}
+\def\eea{\end{eqnarray}}
+
+
+\newcommand{\m}{\mu}
+\newcommand{\n}{\nu}
+\newcommand{\p}{\nabla}
+
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\makeatletter\@addtoreset{equation}{section}\makeatother
+
+\hyphenation{sub-manifold}
+\hyphenation{ex-clu-ding}
+
+\newcommand{\vev}[1]{{\left< {#1} \right>}}
+\newcommand{\bra}[1]{{\left< {#1} \right|}}
+\newcommand{\ket}[1]{{\left| {#1} \right>}}
+
+\newcommand{\tr}{{\rm tr\,}}
+\newcommand{\cA}{{\mathcal A}}
+\newcommand{\cC}{{\mathcal C}}
+\newcommand{\cD}{{\mathcal D}}
+\newcommand{\cK}{{\mathcal K}}
+\newcommand{\cL}{{\mathcal L}}
+\newcommand{\cN}{{\mathcal N}}
+\newcommand{\cP}{{\mathcal P}}
+\newcommand{\cQ}{{\mathcal Q}}
+\newcommand{\cS}{{\mathcal S}}
+\newcommand{\cV}{{\mathcal V}}
+\newcommand{\cW}{{\mathcal W}}
+\newcommand{\cM}{{\mathcal M}}
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\bea{\begin{eqnarray}}
+\def\eea{\end{eqnarray}}
+\def\ie{\begin{equation}\begin{aligned}}
+\def\fe{\end{aligned}\end{equation}}
+
+
+\newcommand{\A}{{\alpha}}
+\newcommand{\B}{{\beta}}
+\newcommand{\C}{{\gamma}}
+\newcommand{\D}{{\delta}}
+\newcommand{\LL}{{\lambda}}
+\newcommand{\da}{{\dot\alpha}}
+\newcommand{\db}{{\dot\beta}}
+\newcommand{\dc}{{\dot\gamma}}
+\newcommand{\dd}{{\dot\delta}}
+
+\newcommand{\Tr}{{\rm Tr\,}}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
+
+%
+
+\newcommand{\preprint}[1]{\begin{table}[t]  %%
+             \begin{flushright}               %%
+             {#1}                             %%
+             \end{flushright}                 %%
+             \end{table}}                     %%
+\renewcommand{\title}[1]{\vbox{\center\LARGE{#1}}\vspace{5mm}}
+\renewcommand{\author}[1]{\vbox{\center#1}\vspace{5mm}}
+\newcommand{\address}[1]{\vbox{\center\em#1}}
+\newcommand{\email}[1]{\vbox{\center\tt#1}\vspace{5mm}}

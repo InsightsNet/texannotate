@@ -1,0 +1,250 @@
+\NeedsTeXFormat{LaTeX2e}%
+
+\ProvidesPackage{ecrc_RIAI}[2009/09/21 v1.0 ecrc]
+
+\makeatletter
+
+\ifnum\jtype=1
+ \RequirePackage{geometry}
+ \geometry{twoside,
+  paperwidth=210mm,
+  paperheight=297mm,
+  textheight=562pt,
+  textwidth=384pt,
+  centering,
+  headheight=10pt,
+  headsep=12pt,
+  footskip=12pt,
+  footnotesep=24pt plus 2pt minus 12pt,
+ }
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \if@twocolumn\global\@twocolumnfalse\fi
+\else\ifnum\jtype=3
+ \RequirePackage{geometry}
+ \geometry{twoside,
+  paperwidth=210mm,
+  paperheight=297mm,
+  textheight=622pt,
+  textwidth=468pt,
+  centering,
+  headheight=10pt,
+  headsep=12pt,
+  footskip=12pt,
+  footnotesep=24pt plus 2pt minus 12pt,
+  columnsep=2pc
+ }
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \if@twocolumn\input{fleqn.clo}\fi
+\else\ifnum\jtype=5
+ \RequirePackage{geometry}
+ \geometry{twoside,
+  paperwidth=210mm,
+  paperheight=280mm,
+  textheight=682pt,
+  textwidth=522pt,
+  centering,
+  headheight=10pt,
+  headsep=12pt,
+  footskip=12pt,
+  footnotesep=24pt plus 2pt minus 12pt,
+  columnsep=18pt
+ }%
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \input{fleqn.clo}
+ \global\@twocolumntrue
+%%
+%% End of option '5p'
+%%
+\fi\fi\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtEndDocument{\label{lastpage}}
+
+\let\@journalname\@empty
+\def\journalname#1{\gdef\@journalname{#1}}
+
+\let\@jid\@empty
+\def\jid#1{\gdef\@jid{#1}}
+
+\def\reprintline{%
+    \parbox[t]{\@tempdima}{\centering%
+    \raisebox{20pt}{\includegraphics{SDlogo-\jtype p.pdf}}\\[-12pt]
+    \mbox{\footnotesize\@journalname~xx~(xxxx)~xxx-xxx}%
+    }}
+
+\def\volume#1{\gdef\@vol{#1}}
+\def\firstpage#1{\gdef\@firstpage{#1}%
+                  \setcounter{page}{#1}}
+
+\def\lastpage{\pageref{lastpage}}
+
+\def\jnltitlelogo#1{\gdef\@jnltitlelogo{#1}}
+
+\newdimen\dummylogowidth
+\dummylogowidth=85.37pt
+
+\jnltitlelogo{Journal Logo}
+
+\def\TopRule{\rule{\dummylogowidth}{1.85pt}\\[-9.6pt]
+             \rule{\dummylogowidth}{1pt}}
+
+\def\BottomRule{\rule{\dummylogowidth}{1pt}\\[-9pt]
+                \rule{\dummylogowidth}{1.85pt}}
+
+\def\jnltitlebox{\parbox[c][42pt]{84.37pt}%%
+                {\centering\bfseries\@jnltitlelogo}}
+
+\def\dummyjnllogo{%
+      \parbox[c][51pt][c]{\dummylogowidth}%
+      {\TopRule%
+       \vfill%
+        \jnltitlebox%
+       \vfill%
+       \BottomRule%
+}}
+
+\def\elslogo{\includegraphics{elsevier-logo-\jtype p.pdf}}
+\def\sdlogo{\includegraphics{SDlogo-\jtype p.pdf}}
+\def\jnllogo{\includegraphics{\@jid logo.pdf}}
+%\def\jnllogo{\IfFileExists{\@jid logo.pdf}%
+%   {
+%   \includegraphics{\@jid logo.pdf}
+%   }%
+%   {\dummyjnllogo}%
+%   }
+
+\def\runauth#1{\gdef\@runauth{#1}}
+\runauth{Author}
+
+\let\@dochead\@gobble
+\def\dochead#1{\gdef\@dochead{\centering{\Large#1}}}
+
+\def\ps@pprintTitle{%
+    \def\@evenhead{%% Even head
+      \setbox1=\hbox{\elslogo}%
+      \setbox2=\hbox{\sdlogo}%
+      \setbox3=\hbox{\jnllogo}%
+%      \@tempdima=\textwidth\relax%
+%      \advance \@tempdima - \wd1%
+%      \advance \@tempdima - \wd3%
+%      \advance \@tempdima - 72pt%
+%      \showthe\wd1
+%      \showthe\wd2
+      \vspace*{2pc}
+      \parbox[t]{\wd1}{\elslogo}
+       \hfil
+       \parbox[t]{19pc}{\centering%
+       \raisebox{23pt}{\sdlogo}\\[-12pt]
+       \mbox{\footnotesize\@journalname~\@vol~(\the\year)%
+         ~\@firstpage--\lastpage}}\hfil%
+
+  %      \raisebox{23pt}{\parbox[c]{\wd3}{\jnllogo}}}
+  %    \raisebox{27pt}{\parbox[c]{\wd3}{\jnllogo}}}
+
+ \parbox[t]{25mm} {\centering%
+       \raisebox{9pt}{\jnllogo}\\[-10pt]
+       \mbox{\scriptsize www.elsevier.es/RIAI}}
+
+   }
+       \let\@oddhead\@evenhead%
+      \let\@oddfoot\@empty
+      \let\@evenfoot\@oddfoot
+}
+
+\long\def\MaketitleBox{%
+  \resetTitleCounters
+  \def\baselinestretch{1}%
+  \begin{center}%
+  \ifx\@dochead\@empty\relax%
+     \vspace*{3pc}%
+  \else%
+     \vspace*{4pc}%
+   \@dochead%
+     \par%
+     \vspace*{1pc}%
+   \fi%
+   \def\baselinestretch{1}%
+    \Large\@title\par\vskip18pt
+    \normalsize\elsauthors\par\vskip10pt
+    \footnotesize\itshape\elsaddress\par\vskip36pt
+    \hrule\vskip12pt
+    \ifvoid\absbox\else\unvbox\absbox\par\vskip10pt\fi
+    \ifvoid\keybox\else\unvbox\keybox\par\vskip10pt\fi
+    \hrule\vskip12pt
+    \end{center}%
+   \ifnum\jtype=1
+    \vspace*{-20pt}%
+   \fi
+}
+
+\def\ps@headings{%
+    \def\@oddhead{\parbox{\textwidth}{\itshape\footnotesize%
+         \hfill\@runauth~/~\@journalname~\@vol~(\the\year)~%
+          \@firstpage--\lastpage%
+         \hfill{\rm \thepage}}}%
+    \def\@evenhead{\parbox{\textwidth}{\itshape\footnotesize%
+         {\rm \thepage}\hfil\@runauth~/~\@journalname~\@vol~(\the\year)~%
+         \@firstpage--\lastpage\hfil}}%
+    \let\@evenfoot\@empty%
+    \let\@oddfoot\@evenfoot}
+
+\pagestyle{headings}
+
+\def\footnoterule{\kern-3\p@%
+  \hrule width 3pc height .25pt
+  \kern3\p@}
+
+% Insertado para que aparezca "Resumen"
+
+\renewenvironment{abstract}{\global\setbox\absbox=\vbox\bgroup
+  \hsize=\textwidth\def\baselinestretch{1}%
+  \noindent\unskip\textbf{Resumen}
+ \par\medskip\unskip\ignorespaces}
+ {\egroup}
+
+
+% Insertado para que aparezca "Palabras Clave"
+
+\def\keyword{%
+  \def\sep{\unskip, }%
+ \def\MSC{\@ifnextchar[{\@MSC}{\@MSC[2000]}}
+  \def\@MSC[##1]{\par\leavevmode\hbox {\it ##1~MSC:\space}}%
+  \def\PACS{\par\leavevmode\hbox {\it PACS:\space}}%
+  \def\JEL{\par\leavevmode\hbox {\it JEL:\space}}%
+  \global\setbox\keybox=\vbox\bgroup\hsize=\textwidth
+  \normalsize\normalfont\def\baselinestretch{1}
+  \parskip\z@
+  \noindent\textit{Palabras Clave: }
+  \raggedright                         % Keywords are not justified.
+  \ignorespaces}
+\def\endkeyword{\par \egroup}
+
+% Insertado para que aparezca "Correo electrónico"
+
+\def\printFirstPageNotes{%
+  \iflongmktitle
+   \let\columnwidth=\textwidth\fi
+  \ifx\@tnotes\@empty\else\@tnotes\fi
+  \ifx\@nonumnotes\@empty\else\@nonumnotes\fi
+  \ifx\@cornotes\@empty\else\@cornotes\fi
+  \ifx\@elseads\@empty\relax\else
+   \let\thefootnote\relax
+   \footnotetext{\ifnum\theead=1\relax
+      \textit{Correo electr\'onico:\space}\else
+      \textit{Correos electr\'onicos:\space}\fi
+     \@elseads}\fi
+  \ifx\@elsuads\@empty\relax\else
+   \let\thefootnote\relax
+   \footnotetext{\textit{URL:\space}%
+     \@elsuads}\fi
+  \ifx\@fnotes\@empty\else\@fnotes\fi
+  \iflongmktitle\if@twocolumn
+   \let\columnwidth=\Columnwidth\fi\fi
+}
+
+
+\makeatother

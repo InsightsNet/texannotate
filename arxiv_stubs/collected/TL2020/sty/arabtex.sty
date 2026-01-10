@@ -1,0 +1,634 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% arabtex.sty %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% arabtex.sty 
+% this is the driver module for the ArabTeX macro package
+\def \theversion {3.11}
+\def \thedatum {22.08.2003}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% (c) Klaus Lagally              EMail:  lagallyk@acm.org
+%     Institut fuer Formale
+%       Methoden der Informatik  TEL:    +49-711-7816-392
+%     Universitaet Stuttgart     FAX:    +49-711-7816-370
+%     Universitaetsstrasse 38
+%     D-70569 Stuttgart          INFO: arabtex@informatik.uni-stuttgart.de
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This program can be redistributed and/or modified under the terms
+% of the LaTeX Project Public License distributed from CTAN
+% archives in directory macros/latex/base/lppl.txt; either
+% version 1 of the License, or (at your option) any later version.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifx \undefined \Lagally \else
+\errhelp {ArabTex should be loaded *after* EDMAC (if applicable),^^J
+but *before* any non-standard LaTeX packages or options.^^J
+Correct your configuration and try again.}
+\errmessage {Inconsistent configuration.^^J
+The command `\string \undefined' has been redefined by some package.^^J
+`\string \undefined' is defined as `\meaning \undefined'.^^J
+This might utterly confuse ArabTeX which is therefore not loaded.^^J
+}\fi
+
+\ifx \ar@batcode \undefined \else \expandafter \endinput
+\fi % load only once
+
+\chardef \ar@batcode = \catcode`\@ \catcode`\@ = 11 \chardef \@other = 12
+\chardef \ar@bdqcode = \catcode`\" \catcode`\" = 12 % for german.sty
+
+%%%%%%%%%%%%%%%%%%%%%%%% auxiliary macros %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \ArabTeX {Arab\TeX }        
+
+\let \xpa \expandafter        		\def \xxpa {\xpa \xpa \xpa }    
+\def \xxxpa {\xpa \xxpa \xpa }
+
+\let \nxp \noexpand             	\def \nxxp {\nxp \nxp \nxp }
+\def \n@xp {\nxp \nxp \nxp }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% identify yourself %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input aconfig.sty % check environment
+
+\let \a@wlog \wlog        	\def \wlog #1{\relax }
+
+\a@ident {arabtex.sty} {\theversion \space ArabTeX main module} {\thedatum }
+
+\UsePackage {arabaux}                % load auxiliary macros
+
+%%%%%%%%%%%%%%%%%%% various declarations %%%%%%%%%%%%%%%%%%%%%
+
+\newbox  \wordb@x       \newbox  \lineb@x       \newbox  \tempb@x
+\newtoks \a@tokens      \newtoks \sc@next       \newtoks \sc@rest
+\newtoks \a@@cmd        \newtoks \a@@name       \newtoks \a@@tail
+\newtoks \a@digits      \newtoks \a@first       \newtoks \a@paren
+\newtoks \a@@everypar   \newtoks \a@accent
+\newskip \a@parindent   \newskip \a@parskip            
+\newwrite \a@@err       \newwrite \a@@out
+\newcount \tracingarab  \def \quiet {\tracingarab = 0 }
+
+\newif \if@vocals       \newif \ifv@c           \newif \if@sukun
+\newif \if@suk          \newif \if@wasla        \newif \if@was
+\newif \if@high         \newif \ifacc@hi        \newif \ifa@vmode
+\newif \ifa@space       \newif \iftr@ns         \newif \ifa@oldhmode
+
+\newif \iftest                 % \testtrue % for internal use only
+\newif \iftest@scan     \newif \iftest@trans
+\newif \iftest@parse    \newif \iftest@write
+\newif \iftest@command  \newif \iftest@font
+
+\newif \ifnewfont	\newif \ifaRL
+
+%%%%%%%%%%%%%%%%%%% language specific switches %%%%%%%%%%%%%%%%%%%%%
+
+%% beware of moving arguments!
+
+\newif \ifarab     % generate the arabic script
+\newif \ifshow     % display the input text verbatim
+\newif \ifligs     % set all ligatures active
+\newif \ifspread   % spread characters by keshide
+\newif \iftrans    % generate the transliteration
+
+%newif \ifRL       % alias for \ifarab
+\let \RLtrue \arabtrue         \let \RLfalse \arabfalse
+
+% internal switches
+
+\newif \ifaN@alif          % tanwin on alif
+\newif \ifqur@n            % old hamza rules
+\newif \ifh@mza            % hamza rules, assimilation
+\newif \if@ssim            % assimilation
+\newif \ifiz@fet           % izafet rules
+\newif \ifyahd@ts          % yah with dots
+\newif \ifk@fs             % final kaf without mark
+\newif \iff@rsn            % Farsi numerals
+\newif \ifk@sra            % Kasra always below char
+
+\newif \ifp@sht            % loop chars, e as two dots, diphtongs
+\newif \ifurd@             % e as long yah, urdu accent, two hah chars
+\newif \ifm@gh             % variants of fah, vah and qaf
+\newif \ift@rk             % special transliteration and coding
+\newif \ifk@rd             % special transliteration and coding
+\newif \ifs@nd             % special transliteration and coding
+\newif \ifu@gh             % special transliteration and coding
+\newif \ifm@lay            % special transliteration and coding
+\newif \ifk@sh             % special transliteration and coding
+
+\newif \ifn@arab           % load Arabic default
+
+%%%%%%%%%%%%%%%%%%% various robust options %%%%%%%%%%%%%%%%%%%%%
+
+\pdef \yahdots {\yahd@tstrue }           \pdef \yahnodots {\yahd@tsfalse }
+\pdef \accentshigh {\acc@hitrue }        \pdef \accentslow {\acc@hifalse }
+\pdef \oldtanwin {\aN@aliffalse }        \pdef \newtanwin {\aN@aliftrue }
+\pdef \oldhamza {\qur@ntrue }            \pdef \newhamza {\qur@nfalse }
+
+%%%%%%%%%%%%%%%%%%% various defaults %%%%%%%%%%%%%%%%%%%%%
+
+\def \transtrue {% activate the transliteration
+\iftr@ns \else \tr@zdmg \fi \let \iftrans \iftrue }
+
+\let \tr@zdmg \relax                \n@arabtrue         
+
+\def \arab@output {\ifx \a@lang \a@arab \else
+\tr@ceoff % switch to Arabic output conventions
+\def@arabchars         % define character macros for Arabic
+\def@arabaccent % define accent macros for Arabic
+\def@arabvoc         % define vowel parsing routines for Arabic
+\def@arabstrut         % define strut for Arabic
+\tr@zdmg        % define standard transliteration
+\let \a@write \a@@write                \let \a@write@hook \relax
+\tr@ceon \let \a@lang \a@arab \fi }
+
+\def \a@arab {ARABIC}   \def \a@lang {NONE}
+
+%%%%%%%%%%%%%%%%%%% ML-TeX compatibility (br) %%%%%%%%%%%%%%%%%%%%%
+
+\newcount \arab@charsubdefmax        \arab@charsubdefmax \m@ne
+
+\ifx \charsubdefmax \undefined 
+        \csname newcount\endcsname \charsubdefmax
+\else        % save actual \charsubdefmax value
+        \arab@charsubdefmax=\charsubdefmax
+             % restore it, when outputting a new box in \output routine
+        \csname newtoks\endcsname \a@@output        \a@@output=\output
+        \output={\charsubdefmax \arab@charsubdefmax \the\a@@output }
+\fi
+
+%%%%%%%%%%%%%%%%%%% language selection %%%%%%%%%%%%%%%%%%%%%
+
+\def \all@false {% reset language code to default 
+\k@rdfalse \t@rkfalse \m@ghfalse \urd@false \p@shtfalse 
+\s@ndfalse \m@layfalse \u@ghfalse \k@srafalse
+\h@mzafalse \@ssimfalse \iz@fetfalse \yahd@tsfalse \k@fsfalse \f@rsnfalse
+\let \vocalize \v@calize    \let \fullvocalize \fullv@calize
+\arab@output \catcode`\<=\active }
+
+% all language selection commands are robust!
+
+\pdef \setarab {% kaf with mark, hamza rules, yah with dots
+\all@false \h@mzatrue \@ssimtrue \yahd@tstrue  \oldtanwin 
+\def \a@defaultfont {\setnash }}
+
+\pdef \setmaghribi {% variants of fah and qaf
+\setarab \m@ghtrue  }
+
+\pdef \setfarsi {% no kaf mark, yah without dots, izafet
+\all@false \iz@fettrue \h@mzatrue \@ssimtrue \k@fstrue \f@rsntrue
+\newtanwin \def \a@defaultfont {\setnast }}
+
+\pdef \setkurdish {% no kaf mark, yah without dots, izafet
+\setfarsi \k@rdtrue }
+
+\pdef \setturk {% kaf with mark, yah without dots, izafet, hamza
+\all@false \iz@fettrue \h@mzatrue \@ssimtrue \newtanwin \t@rktrue 
+\def \a@defaultfont {\setnash }}
+
+\pdef \seturdu {% two hah, long yah, urdu accent, long e, izafet
+\all@false \iz@fettrue \h@mzatrue \@ssimtrue \k@fstrue \f@rsntrue
+\newtanwin \urd@true  \def \a@defaultfont {\setnast }}
+
+\pdef \setpashto {% pashto loop, e: two dots, izafet, hamza
+\all@false \iz@fettrue \h@mzatrue \@ssimtrue \yahd@tstrue \k@fstrue  
+\newtanwin \p@shttrue  \def \a@defaultfont {\setnast }}
+
+\pdef \setbalut {% temporary
+\setpashto}
+
+\pdef \setsindhi {% switch language specific processing
+\seturdu \h@mzafalse \ligsfalse \yahd@tstrue \s@ndtrue }% ALA-LC has dots!
+
+%\seturdu \h@mzafalse \ligsfalse \yahd@tsfalse \s@ndtrue }% A.Pandey not
+
+\pdef \setmalay {% p, ng, ny
+\seturdu \yahd@tstrue \m@laytrue \def \a@defaultfont {\setnash }}
+
+\pdef \setuighur {% switch language specific processing
+\let \vocalize \novocalize    \let \fullvocalize \novocalize
+\novocalize \@ssimfalse \h@mzafalse
+\u@ghtrue \def \a@defaultfont {\setnash }}
+
+\pdef \setkashmiri {% Kashmiri language mode
+\seturdu \k@shtrue \newarabfont        \settrans{kashmiri}}
+
+\pdef \setverb {% no special processing
+\all@false \yahd@tstrue  \oldtanwin \def \a@defaultfont {\setnash }}
+
+\pdef \setnone {\catcode`\<=\@other }% deselect arabic quotations
+
+\pdef \setquot {\catcode`\<=\active }% select arabic quotations
+
+\pdef \setnoquot {\catcode`\<=\@other }% deselect arabic quotations
+
+%%%%%%%%%%%%%%%%%%%%%%% vowelization options %%%%%%%%%%%%%%%%%%%%%%%%
+
+% must be robust!
+
+\pdef \novocalize  {% no diacritics except explicitly indicated
+\@vocalsfalse \v@cfalse \@sukunfalse \@sukfalse }
+
+\pdef \v@calize    {% diacritics for short vowels only
+\@vocalstrue \v@ctrue \@sukunfalse \@sukfalse }
+
+\pdef \fullv@calize {% all diacritics
+\@vocalstrue \v@ctrue \@sukuntrue \@suktrue }
+
+\let \vocalize \v@calize    \let \fullvocalize \fullv@calize
+
+%%%%%%%%%%%%%%%%%%%%%%%% robust font selection %%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \setarabfont #1{% define font switching
+        \def \set@arabfont {\tr@ceoff #1\tr@ceon }}
+
+\pdef \set@nash         {\setarabfont \nash }
+\pdef \set@nashbf       {\setarabfont \nashbf }
+\pdef \set@nast         {\setarabfont \nastaliq }
+\pdef \set@xnash        {\setarabfont \xnash }
+\pdef \set@xnashbf      {\setarabfont \xnashbf }
+
+% presently no nastaliq font
+\def \nastaliq {\nash }
+
+\def \newarabfont {% switch to new ArabTeX fonts version
+\setx@skels % activate new skeletons
+\let \setnash     \set@xnash
+\let \setnashbf   \set@xnashbf
+\let \setnastaliq \set@xnash
+\let \setnast     \set@xnash
+\newfonttrue \setnash }
+
+\def \oldarabfont {% switch to old ArabTeX fonts version
+\seta@skels % activate old skeletons
+\let \setnash     \set@nash
+\let \setnashbf   \set@nashbf
+\let \setnastaliq \set@nash
+\let \setnast     \set@nash
+\newfontfalse \setnash }
+
+\def \a@defaultfont {\setnash }
+\def \a@default     {\a@defaultfont }
+\def \a@normalfont  {\a@defaultfont }
+
+%%%%%%%%%%%%%%%%%%%%%%%% handling of special characters %%%%%%%%%%%%%%%
+
+\def \a@arab@codes {% save and set special characters
+\chardef \spc@de = \catcode`\         \catcode`\  = 10
+\chardef \dqc@de = \catcode`\"        \catcode`\" = \@other                 
+\chardef \lsc@de = \catcode`\<        \catcode`\< = \@other 
+\csname originalTeX\endcsname % reset codes if BABEL is present
+\arab@charsubdefmax \charsubdefmax \charsubdefmax \m@ne }
+
+\def \a@unarab@codes {% reset catcodes
+\catcode`\  = \spc@de \catcode`\< = \lsc@de \catcode`\" = \dqc@de 
+\charsubdefmax \arab@charsubdefmax 
+\csname germanTeX\endcsname }% reset codes if german.sty is present
+
+\let \arab@codes \a@arab@codes        \let \unarab@codes \a@unarab@codes
+
+%%%%%%%%%%%%%%%%%%%%%%% Arabic environment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif \ifin@arab % inside Arabic environment?
+
+\def \arabtext {% environment for RTL formatting
+\a@parparams 	% aoutput::a@parparams
+\the\arabtext@hook \test@token }
+
+\newtoks \arabtext@hook         
+
+\arabtext@hook = {% initialize RTL environment
+\in@arabtrue   \a@parindent \parindent   \a@parskip \parskip 
+\edef \a@@font {\the\font }%
+\ifhmode \a@oldhmodetrue \else \a@oldhmodefalse \fi
+\a@vmodetrue      \a@@everypar {}%
+\let \| \break    \def \\{\hfil \break }%    
+\let \emphasize \underbar % define internal commands
+\let \a@last@line \short@line    \let \a@put@line \put@line
+\arab@codes \set@arabfont \@waslafalse \@wasfalse
+\def \next@command {\test@special}}
+
+\def \at@arabtext #1{% extend the initialization
+\arabtext@hook \xpa{\the\arabtext@hook #1}}
+
+\let \at@arabtex \at@arabtext % catch typo
+
+\def \a@par {% close a RTL paragraph
+\ifa@vmode \else % terminate last RTL line
+\a@last@line \spreadfalse \a@vmodetrue
+\parindent \a@parindent    \parskip \a@parskip 
+\a@resetpar \a@par@hook    % aoutput::
+\ifnum \tracingarab > 0 \message {##}\fi
+\fi }
+
+\let \a@@par \a@par % save for \a@@everypar in \a@c@autopar
+
+\def \endarabtext {% close RTL environment
+\a@last@line 
+\ifa@oldhmode \noindent \fi
+\ifnum \tracingarab > 0 \message {||}\fi
+\global \@ignoretrue }
+
+\let \RLtext    \arabtext      \let \arabtex    \arabtext    % catch typo
+\let \endRLtext \endarabtext   \let \endarabtex \endarabtext % catch typo
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% next token %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\a@accent = {\lq \rq \cap \MIN \IN \a@tok \shadda \madda \sukun 
+  \raphe \dagesh \mappiq \ldot \rdot \cdot \maqqef \abbr \,}
+
+{\catcode `\^^a0 12         \gdef \sp@ce {^^a0}
+}% catcode ^^a0
+
+\a@digits = {0123456789}             \a@paren  = {()[]}
+\a@first  = {.^_-'`~,|"=:}        % default, scanner dependent
+
+\def \test@@token {\iftest@command \tracingmacros 0 \fi
+\let \a@@word \empty \get@token }
+
+\def \get@token {\futurelet \next@token \test@space }
+
+\let \test@token \test@@token        % get next token
+
+\def \test@space {% check for LTR space 
+\if \space \nxp\next@token \a@@putword \xpa\kill@space 
+\else \xpa\next@command \fi }%	hook for acmd, aedpatch, arabext
+
+\xpa\def \xpa\kill@space \space {% gobble LTR space
+\futurelet \next@token \test@special }
+
+\xpa\def \xpa\kill@sp@ce \sp@ce {% gobble RTL space
+\futurelet \next@token \test@space }
+
+\def \obey@space {% after control characters
+\a@spacefalse \futurelet \next@token \obey@@space }
+
+\def \obey@@space {% check for space after control character
+\if \space \nxp\next@token \a@spacetrue \fi \test@space }
+
+\def \test@rest {% continue after \control sequence in text
+\global\let \test@token \test@@token                                % global!
+\xpa \xpa \xpa \test@token \xpa \a@rest \space }
+
+%%%%%%%%%%%%%%%%%%%%%% special cases %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\long\def \test@special #1{% check for special cases
+\if \bgroup \nxp \next@token                    % arabic group
+	\a@@putword \def \next {\arab@group {#1}}\else
+\if \relax \nxp #1%                             % command
+	\if\is@in@set #1\a@accent		% known to scanner
+		\a@@append {#1}\def \next {\get@token }%
+	\else 					% general command
+		\a@@putword \def \next {\test@command #1}%
+	\fi \else
+\if \sp@ce \nxp \next@token			% RTL space
+	\a@@putword \def \next {\get@token }\else
+\ifcat \nxp ~\nxp #1%                           % active character
+	\a@@putword \def \next {\test@command #1}\else
+\if \nxp <\nxp #1\unarab@codes                  % Roman insert
+	\a@@putword \let \next \test@insert \else
+\ifx $#1\unarab@codes                           % Math insert
+	\a@@putword \let \next \test@math 
+\else \a@@append {#1}\def \next {\get@token}%	% normal case
+\fi\fi\fi\fi\fi\fi \next }
+
+\def \a@@putword {% process characters
+\ifx \a@@word \empty \else
+	\ifarab \putwordb@x {\xpa\arab@item \a@@word \@@ }\fi 
+	\a@spacetrue \xpa\a@showinput \xpa{\a@@word }%
+	\let \a@@word \empty
+\fi }
+
+\def \a@@append #1{% add character
+\a@extend \a@@word {#1}}
+
+%%%%%%%%%%%%%%%%%%%%%% Arabic word %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \arab@item #1#2\@@ {% split the word if necessary
+\ifx \relax #1\relax \else                        % empty word
+\ifx \relax #2\relax \a@rabwrite {#1}\else        % single character
+\if\is@in@set #1\a@first 
+        \a@rabwrite {#1#2}\else                   % start symbol: word
+\if\is@in@set #1\a@digits 
+        \a@split #1#2\@@ \else                    % digit: number
+\if\is@in@set #1\a@paren 
+        \arab@item #2\@@ \a@rabwrite {#1}\else    % parenthesis: test content
+        \a@rabwrite {#1#2}%                       % normal case
+\fi\fi\fi\fi\fi }
+
+\def \a@rabwrite #1{% process an Arabic word (called within a group)
+\tracingmacros 0                 % use \test@XXXtrue for testing !
+  \a@scan #1>%                        % generate the token sequence
+  \xpa \a@parse \the\a@tokens >%  split it into syllables and reverse
+  \xpa \a@write \the\a@revwd >%   output the word
+\ifnum \tracingarab > 2 \message {.}\fi }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Arabic commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\gdef \a@c@last@ {\\}        \gdef \a@c@put@ {\|}        \gdef \a@c@par@ {\par }
+
+{\catcode `\^ 7 \catcode `\^^M=\active \gdef \a@c@M {^^M}}
+
+{\catcode `\ =\active\gdef\a@c@SP{ }}
+
+\long \def \test@command #1{% check for special commands
+\gdef \a@arg {#1}\let \next \test@token
+\ifx \a@arg \a@c@par@ \a@@par \else                        % \par
+\ifx \a@arg \a@c@M \a@@par \else                        % \obeylines
+\ifx \a@arg \a@c@SP \else                                % \obeyspaces
+\ifx \a@arg \a@c@last@ \a@last@line \else                % \\
+\ifx \a@arg \a@c@put@ \a@put@line \else                        % \|
+     \def \next {\a@command #1}% process the command inside "acmd.sty"
+\fi\fi\fi\fi\fi \next }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Arabic groups %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \arab@group #1{% process the next group
+\bgroup \initlineb@x
+\def \end {\global \setbox1 \hbox {\unhbox \lineb@x}%
+\egroup \putwordb@x {\unhbox1 }\a@spacetrue \test@token }% last line
+\test@token #1 \end }
+
+\def \a@sequence #1{% put a sequence of words into a \hbox
+\bgroup \transfalse \showfalse \let \end \relax 
+\let \a@last@line \finish@line \let \a@put@line \break@line
+\def \next@command {\test@special}\let \put@word \addt@line
+\initlineb@x \test@token #1 \end \box\lineb@x \egroup }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% arabic number %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \a@split #1#2\@@ {% next word starts with digit
+\ifx \relax #2\relax \a@rabwrite {#1}\else
+        \def \a@body {}\def \a@number {#1}\a@splitnumber #2\@@ 
+        \xpa \a@rabwrite \xpa {\a@body }%
+\fi }
+
+%{\catcode `\B =12 \gdef \f@sila {B}}         % cf. awrite::ac@other
+%{\catcode `\C =12 \gdef \h@phen {C}}
+
+\def \a@splitnumber #1#2\@@ {% process word starting with digit
+\if\is@in@set #1\a@digits \edef \a@number {#1\a@number }\else 
+\ifx -#1\edef \a@number {\h@phen \a@number }\else 
+\ifx /#1\edef \a@number {/\a@number }\else 
+\ifx ,#1\ifx \relax #2\relax
+        \edef \a@body {\a@body \a@number #1}\def \a@number {}%
+        \else \edef \a@number {\f@sila \a@number }\fi 
+\else \edef \a@body {\a@body \a@number #1}\def \a@number {}%
+\fi\fi\fi\fi
+\ifx \relax #2\relax \edef \a@body {\a@body \a@number}\let \next \relax
+\else \def \next {\a@splitnumber #2\@@ }%
+\fi \next }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% insertions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \test@math #1${% Math insertion in Arabic text
+\def \next {#1}% test for display math
+\ifx \next \empty \def \next 
+        {\begingroup \endarabtext $$\aftergroup \endgroup 
+        \aftergroup \a@spacefalse \aftergroup \test@token }%
+\else \def \next 
+        {\putwordb@x {$#1$}\a@spacetrue \arab@codes \test@token }%
+\fi \next }
+
+\def \test@insert #1>{% Roman insertion in Arabic text
+\putwordb@x {\rm #1}\a@spacetrue \arab@codes \test@token }
+%\putwordb@x {\a@@font #1}\a@spacetrue \arab@codes \test@token }
+
+% cf. abidir::\LR
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% verbatim mode %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \a@showinput #1{% show verbatim text and transliteration
+\ifshow \a@@verb {#1}\fi
+\iftrans {\tracingmacros 0 \set@transfont \trans@text #1 \end }\fi }
+
+\def \a@@verb #1{\def \verb@text {#1}% list input words verbatim
+        {\tracingmacros 0 \penalty \z@ \tt 
+        \xpa \get@meaning \meaning \verb@text }\ }
+
+\def \get@meaning #1>{} % strip off macro header
+
+\def \a@verb #1>{\a@@verb {#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% arabic insertion %%%%%%%%%%%%%%%%%%%%%%%%
+
+{\catcode `\< = \@other           % better make sure
+
+\gdef \a@ins {% arabic insertion or 'less'
+\ifmmode \global\let \a@less <
+\else \global\let \a@less \arab@insert \leavevmode
+  \bgroup \arab@codes \set@arabfont \@waslafalse \@wasfalse
+\fi \a@less }
+
+\gdef \<{\protect \a@ins }        % explicit command \<
+
+\catcode`\< = \active             % prepare active <
+\gdef <{\protect \a@ins }
+} % catcode < 
+
+\def \break@line {% \| inside insertion
+\box\lineb@x \break \initlineb@x }
+
+\def \finish@line {% \\ inside insertion
+\box\lineb@x \hfil \break \initlineb@x }
+
+\def \arab@insert #1>{% Arabic insertion in Roman text
+\ifshow \a@@verb {#1}\fi % verbating listing
+\ifarab \a@sequence {#1} \fi % arabic writing
+\iftrans \set@transfont \trans@text #1 \end \/\fi
+\ifnum \tracingarab > \@ne \message {>}\fi
+\unskip \egroup }
+
+% cf. abidir::\LR
+
+%%%%%%%%%%%%%%%%%%%%%%%%% transliteration %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \settransfont #1{% set transliteration style or \style
+\if \relax \nxp#1\relax \def \set@transfont 
+        {\tr@ceoff #1\csname selectfont\endcsname \tr@ceon }%
+\else \def \set@transfont 
+        {\tr@ceoff \csname #1\endcsname 
+        \csname selectfont\endcsname \tr@ceon }%
+\fi}
+
+\settransfont {\rm \it }% standard font for transliteration
+
+\long \def \trans@text #1{% check for special cases
+\leavevmode \def \next {\trans@text }%
+\if\is@in@set {#1}\a@first \def \next {\trans@elem #1}\else % normal case
+\ifx \end #1\let \next \relax \else
+\ifx \par #1\endgraf \else
+\ifx \\#1\hfil \break \else
+\ifx \|#1\hfil \break \else
+\ifx \emphasize #1\def \next {\a@emp }\else
+\if \relax \nxp #1\relax % ignore control sequences
+\else \def \next {\trans@elem #1}% normal case
+\fi\fi\fi\fi\fi\fi\fi \next }
+
+\def \a@emp #1{\trans@text #1 }
+
+\def \trans@elem #1 {% transliterate next word of text
+\a@transword {#1}\trans@text }
+
+\def \a@transword #1{% transliterate a word
+{\tracingmacros 0 \a@scan #1>\xpa \a@trans \the\a@tokens >\ }}
+
+\ifx \a@trans \undefined % atrans.sty not yet loaded
+\def \a@trans #1>{\gdef \a@trans ##1>{\relax }% default 
+\message {`atrans.sty' not loaded; transliteration ignored.}}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%% initialization %%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \startarab {% set default initializations
+\newarabfont        
+\a@normalfont        % default font
+\transfalse   \arabtrue   \vocalize   \ligsfalse   
+\tracingarab = 0 \setnone } % \catcode < := 12 for user macros
+
+%%%%%%%%%%%%%%%%%%%%%%% load the later passes %%%%%%%%%%%%%%%%%%%%%%
+
+\UsePackage {acmd}                % load the command processor module
+\UsePackage {afonts}              % load the default fonts
+\UsePackage {ascan}               % generate a token sequence
+\UsePackage {aparse}              % parse it into syllables and reverse them
+\UsePackage {awrite}              % generate the basic writing
+\UsePackage {aligs}               % modify for any ligatures
+\UsePackage {aoutput}             % generate output lines
+\UsePackage {abidir}              % bidirectional linebreaking
+\UsePackage {atrans}              % generate the transliteration
+\UsePackage {alatex}              % extensions for LaTeX
+\UsePackage {abjad}               % abjad numerals
+\ifx \edmacloaded \relax
+  \UsePackage {aedpatch} \fi      % patches for EDMAC ?
+\ifx \undefined \peek@token \else
+\ifx \undefined \bbl@test@token
+  \UsePackage {arababel} \fi\fi   % patches for old BABEL ?
+\ifx \CJK \undefined \else
+  \UsePackage {acjk} \fi          % patches for CJK ?
+\UsePackage {apatch}              % any last minute corrections
+
+%%%%%%%%%%%%%%%%%%%%%%% statistics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def \arab@stat {{\newlinechar `$ 
+\wlog {$Parameterless commands valid in Arabic mode:}
+\wlog {\space (\the\a@@listzero )}
+\wlog {$Commands with 1 parameter valid in Arabic mode:}
+\wlog {\space (\the\a@@listone )}
+\wlog {$Commands with 2 parameters valid in Arabic mode:}
+\wlog {\space (\the\a@@listtwo )}
+\wlog {$User defined commands valid in Arabic mode:}
+\wlog {\space (\the\a@@listreg )}}}
+
+\let \arabstat \arab@stat
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% here we go %%%%%%%%%%%%%%%%%%%%%%%
+
+\let \wlog \a@wlog
+
+\startarab \a@report        
+
+\a@message {... now be patient ... }
+
+\catcode`\" = \ar@bdqcode        \catcode`\@ = \ar@batcode        
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EOF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

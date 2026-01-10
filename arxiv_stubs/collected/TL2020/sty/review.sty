@@ -1,0 +1,157 @@
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{review}
+
+\RequirePackage{ifthen}
+\RequirePackage{todonotes}
+\RequirePackage{color}
+\RequirePackage{soul}
+
+\newif\if@hideauthorcomments
+\DeclareOption{hideauthorcomments}{\@hideauthorcommentstrue}
+\newif\if@hidecoverletter
+\DeclareOption{hidecoverletter}{\@hidecoverlettertrue}
+\newif\if@hidenotes
+\DeclareOption{hidenotes}{\@hidenotestrue}
+\DeclareOption{final}{\@hidenotestrue\@hidecoverlettertrue\@hideauthorcommentstrue}
+
+\ProcessOptions
+
+\newcounter{revision}
+\setcounter{revision}{1}
+\newcounter{rcomment}
+\setcounter{rcomment}{0}
+\newcounter{reviewer}
+\setcounter{reviewer}{0}
+
+\definecolor{darkgreen}{rgb}{0 0.6 0}
+
+% cover letter
+\newcommand{\coverletterpath}{}
+\newcommand{\setcoverletter}[1]{%
+  \renewcommand{\coverletterpath}{#1}%
+}
+\AtBeginDocument{%
+    \if@hidecoverletter
+    \else
+    \ifthenelse{\equal{\coverletterpath}{}}%
+    {}%
+    {\input{\coverletterpath}}%
+    \fi
+}
+
+% set revision
+\newcommand{\setrevision}[1]{\setcounter{revision}{#1}}
+
+% addnote[label]{nrevision}{newtext}
+\newcommand{\addnote}[3][]{%
+\if@hidenotes%
+#3%
+\else%
+  \ifthenelse%
+  {\equal{\therevision}{#2}}%
+  {\textcolor{darkgreen}{\textbf{#3}}%
+    \ifthenelse%
+    {\equal{#1}{}}%
+    {}%
+    {\refstepcounter{rcomment}%
+      \label{note:#1}%
+      \todo[linecolor=darkgreen,backgroundcolor=white,bordercolor=white]{%
+	\textcolor{darkgreen}{\textbf{\footnotesize R\thercomment}}}%
+    }%
+  }%
+  {#3}%
+\fi%
+}
+
+% deletenote[label]{nrevision}{oldtext}
+\newcommand{\delnote}[3][]{%
+\if@hidenotes%
+\else%
+  \ifthenelse%
+  {\equal{\therevision}{#2}}%
+  {\textcolor{red}{\st{\textbf{#3}}}%
+    \ifthenelse%
+    {\equal{#1}{}}%
+    {}%
+    {\refstepcounter{rcomment}%
+      \label{note:#1}%
+      \todo[linecolor=red,backgroundcolor=white,bordercolor=white]{%
+	\textcolor{red}{\textbf{\footnotesize C\thercomment}}}%
+    }%
+  }%
+  {}%
+\fi%
+}
+
+% changenote[label]{nrevision}{oldtext}{newtext}
+\newcommand{\changenote}[4][]{%
+\if@hidenotes%
+#4
+\else
+  \ifthenelse%
+  {\equal{\therevision}{#2}}%
+  {\textcolor{red}{\st{\textbf{#3}}} \textcolor{darkgreen}{\textbf{#4}}%
+    \ifthenelse%
+    {\equal{#1}{}}%
+    {}%
+    {\refstepcounter{rcomment}%
+      \label{note:#1}%
+      \todo[linecolor=black,backgroundcolor=white,bordercolor=white]{%
+	\textbf{\footnotesize C\thercomment}}}%
+    }%
+  {#4}%
+\fi
+}
+
+% authorcomment[nrevision]{author}{comment}
+\newcommand{\authorcomment}[3][]{%
+  \if@hideauthorcomments
+  \else
+    \ifthenelse{\equal{#1}{}}%
+    {\todo[linecolor=black,backgroundcolor=white,bordercolor=white]{\textbf{#2}: #3}}%
+    {%
+      \ifthenelse{\equal{\therevision}{#1}}%
+      {
+	\todo[linecolor=black,backgroundcolor=white,bordercolor=white]{\textbf{#2}: #3}
+      }%
+      {}%
+    }%
+  \fi
+}
+
+\newenvironment{coverletter}[2]
+{\pagestyle{empty}%
+\onecolumn%
+\begin{center}%
+ Response to Reviews \vspace{0.5cm}\\
+{\Large ``#1''}\vspace{0.5cm}\\
+submission reference: \##2
+\end{center}%
+\vspace{0.5cm}%
+}
+{\clearpage
+%\pagestyle{plain}
+\setcounter{page}{1}}
+
+
+\newenvironment{answereditor}[1]%
+{\noindent\textbf{Editor's comments and recommendation:}\\
+\indent#1\vspace{0.4cm}\\%
+\noindent\textbf{Authors' answer}\\\indent}%
+{\begin{center}%
+  \rule{0.7\textwidth}{0.5pt}%
+ \end{center}}
+
+\newenvironment{answerreviewer}[1][]%
+{\stepcounter{reviewer}\noindent\textbf{Reviewer \thereviewer}\\\indent#1\begin{enumerate}}%
+{\end{enumerate}}
+\newenvironment{answerreviewer2}[2]%
+{\noindent\textbf{Reviewer #1}\\\indent#2\begin{enumerate}}%
+{\end{enumerate}}
+%\newenvironment{answerreviewer2}[2]%
+%{\noindent\textbf{Reviewer #1}\\\indent#2\begin{enumerate}}%
+%{\end{enumerate}}
+
+\newcommand{\qa}[2]{\item \textbf{Question}: #1\vspace{0.2cm}\\\textbf{Answer}: #2\vspace{0.5cm}}
+\newcommand{\typo}[2]{\item \textbf{Typo}: #1. #2}
+\newcommand{\refcm}[1]{\textbf{Revision~\#\ref{note:#1}} on \textbf{Page~\pageref{note:#1}}}

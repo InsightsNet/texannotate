@@ -1,0 +1,85 @@
+%%
+%% This is file `smfthm.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% smfclass.dtx  (with options: `smfthm')
+%% 
+%%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  %% Classes, paquetages pour les publications de la SMF %%
+%%  %% (c) 1999-2014 Societe mathematique de France        %%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\ProvidesPackage{smfthm}[1999/03/05 v1.0.h
+  Environnements predefinis de theoremes]
+\newif\ifsmf@thmsin\smf@thmsintrue
+\def\NumberTheoremsIn#1{\@ifempty{#1}%
+     {\smf@thmsinfalse}%
+     {\@ifundefined{c@#1}{\@nocounterr{#1}}%
+       {\smf@thmsintrue\def\@NumberTheorems{#1}}}}
+  \NumberTheoremsIn{section}
+\def\NumberTheoremsAs#1{\@ifempty{#1}%
+     {\smf@thmsintrue}%
+     {\@ifundefined{c@#1}{\@nocounterr{#1}}%
+       {\smf@thmsinfalse\def\@NumberTheorems{#1}}}}
+  \NumberTheoremsAs{}
+\def\SwapTheoremNumbers{\def\thm@swap{S}}
+\def\NoSwapTheoremNumbers{\def\thm@swap{N}}
+  \NoSwapTheoremNumbers
+\def\smf@thmdefs{%
+  \theoremstyle{plain}
+  \ifsmf@thmsin
+    \newcounter{smfthm}[\@NumberTheorems]
+    \xdef\thesmfthm
+        {\expandafter\noexpand\csname the\@NumberTheorems\endcsname
+        .\noexpand\arabic{smfthm}}%
+    \gdef\smf@thm{smfthm}
+  \else
+    \xdef\smf@thm{\@NumberTheorems}
+  \fi
+  \newtheorem{theo}[\smf@thm]{\theoname}%
+  \newtheorem{prop}[\smf@thm]{\propname}%
+  \newtheorem{conj}[\smf@thm]{\conjname}%
+  \newtheorem{coro}[\smf@thm]{\coroname}%
+  \newtheorem{lemm}[\smf@thm]{\lemmname}%
+  \theoremstyle{definition}%
+  \newtheorem{defi}[\smf@thm]{\definame}%
+  \theoremstyle{remark}%
+  \newtheorem{rema}[\smf@thm]{\remaname}%
+  \newtheorem{exem}[\smf@thm]{\exemname}%
+  \theoremstyle{plain}}
+\def\smf@enoncedef{%
+ \newenvironment{enonce}[2][plain]%
+    {\let\smfenonce\relax \theoremstyle{##1}%
+     \newtheorem{smfenonce}[\smf@thm]{##2}%
+     \begin{smfenonce}}%
+    {\end{smfenonce}}%
+ \newenvironment{enonce*}[2][plain]%
+    {\let\smfenonce\relax \theoremstyle{##1}%
+     \newtheorem*{smfenonce}{##2}%
+     \begin{smfenonce}}%
+    {\end{smfenonce}}%
+}
+\AtBeginDocument{%
+     \smf@thmdefs\smf@enoncedef}
+\endinput
+%%
+%% End of file `smfthm.sty'.

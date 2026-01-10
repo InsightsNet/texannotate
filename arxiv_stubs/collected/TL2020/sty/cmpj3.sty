@@ -1,0 +1,894 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                                                                      %%%
+%%%    INSTITUTE FOR CONDENSED MATTER PHYSICS                            %%%
+%%%                                                                      %%%
+%%%    Style file for preparing an article for publication               %%%
+%%%    in the Condensed Matter Physics journal <cmp@icmp.lviv.ua>,       %%%
+%%%    http://www.icmp.lviv.ua/journal/                                  %%%
+%%%    using LaTeX2e                                                     %%%
+%%%                                                                      %%%
+%%%    Last time modified: March 17, 2021                                %%%
+%%%                                                                      %%%
+%%%    Copyright (C) 2021 by the Institute for Condensed Matter Physics  %%%
+%%%                      of the National Academy of Sciences of Ukraine  %%%
+%%%                      all rights reserved.                            %%%
+%%%                                                                      %%%
+%%%    This file can be redistributed and/or modified under the terms    %%%
+%%%    of the LaTeX Project Public License (lppl).                       %%%
+%%%                                                                      %%%
+%%%    Please report errors to: Andrij Shvaika                           %%%
+%%%                             ashv (a) icmp lviv ua                    %%%
+%%%                                                                      %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{cmpj3}
+                [2021/03/17 v3.03
+     The Condensed Matter Physics journal package]
+\def\filename{cmpj3.sty}
+\def\fileversion{3.03}
+\def\filedate{2021/03/17}
+\immediate\write32{This is '\filename' v\fileversion \space <\filedate> ^^J%
+     the Condensed Matter Physics journal package}
+
+\if\@ptsize0
+   \else
+   \PackageWarning{cmpj3.sty}{Bad \noexpand\documentclass option, use 10pt}
+\fi
+
+\RequirePackage[T2A,T1]{fontenc}
+\RequirePackage{fancyhdr}
+\RequirePackage{graphicx}
+\RequirePackage[square,comma,numbers,sort&compress]{natbib}
+\RequirePackage{ifthen}
+\RequirePackage[unicode,pdfstartview=FitH]{hyperref}
+\RequirePackage{scalerel}
+\RequirePackage{tikz}
+%\def\href#1#2{}
+\RequirePackage{url}
+%%\RequirePackage{orcidlink}
+%%%%%%%%% orcidlink.sty %%%%%%%%%%%%%%%%%%%%%%%%
+%% orcidlink package was created and is maintained by 
+%% [Leo C. Stein](http://duetosymmetry.com/), (c) 2019.
+%% The original TikZ icon code was created by user [Milo on
+%% TeX.SE](https://tex.stackexchange.com/users/128068/milo).
+\usetikzlibrary{svg.path}
+\definecolor{orcidlogocol}{HTML}{A6CE39}
+\tikzset{
+	orcidlogo/.pic={
+		\fill[orcidlogocol] svg{M256,128c0,70.7-57.3,128-128,128C57.3,256,0,198.7,0,128C0,57.3,57.3,0,128,0C198.7,0,256,57.3,256,128z};
+		\fill[white] svg{M86.3,186.2H70.9V79.1h15.4v48.4V186.2z}
+		svg{M108.9,79.1h41.6c39.6,0,57,28.3,57,53.6c0,27.5-21.5,53.6-56.8,53.6h-41.8V79.1z M124.3,172.4h24.5c34.9,0,42.9-26.5,42.9-39.7c0-21.5-13.7-39.7-43.7-39.7h-23.7V172.4z}
+		svg{M88.7,56.8c0,5.5-4.5,10.1-10.1,10.1c-5.6,0-10.1-4.6-10.1-10.1c0-5.6,4.5-10.1,10.1-10.1C84.2,46.7,88.7,51.3,88.7,56.8z};
+	}
+}
+\newcommand\orcidlink[1]{\texorpdfstring{\href{https://orcid.org/#1}{\mbox{\scalerel*{
+					\begin{tikzpicture}[yscale=-1,transform shape]
+						\pic{orcidlogo};
+					\end{tikzpicture}
+				}{|}}}}{}}
+%%%%%%% end orcidlink.sty %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\RequirePackage{doi}
+%%%%%%%%% doi.sty modified to follow CrossRef rules %%%%%%%%%%%%%%%%%%%%%%%%
+%% To change the default prefix, redefine this command within your own code.
+%% It takes no argument, which is different from the doipubmed package.
+\newcommand{\doitext}{doi:}
+\newcommand{\doiURL}{https://doi.org/}
+
+%% the meat of the code
+%% the first command opens a group, and changes a few catcodes.
+\newcommand*{\doi}{% 
+	\begingroup 
+	\lccode`\~=`\#\relax 
+	\lowercase{\def~{\#}}%
+	\lccode`\~=`\_\relax
+	\lowercase{\def~{\_}}%
+	\lccode`\~=`\<\relax 
+	\lowercase{\def~{\textless}}%
+	\lccode`\~=`\>\relax 
+	\lowercase{\def~{\textgreater}}%
+	\lccode`\~=0\relax 
+	\catcode`\#=\active 
+	\catcode`\_=\active 
+	\catcode`\<=\active 
+	\catcode`\>=\active 
+	\@doi
+}
+
+%% this is the actual command which processes the argument, with the catcodes 
+%% set in the previous command
+%% it closes the group, and spits out the url.
+\def\@doi#1{% 
+	\let\#\relax
+	\let\_\relax
+	\let\textless\relax 
+	\let\textgreater\relax 
+	\edef\x{\toks0={{#1}}}% 
+	\x
+	\edef\#{\@percentchar23}%
+	\edef\_{_}%
+	\edef\textless{\@percentchar3C}% instead of {\string<} for Apple
+	\edef\textgreater{\@percentchar3E}% instead of {\sting>} for Apple
+	\edef\x{\toks2={\noexpand\href{\doiURL#1}}}% 
+	\x
+	\edef\x{\endgroup\doitext\the\toks2 \the\toks0}%
+	\x
+}
+%%%%%%% end doi.sty %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DeclareOption{preprint}{%
+  \renewcommand{\@ptsize}{2}%
+  \renewcommand\normalsize{%
+  \@setfontsize\normalsize\@xiipt{20}%{14.5}%
+  \abovedisplayskip 16\p@ \@plus3\p@ \@minus7\p@
+  \abovedisplayshortskip \z@ \@plus3\p@
+  \belowdisplayshortskip 9\p@ \@plus3.5\p@ \@minus3\p@
+  \belowdisplayskip \abovedisplayskip
+  \let\@listi\@listI}
+  \normalsize
+  \renewcommand\small{%
+  \@setfontsize\small\@xipt{18}%{13.6}%
+  \abovedisplayskip 14\p@ \@plus3\p@ \@minus6\p@
+  \abovedisplayshortskip \z@ \@plus3\p@
+  \belowdisplayshortskip 9\p@ \@plus3.5\p@ \@minus3\p@
+  \def\@listi{\leftmargin\leftmargini
+    \topsep 9\p@ \@plus3\p@ \@minus5\p@
+    \parsep 4.5\p@ \@plus2\p@ \@minus\p@
+    \itemsep \parsep}%
+  \belowdisplayskip \abovedisplayskip
+  }
+  \renewcommand\footnotesize{%
+  \@setfontsize\footnotesize\@xpt\@xiipt
+  \abovedisplayskip 12\p@ \@plus2\p@ \@minus5\p@
+  \abovedisplayshortskip \z@ \@plus3\p@
+  \belowdisplayshortskip 8\p@ \@plus3\p@ \@minus3\p@
+  \def\@listi{\leftmargin\leftmargini
+    \topsep 6\p@ \@plus2\p@ \@minus2\p@
+    \parsep 3\p@ \@plus2\p@ \@minus\p@
+    \itemsep \parsep}%
+  \belowdisplayskip \abovedisplayskip
+  }
+  \renewcommand\scriptsize{\@setfontsize\scriptsize\@viiipt{9.5}}
+  \renewcommand\tiny{\@setfontsize\tiny\@vipt\@viipt}
+  \renewcommand\large{\@setfontsize\large\@xivpt{22}}
+  \renewcommand\Large{\@setfontsize\Large\@xviipt{24}}
+  \renewcommand\LARGE{\@setfontsize\LARGE\@xxpt{25}}
+  \renewcommand\huge{\@setfontsize\huge\@xxvpt{30}}
+  \let\Huge=\huge
+  \if@twocolumn
+  \setlength\parindent{1em}
+  \else
+  \setlength\parindent{1.5em}
+  \fi
+  \setlength\smallskipamount{3\p@ \@plus 1\p@ \@minus 1\p@}
+  \setlength\medskipamount{6\p@ \@plus 2\p@ \@minus 2\p@}
+  \setlength\bigskipamount{12\p@ \@plus 4\p@ \@minus 4\p@}
+  \setlength\headheight{12\p@}
+  \setlength\headsep   {25\p@}
+  \setlength\topskip   {12\p@}
+  \setlength\footskip{30\p@}
+  \if@compatibility \setlength\maxdepth{4\p@} \else
+  \setlength\maxdepth{.5\topskip} \fi
+  \if@compatibility
+  \if@twocolumn
+  \setlength\textwidth{410\p@}
+  \else
+  \setlength\textwidth{390\p@}
+  \fi
+  \else
+  \setlength\@tempdima{\paperwidth}
+  \addtolength\@tempdima{-2in}
+  \setlength\@tempdimb{390\p@}
+  \if@twocolumn
+  \ifdim\@tempdima>2\@tempdimb\relax
+  \setlength\textwidth{2\@tempdimb}
+  \else
+  \setlength\textwidth{\@tempdima}
+  \fi
+  \else
+  \ifdim\@tempdima>\@tempdimb\relax
+  \setlength\textwidth{\@tempdimb}
+  \else
+  \setlength\textwidth{\@tempdima}
+  \fi
+  \fi
+  \fi
+  \if@compatibility\else
+  \@settopoint\textwidth
+  \fi
+  \if@compatibility
+  \setlength\textheight{36\baselineskip}
+  \else
+  \setlength\@tempdima{\paperheight}
+  \addtolength\@tempdima{-2in}
+  \addtolength\@tempdima{-1.5in}
+  \divide\@tempdima\baselineskip
+  \@tempcnta=\@tempdima
+  \setlength\textheight{\@tempcnta\baselineskip}
+  \fi
+  \addtolength\textheight{\topskip}
+  \if@twocolumn
+  \setlength\marginparsep {10\p@}
+  \else
+  \setlength\marginparsep{10\p@}
+  \fi
+  \setlength\marginparpush{7\p@}
+  \if@compatibility
+  \if@twoside
+  \setlength\oddsidemargin   {21\p@}
+  \setlength\evensidemargin  {59\p@}
+  \setlength\marginparwidth {85\p@}
+  \else
+  \setlength\oddsidemargin   {39.5\p@}
+  \setlength\evensidemargin  {39.5\p@}
+  \setlength\marginparwidth  {68\p@}
+  \fi
+  \if@twocolumn
+  \setlength\oddsidemargin  {30\p@}
+  \setlength\evensidemargin {30\p@}
+  \setlength\marginparwidth {48\p@}
+  \fi
+  \else
+  \if@twoside
+  \setlength\@tempdima        {\paperwidth}
+  \addtolength\@tempdima      {-\textwidth}
+  \setlength\oddsidemargin    {.4\@tempdima}
+  \addtolength\oddsidemargin  {-1in}
+  \setlength\marginparwidth   {.6\@tempdima}
+  \addtolength\marginparwidth {-\marginparsep}
+  \addtolength\marginparwidth {-0.4in}
+  \else
+  \setlength\@tempdima        {\paperwidth}
+  \addtolength\@tempdima      {-\textwidth}
+  \setlength\oddsidemargin    {.5\@tempdima}
+  \addtolength\oddsidemargin  {-1in}
+  \setlength\marginparwidth   {.5\@tempdima}
+  \addtolength\marginparwidth {-\marginparsep}
+  \addtolength\marginparwidth {-0.4in}
+  \addtolength\marginparwidth {-.4in}
+  \fi
+  \ifdim \marginparwidth >2in
+  \setlength\marginparwidth{2in}
+  \fi
+  \@settopoint\oddsidemargin
+  \@settopoint\marginparwidth
+  \setlength\evensidemargin  {\paperwidth}
+  \addtolength\evensidemargin{-2in}
+  \addtolength\evensidemargin{-\textwidth}
+  \addtolength\evensidemargin{-\oddsidemargin}
+  \@settopoint\evensidemargin
+  \fi
+  \if@compatibility
+  \setlength\topmargin{27pt}
+  \else
+  \setlength\topmargin{\paperheight}
+  \addtolength\topmargin{-2in}
+  \addtolength\topmargin{-\headheight}
+  \addtolength\topmargin{-\headsep}
+  \addtolength\topmargin{-\textheight}
+  \addtolength\topmargin{-\footskip}     % this might be wrong!
+  \addtolength\topmargin{-.5\topmargin}
+  \@settopoint\topmargin
+  \fi
+  \setlength\footnotesep{8.4\p@}
+  \setlength{\skip\footins}{10.8\p@ \@plus 4\p@ \@minus 2\p@}
+  \setlength\floatsep    {12\p@ \@plus 2\p@ \@minus 4\p@}
+  \setlength\textfloatsep{20\p@ \@plus 2\p@ \@minus 4\p@}
+  \setlength\intextsep   {14\p@ \@plus 4\p@ \@minus 4\p@}
+  \setlength\dblfloatsep    {14\p@ \@plus 2\p@ \@minus 4\p@}
+  \setlength\dbltextfloatsep{20\p@ \@plus 2\p@ \@minus 4\p@}
+  \setlength\@fptop{0\p@ \@plus 1fil}
+  \setlength\@fpsep{10\p@ \@plus 2fil}
+  \setlength\@fpbot{0\p@ \@plus 1fil}
+  \setlength\@dblfptop{0\p@ \@plus 1fil}
+  \setlength\@dblfpsep{10\p@ \@plus 2fil}
+  \setlength\@dblfpbot{0\p@ \@plus 1fil}
+  \setlength\partopsep{3\p@ \@plus 2\p@ \@minus 2\p@}
+  \def\@listi{\leftmargin\leftmargini
+    \parsep 5\p@  \@plus2.5\p@ \@minus\p@
+    \topsep 10\p@ \@plus4\p@   \@minus6\p@
+    \itemsep5\p@  \@plus2.5\p@ \@minus\p@}
+  \let\@listI\@listi
+  \@listi
+  \def\@listii {\leftmargin\leftmarginii
+    \labelwidth\leftmarginii
+    \advance\labelwidth-\labelsep
+    \topsep    5\p@   \@plus2.5\p@ \@minus\p@
+    \parsep    2.5\p@ \@plus\p@    \@minus\p@
+    \itemsep   \parsep}
+  \def\@listiii{\leftmargin\leftmarginiii
+    \labelwidth\leftmarginiii
+    \advance\labelwidth-\labelsep
+    \topsep    2.5\p@\@plus\p@\@minus\p@
+    \parsep    \z@
+    \partopsep \p@ \@plus\z@ \@minus\p@
+    \itemsep   \topsep}
+  \def\@listiv {\leftmargin\leftmarginiv
+    \labelwidth\leftmarginiv
+    \advance\labelwidth-\labelsep}
+  \def\@listv  {\leftmargin\leftmarginv
+    \labelwidth\leftmarginv
+    \advance\labelwidth-\labelsep}
+  \def\@listvi {\leftmargin\leftmarginvi
+    \labelwidth\leftmarginvi
+    \advance\labelwidth-\labelsep}
+}%
+
+\def\eqsecnum{%
+        \@addtoreset{equation}{section} %
+%        \def\theequation{\thesection.\arabic{equation}}%
+        \def\theequation{\ifnum \c@section>\z@ \thesection.\fi \@arabic\c@equation}%
+}
+
+\DeclareOption{eqsecnum}{\eqsecnum}
+
+\def\lat@sf{cmss}
+\def\cyr@sf{cmss}
+\def\Hv@scale{0.889}
+\def\Pr@scale{0.889}
+\def\cmpj@sf{}
+\def\cyr@rm{cmr}
+\def\cc@by@copyright@pdf{}
+\providecommand{\pdfkeywords}{}
+
+
+\def\cmpj@sf@cm{
+	\RequirePackage{textcomp}
+	\RequirePackage{amsmath,amssymb}
+	\def\uppi{\pi}
+	\def\piup{\pi}
+}
+
+\def\cmpj@sf@helvet{
+  \IfFileExists{t1phv.fd}{
+%      \RequirePackage[scaled=0.95]{helvet}
+    \RequirePackage{textcomp}
+	\RequirePackage{amsmath,amssymb}
+    \def\lat@sf{phv}
+  }{
+    \RequirePackage{textcomp}
+	\RequirePackage{amsmath,amssymb}
+    \def\lat@sf{cmss}
+  }
+  \IfFileExists{t2appr.fd}{
+    \def\cyr@sf{ppr}
+  }{
+    \def\cyr@sf{cmss}
+  }
+}
+
+\def\cmpj@sf@droid{
+	\IfFileExists{t2afds.fd}{
+		\RequirePackage{textcomp}
+		\RequirePackage{amsmath,amssymb}
+		\IfFileExists{omltxmi.fd}{\RequirePackage{txfonts}}{}
+		\IfFileExists{fmlfutm.fd}{\RequirePackage{fourier}}{}
+		\IfFileExists{omltxmi.fd}{\re@DeclareMathSymbol{\varkappa}{\mathord}{AMSb}{123}}{}
+		\RequirePackage[default,scale=0.86]{droidserif}
+		\RequirePackage[defaultsans,scale=0.86]{droidsans}
+		\RequirePackage[defaultmono,scale=0.86]{droidmono}
+		\def\lat@sf{fds}
+		\def\cyr@sf{fds}
+		\def\cyr@rm{fdr}
+%		\newcommand\hmmax{0} % default 3
+%		\newcommand\bmmax{0} % default 4
+	}{
+		\IfFileExists{T2Adroidsans.fd}{
+		\RequirePackage{textcomp}
+		\RequirePackage{amsmath,amssymb}
+		\IfFileExists{omltxmi.fd}{\RequirePackage{txfonts}}{}
+		\IfFileExists{fmlfutm.fd}{\RequirePackage{fourier}}{}
+		\IfFileExists{omltxmi.fd}{\re@DeclareMathSymbol{\varkappa}{\mathord}{AMSb}{123}}{}
+		\RequirePackage[default,scale=0.86]{droidserif}
+		\RequirePackage[defaultsans,scale=0.86]{droidsans}
+		\RequirePackage[defaultmono,scale=0.86]{droidsansmono}
+		\def\lat@sf{droidsans}
+		\def\cyr@sf{droidsans}
+		\def\cyr@rm{droidserif}
+%		\newcommand\hmmax{0} % default 3
+%		\newcommand\bmmax{0} % default 4
+    }{\cmpj@sf@helvet}
+  }
+}
+
+\def\cmpj@sf@newtx{
+  \IfFileExists{omlntxmi.fd}{
+    \IfFileExists{t2afdr.fd}{\RequirePackage[default,scale=0.86]{droidserif}\def\cyr@rm{fdr}}{}
+    \IfFileExists{T2Adroidserif.fd}{\RequirePackage[default,scale=0.86]{droidserif}\def\cyr@rm{droidserif}}{}
+    \RequirePackage[largesc,scaled=1.03]{newtxtext}
+    \IfFileExists{t2afds.fd}{\RequirePackage[defaultsans,scale=0.86]{droidsans}\def\lat@sf{fds}\def\cyr@sf{fds}}{}
+    \IfFileExists{T2Adroidsans.fd}{\RequirePackage[defaultsans,scale=0.86]{droidsans}\def\lat@sf{droidsans}\def\cyr@sf{droidsans}}{}
+    \IfFileExists{t2afdm.fd}{\RequirePackage[defaultmono,scale=0.86]{droidmono}\def\cyr@tt{fdm}}{}
+    \IfFileExists{T2Adroidsansmono.fd}{\RequirePackage[defaultmono,scale=0.86]{droidsansmono}\def\cyr@tt{droidsansmono}}{}
+    \RequirePackage[upint,varg,scaled=1.03]{newtxmath}
+%    \IfFileExists{omlntxmi.fd}{\RequirePackage[utopia,smallerops,vvarbb,timesmathacc]{newtxmath}}{}
+  }{\cmpj@sf@droid}
+}
+
+\DeclareOption{newtx}{\let\cmpj@sf\cmpj@sf@newtx}
+
+\DeclareOption{droid}{\let\cmpj@sf\cmpj@sf@droid}
+
+\DeclareOption{helvet}{\let\cmpj@sf\cmpj@sf@helvet}
+
+\DeclareOption{cm}{\let\cmpj@sf\cmpj@sf@cm}
+
+\def\@@copyright{\textcopyright}
+\def\copyright@size{\small}
+\def\copyright@author{\fancy@author\cp@issue@year}
+\def\authorcopyright{\@ifnextchar[
+        \iauthorcopyright{\iauthorcopyright[\small]}}
+\def\iauthorcopyright[#1]#2{\gdef\copyright@size{#1}
+        \gdef\copyright@author{#2}}
+\def\print@copyright{}
+\def\no@copyright{\def\@@copyright{}%
+	\authorcopyright{}}
+\def\cc@by@copyright{%
+%	\def\@@copyright{\raisebox{-8pt}{\includegraphics[width=16mm]{cmpj-cc-by}\space}}
+	\def\@@copyright{}
+	\authorcopyright{\raisebox{-2pt}{\includegraphics[width=16mm]{cmpj-cc-by-small}\space}\footnotesize\sf@phv This work is licensed under a \href{https://creativecommons.org/licenses/by/4.0/}{\textsl{Creative Commons Attribution 4.0 International License}}. Further distribution of this work must maintain attribution to the author(s) and the published article's title, journal citation, and DOI.}
+}
+
+\DeclareOption{nocopyright}{\let\print@copyright\no@copyright\def\cc@by@copyright@pdf{}}
+
+\DeclareOption{cc-by}{
+	\let\print@copyright\cc@by@copyright
+\def\cc@by@copyright@pdf{%
+	\IfFileExists{hyperxmp.sty}{
+		\@ifpackageloaded{hyperxmp}{}{\RequirePackage{hyperxmp}}
+		\hypersetup{
+			pdfcopyright  = {This work is licensed under a Creative Commons "Attribution 4.0 International" license. Further distribution of this work must maintain attribution to the author(s) and the published article's title, journal citation, and DOI.},
+			pdflicenseurl = {https://creativecommons.org/licenses/by/4.0/},
+			pdfkeywords={\pdfkeywords},
+		}
+	}{
+		\PackageWarning{cmpj3}{%
+			The hyperxmp package is missing so no license metadata can be embedded
+			into the PDF. Consider installing hyperxmp.
+		}
+	}
+}
+}
+
+\DeclareOption{no-cc}{\def\print@copyright{}\def\cc@by@copyright@pdf{}}
+
+\ExecuteOptions{newtx,cc-by}
+
+\ProcessOptions
+
+\def\hv@sf{\sffamily\upshape}
+\def\textcyrrm#1{{\fontencoding{T2A}\fontfamily{\cyr@rm}\selectfont #1}}
+\def\textcyrsf#1{{\fontencoding{T2A}\fontfamily{\cyr@sf}\selectfont #1}}
+\def\textcyrtt#1{{\fontencoding{T2A}\fontfamily{\cyr@tt}\selectfont #1}}
+\urlstyle{same}
+\cmpj@sf
+\cc@by@copyright@pdf
+\def\Keywords#1{\def\pdfkeywords{#1}\cc@by@copyright@pdf}
+
+%%  Sectioning  %%
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {2.3ex \@plus.2ex}%
+                                   {\normalfont\Large\hv@sf\bfseries\mathversion{bold}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\large\hv@sf\bfseries\mathversion{bold}}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\hv@sf\bfseries\mathversion{bold}}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                    {3.25ex \@plus1ex \@minus.2ex}%
+                                    {-1em}%
+                                    {\normalfont\normalsize\hv@sf\bfseries\mathversion{bold}}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                       {3.25ex \@plus1ex \@minus .2ex}%
+                                       {-1em}%
+                                      {\normalfont\normalsize\hv@sf\bfseries\mathversion{bold}}}
+
+\def\@seccntformat#1{\csname the#1\endcsname.\hspace{0.5em}}
+
+%%  Title  %%
+
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
+    \def\@makefnmark{\rlap{\@textsuperscript{\normalfont\@thefnmark}}}%
+    \long\def\@makefntext##1{\parindent 1em\noindent
+            \hb@xt@1.8em{%
+                \hss\@textsuperscript{\normalfont\@thefnmark}}##1}%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@   % Prevents figures from going at top of page.
+      \@maketitle
+    \fi
+    \thispagestyle{plain}
+    \@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+%  \global\let\@maketitle\relax
+  \global\let\@thanks\@empty
+%  \global\let\@author\@empty
+%  \global\let\@date\@empty
+%  \global\let\@title\@empty
+%  \global\let\title\relax
+%  \global\let\author\relax
+%  \global\let\date\relax
+%  \global\let\and\relax
+\print@copyright
+}
+
+\def\@title{}
+\def\@author{}
+\def\@address{}
+\def\fancy@author{}
+\def\issue@year{????}%
+\def\issue@volume{?}%
+\def\issue@number{?}%
+\def\article@number{?????}
+\def\cp@issue@year{}
+%\def\doi@number{10.XXXX/CMPJ.XX.XXXXX}
+
+\def\issue#1#2#3#4{\def\issue@year{#1}\def\cp@issue@year{,\space#1}%
+                 \def\issue@volume{#2}%
+                 \def\issue@number{#3}%
+                 \def\article@number{#4}%
+                 }
+\def\article@type{}
+\def\articletype#1{\def\article@type{#1}}
+\def\article@page{\article@number-\arabic{page}}
+\def\doinumber#1{\def\doi@number{#1}}
+%\def\bibdoi#1{\href{\doiURL#1}{\doitext#1}}
+\def\bibdoi{\doi}
+\def\arxiv#1{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+\def\archive[#1]#2{Preprint #1:#2}
+\def\eprint{\@ifnextchar[\archive{Preprint \arxiv}}
+
+\def\print@title{{\LARGE \hv@sf\bfseries\upshape\mathversion{bold} \@title \par}}
+\def\print@author{%
+    \vskip 1.5em%
+    {\hv@sf
+      \lineskip .5em%
+        \large\upshape\@author\par}
+  }
+\def\print@address{\vskip 0.5em
+        \small\hv@sf\upshape\@address\par
+        }
+
+\def\@maketitle{%
+  \newpage
+  \noindent\parbox[t]{11cm}{%
+            \ifthenelse{\equal{1}{\pageref{last@page}}}{%
+            \small\hv@sf Condensed Matter Physics,~\issue@year,\space%
+            Vol.~\issue@volume, No.~\issue@number,\space%
+            \article@number:\space\pageref{last@page}%
+            }{%
+            \small\hv@sf Condensed Matter Physics,~\issue@year,\space%
+            Vol.~\issue@volume, No.~\issue@number,\space%
+            \article@number:\space1--\pageref{last@page}%
+            }%
+%            \article@number\space[\pageref{last@page}\space page(s)]
+            \\ [0.6ex]
+            \@ifundefined{doi@number}{\phantom{DOI:\space10.XXXX/CMP.XX.XXXXX}}%
+                                     {DOI:\space\href{\doiURL\doi@number}{\doi@number}}
+%                                     {\doi{\doi@number}}
+%            \phantom{\href{\doiURL\doi@number}{DOI:\doi@number}}
+%            \href{\doiURL\doi@number}{DOI:\doi@number}
+            \\ [0.6ex]
+            \href{http://www.icmp.lviv.ua/journal}{http://www.icmp.lviv.ua/journal}}\hfill
+  \newlength{\@logoheight}
+  \newlength{\@logoysize}
+  \newlength{\@logodepth}
+  \setlength{\@logoysize}{28.4pt}
+  \setlength{\@logoheight}{2.5mm}
+  \setlength{\@logodepth}{\@logoysize}
+  \addtolength{\@logodepth}{-\@logoheight}
+  \raisebox{-\@logodepth}[\@logoheight][\@logodepth]{%
+    \setlength{\unitlength}{1pt}%
+    \begin{picture}(71.1,28.4)%
+    \put(0,0){\includegraphics[width=71.1pt,height=28.4pt]{cmp-logo}}%
+    \end{picture}%
+  }%
+  \par\vskip3pt\noindent\hrulefill\par\vskip 1ex\noindent\textsf{\bfseries\slshape\article@type}\par\vskip 2em
+  \noindent\null\hspace{\@titleindent}\parbox{\@titlewidth}{\raggedright%
+  \let \footnote \thanks
+  \@ifundefined{@title}{}{\print@title}%
+  \@ifundefined{@author}{}{\print@author}%
+  \@ifundefined{@address}{}{\print@address}%
+    \vskip 1em%
+    {\normalsize\hv@sf\upshape \@date}%
+  }%
+  \par
+  \vskip 1.5em}
+
+\renewenvironment{abstract}{%
+%%%    \setcounter{page}{\start@page}\label{first@page}
+%    \setcounter{page}{1}\label{first@page}
+    \if@twocolumn
+      \section*{\abstractname}%
+    \else
+      \everypar{\parskip 3pt plus1pt minus2pt
+      \parindent=0pt\hangindent=\@titleindent\hangafter=0}
+      \noindent\small\hv@sf\upshape\ignorespaces
+    \fi}
+    {\if@twocolumn\else\vskip 1.5em plus 0.2em \fi\upshape}
+
+\newcommand\keywords{\par\vskip 1ex
+        \noindent\raggedright\upshape{\hv@sf\bfseries Key words:}\slshape\space}
+
+\newcommand{\printkeywords}{\keywords\space\pdfkeywords}
+
+\newcommand\pacs{\par\vskip 1ex
+        \noindent\raggedright\upshape{\hv@sf\bfseries PACS:}\slshape\space}
+
+\def\author{\@dblarg{\make@author}}
+\long\def\make@author[#1]#2{\gdef\@author{#2}\gdef\fancy@author{#1}\gdef\@copyright{\@@copyright}}
+
+\def\title{\@dblarg{\make@title}}
+\long\def\make@title[#1]#2{\gdef\fancy@title{#1}\gdef\@title{#2}}
+
+\def\address#1{\gdef\@address{#1}}
+\def\addresses#1{\gdef\@address{%
+    \renewcommand{\labelenumi}{$^{\textsf{\footnotesize\arabic{enumi}}}$}
+    \setlength{\leftmargini}{0mm}
+    \setlength{\topsep}{0mm}
+    \setlength{\partopsep}{0mm}
+    \setlength{\parskip}{0mm}
+    \begin{enumerate}
+    \setlength{\itemsep}{0mm}
+    \setlength{\itemindent}{0em}
+    \setlength{\labelsep}{2pt}
+    #1
+    \end{enumerate}}}
+\newcommand{\addr}[1]{\item\label{#1}}
+
+\newcommand{\refaddr}[1]{$^{\textsf{\footnotesize\@refad{#1}}}$}
+%\newcommand{\orcid}[1]{\href{https://orcid.org/#1}{\raisebox{-1pt}{\includegraphics[width=10pt]{orcid-ID}}}}
+\newcommand{\orcid}[1]{\,\orcidlink{#1}\,}
+
+
+\DeclareRobustCommand\@refad{\@@refadx}
+\def\@@refadx#1{%
+  \let\@@refada\@empty
+  \@@refad{\@for\@@refadb:=#1\do
+    {\@@refada\def\@@refada{,\penalty\@m}%
+     \edef\@@refadb{\expandafter\@firstofone\@@refadb\@empty}%
+     \@ifundefined{r@\@@refadb}{\mbox{\reset@font\bfseries ?}%
+       \G@refundefinedtrue
+       \@latex@warning
+         {Address reference `\@@refadb' undefined}}%
+       {\hbox{\ref{\@@refadb}}}}}}
+\def\@@refad#1{{#1}}
+
+%%  Floats  %%
+
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{{\small{\hv@sf\bfseries #1.} #2}}%
+  \setlength{\@captionwidth}{0.9\hsize}
+  \ifdim \wd\@tempboxa >\@captionwidth
+    \centerline{\parbox{\@captionwidth}{\small{\hv@sf\bfseries #1.} #2}}
+  \else
+    \global \@minipagefalse
+    \hb@xt@\@captionwidth{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+
+%%  Bibliography  %%
+
+\bibsep=0pt
+\renewcommand{\bibnumfmt}[1]{#1.}
+\@ifundefined{bibfont}{\newcommand{\bibfont}{\small}}{\renewcommand{\bibfont}{\small}}
+
+%%  Ukrainian Part  %%
+
+\newcommand\makeukrtitle{
+  \begingroup
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@makeukrtitle
+      \else
+        \twocolumn[\@makeukrtitle]%
+      \fi
+    \else
+      \global\@botnum\z@   % Prevents figures from going at bottom of page.
+      \@makeukrtitle
+    \fi
+    \@thanks
+  \endgroup
+  \global\let\thanks\relax
+  \global\let\makeukrtitle\relax
+  \global\let\@makeukrtitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+  \global\let\and\relax
+}
+\def\print@ukrtitle{{\Large \hv@sf\bfseries\upshape\mathversion{bold} \@title \par}}
+
+\def\@makeukrtitle{%
+\par\vskip 1.5cm
+\noindent\null\hspace{\@titleindent}\parbox{\@titlewidth}{\raggedright%
+  \let \footnote \thanks
+  \@ifundefined{@title}{}{\print@ukrtitle}%
+  \@ifundefined{@author}{}{\print@author}%
+  \@ifundefined{@address}{}{\print@address}%
+%  {\Large \hv@sf \bfseries\upshape \@title \par}%
+%    \vskip 1em%
+%    {\normalsize\hv@sf\upshape \@date}%
+  }%
+  \par
+  \vskip 1.5em}
+
+\newcommand{\ukrainianpart}{%
+  \renewcommand{\rmdefault}{\cyr@rm}
+  \renewcommand{\sfdefault}{\cyr@sf}
+  \renewcommand{\familydefault}{\sfdefault}
+  \renewcommand{\encodingdefault}{T2A}
+  \usefont{T2A}{\sfdefault}{m}{n}\selectfont
+  \ifx\l@ukrainian\@undefined
+  \@nopatterns{Ukrainian}
+  \adddialect\l@ukrainian0
+  \fi
+  \language\l@ukrainian
+  \lefthyphenmin=2 \righthyphenmin=2 % disallow x- or -x breaks; -xx OK
+  \lccode`\'=`\'
+  \tolerance=3000
+  \renewcommand{\addr}[1]{\item}
+  \long\def\make@author[##1]##2{\gdef\@author{##2}}
+  \long\def\make@title[##1]##2{\gdef\@title{##2}}
+  \def\today{\number\day\space
+     \ifcase\month\or
+    \cyrs\cyrii\cyrch\cyrn\cyrya\or
+    \cyrl\cyryu\cyrt\cyro\cyrg\cyro\or
+    \cyrb\cyre\cyrr\cyre\cyrz\cyrn\cyrya\or
+    \cyrk\cyrv\cyrii\cyrt\cyrn\cyrya\or
+    \cyrt\cyrr\cyra\cyrv\cyrn\cyrya\or
+    \cyrch\cyre\cyrr\cyrv\cyrn\cyrya\or
+    \cyrl\cyri\cyrp\cyrn\cyrya\or
+    \cyrs\cyre\cyrr\cyrp\cyrn\cyrya\or
+    \cyrv\cyre\cyrr\cyre\cyrs\cyrn\cyrya\or
+    \cyrzh\cyro\cyrv\cyrt\cyrn\cyrya\or
+    \cyrl\cyri\cyrs\cyrt\cyro\cyrp\cyra\cyrd\cyra\or
+    \cyrg\cyrr\cyru\cyrd\cyrn\cyrya\fi
+     \space\number\year}
+  \renewenvironment{abstract}{%
+    \if@twocolumn
+      \section*{\abstractname}%
+    \else
+      \everypar{\parskip 3pt plus1pt minus2pt
+      \parindent=0pt\hangindent=\@titleindent\hangafter=0}
+      \noindent\small\hv@sf\upshape\ignorespaces
+    \fi}
+    {\lastpage\if@twocolumn\else\vskip 2em\fi\upshape
+     \clearpage\if@twoside \ifodd\c@page\else
+     \hbox{}\def\fancy@author{}\def\article@page{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi\fi
+     }
+  \renewcommand\keywords{\par\vskip 1ex
+      \noindent\raggedright\upshape{\hv@sf\bfseries
+        \CYRK\cyrl\cyryu\cyrch\cyro\cyrv\cyrii\space
+        \cyrs\cyrl\cyro\cyrv\cyra:}\slshape\space}
+%%
+%%
+}
+
+\newcommand{\ukrclosing}[1]{\strut\vskip 2em\par\vskip 1.em
+\strut\hfill\includegraphics{#1}\lastpage\if@twocolumn\else\vskip 2em\fi\upshape
+     \clearpage\if@twoside \ifodd\c@page\else
+     \hbox{}\def\fancy@author{}\def\article@page{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+
+%%  General  %%
+
+%\voffset -1in
+%\hoffset -1in
+\textwidth 150mm
+%\textheight 227mm
+\textheight 646pt    % = 227.0430331mm
+\topmargin 30mm
+\headheight 15pt
+\headsep 6mm
+\addtolength{\topmargin}{-\headheight}
+\addtolength{\topmargin}{-\headsep}
+\addtolength{\topmargin}{-1in}
+\oddsidemargin 30mm
+\setlength{\evensidemargin}{210mm}
+\addtolength{\evensidemargin}{-\textwidth}
+\addtolength{\evensidemargin}{-\oddsidemargin}
+\addtolength{\oddsidemargin}{-1in}
+\addtolength{\evensidemargin}{-1in}
+\newlength{\@titlewidth}
+\newlength{\@titleindent}
+\setlength{\@titlewidth}{\textwidth}
+\setlength{\@titleindent}{15mm}
+\addtolength{\@titlewidth}{-\@titleindent}
+\newlength{\@captionwidth}
+%\setlength{\@captionwidth}{\hsize}
+%\addtolength{\@captionwidth}{-2\parindent}
+\renewcommand{\encodingdefault}{T1}
+%\renewcommand{\sfdefault}{phv}
+\renewcommand{\sfdefault}{\lat@sf}
+\frenchspacing
+\let\@afterindentfalse\@afterindenttrue
+
+\renewcommand\footnoterule{%
+  \kern-3\p@
+  \hrule height 0.8pt\@width.2\columnwidth
+  \kern2.6\p@}
+
+%%  Headings  %%
+
+%\def\sf@phv{\fontencoding{T1}\fontfamily{phv}\selectfont\upshape}
+\def\sf@phv{\fontencoding{T1}\fontfamily{\lat@sf}\selectfont\upshape}
+\newcounter{isspage}
+\def\issue@page@odd{}
+\def\issue@page@even{}
+\def\issuepage#1{%
+      \oddsidemargin 20mm%
+      \setlength{\evensidemargin}{210mm}%
+      \addtolength{\evensidemargin}{-\textwidth}%
+      \addtolength{\evensidemargin}{-\oddsidemargin}%
+      \addtolength{\oddsidemargin}{-1in}
+      \addtolength{\evensidemargin}{-1in}
+                 \setcounter{isspage}{#1}%
+                 \addtocounter{isspage}{-1}%
+                 \def\issue@page@odd{%
+                     \stepcounter{isspage}%
+                     {\unitlength1mm%
+                     \begin{picture}(0,0)%
+%                     \put(30,10){\makebox(0,0)[l]{\vrule height 20pt}}%
+                     \put(30.5,10){\makebox(0,0)[l]{\rotatebox{90}{\textsf{\theisspage}}}}%
+                     \end{picture}}%
+                     }%
+                 \def\issue@page@even{%
+                     \stepcounter{isspage}%
+                     {\unitlength1mm%
+                     \begin{picture}(0,0)%
+%                     \put(-30,10){\makebox(0,0)[l]{\vrule height 20pt}}%
+                     \put(-30,10){\makebox(0,0)[r]{\rotatebox{90}{\textsf{\theisspage}}}}%
+                     \end{picture}}%
+                     }%
+}
+
+\lhead[\fancyplain{}{}]{\fancyplain{}{\small\sf@phv\fancy@title}}
+\chead[\fancyplain{}{}]{\fancyplain{}{}}
+\rhead[\fancyplain{}{\small\sf@phv\def\refaddr##1{}\def\orcid##1{}\fancy@author}]
+      {\fancyplain{}{}}
+\lfoot[\fancyplain{}{\issue@page@even\normalsize\sf@phv\article@page}]
+      {\fancyplain{\copyright@size\@copyright\space\parbox[t]{0.88\textwidth}
+      {\copyright@size\sf@phv\def\refaddr##1{}\def\orcid##1{}\copyright@author}}{}}
+\cfoot[\fancyplain{}{}]{\fancyplain{}{}}
+\rfoot[\fancyplain{}{}]
+      {\fancyplain{\normalsize\sf@phv\article@page\issue@page@odd}{\normalsize\sf@phv\article@page\issue@page@odd}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\plainheadrulewidth}{0pt}
+\renewcommand{\plainfootrulewidth}{0.4pt}
+\pagestyle{fancyplain}
+%%
+\newcommand{\rd}{\mathrm{d}}
+\newcommand{\re}{\mathrm{e}}
+\newcommand{\ri}{\mathrm{i}}
+%\DeclareMathOperator{\Real}{Re}
+%\DeclareMathOperator{\Img}{Im}
+\newcommand{\Real}{\mathop{\mathgroup\symoperators Re}\nolimits}
+\newcommand{\Img}{\mathop{\mathgroup\symoperators Im}\nolimits}
+\renewcommand{\Re}{\Real}
+\renewcommand{\Im}{\Img}
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+\newcommand\lastpage{\label{last@page}}
+\lefthyphenmin=2
+\righthyphenmin=3
+%%
+\endinput

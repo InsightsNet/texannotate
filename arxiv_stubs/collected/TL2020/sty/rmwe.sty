@@ -1,0 +1,58 @@
+\ProvidesPackage{rmwe}
+
+\RequirePackage[hmarginratio={1:1}]{geometry}
+\RequirePackage[pdftex,dvipsnames]{xcolor}
+\RequirePackage{mathtools, amsthm}
+\RequirePackage{mathabx}
+\RequirePackage{listings}
+\RequirePackage{color}
+\RequirePackage{caption, float, subcaption}
+\RequirePackage{tikz, tikz-cd}
+\RequirePackage{hyperref}
+\RequirePackage{aliascnt}
+
+\newcommand{\mylongname}{Richard A.\,P.\ Birkett}
+
+\newcommand{\thmautorefname}{Theorem}
+\newcommand{\exautorefname}{Example}
+\newcommand{\rmkautorefname}{Remark}
+\newcommand{\defnautorefname}{Definition}
+
+\newtheorem{thm}{Theorem}
+\newcommand{\mynewtheorem}[3]{%token, long name, short name
+\expandafter\def\csname#1autorefname\endcsname{#3}
+\newaliascnt{#1}{thm}
+\newtheorem{#1}[#1]{#2}
+\aliascntresetthe{#1}
+}
+\mynewtheorem{cor}{Corollary}{Cor}
+\mynewtheorem{lem}{Lemma}{Lemma}
+\mynewtheorem{prop}{Proposition}{Prop}
+\theoremstyle{remark}
+\newtheorem{rmk}{Remark}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\HH}{\mathcal{H}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\sm}{\setminus}
+
+\makeatletter
+\newcommand{\set}[2][\@nil]{%
+  \def\tmp{#1}%
+   \ifx\tmp\@nnil
+       \left\{#2\right\}
+    \else
+         \left\{#1:\, #2\right\}
+    \fi}
+\makeatother
+
+\endinput

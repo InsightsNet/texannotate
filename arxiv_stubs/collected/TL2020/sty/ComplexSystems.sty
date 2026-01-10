@@ -1,0 +1,569 @@
+%% complex-systems.sty, being the LaTeX style file for
+%% Complex Systems. Copyright (c) 2014-2018, Complex Systems, Inc.
+% Revision 3, Jun 18, 2018
+
+%% Setting page size, dimensions, and offsets
+\voffset = 0.25in
+\hoffset = -0.25in
+\oddsidemargin=60pt
+\evensidemargin=66pt
+\topmargin=18pt
+\headheight=10pt
+\headsep=24pt
+\footskip=18pt
+\textwidth=25.5pc
+\textheight=45pc
+\skip\footins=18pt
+\parskip=0pt
+\setlength\baselineskip{12pt}
+\parindent=12pt
+
+\hyphenation{Wolfram}
+
+% Setting float parameters
+\setcounter{topnumber}{3}
+\renewcommand\topfraction{.85}
+\setcounter{bottomnumber}{2}
+\renewcommand\bottomfraction{.3}
+\setcounter{totalnumber}{4}
+\renewcommand\textfraction{.15}
+\renewcommand\floatpagefraction{.85}
+\setlength\floatsep    {16\p@ \@plus 2\p@ \@minus 2\p@}
+\setlength\textfloatsep{16\p@ \@plus 2\p@ \@minus 2\p@}
+
+
+%% Setting text size and page options
+\DeclareOption{10pt}{\renewcommand\@ptsize{0}}
+\DeclareOption{twoside}{\@twosidetrue  \@mparswitchtrue}
+\ExecuteOptions{10pt,twoside}
+\ProcessOptions
+
+%% Defining display math to be flush left
+\newdimen\mathindent
+\mathindent=2pc
+
+\AtEndOfClass{\mathindent\leftmargini}
+
+\def\[{\relax\ifmmode\@badmath\else
+ \begin{trivlist}%
+ \@beginparpenalty\predisplaypenalty
+ \@endparpenalty\postdisplaypenalty
+ \item[]\leavevmode
+ \hbox to\linewidth\bgroup $\m@th\displaystyle
+ \hskip\mathindent\bgroup\fi}
+
+\def\]{\relax\ifmmode \egroup $\hfil
+       \egroup \end{trivlist}\else \@badmath \fi}
+
+\def\equation{\@beginparpenalty\predisplaypenalty
+  \@endparpenalty\postdisplaypenalty
+\refstepcounter{equation}\trivlist \item[]\leavevmode
+  \hbox to\linewidth\bgroup $\m@th% $ to make dollar sign nesting
+  \displaystyle
+\hskip\mathindent}
+
+\def\endequation{$\hfil
+           \displaywidth\linewidth\@eqnnum\egroup \endtrivlist}
+
+%% Defined to reduce space around middle column
+\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+\abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+\belowdisplayskip\abovedisplayskip
+\belowdisplayshortskip\abovedisplayskip
+\abovedisplayshortskip\abovedisplayskip
+$$\m@th\halign
+to\linewidth\bgroup\@eqnsel\hskip\@centering$\displaystyle\tabskip\z@
+  {##}$&\global\@eqcnt\@ne\hfil${{}##{}}$\hfil
+  &\global\@eqcnt\tw@ $\displaystyle{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+\def\endeqnarray{\@@eqncr\egroup
+      \global\advance\c@equation\m@ne$$\global\@ignoretrue
+      }
+
+%% Size equivalances:
+%% \@setfontsize\normalsize\@xpt\@xiipt
+%% \@setfontsize\small\@ixpt{11}
+%% \@setfontsize\footnotesize\@viiipt{9.5}
+%% \@setfontsize\scriptsize\@viipt\@viiipt
+%%
+%% Redefined \Large:
+\renewcommand\Large{\@setfontsize\Large\@xivpt{16}}
+
+%% To use cmmi10 and cmmbi10 at any type size
+\DeclareFontShape{OML}{cmm}{m}{it}
+    { <-> cmmi10 }{}
+\DeclareFontShape{OML}{cmm}{b}{it}{%
+      <-> cmmib10 }{}
+\DeclareFontShape{OML}{cmm}{bx}{it}
+   {<->sub * cmm/b/it}{}
+
+%% To add cropmark images
+\newdimen\trimwidth\newdimen\trimheight
+	\trimheight=9in 
+	\trimwidth=6in
+\newif\ifimage 
+%	\imagetrue
+
+% Set default to not use cropmark images
+\imagefalse
+
+\def\ulimage{\hbox{\vrule height .5pt depth 0pt width 20pt%
+		\hskip 3.5pt%
+		\vrule height 20pt depth -4pt width .5pt}}
+
+\def\urimage{\hbox{\vrule height 20pt depth -4pt width .5pt
+		\hskip 3.5pt%
+		\vrule height .5pt depth 0pt width 20pt}}%
+
+\def\lrimage{\hbox{\vrule height -4pt depth 20pt width .5pt
+		\hskip 3.5pt%
+		\vrule height .5pt depth 0pt width 20pt}}%
+
+\def\llimage{\hbox{\vrule height .5pt depth 0pt width 20pt%
+		\hskip 3.5pt%
+		\vrule height -4pt depth 20pt width .5pt}}
+
+\def\imagemarks{\vbox to 0pt{%
+	\advance\trimwidth by 48pt\advance\trimheight by 20pt%
+	\hbox{\hskip-24pt%
+	\vbox to 0pt{\vskip -24pt%
+		\vbox to \trimheight{%
+		\hbox to \trimwidth{\ulimage\hss\urimage}%
+		\vss%
+		\hbox to \trimwidth{\llimage\hss\lrimage}%
+		}%
+	\vss}}}}
+
+%% Modified from latex.ltx to allow \imagemarks 
+\begingroup
+\obeylines\obeyspaces%
+\gdef\@resetactivechars{%
+\def^^M{\@activechar@info{EOL}\space}%
+\def {\@activechar@info{space}\space}}%
+\endgroup
+\def\@outputpage{%
+\begingroup           % the \endgroup is put in by \aftergroup
+  \let \protect \noexpand
+  \@resetactivechars
+  \@parboxrestore
+  \shipout \vbox{%
+    \set@typeset@protect
+    \aftergroup \endgroup
+    \aftergroup \set@typeset@protect
+  \if@specialpage
+    \global\@specialpagefalse\@nameuse{ps@\@specialstyle}%
+  \fi
+  \if@twoside
+    \ifodd\count\z@ \let\@thehead\@oddhead \let\@thefoot\@oddfoot
+         \let\@themargin\oddsidemargin
+    \else \let\@thehead\@evenhead
+       \let\@thefoot\@evenfoot \let\@themargin\evensidemargin
+    \fi
+  \fi
+  \reset@font
+  \normalsize
+  \baselineskip\z@skip \lineskip\z@skip \lineskiplimit\z@
+    \@begindvi
+\ifimage\imagemarks%% 
+	\else%%
+\vbox to 0pt{}%%
+	\fi%%
+\vskip \topmargin
+    \moveright\@themargin \vbox {%
+      \setbox\@tempboxa \vbox to\headheight{%
+        \vfil
+        \color@hbox
+          \normalcolor
+          \hb@xt@\textwidth {%
+            \let \label \@gobble
+            \let \index \@gobble
+            \let \glossary \@gobble %% 
+            \@thehead
+            }%
+        \color@endbox
+        }%                        %% 
+      \dp\@tempboxa \z@
+      \box\@tempboxa
+      \vskip \headsep
+      \box\@outputbox
+      \baselineskip \footskip
+      \color@hbox
+        \normalcolor
+        \hb@xt@\textwidth{%
+          \let \label \@gobble
+          \let \index \@gobble      %% 
+          \let \glossary \@gobble   %% 
+          \@thefoot
+          }%
+      \color@endbox
+      }%
+    }%
+\global \@colht \textheight
+\stepcounter{page}%
+\let\firstmark\botmark
+}
+
+% Define copyright symbol for footers.
+\DeclareMathSymbol{\mycopyright}{\mathrel}{symbols}{'375}
+
+%% To format the headers/footers
+\newcommand{\copyrightinfo}[4]{%
+\gdef\@volume{#1}
+\gdef\@year{#2}
+\gdef\@startpage{#3}
+\gdef\@endpage{#4}
+\setcounter{page}{\@startpage}
+}
+
+% Set default footer information
+\copyrightinfo{Volume}{year}{1}{1+}
+
+\newcommand{\@firstcopyrightfoot}{\hfil{\scriptsize
+\textit{Complex\ Systems},\ \textbf{\@volume}\ (\@year)\ \@startpage--\@endpage;
+$\mycopyright$\ \@year\ Complex Systems Publications, Inc.}\hfil}
+
+\newcommand{\@copyrightfooteven}{{\scriptsize
+\textit{Complex\ Systems},\ \textbf{\@volume}\ (\@year)\ \@startpage--\@endpage}\hfil}
+
+\newcommand{\@copyrightfootodd}{\hfil{\scriptsize
+\textit{Complex\ Systems},\ \textbf{\@volume}\ \textrm{(\@year)}\ \@startpage--\@endpage}}
+
+%% To format the title page and headers
+
+\def\ps@myheadings{%
+\let\@oddfoot\@copyrightfootodd\let\@evenfoot\@copyrightfooteven
+    \def\@evenhead{\footnotesize{\sffamily\bfseries\thepage}%
+\hfil\slshape\leftmark}%
+    \def\@oddhead{\footnotesize{\slshape\rightmark}\hfil%
+{\sffamily\bfseries\thepage}}%
+    \let\@mkboth\@gobbletwo
+    \let\sectionmark\@gobble
+    \let\subsectionmark\@gobble
+    }
+
+\pagestyle{myheadings}
+\def\ps@nofooters{%
+\let\@oddfoot\relax\let\@evenfoot\relax
+    \def\@evenhead{\footnotesize{\sffamily\bfseries\thepage}%
+\hfil\slshape\leftmark}%
+    \def\@oddhead{\footnotesize{\slshape\rightmark}\hfil%
+{\sffamily\bfseries\thepage}}%
+    \let\@mkboth\@gobbletwo
+    \let\sectionmark\@gobble
+    \let\subsectionmark\@gobble
+    }
+
+\def\ps@firstcopyfoot{\let\@mkboth\@gobbletwo
+\let\@oddhead\@empty
+\let\@oddfoot\@firstcopyrightfoot
+\let\@evenhead\@empty
+\let\@evenfoot\@oddfoot}
+
+%% Null definition in case there is no \markboth in the document
+\def\@authmark{}
+
+\def\markboth#1#2{\gdef\@themark{{#1}{#2}}%
+\addcontentsline{toc}{title}{\@title\ #1}%
+{\let\protect\@unexpandable@protect
+\let\label\relax \let\index\relax \let\glossary\relax
+\mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+
+%% To make a blank line in the tabular environment that formats \author{}. 
+\renewcommand{\and}{\enspace\\{}}
+
+\def\@maketitle{%
+  \newpage
+  \null
+\vspace*{-10pt}
+{\parskip0pt\parindent0pt \let \footnote \thanks
+  \begin{raggedright}%
+  {\Large\mathversion{bold}\bfseries \@title \par}%
+  \end{raggedright}%
+  \vskip 24pt%
+    {\small\lineskip=11pt% 
+      \begin{tabular}[t]{@{}l}%
+        \@author
+      \end{tabular}}\par%
+\vskip8pt}
+}
+
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
+    \def\@makefnmark{\rlap{\@textsuperscript{\normalfont\@thefnmark}}}%
+    \long\def\@makefntext##1{\parindent 1em\noindent
+            \hb@xt@1.8em{%
+                \hss\@textsuperscript{\normalfont\@thefnmark}}##1}%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@   % Prevents figures from going at top of first page.
+      \@maketitle
+    \fi
+    \thispagestyle{firstcopyfoot}\@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+  \global\let\@maketitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+}
+
+\newcommand{\authname}[1]{{\footnotesize\sffamily\bfseries #1}}
+\newcommand{\authadd}[1]{{\small\rmfamily\itshape #1}}
+
+%% Re-defining the abstract environment
+\newif\ifafterabstract
+\global\afterabstractfalse
+
+\renewenvironment{abstract}{%
+\small\parskip0pt\leftskip = 2pc%
+\advance\leftmargin2pc
+\noindent\rule{23.5pc}{.5pt}\break
+}
+{\par\nointerlineskip\vskip4pt\noindent\rule{23.5pc}{.5pt}\par
+\global\afterabstracttrue
+\everypar={\global\afterabstractfalse\everypar{}}\nointerlineskip
+}
+
+% Keywords environment
+\newenvironment{keywords}{%
+\small\parskip0pt\leftskip = 2pc\vskip12pt%
+\advance\leftmargin2pc
+\noindent\textit{Keywords}:\ \ignorespaces}
+{\par\nointerlineskip
+}
+
+
+%% Suppress paragraph indent after all headings
+\@afterindentfalse
+
+%% Customizing the \section, \subsection, \subsubsection headings
+
+\renewcommand\section{\parskip0pt%
+\ifdim\lastskip>0pt\vskip-\lastskip\fi
+\ifafterabstract\global\afterabstractfalse\vskip36pt
+\else\vskip16pt plus 4pt minus 2pt\fi%
+\secdef\@numberedsection\@unnumberedsection}
+
+\newbox\sectionbox
+\newdimen\sectionhtdp
+	
+\def\@numberedsection[#1]#2{%
+    \ifnum \c@secnumdepth >1\relax
+      \refstepcounter{section}%
+    \fi
+    {\parindent \z@ \hangindent=24pt\hangafter=0\raggedright
+     \interlinepenalty \@M
+     \small\mathversion{bold}\sffamily\bfseries
+     \ifnum \c@secnumdepth >2\relax%
+       \leavevmode\llap{\hbox to \hangindent{\hfil\thesection.\enspace}}%
+\setbox\sectionbox=\vbox{\hsize=23.5pc #2\hrule height 0pt width 0pt depth 4pt}%
+\sectionhtdp=\dp\sectionbox\advance\sectionhtdp\ht\sectionbox%
+\else
+\setbox\sectionbox=\vbox{\hsize=24.5pc #2\hrule height 0pt width 0pt depth 4pt}%
+\sectionhtdp=\dp\sectionbox\advance\sectionhtdp\ht\sectionbox%
+\fi%
+	#2\par\nointerlineskip\nobreak%
+\vskip4pt\smash{\rule{3pt}{\sectionhtdp}\rule{25.25pc}{.5pt}}}\par%
+    \nobreak
+    \vskip 4pt
+    \@afterheading}
+
+\def\@unnumberedsection#1{%
+    {\parindent \z@ \raggedright\hangindent=12pt\hangafter=0
+     \interlinepenalty \@M
+     \small\mathversion{bold}\sffamily\bfseries 
+\setbox\sectionbox=\vbox{\hsize=24.5pc #1\hrule height 0pt width 0pt depth 4pt}%
+\sectionhtdp=\dp\sectionbox\advance\sectionhtdp\ht\sectionbox%
+#1\par\nointerlineskip\nobreak%
+\vskip4pt\smash{\rule{3pt}{\sectionhtdp}\rule{25.25pc}{.5pt}}}\par%
+     \nobreak
+     \vskip 4pt
+     \@afterheading}
+
+\renewcommand\subsection{\parskip0pt%
+\ifdim\lastskip>0pt\vskip-\lastskip\fi
+\vskip 16pt plus 4pt minus 2pt
+\secdef\@numberedsubsection\@unnumberedsubsection}
+
+\def\@numberedsubsection[#1]#2{%
+    \ifnum \c@secnumdepth >2\relax
+      \refstepcounter{subsection}%
+    \fi
+    {\parindent \z@ \hangindent=24pt\hangafter=0\raggedright
+     \interlinepenalty \@M
+     \footnotesize\mathversion{bold}\sffamily\bfseries
+     \ifnum \c@secnumdepth >2\relax
+\leavevmode\llap{\hbox to \hangindent{\hfil\thesubsection\enspace}}%
+\setbox\sectionbox=\vbox{\hsize=23.5pc #2\hrule height 0pt width 0pt depth 2pt}%
+\sectionhtdp=\dp\sectionbox\advance\sectionhtdp\ht\sectionbox%
+\else
+\setbox\sectionbox=\vbox{\hsize=24.5pc #2\hrule height 0pt width 0pt depth 2pt}%
+\fi%
+	#2\par\nointerlineskip\nobreak%
+\smash{\rule{3pt}{\ht\sectionbox}}}\par%
+    \nobreak
+    \vskip 4pt
+    \@afterheading}
+
+\def\@unnumberedsubsection#1{%
+    {\parindent \z@ \raggedright\hangindent=12pt\hangafter=0
+     \interlinepenalty \@M \footnotesize\mathversion{bold}\sffamily\bfseries 
+\setbox\sectionbox=\vbox{\hsize=24.5pc #1\hrule height 0pt width 0pt depth 2pt}%
+\sectionhtdp=\dp\sectionbox\advance\sectionhtdp\ht\sectionbox%
+#1\par\nointerlineskip\nobreak%
+\smash{\rule{3pt}{\ht\sectionbox}}}%
+     \nobreak
+     \vskip 4pt
+     \@afterheading}
+
+\renewcommand\subsubsection{\parskip0pt%
+\ifdim\lastskip>0pt\vskip-\lastskip\fi
+\vskip 12pt plus 2pt minus 2pt
+\secdef\@numberedsubsubsection\@unnumberedsubsubsection}
+
+\def\@numberedsubsubsection[#1]#2{%
+    \ifnum \c@secnumdepth >2\relax
+      \refstepcounter{subsubsection}%
+\else
+    \fi
+    {\parindent \z@ \raggedright
+     \interlinepenalty \@M
+     \footnotesize\mathversion{bold}\sffamily\bfseries
+     \ifnum \c@secnumdepth >2\relax
+\setbox\sectionbox=\hbox{\thesubsubsection\enspace}
+\hangindent=\wd\sectionbox\hangafter=1
+\leavevmode\thesubsubsection\enspace%
+\fi%
+	#2\par\nointerlineskip\nobreak%
+}
+    \vskip 4pt
+    \@afterheading}
+
+\def\@unnumberedsubsubsection#1{%
+    {\parindent \z@ \raggedright
+     \interlinepenalty \@M \footnotesize\mathversion{bold}\sffamily\bfseries 
+#1\par\nointerlineskip\nobreak}%
+     \vskip 4pt
+     \@afterheading}
+
+\renewcommand\appendix{%
+\global\@topnum\z@
+\ifdim\lastskip>0pt\vskip-\lastskip\fi
+  \setcounter{section}{0}%
+  \setcounter{subsection}{0}%
+  \renewcommand\thesection{\@Alph\c@section}
+  \renewcommand{\theequation}{\thesection.\arabic{equation}}
+  \setcounter{equation}{0}
+\vskip16pt plus 4pt minus 2pt
+\noindent{\small\sffamily\bfseries\appendixname}
+\nobreak}
+
+%% Re-defined so all newtheorems are in the normal font
+\def\@begintheorem#1#2{\trivlist\normalfont
+   \item[\hskip \labelsep
+{\footnotesize\sffamily\bfseries #1\quad #2.\kern4pt}]\ignorespaces}
+
+\def\@opargbegintheorem#1#2#3{\trivlist\normalfont
+      \item[\hskip \labelsep{\footnotesize\sffamily\bfseries #1\ #2\ (#3)}]}
+
+%% Making some pre-built theorem-like environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{example}{Example}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+
+\def\proof{%
+\ifdim\lastskip>0pt\vskip-\lastskip\fi
+\vspace{.5\baselineskip}\noindent{\sl Proof}.\enspace\ignorespaces}
+
+\def\qed{\hbox{\vrule height .5em width .5em depth 0em}}
+
+\def\endproof{\ignorespaces\ \nobreak$\square$\par\vskip.5\baselineskip}
+
+%% List customizations
+
+\renewcommand\labelitemi{\rule[.5ex]{.3em}{.3em}}
+
+\def\list#1#2{\ifnum \@listdepth >5\relax \@toodeep
+     \else \global\advance\@listdepth\@ne \fi
+  \rightmargin \z@ \listparindent\z@ \itemindent\z@
+  \csname @list\romannumeral\the\@listdepth\endcsname
+  \def\@itemlabel{#1}\let\makelabel\@mklab \@nmbrlistfalse #2\relax
+  \@trivlist\small
+  \parskip\parsep \parindent\listparindent
+  \advance\linewidth -\rightmargin \advance\linewidth -\leftmargin
+  \advance\@totalleftmargin \leftmargin
+  \parshape \@ne \@totalleftmargin \linewidth
+  \ignorespaces}
+
+%% Table/Figure captions
+\setlength\abovecaptionskip{8pt}
+\setlength\belowcaptionskip{0pt}
+
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{{\footnotesize\sffamily\bfseries #1.}\ \small #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    {\footnotesize\sffamily\bfseries #1.}\ {\small #2}\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+
+%% These are for fixing some characters if wrisym.sty is used.
+%% Commented out for general distribution.
+%% \DeclareMathSymbol{\rightarrowleftarrow}{\mathrel}{symbols}{'373}
+%% \DeclareMathSymbol{\leftarrowrightarrow}{\mathrel}{symbols}{'374}
+%% \DeclareMathSymbol{\leftrightarrow}{\mathrel}{symbols}{'044}
+
+\def\newc#1{{\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent'010 #1%
+  \else\ooalign{\unhbox\z@\crcr\hidewidth\char'010\hidewidth}\fi}}
+
+\def\newu#1{{\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent'025 #1%
+  \else\ooalign{\unhbox\z@\crcr\hidewidth\char'025\hidewidth}\fi}}
+
+\def\newss{\char'031}
+\let\ss\newss
+
+\def\circleR{\textrm{\char'256}}
+\let\regtm\circleR
+
+\def\circleC{\textrm{\char'251}}
+\let\copyrightsymbol\circleC
+
+\def\degreesymbol{\textrm{\char'260}}
+
+%% Using cmex for under/overbrace
+
+\DeclareSymbolFont{largesymbolscm}{OMX}{cmex}{m}{n}
+
+\DeclareMathSymbol{\braceld}{\mathord}{largesymbolscm}{"7A}
+\DeclareMathSymbol{\bracerd}{\mathord}{largesymbolscm}{"7B}
+\DeclareMathSymbol{\bracelu}{\mathord}{largesymbolscm}{"7C}
+\DeclareMathSymbol{\braceru}{\mathord}{largesymbolscm}{"7D}
+
+\def\downbracefill{$\m@th \setbox\z@\hbox{$\braceld$}%
+  \braceld\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\braceru
+  \bracelu\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\bracerd$}
+\def\upbracefill{$\m@th \setbox\z@\hbox{$\braceld$}%
+  \bracelu\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\bracerd
+  \braceld\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\braceru$}

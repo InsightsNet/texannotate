@@ -1,0 +1,36 @@
+%% Christopher Portmann
+%%
+%% Last modified: 2011/01/15
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{thmenvironments}[2011/06/18 Package for theorem-like environments] 
+
+\RequirePackage{amsthm}
+
+\DeclareOption{continuous}{\newtheorem{thm}{Theorem}}
+\DeclareOption{section}{\newtheorem{thm}{Theorem}[section]}
+\DeclareOption{chapter}{\newtheorem{thm}{Theorem}[chapter]}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Theorem and Definition environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+%\newtheorem{thm}{Theorem}  %[chapter] or [section] or nothing
+\ProcessOptions
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{claim}[thm]{Claim}
+\newtheorem{conjec}[thm]{Conjecture}
+\newtheorem{prop}[thm]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{deff}[thm]{Definition}
+\newtheorem{problem}[thm]{Problem}
+
+\theoremstyle{remark}
+\newtheorem{note}[thm]{Note}
+\newtheorem{rem}[thm]{Remark}
+\newtheorem{ex}{Example} %[chapter] or [section] or nothing
+

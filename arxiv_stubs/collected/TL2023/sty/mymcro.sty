@@ -1,0 +1,88 @@
+\newcommand{\FRAC}[2]{\leavevmode\kern.1em
+\raise.5ex\hbox{\the\scriptfont0 #1}\kern-.1em
+/\kern-.15em\lower.25ex\hbox{\the\scriptfont0 #2}}  % 本文中での分数
+
+%===========
+%必要不可欠なコマンド
+%===========
+\newcommand{\mr}[1]{\text{#1}} % 数式中のテキスト
+\newcommand{\td}[1]{_{\text{#1}}} % テキストの下つき文字
+\newcommand{\tu}[1]{^{\text{#1}}} % テキストの上付き文字
+\newcommand{\dd}[1]{\d #1 \:} %積分記号内の微少量記号
+
+
+\newcommand{\sumt}[1]{\sum_{#1=1}^3} % (主に座標に関する)和
+\newcommand{\basev}[1]{\,\bm{e}_{#1}} % 基底ベクトル
+\newcommand{\fref}[1]{公式\ref{#1}} % 公式の参照
+\newcommand{\ftbm}[2]{\bm{#1}(\bm{#2},t)} % 時間に依存するベクトル場
+\newcommand{\exv}[1]{\quantity(#1,t)} % 時間を含む独立変数（explanatory variable）
+\newcommand{\pr}[1]{#1^{\prime}} % プライム付き変数
+\newcommand{\ppr}[1]{#1^{\prime\prime}} % 2個プライム付き変数
+\newcommand{\pprime}{\prime\prime}
+\newcommand{\ppprime}{\prime\prime\prime}
+\newcommand{\p}{^{\prime}} % 上付きプライム記号
+\newcommand{\pp}{^{\prime\prime}} % 上付きプライム記号2つ
+\newcommand{\da}{^{\dagger}} % 上付きダガー
+\newcommand{\ti}[1]{\tilde{#1}} % チルダ記号
+\newcommand{\limarrow}[1]{\xrightarrow[#1]{}} % 下つき文字ありの極限を表す矢印
+\newcommand{\bk}{\bm{k}} % boldのk
+\newcommand{\br}{\bm{r}} % boldのr
+\newcommand{\bx}{\bm{x}} % boldのx\
+\newcommand{\bxi}{\bm{\xi}} % boldの\xi
+\newcommand{\pf}[1]{\text{Pr}\qty(#1)} % 確率関数
+\newcommand{\relmiddle}[1]{\mathrel{}\middle#1\mathrel{}} % 集合の内包表記の|
+\newcommand{\hrho}{\hat{\rho}} % 密度演算子
+\newcommand{\hL}{\hat{L}} % リンドブラッド演算子
+\newcommand{\hH}{\hat{H}} % ハミルトニアン
+\newcommand{\hV}{\hat{V}}
+\newcommand{\hq}{\hat{q}}
+\newcommand{\hp}{\hat{p}} % 直交位相振幅
+\newcommand{\ha}{\hat{a}} % 消滅演算子
+\newcommand{\dha}{\hat{a}^{\dagger}} % 生成演算子
+\newcommand{\hsigma}{\hat{\sigma}}  % シグマ演算子
+\newcommand{\dhat}[1]{\hat{#1}^{\dagger}} % 複素共役演算子
+\newcommand{\dhatt}[1]{\hat{#1}^{\dagger}(t)} % 時間に依存する複素共役演算子
+\newcommand{\hatt}[1]{\hat{#1}(t)} % 時間に依存する演算子
+\newcommand{\hatH}[1]{\hat{#1}_\text{H}(t)} % ハイゼンベルク描像の演算子
+\newcommand{\dq}[1]{“#1”} % 和文用（全角）のダブル引用符
+\newcommand{\infint}{\int_{-\infty}^{\infty}} % 積分範囲が-∞〜+∞の積分記号
+\newcommand{\nvvec}[1]{\mqty(#1_1 \\ #1_2 \\ \vdots \\ #1_n )} % a_1~a_n の縦ベクトル
+\newcommand{\hcomm}[2]{\comm{\hat{#1}}{\hat{#2}}} % 演算子の交換関係
+\newcommand{\T}{^{\text{T}}} % 行列の転置記号
+\newcommand{\dbra}[1]{\,($#1$)\,} % 文中数式の括弧
+\newcommand{\cc}{\text{c.c.}}
+\newcommand{\tip}[2]{\langle #1,#2 \rangle } % 伝統的な内積記号
+\newcommand{\kb}{k_{\text{B}}}    % ボルツマン定数
+\newcommand{\tD}{\tilde{\Delta}}    % チルダ記号つきΔ
+\newcommand{\tO}{\tilde{\Omega}_2}     % チルダ記号つき\Omega_{2}
+
+\newcommand{\En}[1]{\textcolor{blue}{#1}} % 英文の挿入を青文字で
+\newcommand{\Co}[1]{\textcolor{red}{#1}} % コメントを赤字で
+
+
+\newcommand{\Entry}[1]{
+ \section{#1}
+ \markboth{#1}{#1}
+}
+
+
+
+
+
+\renewcommand{\tr}[1]{\text{Tr}\qty[#1]} % トレース記号
+% \renewcommand{\citeleft}{\inhibitglue ［}
+% \renewcommand{\citeright}{］\inhibitglue}
+% \renewcommand{\citemid}{，}
+% \renewcommand{\citepunct}{，\inhibitglue}  % \citeを和文用へ修正
+
+\DeclareMathOperator{\sinc}{sinc}
+
+
+
+
+
+%\newcommand{\ip}[2]{#1 \cdot #2} % 内積
+%\newcommand{\cp}[2]{#1 \times #2} % 外積
+
+%\renewcommand{\div}{\nabla\cdot}
+%\newcommand{\koukan}[2]{\bqty{\hat{#1},\hat{#2}}}

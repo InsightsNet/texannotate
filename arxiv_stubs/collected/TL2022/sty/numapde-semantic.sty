@@ -1,0 +1,136 @@
+% This LaTeX package provides numerous higher-level commands which do carry a
+% semantic meaning. Lower-level commands are defined in numapde-syntax.sty.
+\ProvidesPackage{numapde-semantic}
+
+% Resolve the dependencies of this package
+\RequirePackage{numapde-packages}
+\RequirePackage{numapde-theorems}
+\RequirePackage{numapde-syntax}
+
+% Define a Boolean switch
+\provideboolean{nextbranch}
+
+% Define commands which enclose their content and optionally scale their
+% delimiters
+\newcommand{\abs}[2][]{\enclose[#1]{\lvert}{#2}{\rvert}}
+\newcommand{\ceil}[2][]{\enclose[#1]{\lceil}{#2}{\rceil}}
+\newcommand{\dual}[3][]{\enclose[#1]{\langle}{#2\,,#3}{\rangle}}
+\newcommand{\floor}[2][]{\enclose[#1]{\lfloor}{#2}{\rfloor}}
+\newcommand{\avg}[2][]{\enclose[#1]{\lbrace}{#2}{\rbrace}}
+\newcommand{\inner}[3][]{\enclose[#1]{(}{#2\,,\,#3}{)}}
+\newcommand{\jump}[2][]{\enclose[#1]{\llbracket}{#2}{\rrbracket}}
+\newcommand{\norm}[2][]{\enclose[#1]{\lVert}{#2}{\rVert}}
+\newcommand{\restr}[3][]{\enclose[#1]{.}{#2}{\rvert}_{#3}}
+\newcommand{\setMid}{|}
+\newcommand{\setDef}[3][]{\encloseSet[#1]{\{}{#2}{\setMid}{#3}{\}}}
+% Define the distance to a set operator
+% The optional argument #1 scales the delimiters
+% Argument #2 is the set
+% Argument #3 is the quantity
+\DeclareMathOperator{\distOp}{dist}
+\NewDocumentCommand{\dist}{ O{} g g }{\IfNoValueTF{#3}{\IfNoValueTF{#2}{\distOp}{\distOp_{#2}}}{\distOp_{#2}\enclose[#1]{(}{#3}{)}}}
+
+
+% Define the projection operator
+% The optional argument #1 scales the delimiters
+% Argument #2 is the set to be projected onto
+% Argument #3 is the quantity to be projected
+\DeclareMathOperator{\projOp}{proj}
+\NewDocumentCommand{\proj}{ O{} g d() }{%
+	\IfNoValueTF{#2}{\projOp}{\projOp_{#2}}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define the prox operator
+% The optional argument #1 scales the delimiters
+% Argument #2 is the function whose prox map we are taking
+% Argument #3 is the argument of the prox map
+\DeclareMathOperator{\proxOp}{prox}
+\NewDocumentCommand{\prox}{ O{} g d() }{%
+	\IfNoValueTF{#2}{\proxOp}{\proxOp_{#2}}\IfNoValueF{#3}{\enclose[#1]{(}{#3}{)}}%
+}
+
+% Define some mathematical and other operators
+\DeclareMathOperator{\aff}{aff}
+\DeclareMathOperator{\arcosh}{arcosh}
+\DeclareMathOperator{\arcoth}{arcoth}
+\DeclareMathOperator{\arsinh}{arsinh}
+\DeclareMathOperator{\artanh}{artanh}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\Argmax}{Arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\Argmin}{Arg\,min}
+\DeclareMathOperator{\bdiv}{\textup{\textbf{div}}}
+\DeclareMathOperator{\card}{card}
+\DeclareMathOperator{\clconv}{\overline{\conv}}
+\let\closure\undefined \DeclareMathOperator{\closure}{cl}  % WileyNJD-v2.cls (loads stix.sty)
+\DeclareMathOperator{\cofac}{cof}
+\newcommand{\compactly}{\hookrightarrow\hookrightarrow}
+\DeclareMathOperator{\cone}{cone}
+\DeclareMathOperator{\conv}{conv}
+\newcommand{\corresponds}{\mathrel{\widehat{=}}}
+\DeclareMathOperator{\cov}{Cov}
+\DeclareMathOperator{\curl}{curl}
+\DeclareMathOperator{\dev}{dev}
+\let\div\undefined \DeclareMathOperator{\div}{div}
+\DeclareMathOperator{\Div}{Div}
+% https://tex.stackexchange.com/questions/140642/conditionally-remove-the-space-before-a-one-letter-operator
+\let\d\undefined \newcommand{\d}{\mathop{}\!\textup{d}}  % compare commath.sty
+\let\diag\undefined \DeclareMathOperator{\diag}{diag}  % etna.cls
+\DeclareMathOperator{\diam}{diam}
+\DeclareMathOperator{\dom}{dom}
+\newcommand{\dotcup}{\ensuremath{\mathaccent\cdot\cup}}
+\DeclareMathSymbol{\dprod}{\mathbin}{operators}{"3A}
+\let\e\undefined \newcommand{\e}{\mathrm{e}}  % ifacconf.cls
+\newcommand{\embed}{\hookrightarrow}
+\newcommand{\embeds}{\embed}
+\DeclareMathOperator{\epi}{epi}
+\newcommand{\eR}{\overline{\R}}
+\DeclareMathOperator*{\esssup}{ess\,sup}
+\DeclareMathOperator*{\essinf}{ess\,inf}
+\newcommand{\file}[1]{\nolinkurl{#1}}
+\let\grad\undefined \DeclareMathOperator{\grad}{grad}  % etna.cls
+\DeclareMathOperator{\Graph}{Graph}
+\newcommand{\id}{\textup{id}}
+\DeclareMathOperator{\image}{image}
+\DeclareMathOperator{\interior}{int}
+\DeclareMathOperator{\inj}{inj}
+\newcommand{\laplace}{\Delta}
+\DeclareMathOperator*{\limessinf}{lim\,ess\,inf}
+\DeclareMathOperator*{\limesssup}{lim\,ess\,sup}
+\DeclareMathOperator{\lin}{lin}
+\let\rank\undefined \DeclareMathOperator{\rank}{rank}  % etna.cls
+\DeclareMathOperator{\range}{range}
+\DeclareMathOperator{\ri}{ri}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\Sgn}{Sgn}
+\DeclareMathOperator{\Span}{span}
+\let\supp\undefined \DeclareMathOperator{\supp}{supp}  % etna.cls
+\DeclareMathOperator{\sym}{sym}
+\DeclareMathOperator{\trace}{trace}
+\newcommand{\transposeSymbol}{\mkern-1.5mu\textup{T}}
+\AtBeginDocument{\providecommand*{\transp}{{\transposeSymbol}}}  % postpone it since newtxmath.sty has its own \transp
+\DeclareMathOperator{\var}{Var}
+\newcommand{\weakly}{\rightharpoonup}
+\newcommand{\weaklystar}{\stackrel\star\rightharpoonup}
+
+
+% Provide an \email command
+\providecommand*{\email}[1]{\href{mailto:#1}{\detokenize{#1}}}
+
+% Provide an \orcid command
+% https://tex.stackexchange.com/questions/275578/is-there-a-standard-way-to-include-orcid-in-tex-pdf
+% Certain classes define an \orcid command which does nothing, so we replace it by our own
+\setboolean{nextbranch}{false}
+\@ifclassloaded{siamart190516}{\setboolean{nextbranch}{true}}{}
+\@ifclassloaded{siamonline190516}{\setboolean{nextbranch}{true}}{}
+\@ifclassloaded{WileyNJD-v2}{\setboolean{nextbranch}{true}}{}
+\ifthenelse{\boolean{nextbranch}}{%
+	\let\orcid\undefined
+}{}
+
+\@ifpackageloaded{academicon}{%
+	\definecolor{orcidlogocolor}{HTML}{A6CE39}
+	\providecommand*{\orcid}[1]{\href{https://orcid.org/#1}{\textcolor{orcidlogocolor}{\aiOrcid}~\detokenize{#1}}}
+}{%
+	\providecommand*{\orcid}[1]{\href{https://orcid.org/#1}{ORCID~\detokenize{#1}}}
+}

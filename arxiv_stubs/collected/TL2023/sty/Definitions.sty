@@ -1,0 +1,264 @@
+%\RequirePackage{amssymb} \RequirePackage{bm} \RequirePackage{url}
+\usepackage{latexsym} 
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage{bm} 
+\usepackage{mathrsfs}
+\usepackage{cancel}
+% \usepackage{url}  
+\newtheorem{fact}{Fact}
+
+\newcommand{\xib}{\bm{\xi}}
+%%%%%%%% Stock standard definitions %%%%%%%%%%%%%%%
+\newcommand{\dd}{\partial}
+% \newcommand{\ab}{\mathbf{a}}
+% \newcommand{\bb}{\mathbf{b}}
+% \newcommand{\cbb}{\mathbf{c}}
+% \newcommand{\db}{\mathbf{d}}
+% \newcommand{\eb}{\mathbf{e}}
+% \newcommand{\fb}{\mathbf{f}}
+% \newcommand{\gb}{\mathbf{g}}
+% \newcommand{\hb}{\mathbf{h}}
+% \newcommand{\ib}{\mathbf{i}}
+% \newcommand{\jb}{\mathbf{j}}
+% \newcommand{\kb}{\mathbf{k}}
+% \newcommand{\lb}{\mathbf{l}}
+% \newcommand{\mb}{\mathbf{m}}
+% \newcommand{\nbb}{\mathbf{n}}
+% \newcommand{\ob}{\mathbf{o}}
+% \newcommand{\pb}{\mathbf{p}}
+% \newcommand{\qb}{\mathbf{q}}
+% \newcommand{\rb}{\mathbf{r}}
+% \newcommand{\sbb}{\mathbf{s}}
+% \newcommand{\tb}{\mathbf{t}}
+% \newcommand{\ub}{\mathbf{u}}
+% \newcommand{\vb}{\mathbf{v}}
+\newcommand{\wb}{\mathbf{w}}
+\newcommand{\xb}{\mathbf{x}}
+% \newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+
+
+\newcommand{\Ab}{\bm{A}}
+\newcommand{\Bb}{\bm{B}}
+\newcommand{\Cb}{\bm{C}}
+\newcommand{\Db}{\bm{D}}
+\newcommand{\Eb}{\bm{E}}
+\newcommand{\Fb}{\bm{F}}
+\newcommand{\Gb}{\bm{G}}
+\newcommand{\Hb}{\bm{H}}
+\newcommand{\Ib}{\bm{I}}
+\newcommand{\Jb}{\bm{J}}
+\newcommand{\Kb}{\bm{K}}
+\newcommand{\Lb}{\bm{L}}
+\newcommand{\Mb}{\bm{M}}
+\newcommand{\Nb}{\bm{N}}
+\newcommand{\Ob}{\bm{O}}
+\newcommand{\Pb}{\bm{P}}
+\newcommand{\Qb}{\bm{Q}}
+\newcommand{\Rb}{\bm{R}}
+\newcommand{\Sbb}{\bm{S}}
+\newcommand{\Tb}{\bm{T}}
+\newcommand{\Ub}{\bm{U}}
+\newcommand{\Vb}{\bm{V}}
+\newcommand{\Wb}{\bm{W}}
+\newcommand{\Xb}{\bm{X}}
+\newcommand{\Yb}{\bm{Y}}
+\newcommand{\Zb}{\bm{Z}}
+\newcommand{\nn}{\nonumber}
+\newcommand{\Ibb}{\mathbb{I}}
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Bcal}{\mathcal{B}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Dcal}{\mathcal{D}}
+\newcommand{\Ecal}{\mathcal{E}}
+\newcommand{\Fcal}{\mathcal{F}}
+\newcommand{\Gcal}{\mathcal{G}}
+\newcommand{\Hcal}{\mathcal{H}}
+\newcommand{\Ical}{\mathcal{I}}
+\newcommand{\Jcal}{\mathcal{J}}
+\newcommand{\Kcal}{\mathcal{K}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Mcal}{\mathcal{M}}
+\newcommand{\Ncal}{\mathcal{N}}
+\newcommand{\Ocal}{\mathcal{O}}
+\newcommand{\Pcal}{\mathcal{P}}
+\newcommand{\Qcal}{\mathcal{Q}}
+\newcommand{\Rcal}{\mathcal{R}}
+\newcommand{\Scal}{{\mathcal{S}}}
+\newcommand{\Tcal}{{\mathcal{T}}}
+\newcommand{\Ucal}{\mathcal{U}}
+\newcommand{\Vcal}{\mathcal{V}}
+\newcommand{\Wcal}{\mathcal{W}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Ycal}{\mathcal{Y}}
+\newcommand{\Zcal}{\mathcal{Z}}
+
+
+%%%%%%%% Widely accepted definitions %%%%%%%%%%%%%%%
+\newcommand{\zetab}{\bm{\zeta}}
+\newcommand{\BB}{\mathbb{B}} % Complex numbers
+\newcommand{\CC}{\mathbb{C}} % Complex numbers
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\HH}{\mathbb{H}} % Expectation
+% Expectation
+\newcommand{\VV}{\mathbb{V}} % Variance
+\newcommand{\II}{\mathbb{I}} % Indicator
+\newcommand{\KK}{\mathbb{K}} % Arbitrary field
+\newcommand{\LL}{\mathbb{L}} % Loss
+\newcommand{\MM}{\mathbb{M}} % Median
+\newcommand{\NN}{\mathbb{N}} % Natural numbers
+\newcommand{\PP}{\mathbb{P}} % Probability
+\newcommand{\QQ}{\mathbb{Q}} % Rationals
+\newcommand{\RR}{\mathbb{R}} % Real numbers
+\newcommand{\ZZ}{\mathbb{Z}} % Integers
+\newcommand{\XX}{\mathbb{X}} %
+\newcommand{\YY}{\mathbb{Y}} %
+\newcommand{\oneb}{\mathbf{1}}
+\newcommand{\one}{\mathbf{1}}  % Identity
+\newcommand{\zero}{\mathbf{0}} % Zero
+%\newcommand{\TRUE}{\mathbf{TRUE}}  % True
+%\newcommand{\FALSE}{\mathbf{FALSE}}  % False
+
+\newcommand*{\mini}{\mathop{\mathrm{minimize}}}
+\newcommand*{\maxi}{\mathop{\mathrm{maximize}}}
+\newcommand*{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand*{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\sgn}{\mathop{\mathrm{sign}}}
+\newcommand{\tr}{\mathop{\mathrm{tr}}}
+\newcommand{\diag}{\mathop{\mathrm{diag}}}
+\newcommand{\rank}{\mathop{\mathrm{rank}}}
+\newcommand{\ovec}{\mathop{\mathrm{vec}}}
+\newcommand{\traj}{\mathop{\mathrm{Traj}}}
+\newcommand*{\cov}{\mathrm{Cov}}
+\newcommand*{\conv}{\mathrm{conv}}
+\newcommand*{\const}{\mathrm{constant}}
+
+%%%%%%%% Bold Greek Letters %%%%%%%%%%%%%%%
+\newcommand{\sigmab}{\bm{\sigma}}
+\newcommand{\Sigmab}{\mathbf{\Sigma}}
+
+
+%%%%%%%% Mess around with LaTeX %%%%%%%%%%%%%%%
+
+%% Some style files might actually define these variables.
+%% So don't mess with them if they are already defined
+
+\ifx\BlackBox\undefined
+\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+\fi
+
+\ifx\QED\undefined
+\def\QED{~\rule[-1pt]{5pt}{5pt}\par\medskip}
+\fi
+
+\ifx\proof\undefined
+\newenvironment{proof}{\par\noindent{\bf Proof\ }}{\hfill\BlackBox\\[2mm]}
+%\newenvironment{proof}{\emph{Proof. }}{ \hfill \QED}
+\fi
+
+\ifx\theorem\undefined
+\newtheorem{theorem}{Theorem}
+\newtheorem{example}{Example}
+\newtheorem{property}{Property}
+% \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{lemma}{Lemma}  % separate counters for lemmas
+%\newtheorem{proposition}[theorem]{Proposition} %old
+\newtheorem{proposition}{Proposition} % separate counters for propositions
+% \newtheorem{claim}[theorem]{Claim}
+\newtheorem{claim}{Claim} % separate counters for claims
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{assumption}[theorem]{Assumption}
+\fi
+
+\ifx\axiom\undefined
+\newtheorem{axiom}[theorem]{Axiom}
+\fi
+
+%%%%%%%% Utility functions %%%%%%%%%%%%%%%
+
+\newcommand{\eq}[1]{(\ref{#1})}
+\newcommand{\mymatrix}[2]{\left[\begin{array}{#1} #2 \end{array}\right]}
+\newcommand{\mychoose}[2]{\left(\begin{array}{c} #1 \\ #2 \end{array}\right)}
+\newcommand{\mydet}[1]{\det\left[ #1 \right]}
+\newcommand{\sembrack}[1]{[\![#1]\!]}
+
+\newcommand{\ea}{\emph{et al.}}
+\newcommand{\eg}{\emph{e.g.}}
+\newcommand{\ie}{\emph{i.e.}}
+\newcommand{\iid}{\emph{i.i.d.}}
+\newcommand{\etc}{\emph{etc.}}
+
+%\newcommand{\alex}[1]{{\bf ALEX: \uppercase{#1}}}
+%\newcommand{\vishy}[1]{{\bf VISHY: \uppercase{#1}}}
+%\newcommand{\rene}[1]{{\bf RENE: \uppercase{#1}}}
+%\newcommand{\karsten}[1]{{\bf KARSTEN: \uppercase{#1}}}
+
+%%%%%%%% Specific symbols for this project %%%%%%%%%%%%%%%
+
+\newcommand{\methodname}{KDE}
+\newcommand{\ind}{\boldsymbol{\mathsf{I}}}
+
+\newcommand{\hsic}{\mathrm{HSIC}}
+\newcommand{\mmd}{\mathrm{MMD}}
+
+%\newcommand{\tDiag}{\textsf{Diag}}
+%\newcommand{\tTr}{\textsf{Tr}}
+%\newcommand{\tE}{\textsf{E}}
+%\newcommand{\tVec}{\textsf{Vec}}
+%\newcommand{\tRank}{\textsf{Rank}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% math symbols and commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\eq}[1]{(\ref{#1})}
+%\newcommand{\mymatrix}[2]{\left[\begin{array}{#1} #2 \end{array}\right]}
+
+%brackets
+\newcommand{\inner}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\rbr}[1]{\left(#1\right)}
+\newcommand{\sbr}[1]{\left[#1\right]}
+\newcommand{\cbr}[1]{\left\{#1\right\}}
+\newcommand{\nbr}[1]{\left\|#1\right\|}
+\newcommand{\abr}[1]{\left|#1\right|}
+\newcommand{\smallfrac}[2]{{\textstyle \frac{#1}{#2}}}
+\newcommand{\arow}[2]{#1_{#2\cdot}}
+\newcommand{\acol}[2]{#1_{\cdot#2}}
+\def\ci{\perp\!\!\!\perp}
+
+\newcommand{\ssbr}[1]{\left[\!\left[#1\right]\!\right]}
+
+\newcommand{\twoco}[1]{\multicolumn{2}{c|}{#1}}
+
+\newcommand{\wtimes}[1]{\times_{#1}}
+\newcommand{\btimes}[1]{~\bar{\times}_{#1}~}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\hci}{c(\xb_i,y_i)}
+\newcommand{\cp}{\backslash}
+\newcommand{\mge}{\succcurlyeq}
+\newcommand{\mle}{\preccurlyeq}
+\newcommand{\cs}{\Scal^c}
+\newcommand{\xkk}{\xb_k \xb^\top _k}
+\newcommand{\xtk}{\xb_k ^\top \xb_k}
+\newcommand{\ad}[1]{{\color{red} #1}}
+
+\newcommand{\ck}{c(\xb_k,y_k)}
+\newcommand{\mac}{\ell}
+\newcommand{\pred}{\psi}
+\newcommand{\obj}{\Lambda}
+\newcommand{\yxt}{\yb_{\cs} ^\top \Xb_{\cs} ^\top}
+\newcommand{\xy}{ \Xb_{\cs} \yb_{\cs} }
+\newcommand{\yys}{\yb_{\cs} ^\top \yb_{\cs}}
+\newcommand{\XXS}{\Xb_{\cs} \Xb_{\cs} ^\top}
+\newcommand{\Thetab}{\bm{\Theta}}
+\newcommand{\Omegab}{\bm{\Omega}}
+\newcommand{\lone}{\bm{\Lambda}_1}
+\newcommand{\lz}{\bm{\Lambda}_0}
+\newcommand{\TODO}[1]{{\color{red} \bf [TODO: #1]}}
+\newcommand{\note}[1]{{\color{violet} \bf [Note: #1]}}
+\newcommand{\ost}[2]{\stackrel{#1}{#2}}

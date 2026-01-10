@@ -1,0 +1,208 @@
+\def\fileversion{v.0.2}
+\def\filedate{2019/08/04}% 4 Aug 2019
+\ProvidesPackage{cdblatex}[\filedate\space\fileversion\space Cadabra-Latex (LCB)]
+%-------------------------------------------------------------------------------
+\usepackage{listings}
+\usepackage{keyval}
+\usepackage{etoolbox}
+\usepackage{xcolor}
+\usepackage{amsmath}% defines environment {aligned}
+\usepackage{amssymb}% defines \square
+\usepackage{breqn}% handles very long lines
+\usepackage{textcomp}
+%-------------------------------------------------------------------------------
+\usepackage{cdbmacros}
+%-------------------------------------------------------------------------------
+\def\cdbverb#1{{\color{blue}\texttt{\detokenize{#1}}}}% for inline Cadabra verbatim, fails with # in arg.
+%-------------------------------------------------------------------------------
+\lstnewenvironment{cadabra}[1][]{\begingroup\@cdbstyle\lstset{#1}}{\endgroup}
+%-------------------------------------------------------------------------------
+% define and process key/value pairs in CdbSetup
+%
+\define@key{mycdb}{action}{\def\cdb@action{#1}}% hide, show, verbatim
+%
+\def\@SetLstShow{\def\@cdbstyle{\@cdbstyleShow}}%
+\def\@SetLstHide{\def\@cdbstyle{\@cdbstyleHide}}%
+\def\@SetLstVerbatim{\@SetLstShow}%
+%
+\newcommand{\CdbSetup}[1]{%
+%
+\setkeys{mycdb}{#1}% Set new keys
+%
+\ifdefstring{\cdb@action}{show}{\@SetLstShow}{\relax}%
+\ifdefstring{\cdb@action}{hide}{\@SetLstHide}{\relax}%
+\ifdefstring{\cdb@action}{verbatim}{\@SetLstVerbatim}{\relax}%
+\ignorespaces
+}
+%-------------------------------------------------------------------------------
+% silently read the cdbtex file (if it exists)
+\AfterEndPreamble{\IfFileExists{./\jobname.cdbtex}{\input{./\jobname.cdbtex}}{\relax}}
+%===============================================================================
+% Listings style for Cadabra
+%===============================================================================
+\lstdefinelanguage{Cadabra}%
+% Start with basic Python keywords, from "import keyword; print(keyword.kwlist)"
+% Then add Cadabra, Python, numpy etc. keywords later in \@cdbstyleShow
+{morekeywords={and,as,assert,break,class,continue,def,del,elif,else,except,exec,%
+               finally,for,from,global,if,import,in,is,not,or,pass,print,%
+               raise,return,try,while,with,yield},%
+sensitive=true,%
+morecomment=[l]\#\ ,%
+morestring=[b]",%
+morestring=[d]"%
+}[keywords,comments,strings]%
+%
+%-------------------------------------------------------------------------------
+\definecolor{orange}{rgb}{1,0.5,0}
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}
+\definecolor{cobalt}{rgb}{0.0, 0.28, 0.67}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.55}
+\definecolor{dodgerblue}{rgb}{0.12, 0.56, 1.0}
+
+\def\@cdbstyleShow{%
+\colorlet{commentcolour}{gray}
+\colorlet{stringcolour}{orange!60!black}
+\colorlet{keywordcolour}{magenta!90!black}
+\colorlet{exceptioncolour}{yellow!50!red}
+\colorlet{numpycolour}{blue!60!green}
+\colorlet{reservedcolour}{blue}
+\colorlet{magiccolour}{violet}
+\colorlet{booleancolour}{green!50!black}
+\colorlet{builtincolour}{magenta}
+\colorlet{algocolour}{dodgerblue}
+\colorlet{propcolour}{darkblue}
+\colorlet{othercolour}{green!50!black}
+\lstset{%
+language=cadabra,
+%
+firstline=1,
+lastline=999999,
+%
+aboveskip=5pt,belowskip=5pt,xleftmargin=1.0cm,%\parindent,
+frame=single,framesep=5pt,framerule=0pt,
+%
+upquote=true,
+%
+stringstyle=\color{stringcolour},
+keywordstyle=\color{keywordcolour}\bfseries,
+commentstyle=\color{commentcolour}\slshape,
+%
+alsoletter={1234567890},
+morekeywords={\%, \}, \{, \&, \|},
+%
+% other keywords
+otherkeywords={->,:=,::},
+emph={[9]->,:=},
+emphstyle=[9]\color{othercolour},
+emph={[10]::},
+emphstyle=[10]\color{propcolour},
+%
+% Comments
+morecomment=[s]{"""}{"""},
+morestring=[d][stringstyle]{'},
+%
+% Python keywords, from "import keyword; print(keyword.kwlist)"
+emph={and,as,assert,break,class,continue,def,del,elif,else,except,exec,%
+      finally,for,from,global,if,import,in,is,not,or,pass,print,%
+      raise,return,try,while,with,yield},%
+emphstyle=\color{blue}\bfseries,
+emphstyle=\color{reservedcolour}\bfseries,
+%
+% Python Builtins
+emph={[2]abs, all, any, apply, basestring, bin,%
+      bool, buffer, bytearray, bytes, callable, chr, classmethod,%
+      cmp, coerce, compile, complex, delattr, dict, dir, divmod,%
+      enumerate, eval, execfile, exit, file, filter, float,%
+      frozenset, getattr, globals, hasattr, hash, hex, id,%
+      input, int, intern, isinstance, issubclass, iter, len,%
+      list, locals, long, map, max, min, next, object,%
+      oct, open, ord, pow, property, range, raw_input, reduce,%
+      reload, repr, reversed, round, set, setattr, slice,%
+      sorted, staticmethod, str, sum, super, tuple, type,%
+      unichr, unicode, vars, xrange, zip},
+emphstyle=[2]\color{builtincolour},
+%
+% Python Boolean constants
+emph={[3]True, False, None},
+emphstyle=[3]\color{booleancolour},
+%
+% Python Exceptions
+emph={[4]Exception,NameError,FloatingPointError,IOError,EOFError,IndexError,RuntimeError,%
+      SyntaxError,TypeError,ValueError,OverflowError,ZeroDivisionError},
+emphstyle=[4]\color{exceptioncolour}\bfseries,
+%
+% numpy functions
+emph={[5]ode,fsolve,sqrt,sin,cos,arctan,arctan2,arccos,pi,array,norm,solve,dot,
+      arange,isscalar,max,sum,flatten,shape,reshape,find,any,all,abs,plot,linspace,legend,
+      quad,polyval,polyfit,hstack,concatenate,vstack,column_stack,empty,zeros,ones,rand,vander,
+      grid,pcolor,eig,eigs,eigvals,svd,qr,tan,det,logspace,roll,min,mean,cumsum,cumprod,diff,
+      vectorize,lstsq,cla,eye,xlabel,ylabel,squeeze},
+emphstyle=[5]\color{numpycolour},
+%
+% Python magic
+emph={[6]__init__,__add__,__mul__,__div__,__sub__,__call__,__getitem__,__setitem__,__eq__,__ne__,
+      __nonzero__,__rmul__,__radd__,__repr__,__str__,__get__,__truediv__,__pow__,__name__,__future__,__all__},
+emphstyle=[6]\color{magiccolour},
+%
+% Cadabra Algorithms
+emph={[7]Ex,asym,canonicalise,collect_components,collect_factors,
+      collect_terms,combine,complete,decompose_product,
+      display,distribute,drop_weight,einsteinify,
+      eliminate_kronecker,eliminate_metric,epsilon_to_delta,
+      evaluate,expand,expand_delta,expand_diracbar,expand_dummies,expand_power,
+      factor_in,factor_out,fierz,flatten_sum,indexsort,
+      integrate_by_parts,join_gamma,keep_terms,keep_weight,
+      lr_tensor,map_sympy,order,product_rule,reduce_delta,rename_dummies,
+      replace_match,rewrite_indices,sort_product,sort_spinors,
+      sort_sum,split_gamma,split_index,substitute,sym,take_match,
+      unwrap,unzoom,vary,young_project,young_project_product,
+      young_project_tensor,zoom},
+emphstyle=[7]\color{algocolour},
+%
+% Cadabra Properties
+emph={[8]Accent,AntiCommuting,AntiSymmetric,Commuting,
+      CommutingAsProduct,CommutingAsSum,Coordinate,
+      DAntiSymmetric,Depends,DependsInherit,Derivative,
+      Diagonal,DifferentialForm,DiracBar,Distributable,
+      EpsilonTensor,ExteriorDerivative,FilledTableau,
+      GammaMatrix,GammaTraceless,ImaginaryI,ImplicitIndex,
+      Indices,Integer,InverseMetric,KroneckerDelta,
+      LaTeXForm,Matrix,Metric,NonCommuting,NumericalFlat,
+      PartialDerivative,RiemannTensor,SatisfiesBianchi,
+      SelfAntiCommuting,SelfCommuting,SelfNonCommuting,
+      SortOrder,Spinor,Symbol,Symmetric,Tableau,
+      TableauSymmetry,Traceless,Weight,WeightInherit,
+      WeylTensor},
+emphstyle=[8]\color{propcolour},
+}}
+%-------------------------------------------------------------------------------
+\def\@cdbstyleHide{%
+\lstset{%
+language=cadabra,
+%
+firstline=999999,
+lastline=999999,
+%
+aboveskip=0pt,belowskip=0pt,
+frame=none,
+}}
+%===============================================================================
+% set listings defaults for Cadabra
+%===============================================================================
+\CdbSetup{action=show}
+\definecolor{grey95}{rgb}{0.95,0.95,0.95}
+\lstset{%
+showtabs=true,
+showstringspaces=false,
+tab=,
+tabsize=2,
+basicstyle=\ttfamily\footnotesize,
+basewidth={0.5em},
+breaklines=true,
+numbers=left,
+numberstyle=\tiny,numbersep=15pt,
+aboveskip=10pt,belowskip=0pt,
+frame=single,framesep=5pt,framerule=0pt,
+xleftmargin=5pt,xrightmargin=5pt,
+backgroundcolor={}%\color{grey95},
+}

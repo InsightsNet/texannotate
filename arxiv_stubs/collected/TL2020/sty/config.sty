@@ -1,0 +1,139 @@
+\usepackage{amsfonts, amsmath, amsthm, graphicx, float,
+  subcaption, enumerate, color, verbatim ,algorithm,
+  algorithmic, url, hyperref, epsfig, amssymb, bm, soul}
+\usepackage[shortlabels]{enumitem}
+% \usepackage{lscape,longtable}
+\usepackage[margin=1in]{geometry}
+% % \usepackage[textwidth=\textwidth,textheight=\textheight,
+% %             paperwidth=\dimexpr\textwidth+1cm,
+% %             paperheight=\dimexpr\textheight+2cm]{geometry}
+\linespread{1.25}
+\graphicspath{{figures/}}
+% \setlength{\parindent}{0cm}
+\allowdisplaybreaks
+
+\newcommand{\0}{\mathbf{0}}
+\newcommand{\1}{\bm{1}}
+\renewcommand{\H}{\mathbf{H}}
+\newcommand{\A}{\mathbf{A}}
+\renewcommand{\b}{\mathbf{b}}
+\newcommand{\B}{\mathbf{B}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\D}{\mathbf{D}}
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\g}{\mathbf{g}}
+% \newcommand{\m}{m}
+\renewcommand{\k}{\mathbf{k}}
+\newcommand{\M}{\mathbf{M}}
+\renewcommand{\S}{\bm{S}}
+\newcommand{\s}{\mathbf{s}}
+% \newcommand{\t}{\mathbf{t}}
+\renewcommand{\u}{\mathbf{u}}
+\newcommand{\U}{\mathbf{U}}
+\renewcommand{\v}{\mathbf{v}}
+\newcommand{\V}{\mathbf{V}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\Y}{\mathbf{Y}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\z}{\mathbf{z}}
+\newcommand{\dm}{\dot{\m}}
+\newcommand{\ddm}{\ddot{\m}}
+\newcommand{\dM}{\dot{\M}}
+\newcommand{\ddM}{\ddot{\M}}
+\newcommand{\df}{\dot{f}}
+
+\newcommand{\talpha}{\tilde{\alpha}}
+\newcommand{\halpha}{\hat{\alpha}}
+\newcommand{\bDelta}{\bm{\Delta}}
+\newcommand{\bGamma}{\bm{\Gamma}}
+\newcommand{\btheta}{\bm{\theta}}
+\newcommand{\bbeta}{\bm{\beta}}
+\newcommand{\cbeta}{\check{\bm{\beta}}}
+\newcommand{\hbeta}{\hat{\bm{\beta}}}
+\newcommand{\tbeta}{\tilde{\bm{\beta}}}
+\newcommand{\bLambda}{\bm{\Lambda}}
+\newcommand{\bmu}{\bm{\mu}}
+\newcommand{\bOmega}{\bm{\Omega}}
+\newcommand{\bSigma}{\bm{\Sigma}}
+\newcommand{\bpi}{\bm{\pi}}
+\newcommand{\eeta}{\bm{\eta}}%
+
+\newcommand{\ttheta}{{\tilde{\bm{\theta}}}}
+\newcommand{\htheta}{{\hat{\bm{\theta}}}}
+\newcommand{\ctheta}{{\check{\bm{\theta}}}}
+\newcommand{\atheta}{{\acute{\bm{\theta}}}}
+
+\newcommand{\onen}{\frac{1}{n}}
+\newcommand{\oneN}{\frac{1}{N}}
+\newcommand{\onenr}{\frac{1}{nr}}
+\newcommand{\onepi}{\frac{1}{\pi_i}}
+\newcommand{\op}{o_{P}(1)}
+\newcommand{\opf}{o_{{P}|\Dn}(1)}
+\newcommand{\opfb}{o_{{P}|\Dn,\hat\bbeta_1}(1)}
+\newcommand{\opb}{o_{{P}|\hat\bbeta_1}(1)}
+\newcommand{\Op}{O_{P}(1)}
+\newcommand{\Opf}{O_{{P}|\Dn}(1)}
+\newcommand{\Opfb}{O_{{P}|\Dn,\hat\bbeta_1}(1)}
+\newcommand{\ud}{\mathrm{d}}
+% \newcommand{\wh}{\widehat}
+% \newcommand{\wt}{\widetilde}
+\newcommand{\Dn}{\mathcal{D}_n}
+\newcommand{\sumn}{\sum_{i=1}^{n}}
+\newcommand{\sumN}{\sum_{i=1}^{N}}
+\newcommand{\sumj}{\sum_{j=1}^n}
+\newcommand{\oner}{\frac{1}{r}}%
+\newcommand{\sumr}{\sum_{i=1}^{r}}%
+\newcommand{\partiald}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\tp}{^{\mathrm{T}}}
+\newcommand{\tsp}{{\mathrm{T}}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\cvp}{\xrightarrow{P}}
+\newcommand{\cvpf}{\xrightarrow{P|\Dn}}
+\newcommand{\cvpfb}{\xrightarrow{P|\Dn,\tilde\bbeta_0}}
+\newcommand{\cvd}{\xrightarrow{D}}
+\newcommand{\cvdf}{\xrightarrow{D|\Dn}}
+\newcommand{\cvdfb}{\xrightarrow{D|\Dn,\hat\bbeta_1}}
+\renewcommand{\Pr}{\mathbb{P}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Nor}{\mathbb{N}}
+\newcommand{\Var}{\mathbb{V}}
+\newcommand{\mmse}{{\mathrm{mMSE}}}
+\newcommand{\mvc}{{\mathrm{mVc}}}
+\newcommand{\os}{{\mathrm{OS}}}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+% \newtheorem{algorithm}{Algorithm}
+
+% \theoremstyle{remark}
+\newtheorem{remark}{{\bf Remark}}
+\newtheorem{assumption}{\bf Assumption}
+
+\newcommand{\mle}{{\textnormal{\tiny MLE}}}%
+
+\newcommand{\red}{\color{red}}
+% \newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\blue}{\color{blue}}
+\newcommand{\black}{\color{black}}
+\newcommand{\boxit}[1]{\vbox{\hrule\hbox{\vrule\kern6pt\vbox{\kern6pt#1\kern6pt}\kern6pt\vrule}\hrule}}
+\newcommand{\whycomment}[1]{{\vskip 2mm\boxit{\vskip 2mm{\color{blue}\bf#1} {\color{blue}\bf -- Haiying\vskip 2mm}}\vskip 2mm}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\cm}{{c_o}}
+\newcommand{\sw}{_{\mathrm{sw}}}
+
+\newcommand{\su}{{_{\mathrm{under}}^{\mathrm{u}}}}
+\newcommand{\sbc}{{_{\mathrm{under}}^{\mathrm{ubc}}}}
+\newcommand{\ow}{_{\mathrm{over}}^{\mathrm{w}}}
+\newcommand{\ou}{{_{\mathrm{over}}^{\mathrm{u}}}}
+\newcommand{\obc}{{_{\mathrm{over}}^{\mathrm{ubc}}}}
+
+\newcommand{\J}{\bm{J}}
+\newcommand{\bve}{\bm{\varepsilon}}
+\newcommand{\cz}{\mathcal{Z}}

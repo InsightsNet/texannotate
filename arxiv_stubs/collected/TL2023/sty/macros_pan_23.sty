@@ -1,0 +1,258 @@
+
+%AAAI_2023 fairness max with no rejection (under my folder 0_23 -> Sarit_23)
+\newcommand{\obja}{\textbf{FAIR-T}\xspace}
+\newcommand{\objb}{\textbf{FAIR-S}\xspace}
+
+\newcommand{\Lam}{\Lambda}
+\newcommand{\bi}{\bar{i}} 
+
+\newcommand{\bamu}{\bar{\mu}}
+\newcommand{\bomu}{ \bar{\boldsymbol \mu}}
+
+\newcommand{\bph}{ {\boldsymbol \phi}}
+\newcommand{\balam}{\bar{\lambda}}
+\newcommand{\bola}{ \bar{\boldsymbol \lambda}}
+
+\newcommand{\cW}{\mathcal{W}}
+\newcommand{\bw}{\bar{w}}
+\newcommand{\bW}{\overline{W}}
+\newcommand{\bj}{\bar{j}}
+
+\newcommand{\bmu}{\ensuremath{{\boldsymbol \mu}}\xspace}
+\newcommand{\blam}{\ensuremath{{\boldsymbol \lambda}}\xspace}
+
+\newcommand{\tbf}[1]{\textbf{#1}\xspace}
+\newcommand{\ubar}[1]{\ensuremath{\underline{#1}}\xspace}
+\newcommand{\obar}[1]{\ensuremath{\overline{#1}}\xspace}
+
+\newcommand{\pra}{\ensuremath{\operatorname{\textbf{PT}}}\xspace}
+\newcommand{\prb}{\ensuremath{\operatorname{\textbf{PS}}}\xspace}
+\newcommand{\prc}{\ensuremath{\operatorname{\textbf{PC}}}\xspace}
+\newcommand{\prd}{\ensuremath{\operatorname{\textbf{PD}}}\xspace}
+
+
+%\usepackage[autostyle]{csquotes} 
+\usepackage[sumlimits]{amsmath}
+\usepackage{mathtools}
+\usepackage{xargs}
+\usepackage{amsthm, amssymb}
+\usepackage{latexsym}
+% \usepackage{fullpage}
+\usepackage{newtxtext,newtxmath}              % Times font
+% \usepackage[T1]{fontenc}
+\usepackage{color}
+\usepackage{comment}
+% \usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage[linesnumbered, ruled, vlined, norelsize]{algorithm2e}
+% \usepackage{parskip}    % do not indent paragraphs
+% \usepackage{authblk}
+% \usepackage{hyperref}
+\usepackage{sidecap}
+% \usepackage{floatrow}
+% \hypersetup{colorlinks, citecolor=red, filecolor=blue, linkcolor=blue, urlcolor=blue}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\usepackage{algorithmic}
+% \usepackage{wrapfig}
+
+
+\newcommand{\E}{\mathsf{E}}
+\newcommand{\Var}{\ensuremath{\mathsf{Var}}\xspace}
+\newcommand{\sfe}{\mathsf{e}}
+
+
+
+\usepackage{mathrsfs}
+\newcommand{\sM}{\mathscr{M}}
+\newcommand{\sX}{\mathscr{X}}
+\newcommand{\sY}{\mathscr{Y}}
+
+\newcommand{\bluee}[1]{{\color{blue} #1}}
+\newcommand{\redd}[1]{{\color{red} #1}}
+\newcommand{\pan}[1]{{\color{violet} #1}}
+\newcommand{\sarit}[1]{{\color{red} #1}}
+\newcommand{\Ome}{\Omega}
+\newcommand{\Del}{\Delta}
+\newcommand{\ep}{\epsilon}
+\newcommand{\sig}{\sigma}
+\newcommand{\al}{\alpha}
+\newcommand{\alp}{\alpha}
+\newcommand{\lam}{\lambda}
+\newcommand{\kap}{\kappa}
+\newcommand{\pa}{\partial}
+\newcommand{\gam}{\gamma}
+\newcommand{\ome}{\omega}
+
+\newcommand{\del}{\delta}
+\newcommand{\nab}{\nabla}
+
+\def \ALG {\ensuremath{\mathsf{ALG}}\xspace}
+\def \OPT {\ensuremath{\mathsf{OPT}}\xspace}
+\def \OFFOPT {\ensuremath{\operatorname{OFF-OPT}}\xspace}
+
+\newcommand{\LP}{\ensuremath{\operatorname{LP}}\xspace}
+\newcommand{\NALG}{\ensuremath{\operatorname{NADAP}}\xspace}
+\newcommand{\adap}{\ensuremath{\operatorname{ADAP}}\xspace}
+
+\def \nadap {\ensuremath{\operatorname{SAMP}}\xspace}
+\def \rand {\ensuremath{\operatorname{Rand-Perm}}\xspace}
+\def \greedy {\ensuremath{\operatorname{Greedy}}\xspace}
+\def \gre {\ensuremath{\operatorname{Greedy}}\xspace}
+\def \uni {\ensuremath{\operatorname{Uniform}}\xspace}
+
+\newcommand{\pc}{\ensuremath{\operatorname{PC-TSP}}\xspace}
+\newcommand{\optt}{\ensuremath{\operatorname{OPT-TSP}}\xspace}
+\newcommand{\ct}{\ensuremath{\operatorname{C-TSP}}\xspace}
+\newcommand{\lpt}{\ensuremath{\operatorname{LP-TSP}}\xspace}
+\newcommand{\cost}{\ensuremath{\mathsf{Cost}}\xspace}
+
+\newcommand{\omoc}{\ensuremath{\operatorname{OM-CC-KAD}}\xspace}
+\newcommand{\kad}{\ensuremath{\operatorname{KAD}}\xspace}
+
+
+
+
+%the vector and math-bf mode definition
+\renewcommand{\vec}{\mathbf}
+
+\newcommand{\bfN}{\vec{N}}
+\newcommand{\bfD}{\vec{D}}
+
+
+\newcommand{\ba}{\vec{a}}
+\newcommand{\bd}{\vec{d}}
+\newcommand{\be}{\vec{e}}
+\newcommand{\bh}{\vec{h}}
+\newcommand{\bs}{\vec{s}}
+
+\newcommand{\bn}{\vec{n}}
+\newcommand{\bI}{\vec{I}}
+\newcommand{\bv}{\vec{v}}
+
+
+\newcommand{\bo}{\vec{1}}
+\newcommand{\bz}{\vec{0}}
+
+
+
+\newcommand{\x}{\vec{x}}
+\newcommand{\X}{\vec{X}}
+\newcommand{\z}{\vec{z}}
+\newcommand{\Z}{\vec{Z}}
+\newcommand{\Y}{\vec{Y}}
+\newcommand{\y}{\vec{y}}
+
+
+\newcommand{\sbp}[1]{\big(#1\big)}
+\newcommand{\bp}[1]{\Big(#1\Big)}
+\newcommand{\bb}[1]{\Big[#1\Big]}
+\newcommand{\sbb}[1]{\big[#1\Big]}
+
+\newcommand{\bP}[1]{\left(#1\right)}
+\newcommand{\bB}[1]{\left[#1\right]}
+
+\newcommand{\SC}{\mathsf{SF}}
+\newcommand{\SF}{\mathsf{SF}}
+\newcommand{\ind}[3]{#1^{(#2)}_{#3}}
+%specific to this paper 
+
+%end of specific to this paper 
+
+
+
+%-------------------------------------
+%NOT specific to this paper 
+
+%New Theorem
+\makeatletter
+\@ifundefined{theorem}{%
+\newtheorem{theorem}{Theorem}
+}{}
+\@ifundefined{example}{%
+\newtheorem{example}{Example}
+}{}
+
+\@ifundefined{conjecture}{%
+\newtheorem{conjecture}{Conjecture}
+}{}
+\@ifundefined{lemma}{%
+\newtheorem{lemma}{Lemma}
+}{}
+\@ifundefined{proposition}{%
+\newtheorem{proposition}{Proposition}
+}{}
+\@ifundefined{claim}{%
+\newtheorem{claim}{Claim}
+}{}
+\@ifundefined{observation}{%
+\newtheorem{observation}{Observation}
+}{}
+\@ifundefined{definition}{%
+\newtheorem{definition}{Definition}
+}{}
+\@ifundefined{question}{%
+\newtheorem{question}{Question}
+}{}
+\@ifundefined{corollary}{%
+\newtheorem{corollary}{Corollary}
+}{}
+\@ifundefined{fact}{%
+\newtheorem{fact}{Fact}
+}{}
+
+\makeatother
+
+
+
+\newcommand{\xhdr}[1]{\vspace{2mm} \noindent{\textbf{#1}}}
+
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cG}{\mathcal{G}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cK}{\mathcal{K}}
+
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\nei}{\cN}
+
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cT}{\mathcal{T}}
+
+\newcommand{\cU}{\mathcal{U}}
+\newcommand{\cV}{\mathcal{V}}
+
+\newcommand{\cX}{\mathcal{X}}
+
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cR}{\mathcal{R}}
+
+
+\newcommand{\ie}{\emph{i.e.,}\xspace}
+\newcommand{\eg}{\emph{e.g.,}\xspace}
+\def\etal{\emph{et~al.}\xspace}
+\newcommand{\aka}{\emph{a.k.a.},\xspace}
+\newcommand{\iid}{\emph{i.i.d.}\xspace}
+\newcommand{\etc}{\emph{etc.}\xspace}
+
+
+
+\newcommand{\Pois}{\mathrm{Pois}}
+\newcommand{\Bi}{\mathrm{Bi}}
+\newcommand{\Ber}{\mathrm{Ber}}
+\newcommand{\Exp}{\ensuremath{\mathrm{Exp}}\xspace}
+
+\newcommand{\rad}{\ensuremath{\mathrm{rad}}\xspace}
+\newcommand{\argmax}{\ensuremath{\mathrm{argmax}}\xspace}
+%not specific to this paper macros

@@ -1,0 +1,44 @@
+%\inote[author]{some note}
+%\innote{some note}
+%\todo[person]{Do this}
+%\citemissing
+%\tocite{some paper}
+
+\ProvidesPackage{inotes}[2017]
+\RequirePackage{color,marvosym,xspace}
+
+% Colors
+\definecolor{MyRed}{rgb}{0.6,0.0,0.0} 
+\definecolor{MyBlack}{rgb}{0.1,0.1,0.1} 
+\newcommand{\inred}[1]{{\color{MyRed}\sf\textbf{\textsc{#1}}}}
+
+% Frame
+\newcommand{\frameit}[2]{
+    {\small\begin{center}
+    {\color{MyRed}
+    \framebox[.95\columnwidth][l]{
+        \begin{minipage}{.9\columnwidth}
+        \inred{#1}: {\sf\color{MyBlack}#2}
+        \end{minipage}
+    }
+    }
+    \end{center}}
+}
+
+\DeclareOption{show}{
+	\newcommand{\inote}[2][]{\def\@tmpsig{#1}\frameit{{\large\Pointinghand} Note}{#2\ifx \@tmpsig \@empty \else \mbox{ --\em #1}\fi}}
+	\newcommand{\todo}[2][]{\def\@tmpsig{#1}\frameit{{\large\Writinghand} To-do}{#2\ifx \@tmpsig \@empty \else \mbox{ --\em #1}\fi}}
+	\newcommand{\innote}[1]{\inred{$\lceil${{\Pointinghand} }} \inred{\sf #1} \inred{$\rfloor$}}
+	\newcommand{\citemissing}[0]{\inred{[citation]}\xspace}
+	\newcommand{\tocite}[1]{\inred{[#1]}\xspace}
+}
+
+\DeclareOption{hide}{
+	\newcommand{\note}[2][]{}
+	\newcommand{\todo}[2][]{}
+	\newcommand{\inote}[1]{}
+	\newcommand{\citemissing}[0]{}
+	\newcommand{\tocite}[0]{}
+}
+
+\ProcessOptions

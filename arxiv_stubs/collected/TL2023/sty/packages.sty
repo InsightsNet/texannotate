@@ -1,50 +1,26 @@
-%bibliography
-\usepackage[backend=biber, style=alphabetic, maxbibnames=10, maxalphanames=10]{biblatex}
-\DeclareFieldFormat*{title}{\mkbibemph{#1}}
-\renewbibmacro{in:}{}
+% Default Packages in the template
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{hyperref}
 
-%\overfullrule=2mm
-
-\usepackage{amsmath} %math stuff
-\usepackage{amssymb} %math stuff
-\usepackage{mathtools} %math stuff
-\usepackage{mathrsfs} %math stuff (script letters)
-\usepackage{stmaryrd} %math stuff (double square brackets)
-\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
-\usepackage{extarrows} %math stuff (long labelled arrows)
-\usepackage{bm} %maths stuff (boldface math)
-\usepackage{amsthm} %math stuff (theorems)
-\usepackage{thmtools} %math stuff (better theorems)
-\usepackage{tikz-cd} %commutative diagrams
-%\usepackage{enumitem} %more list options
-\usepackage{csquotes} %quotation marks
-\usepackage{microtype} %better typography
-
-%\usepackage{titlesec} %spacing of titles
-%\titleformat{\subsection}{\normalfont\normalsize\itshape}{\thesubsection}{1em}{}
-%\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{0ex plus .2ex}
-
-\usepackage{hyperref} %referencing with hyperlinks
-\usepackage[capitalise, noabbrev]{cleveref} %clever referencing
-
-%prevent bad things
-\binoppenalty=\maxdimen
-\relpenalty=\maxdimen
-\widowpenalty=\maxdimen
-\displaywidowpenalty=\maxdimen
-
-%define theorems
-\newcounter{everything}[section]
-\renewcommand{\theeverything}{\thesection.\arabic{everything}}
-
-\declaretheorem[sibling=everything, style=plain]{theorem, lemma, proposition, corollary, question}
-\declaretheorem[sibling=everything, style=definition]{definition, assumption, example, remark, notation, construction}
-\declaretheorem[numbered=no, style=definition]{claim}
-
-%page layout with amsart
-\setlength{\textwidth}{\paperwidth}
-\addtolength{\textwidth}{-2in}
-\calclayout
-
-%toc formatting
-\setcounter{tocdepth}{1}
+% Additional packages
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{threeparttable}
+% \usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{cleveref}
+\crefformat{section}{\S#2#1#3} % see manual of cleveref, section 8.2.1
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}

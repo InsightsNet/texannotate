@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% lcaption.sty  1.0
+%
+% Provides smart formatting of long captions. The captions are 
+% formatted like:
+%			Figure 1: This is a
+%				  long text.
+%
+%                       <-----\CapSize----->
+%
+% If \CapSize is set to ZERO, it will fit the caption to \hsize
+% (the width of the surrounding text)
+%
+% The syntax is \lcaption[short]{long} just like LaTeX's caption command.
+% the [short] argument may be omitted.
+%
+% The command \smartcap will make \caption act like \lcaption. It
+% should be used only once.
+%
+% \CapSize defaults to ZERO, and may be set by a command like:
+%
+%     \CapSize=5in
+%
+% Based on original by Lars P. Fischer <fischer@iesd.auc.dk>
+% Parts of the code is taken from latex.tex (c) by Leslie Lamport
+% Put together by Kresten Krab Thorup <Krab@iesd.auc.dk> january 1991
+% You may not redistribute modified versions of this code, unless
+% you name it to something else than lcaption.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Style Option `lcaption' r1.0 <01/06/91> (KKT)}
+
+\newdimen\CapSize\CapSize\z@
+
+\long\def\@lmakecaption#1#2{
+ \vskip 10pt 
+ \setbox\@tempboxa\hbox{#1:\ }
+ \@tempdima\hsize\advance\@tempdima-\wd\@tempboxa
+ \ifdim\CapSize=\z@\else
+   \ifdim\@tempdima>\CapSize \@tempdima\CapSize\fi\fi
+ \setbox\@tempboxa\hbox{#1: #2}
+ \ifdim\wd\@tempboxa<\hsize\hfil #1: #2\hfil\par\else
+ \hbox to\hsize{\hfil #1: \parbox[t]\@tempdima{#2}\hfil} 
+ \fi}
+
+\def\lcaption{\let\@makecaption\@lmakecaption\caption}
+
+\def\smartcap{\def\caption{\let\@makecaption\@lmakecaption
+\refstepcounter\@captype \@dblarg{\@caption\@captype}}}
+
+

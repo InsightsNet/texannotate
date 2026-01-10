@@ -1,51 +1,6 @@
 %%
 %% This is file `apacite.bst',
-%% generated with the docstrip utility.
-%%
-%% The original source files were:
-%%
-%% apacite.dtx  (with options: `bibstyle')
-%% 
-%% This is a generated file.
-%% 
-%% Copyright (C) 1994-2013 Erik Meijer and any individual authors listed
-%% elsewhere in this file.
-%% 
-%% This file is part of the `apacite' package.
-%% -------------------------------------------
-%% 
-%% It may be distributed and/or modified under the
-%% conditions of the LaTeX Project Public License, either
-%% version 1.3 of this license or (at your option) any later
-%% version.  The latest version of this license is in:
-%% 
-%%    http://www.latex-project.org/lppl.txt
-%% 
-%% and version 1.3 or later is part of all distributions of
-%% LaTeX version 2005/12/01 or later.
-%% 
-%% The `apacite' package consists of the files apacite.dtx and
-%% apacite.ins, and the following generated files:
-%% apacite.sty, apacdoc.sty,  apacite.drv,
-%% apacite.bst, apacitex.bst, apacann.bst,  apacannx.bst,
-%% apa5ex.bib,  apacxmpl.tex,
-%% english.apc, dutch.apc,    finnish.apc,  french.apc,
-%% german.apc,  ngerman.apc,  greek.apc,    norsk.apc,
-%% spanish.apc, swedish.apc.
-%% 
-%% This work has the LPPL maintenance status `maintained'
-%% 
-%% The Current Maintainer of this work is Erik Meijer
-%% 
-%% This file may only be distributed together with a copy of the
-%% source files of the apacite package, i.e., apacite.dtx and
-%% apacite.ins. You may however distribute the apacite package without
-%% the generated files.
-%% 
-%% apacite.bst
-%%   [2013/07/21 v6.03 APA bibliography style]
-%% apacite.bst : reference list according to APA manual
-%% Written by Erik Meijer
+
 
 FUNCTION {identify.apacite.version}
 { % Put identifying string in the .blg file

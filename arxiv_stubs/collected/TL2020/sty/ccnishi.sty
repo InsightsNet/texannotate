@@ -1,0 +1,311 @@
+\ProvidesPackage{ccnishi}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% FONTS %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newfont{\Ls}{cmex10 scaled 5}
+\DeclareMathSymbol{\Lint}{\mathop}{largesymbols}{90}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% COMMANDS  %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newcommand{\com_name}[narg][opt]{def}
+%\renewcommand{\com_name}[narg][opt]{def}
+%\providecommand{\com_name}[narg][opt]{def}
+
+%%% font size in math %%
+\providecommand{\mt}[1]{{\mbox{\tiny $#1$}}}
+\providecommand{\mss}[1]{\mbox{\scriptsize $#1$}}
+\providecommand{\mfn}[1]{\mbox{\footnotesize $#1$}}
+\providecommand{\ms}[1]{\mbox{\small $#1$}}
+\providecommand{\mn}[1]{\mbox{\normalsize $#1$}}
+\providecommand{\ml}[1]{\mbox{\large $#1$}}
+\providecommand{\mL}[1]{\mbox{\Large $#1$}}
+\providecommand{\mLA}[1]{\mbox{\LARGE $#1$}}
+\providecommand{\mh}[1]{\mbox{\huge $#1$}}
+\providecommand{\mH}[1]{\mbox{\HUGE $#1$}}
+
+\providecommand{\mbf}[1]{\mathbf{#1}}
+\providecommand{\mbb}[1]{\mathbb{#1}}
+\providecommand{\mtt}[1]{\mathtt{#1}}
+\providecommand{\msf}[1]{\mathsf{#1}}
+\providecommand{\mfk}[1]{\mathfrak{#1}}
+\providecommand{\mcal}[1]{\mathcal{#1}}
+\providecommand{\msc}[1]{\mathscr{#1}}
+\providecommand{\bs}[1]{\boldsymbol{#1}}
+
+% \providecommand{\ds}[1]{_{_{\hspace{-.6mm} #1}}}
+% \providecommand{\dds}[1]{_{_{_{\!\!#1}}}}
+% \providecommand{\dsl}[1]{\,_{_{#1 \hspace{-.9mm}}}}
+% \providecommand{\ddsl}[1]{\,_{_{_{#1\!\!}}}}
+
+%% fractions, frações %%
+\providecommand{\ums}[2][1]{\ml{\tfrac{#1}{#2}}} %small fraction in equations
+
+\providecommand{\ddfrac}[2]{\begin{array}[t]{c}
+			      #1 \cr #2
+			    \end{array}
+			    }
+\providecommand{\uufrac}[2]{\begin{array}[b]{c}
+			      #1 \cr #2
+			    \end{array}
+			    }
+\providecommand{\ccfrac}[2]{\begin{array}[c]{c}
+			      #1 \cr #2
+			    \end{array}
+			    }
+\providecommand{\nofrac}[2]{\genfrac{}{}{0pt}{}{#1}{#2} }
+
+
+\providecommand{\dup}[1]{\genfrac{}{}{0mm}{1}{}{\!^{#1}} }
+
+\providecommand{\sfrac}[2]
+{\ml{\frac{\mfn{#1}}{\mfn{#2}}} }
+
+\providecommand{\up}[1]{^{#1}}
+
+%\genfrac{left_brk}{right_brk}{thickness}{mathsize}{over}{under}%(AMSmath)
+
+\providecommand{\myfrac}[3]{
+	\genfrac{}{}{.3pt}{#1}{#2}{#3}}
+
+
+%%%%%%%%%%%%%%%%%%%
+%%%% equations %%%%
+%%%%%%%%%%%%%%%%%%%
+
+\providecommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\providecommand{\math}[1]{\begin{math} #1 \end{math}}
+\providecommand{\eqarr}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+%\providecommand{\eqarr*}[1]{\begin{eqnarray*} #1 \end{eqnarray*}}
+\providecommand{\alig}[1]{\begin{align} #1 \end{align}}
+\providecommand{\subeqarr}[2][]{\begin{subequations}\label{#1}\begin{eqnarray} #2
+    \end{eqnarray}\end{subequations}}
+\providecommand{\subeqali}[2][]{\begin{subequations}\label{#1}\begin{align}
+#2    \end{align}\end{subequations}}
+\providecommand{\eqali}[1]{\begin{equation}\begin{aligned} #1
+    \end{aligned}\end{equation}}
+
+%\def\D{\displaystyle}
+%\def\T{\textstyle}
+%\def\S{\scriptstyle}
+%\def\SS{\scriptscriptstyle}
+
+%%%%%%%%%%%%%%%
+%%%%% QM %%%%%%
+%%%%%%%%%%%%%%%
+
+\providecommand{\ket}[1]{\vert #1 \rangle}
+\providecommand{\bra}[1]{\langle #1 \vert}
+\providecommand{\braket}[2]{\langle #1\vert #2 \rangle}
+\providecommand{\aver}[1]{\langle #1 \rangle}
+
+\providecommand{\dket}[1]{\vert #1 \drangle}
+\providecommand{\dbra}[1]{\dlangle #1 \vert}
+\providecommand{\dbraket}[2]{\dlangle #1\vert #2 \drangle}
+\providecommand{\daver}[1]{\dlangle #1 \drangle}
+
+
+%\def\Prob{\mbox{ $\genfrac{}{}{0pt}{}{_{\mL{\wp}}}{} \!$} }
+\def\Prob{ \raisebox{.9ex}{\mLA{\wp}} }
+
+
+%%%%%%%% spacing %%%%%%%%%%%
+\providecommand{\hs}[1]{\hspace{#1}}
+\providecommand{\vs}[1]{\vspace{#1}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\0{\mbox{\tiny $0$}}
+\def\1{\mbox{\tiny $1$}}
+\def\2{\mbox{\tiny $2$}}
+\def\3{\mbox{\tiny $3$}}
+\def\4{\mbox{\tiny $4$}}
+\def\5{\mbox{\tiny $5$}}
+\def\6{\mbox{\tiny $6$}}
+\def\7{\mbox{\tiny $7$}}
+\def\8{\mbox{\tiny $8$}}
+\def\9{\mbox{\tiny $9$}}
+
+\def\A{\mbox{\tiny $A$}}
+\def\B{\mbox{\tiny $B$}}
+\def\C{\mbox{\tiny $C$}}
+\def\D{\mbox{\tiny $D$}}
+\def\E{\mbox{\tiny $E$}}
+\def\F{\mbox{\tiny $F$}}
+\def\G{\mbox{\tiny $G$}}
+\def\H{\mbox{\tiny $H$}}
+\def\I{\mbox{\tiny $I$}}
+\def\J{\mbox{\tiny $J$}}
+\def\K{\mbox{\tiny $K$}}
+\def\L{\mbox{\tiny $L$}}
+\def\M{\mbox{\tiny $M$}}
+\def\N{\mbox{\tiny $N$}}
+\def\O{\mbox{\tiny $O$}}
+\def\P{\mbox{\tiny $P$}}
+\def\Q{\mbox{\tiny $Q$}}
+\def\R{\mbox{\tiny $R$}}
+%\def\S{\mbox{\tiny $S$}}
+\def\T{\mbox{\tiny $T$}}
+\def\U{\mbox{\tiny $U$}}
+\def\V{\mbox{\tiny $V$}}
+\def\W{\mbox{\tiny $W$}}
+\def\X{\mbox{\tiny $X$}}
+\def\Y{\mbox{\tiny $Y$}}
+\def\Z{\mbox{\tiny $Z$}}
+
+\def\brot{\begin{rotate}}
+\def\erot{\end{rotate}}
+
+
+\def\sq12{\mbox{\small $\frac{1}{\sqrt{2}}$}}
+\def\sq2pi{\mfn{\sqrt{2\pi}}}
+%\def\sq2pi{\mbox{\small $\frac{1}{\sqrt{2\pi}}$}}
+\providecommand{\doispi}[1]{\ms{(2\pi)}^{^{\mt{#1}}}\! }
+
+% \def\lapprox{\raisebox{-1mm}[10pt][10pt]
+%	{$\mt{\nofrac{\mn{<}}{\mn{\sim}}}$ }}
+% \def\gapprox{\raisebox{-1mm}[10pt][10pt]
+%	{$\mt{\nofrac{\mn{>}}{\mn{\sim}}}$ }}
+
+% \def\e{\mbox{\large $e$}}
+
+\def\mi{\mbox{\tiny $-$}}
+\def\pl{\mbox{\tiny $+$}}
+\def\={\mbox{\tiny $=$}}
+\def\spm{\mbox{\small $\tpm$}}
+\def\tpm{\mbox{\tiny $\pm$}}
+\def\tmp{\mbox{\tiny $\mp$}}
+
+\def\sdag{\mbox{\tiny $\dag$}}
+\def\pr{\mbox{\tiny $\prime$}}
+\def\prpr{\mbox{\tiny $\prime \prime$}}
+
+% \def\x{ \mathbf{x}}
+% \def\p{ \mathbf{p}}
+% \def\bX{\mathbf{X} }
+% \def\bP{\mathbf{P} }
+
+
+%
+%\def\u{\leavevmode\hbox{\normalsize1\kern-4.2pt\large1}}
+%
+% \def\ovl{\overline}
+% \def\udl{\underline}
+
+\providecommand{\olrarrow}[1]{\overset\leftrightarrow{#1}}
+\providecommand{\olarrow}[1]{\overset\leftarrow{#1}}
+\providecommand{\orarrow}[1]{\overset\rightarrow{#1}}
+%this are smaller than e.g. \overleftrightarrow of amsmath
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\def\mi{\mbox{\tiny $-$}}
+%\def\pl{\mbox{\tiny $+$}}
+
+\def\drangle{\rangle\hspace{-1mm}\rangle}
+\def\dlangle{\langle\hspace{-1mm}\langle}
+
+\def\integ{\int_{\mt{-\infty}}^{\mt{\infty}}}
+
+\def\({\mbox{\tiny $($}}
+\def\){\mbox{\tiny $)$}}
+
+\def\Epsilon{\mbox{\Large $\varepsilon$}}
+\def\bEpsilon{\boldsymbol{\mbox{\Large $\varepsilon$}} }
+\def\orb{\mbox{\tiny $orb $}}
+\def\fm{\mbox{\tiny $f/m$}}
+
+\def\halfbox{\begin{array}{|c}
+		\hline
+		\hspace{1mm}
+		\end{array}}
+
+% \providecommand{\ponto}{{\cdot}}
+\providecommand{\ponto}{\cdot}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%portugues:
+\usepackage{amsmath}
+\DeclareMathOperator{\sen}{sen}
+\DeclareMathOperator{\tg}{tg}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%simbolos:
+\providecommand{\NN}{\mathbb{N}}
+\providecommand{\QQ}{\mathbb{Q}}
+\providecommand{\RR}{\mathbb{R}}
+\providecommand{\CC}{\mathbb{C}}
+\providecommand{\ZZ}{\mathbb{Z}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%matrizes:
+
+%identidade matricial
+% \font\bbm=bbmss12 scaled 1000   
+% \def\id{\mbox{\bbm 1}}	%non scalable
+% http://www.latex-project.org/guides/fntguide.pdf
+% \DeclareMathSymbol{\id}{0}{AMSb}{2} % nao consigo achar o simbolo
+\usepackage{bbm}
+\providecommand{\id}{{\mathbbm{1}}} %scalable
+
+% \def\Tr{\mathrm{Tr}}
+\DeclareMathOperator{\Tr}{\mathrm{Tr}} % small space after symbol
+\DeclareMathOperator{\tr}{\mathrm{tr}} % small space after symbol
+\providecommand{\tp}{{\mss{\mathsf{T}}}}
+% \providecommand{\diag}{\mathrm{diag}}
+\DeclareMathOperator{\diag}{\mathrm{diag}} % small space after symbol
+
+\providecommand{\mtrx}[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\providecommand{\bmtrx}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% linear algebra
+% \providecommand{\pd}{{\otimes}}
+% \providecommand{\vezes}{{\times}}
+\usepackage{mathtools}
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}% %the starred version do not scale
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+% \providecommand{\norm}[1]{{\parallel}#1{\parallel}}
+\DeclarePairedDelimiter\inner{\langle}{\rangle}%
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+% 
+\let\oldinner\inner
+\def\inner{\@ifstar{\oldinner}{\oldinner*}}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%grupos,groups:
+\providecommand{\so}[1]{{SO(#1)}}
+\providecommand{\su}[1]{{SU(#1)}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%funções complexas:
+% \providecommand{\re}{\mathrm{Re}}
+% \providecommand{\im}{\mathrm{Im}}
+% http://web.student.tuwien.ac.at/~e9825610/LaTeXmath.html
+% \providecommand{\re}{\mathop{\mathrm{Re}}\nolimits} % small space afte symbol
+\DeclareMathOperator{\re}{\mathrm{Re}} % small space afte symbol
+\DeclareMathOperator{\im}{\mathrm{Im}} % small space afte symbol
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%integrais:
+\providecommand{\Int}[2]{\int\!d^{#1}{\hspace{-1pt}#2}\,}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%hyperref, hyperlinks, arxiv
+%
+\providecommand{\xlink}[1]
+  {\href{http://arxiv.org/abs/#1}{arXiv:#1}}
+\providecommand{\doilink}[2]
+  {\href{http://dx.doi.org/#1}{#2}}

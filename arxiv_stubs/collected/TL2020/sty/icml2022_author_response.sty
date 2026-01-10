@@ -378,7 +378,7 @@ the offending package(s), or layout-changing commands and try again.
 \fi
 \gdef\@outputpage{%
   \stepcounter{pagecount}%
-  \ifnum\value{pagecount}>2\relax%
+  \ifnum\value{pagecount}>1\relax%
     % Do not output the page
     \PackageWarning{icml_author_response}{Only one page allowed! Discarding any extra output.}
   \else

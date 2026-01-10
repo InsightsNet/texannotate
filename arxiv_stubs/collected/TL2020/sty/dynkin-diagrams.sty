@@ -1,0 +1,5636 @@
+% The Dynkin Diagrams package.
+%
+% Version 3.141 592 653 589 793 2
+%
+% This package draws Dynkin diagrams in LaTeX 
+% documents, using the TikZ package.
+% Please see the file dynkin-diagrams.tex 
+% for examples of use of this package.
+%
+% Benjamin McKay
+% b.mckay@ucc.ie
+%
+% Released under the LaTeX Project Public License v1.3c or later, see 
+% http://www.latex-project.org/lppl.txt
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{dynkin-diagrams}[2021/04/04 Dynkin diagrams]
+\RequirePackage{tikz}
+\RequirePackage{xstring}
+\RequirePackage{xparse}
+\RequirePackage{etoolbox}
+\RequirePackage{expl3}
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+\usetikzlibrary{
+	arrows,
+	arrows.meta,
+	backgrounds,
+	calc,
+	decorations.markings,
+	decorations.pathreplacing,
+	decorations.pathmorphing,
+	fit,
+	patterns,
+	shadows}
+%%%
+%%% Application programming interface: 
+%%% See dynkin-diagrams.tex file for examples of use.
+%%%
+\ifx\draw@lie@hasse@root\undefined\relax
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{Dynkin behind}
+\pgfsetlayers{background,Dynkin behind,main}
+\fi
+\newif\ifold@dynkin@is@backwards
+\newif\ifold@dynkin@is@upsidedown
+\newif\ifold@dynkin@is@extended
+\newif\ifold@dynkin@label@the@roots
+\newif\ifold@dynkin@label@star@the@roots
+\newif\ifold@dynkin@is@twisted
+\newif\ifold@dynkin@reverse@arrows
+\newif\ifold@dynkin@left@fold
+\newif\ifold@dynkin@right@fold
+\newif\ifold@dynkin@odd
+\NewDocumentCommand\dynkin@save{}%
+{%
+\xdef\dynkin@ply@value{1}%
+\ifdynkin@is@backwards\global\old@dynkin@is@backwardstrue\else\global\old@dynkin@is@backwardsfalse\fi%
+\ifdynkin@is@upsidedown\global\old@dynkin@is@upsidedowntrue\else\global\old@dynkin@is@upsidedownfalse\fi%
+\ifdynkin@is@extended\global\old@dynkin@is@extendedtrue\else\global\old@dynkin@is@extendedfalse\fi%
+{\global\dynkin@is@twistedfalse}%
+\ifdynkin@label@the@roots\global\old@dynkin@label@the@rootstrue\else\global\old@dynkin@label@the@rootsfalse\fi%
+\ifdynkin@label@star@the@roots\global\old@dynkin@label@star@the@rootstrue\else\global\old@dynkin@label@star@the@rootsfalse\fi%
+\ifdynkin@is@twisted\global\old@dynkin@is@twistedtrue\else\global\old@dynkin@is@twistedfalse\fi%
+\ifdynkin@reverse@arrows\global\old@dynkin@reverse@arrowstrue\else\global\old@dynkin@reverse@arrowsfalse\fi%
+\ifdynkin@left@fold\global\old@dynkin@left@foldtrue\else\global\old@dynkin@left@foldfalse\fi%
+\ifdynkin@left@fold\global\old@dynkin@right@foldtrue\else\global\old@dynkin@right@foldfalse\fi%
+\ifdynkin@odd\global\old@dynkin@oddtrue\else\global\old@dynkin@oddfalse\fi%
+}%
+\NewDocumentCommand\dynkin@restore{}%
+{%
+\ifold@dynkin@is@backwards\global\dynkin@is@backwardstrue\else\global\dynkin@is@backwardsfalse\fi%
+\ifold@dynkin@is@upsidedown\global\dynkin@is@upsidedowntrue\else\global\dynkin@is@upsidedownfalse\fi%
+\ifold@dynkin@is@extended\global\dynkin@is@extendedtrue\else\global\dynkin@is@extendedfalse\fi%
+\ifold@dynkin@label@the@roots\global\dynkin@label@the@rootstrue\else\global\dynkin@label@the@rootsfalse\fi%
+\ifold@dynkin@label@star@the@roots\global\dynkin@label@star@the@rootstrue\else\global\dynkin@label@star@the@rootsfalse\fi%
+\ifold@dynkin@is@twisted\global\dynkin@is@twistedtrue\else\global\dynkin@is@twistedfalse\fi%
+\ifold@dynkin@reverse@arrows\global\dynkin@reverse@arrowstrue\else\global\dynkin@reverse@arrowsfalse\fi%
+\ifold@dynkin@left@fold\global\dynkin@left@foldtrue\else\global\dynkin@left@foldfalse\fi%
+\ifold@dynkin@left@fold\global\dynkin@right@foldtrue\else\global\dynkin@right@foldfalse\fi%
+\ifold@dynkin@odd\global\dynkin@oddtrue\else\global\dynkin@oddfalse\fi%
+}%
+\NewDocumentEnvironment{dynkinDiagram}{O{}mO{0}m}%
+{%
+\dynkin@save{}%
+\begin{tikzpicture}[baseline=(origin.base)]%
+\@dynkin[#1]{#2}[#3]{#4}%
+}%
+{%
+\end{tikzpicture}%
+\dynkin@restore{}%
+}%
+
+\NewDocumentCommand\dynkin@check@if@in@tikZ{}%
+{\ifdefined\filldraw\relax\else\dynkin@error@not@in@tikz\fi}
+
+\NewDocumentCommand\dynkin{O{}mO{0}m}%
+{%
+\dynkin@save{}%
+\ifdefined\filldraw\relax%
+\@dynkin[vertical shift=0,#1]{#2}[#3]{#4}%
+\else%
+\tikz[baseline=(origin.base)]{\@dynkin[#1]{#2}[#3]{#4}}%
+\fi%
+\dynkin@restore{}%
+}%
+
+
+%% Names for Dynkin diagrams.
+\xdef\dynkin@indefinite@number@symbol{n}
+\NewDocumentCommand\dynkinIndefiniteSymbol{m}%
+{%
+\xdef\dynkin@indefinite@number@symbol{#1}%
+}%
+\NewDocumentCommand\dynkinName{O{}mO{0}m}%
+{%
+	\dynkin@save{}%
+	\xdef\dynkin@ply@value{1}%
+	\xdef\dynkin@label@directions{}%
+	\xdef\dynkin@label@directions@star{}%
+	\setcounter{dynkinRootNo}{0}%
+	\dynkin@clear@indefinite@edge@list%
+	\xdef\dynkin@parabolic{0}%
+	\pgfkeys{/Dynkin diagram, #1}%
+	\xdef\dynkin@user@series{#2}%
+	\xdef\dynkin@twisted@series{#3}%
+	\xdef\dynkin@user@string{#4}%
+	\xdef\dynkin@string{#4}%
+	\xdef\dynkin@series{#2}%
+	\dynkin@grok@series%
+	\IfSubStr{ABCDEFGHI}{\dynkin@series}{}{\dynkin@error@series}%
+	\IfInteger{\dynkin@string}%
+	{%
+		\dynkin@integer@rank%
+	}%
+	{%
+		% Turn Satake codes into Dynkin diagram expressions in \dynkin@string.
+		\dynkin@grok@Satake@codes%
+	}%
+	% Expand out any digits in \dynkin@string into multiples of the various root marks.
+	\expand@Dynkin@Roots@Digits%
+	% Assign to \dynkin@roots the input string \dynkin@string with all . symbols removed,
+	% so we only get the symbols representing the marks for the various roots.
+	\StrDel{\dynkin@string}{.}[\temp]%
+	\xdef\dynkin@roots{\temp}%
+	\StrLen{\dynkin@roots}[\temp]%
+	\global\dynkin@nodes=\temp\relax%
+	\dynkin@grok@indefinite@edges%
+	\dynkin@find@rank{}%
+	\ensuremath{%
+		\dynkin@series^{%
+			\ifdynkin@is@extended{1}%
+			\else{%
+				\IfStrEq{\dynkin@twisted@series}{0}%
+				{}%
+				{\dynkin@twisted@series}%
+				}%
+			\fi%
+		}%
+		_%
+		{%
+			\ifx\dynkin@user@string\empty\relax%
+				\dynkin@indefinite@number@symbol%
+			\else%
+				\ifdynkin@Satake@diagram%
+					\dynkin@user@string%
+				\else%
+					\IfStrEq{\dynkin@user@string}{even}{ev}%
+					{%
+						\IfStrEq{\dynkin@user@string}{odd}{od}%
+						{%
+							\the\dynkin@rank%
+						}%
+					}%
+				\fi%
+			\fi%
+			\IfStrEq{\dynkin@parabolic}{0}%
+				{}%
+				{,\dynkin@parabolic}
+		}%
+	}%
+\dynkin@restore{}%
+}%
+
+%% Returns the current Dynkin diagram ordering as a string.
+\NewDocumentCommand\currentDynkinOrdering{}%
+{%
+	\dynkin@ordering%
+}%
+
+\newcount\dynkinOverrideRoot
+\NewDocumentCommand\dynkin@override@label@directions{}%
+{%
+	\dynkinOverrideRoot1\relax%
+	\ifdynkin@is@extended%
+		\global\dynkinOverrideRoot0\relax%
+	\fi%
+	\foreach \overRide in \dynkin@label@directions@override
+	{%
+		\IfStrEq{\overRide}{}%
+		{%
+		}%
+		{%
+			\dynkinPutLabelInDirection{\the\dynkinOverrideRoot}{\overRide}%
+		}%
+		\global\advance\dynkinOverrideRoot by 1\relax%
+	}%
+}%
+
+\NewDocumentCommand\dynkinRefreshRoots{}%
+{%
+	\dynkin@override@label@directions{}%
+	\dynkin@draw@all@roots{}%
+	\ifdynkin@label@the@roots%
+		\dynkinPrintLabels{}%
+	\fi%
+	\ifdynkin@label@star@the@roots%
+		\dynkinPrintLabelsStar{}%
+	\fi%
+}%
+
+
+\xdef\dynkin@label@direction{}
+
+\NewDocumentCommand\dynkin@translate@direction{m}%
+{%
+	\xdef\Dir{#1}
+	\ifdynkin@is@backwards
+		\IfStrEqCase{\Dir}{%
+			{0}{\xdef\Dir{4}}%
+			{1}{\xdef\Dir{3}}%
+			{2}{\xdef\Dir{2}}%
+			{3}{\xdef\Dir{1}}%
+			{4}{\xdef\Dir{0}}%
+			{5}{\xdef\Dir{7}}%
+			{6}{\xdef\Dir{6}}%
+			{7}{\xdef\Dir{5}}%
+		}%
+		[\ClassError%
+			{Dynkin diagrams}%
+			{Unrecognized root label direction: 
+			``\temp'' in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}%
+			{}]		
+	\fi
+	\ifdynkin@is@upsidedown
+		\IfStrEqCase{\Dir}{%
+			{1}{\xdef\Dir{7}}%
+			{2}{\xdef\Dir{6}}%
+			{3}{\xdef\Dir{5}}%
+			{5}{\xdef\Dir{3}}%
+			{6}{\xdef\Dir{2}}%
+			{7}{\xdef\Dir{1}}%
+		}%
+	\fi
+	\IfStrEqCase{\Dir}{%
+		{0}{\xdef\dynkin@label@direction{right}}%
+		{1}{\xdef\dynkin@label@direction{above right}}%
+		{2}{\xdef\dynkin@label@direction{above}}%
+		{3}{\xdef\dynkin@label@direction{above left}}%
+		{4}{\xdef\dynkin@label@direction{left}}%
+		{5}{\xdef\dynkin@label@direction{below left}}%
+		{6}{\xdef\dynkin@label@direction{below}}%
+		{7}{\xdef\dynkin@label@direction{below right}}%
+	}%
+}%
+\newcount\dynkin@rpo%
+\NewDocumentCommand\drlap{m}%
+{%
+\IfStrEq{\dynkin@label@direction}{left}%
+{%
+	#1%
+}%
+{%
+	\IfStrEq{\dynkin@label@direction}{right}%
+	{%
+	#1%
+	}%
+	{%
+	\mathrlap{#1}%
+	}%
+}%
+}%
+%% \dynkinLabelRoot{<r>}{<s>} or \dynkinLabelRoot*{<r>}{<s>}
+%% Prints the label string <s> on the Dynkin diagram at root number <r>, in the current ordering convention.
+%% Starred form uses the alternate label location.
+\NewDocumentCommand\dynkinLabelRoot{smm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\ifnum\dynkin@nodes<#2\relax%
+		\ClassError{Dynkin diagrams}%
+		{Unrecognized root: 
+		``#2'' found when labelling Dynkin diagram
+		 \dynkin@user@series{\dynkin@user@string}. 
+		Allowed values are up to \the\dynkin@nodes}%
+		{}%
+	\fi%
+	\ifx#3\empty\relax%
+	\else%
+		\dynkin@rpo=#2\relax%
+		\advance\dynkin@rpo by 1\relax%
+		\IfBooleanTF{#1}%
+		{%
+			\StrMid{\dynkin@label@directions@star}{\the\dynkin@rpo}{\the\dynkin@rpo}[\dynkin@direction@letter]%
+		}%
+		{%
+			\StrMid{\dynkin@label@directions}{\the\dynkin@rpo}{\the\dynkin@rpo}[\dynkin@direction@letter]%
+		}%
+		\dynkin@translate@direction{\dynkin@direction@letter}%
+		\IfBooleanTF{#1}%
+		{%
+		\node[inner sep=\dynkin@root@radius,%
+			label={%
+				[/Dynkin diagram/text style]%
+				\dynkin@label@direction:%
+				\(\pgfkeys{/Dynkin diagram/label macro*=#3}\)%
+				}%
+			]%
+			at (\dynkin@root@name #2){};%
+		}%
+		{%
+		\node[inner sep=\dynkin@root@radius,%
+			label={%
+				[/Dynkin diagram/text style]%
+				\dynkin@label@direction:%
+				\(\pgfkeys{/Dynkin diagram/label macro=#3}\)%
+				}%
+			]%
+			at (\dynkin@root@name #2){};%
+		}%
+	\fi%
+}%
+\newcounter{dynkinRootNo}
+\NewDocumentCommand\@dynkinLabelThisRoot{m}%
+{%
+\stepcounter{dynkinRootNo}%
+\dynkinLabelRoot{\arabic{dynkinRootNo}}{#1}%
+}%
+\NewDocumentCommand\@dynkinLabelThisRootStar{m}%
+{%
+\stepcounter{dynkinRootNo}%
+\dynkinLabelRoot*{\arabic{dynkinRootNo}}{#1}%
+}%
+
+\NewDocumentCommand\dynkinBrace{somm}%[text]{start}{end}
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\xdef\braceYshift{1mm}%
+	}%
+	{%
+		\xdef\braceYshift{-1mm}%
+	}%
+	\draw[%
+		decoration=%
+			{%
+				brace,
+				\IfBooleanF{#1}{mirror},
+				raise=0.05cm,
+			},%
+		decorate]%
+		($(root #3)-({\dynkin@root@radius},
+		\IfBooleanTF{#1}%
+			{{-\dynkin@root@radius}}%
+			{{\dynkin@root@radius}}%
+		)$) 
+		   	-- 
+		($(root #4)+({\dynkin@root@radius},
+		\IfBooleanTF{#1}%
+			{{\dynkin@root@radius}}%
+			{{-\dynkin@root@radius}}%
+		)$) 
+ 		node%
+		[%
+			pos=0.5,%
+		   	anchor=\IfBooleanTF{#1}{south}{north},%
+	  		yshift=\braceYshift,%
+			/Dynkin diagram/text style%
+		]% 
+		{\IfValueT{#2}{\(#2\)}};%
+}%
+
+\NewDocumentCommand\dynkin@involution{somD<>{}om}%
+{%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\IfValueTF{#2}%
+	{%
+		\IfValueTF{#5}%
+		{%
+			\draw[/Dynkin diagram/involution,#2] 
+				(root #3) to 
+				node[%
+					midway,
+					/Dynkin diagram/text style,
+					#4]
+				{$#5$} 
+				(root #6);%
+		}%
+		{%
+			\draw[/Dynkin diagram/involution,#2] 
+				(root #3) to (root #6);%
+		}%		
+	}%
+	{%
+		\IfBooleanTF{#1}
+		{%
+			\IfValueTF{#5}%
+			{%
+				\draw[/Dynkin diagram/involution] 
+					(root #3)
+					to
+					node[%
+						midway,
+						/Dynkin diagram/text style,
+						#4]
+					{$#5$}
+					(root #6);%
+			}%
+			{%
+				\draw[/Dynkin diagram/involution] 
+					(root #3) to[bend left] (root #6);%
+			}%
+		}%
+		{%
+			\IfValueTF{#5}%
+			{%
+				\draw[/Dynkin diagram/involution] 
+					(root #3) 
+					to[bend right] 
+					node[%
+						midway,
+						/Dynkin diagram/text style,
+						#4]
+					{$#5$}
+					(root #6);%
+			}%
+			{%
+				\draw[/Dynkin diagram/involution]
+					(root #3) to[bend right] (root #6);%
+			}%
+		}%
+	}%
+	\end{pgfonlayer}%
+}%
+
+\DeclareListParser*{\forDynkinSemicolonsvlist}{;}
+\def\dynkin@involution@input@splitter#1{\dynkin@involution#1}
+\NewDocumentCommand\dynkin@draw@involutions{}%
+{%
+	\expandafter\forDynkinSemicolonsvlist%
+		\expandafter\dynkin@involution@input@splitter%
+		\expandafter{\dynkin@involution@list}%
+}%
+
+%% \dynkinPrintLabels
+%% Prints the labels on the Dynkin diagram,in the given ordering. Uses the default labels if ``label'' is set without a list of ``labels'' being set.
+\newcommand{\dynkinPrintLabels}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\ifx\dynkin@label@list\empty\relax%
+		\foreach \i in {1,...,\the\dynkin@nodes}{\dynkinLabelRoot{\i}{\i}}%
+		\ifdynkin@is@extended%
+			\dynkinLabelRoot{0}{0}%
+		\else%
+			\ifdynkin@is@twisted%
+				\dynkinLabelRoot{0}{0}%
+			\fi%
+		\fi%
+	\else%
+		\ifdynkin@is@extended%
+			\setcounter{dynkinRootNo}{-1}%	
+		\else%
+			\ifdynkin@is@twisted%
+				\setcounter{dynkinRootNo}{-1}%	
+			\else%
+				\setcounter{dynkinRootNo}{0}%	
+			\fi%
+		\fi%
+		\foreach \i in \dynkin@label@list%
+		{%
+			\@dynkinLabelThisRoot{\i}%
+		}%
+		\ifdynkin@is@extended%
+			\setcounter{dynkinRootNo}{-1}%	
+		\else%
+			\ifdynkin@is@twisted%
+				\setcounter{dynkinRootNo}{-1}%	
+			\else%
+				\setcounter{dynkinRootNo}{0}%	
+			\fi%
+		\fi%
+    \fi%
+}%
+
+% Print alternate location labels.
+\newcommand{\dynkinPrintLabelsStar}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\ifx\dynkin@label@list@star\empty\relax%
+		\foreach \i in {1,...,\the\dynkin@nodes}{\dynkinLabelRoot*{\i}{\i}}%
+		\ifdynkin@is@extended%
+			\dynkinLabelRoot*{0}{0}%
+		\else%
+			\ifdynkin@is@twisted%
+				\dynkinLabelRoot*{0}{0}%
+			\fi%
+		\fi%
+	\else%
+		\ifdynkin@is@extended%
+			\setcounter{dynkinRootNo}{-1}%	
+		\else%
+			\ifdynkin@is@twisted%
+				\setcounter{dynkinRootNo}{-1}%	
+			\else%
+				\setcounter{dynkinRootNo}{0}%	
+			\fi%
+		\fi%
+		\foreach \i in \dynkin@label@list@star%
+		{%
+			\@dynkinLabelThisRootStar{\i}%
+		}%
+		\ifdynkin@is@extended%
+			\setcounter{dynkinRootNo}{-1}%	
+		\else%
+			\ifdynkin@is@twisted%
+				\setcounter{dynkinRootNo}{-1}%	
+			\else%
+				\setcounter{dynkinRootNo}{0}%	
+			\fi%
+		\fi%
+	\fi%
+}%
+
+%% \dynkinEdgeLabel{<n1>}{<n2>}{<s>}
+%% Prints <s> between root <n1> and <n2> on the current Dynkin diagram in the current root ordering.
+\NewDocumentCommand\dynkinEdgeLabel{mmm}%
+{%
+	\convertRootPair{#1}{#2}%
+	\node[inner sep=\dynkin@root@radius,%
+		label={%
+			[/Dynkin diagram/text style,/Dynkin diagram/edge label]%
+			above:
+			\(\pgfkeys{/Dynkin diagram/label macro*=#3}\)%
+			}%
+		]
+		at ($.5*(\dynkin@root@name \the\@dynkin@from@root)+.5*(\dynkin@root@name \the\@dynkin@to@root)$) 
+		{};
+}%
+
+
+\NewDocumentCommand\dynkinDrawCrossRootMark{O{}m}%
+{%
+	\draw[/Dynkin diagram,x,#1]%
+		($(#2)+(\dynkin@root@radius,\dynkin@root@radius)$)%
+		--%
+		($(#2)-(\dynkin@root@radius,\dynkin@root@radius)$);%
+	\draw[/Dynkin diagram,x,#1]%
+		($(#2)+(-\dynkin@root@radius,\dynkin@root@radius)$)%
+		--%
+		($(#2)+(\dynkin@root@radius,-\dynkin@root@radius)$);%
+}%
+
+%% \dynkinCrossRootMark{<n>}
+%% Prints a cross at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinCrossRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%	
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\dynkinDrawCrossRootMark[#2]{\dynkin@root@name \the\dynkin@Root@Number}%
+}%
+
+%% \dynkinHeavyCrossRootMark{<n>}
+%% Prints a heavy cross at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinHeavyCrossRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\draw[/Dynkin diagram,X,#2]%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+(\dynkin@root@radius,\dynkin@root@radius)$)%
+		--%
+		($(\dynkin@root@name \the\dynkin@Root@Number)-(\dynkin@root@radius,\dynkin@root@radius)$);%
+	\draw[/Dynkin diagram,X,#2]%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+(-\dynkin@root@radius,\dynkin@root@radius)$)%
+		--%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+(\dynkin@root@radius,-\dynkin@root@radius)$);%
+}%
+
+
+%% \dynkinHollowRootMark{<n>}
+%% Prints an hollow dot at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinHollowRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\fill[/Dynkin diagram,o,#2] (\dynkin@root@name \the\dynkin@Root@Number) circle (\dynkin@root@radius);%
+}%
+
+%% \dynkinDoubleHollowRootMark{<n>}
+%% Prints a double hollow dot at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDoubleHollowRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%	
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\fill[/Dynkin diagram,o,#2] (\dynkin@root@name \the\dynkin@Root@Number) circle (2*\dynkin@root@radius);%
+	\fill[/Dynkin diagram,o,#2] (\dynkin@root@name \the\dynkin@Root@Number) circle (\dynkin@root@radius);%
+}%
+
+\NewDocumentCommand\dynkinDrawSolidRootMark{O{}m}%
+{%
+	\dynkin@check@if@in@tikZ%	
+	\fill[/Dynkin diagram,*,#1] (#2) circle (\dynkin@root@radius);%
+}%
+
+%% \dynkinSolidRootMark{<n>}
+%% Prints a solid dot at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinSolidRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\dynkinDrawSolidRootMark[#2]{\dynkin@root@name \the\dynkin@Root@Number}%
+%	\fill[/Dynkin diagram,*,#2] (\dynkin@root@name \the\dynkin@Root@Number) circle (\dynkin@root@radius);%
+}%
+
+%% \dynkinTensorRootMark{<n>}
+%% Prints a tensor product symbol at root <n> on the current Dynkin diagram.
+%% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinTensorRootMark{sO{}m}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#3}%
+	}%
+	{%
+		\dynkin@Root@Number=#3\relax%
+	}%
+	\fill[/Dynkin diagram,o,#2] (\dynkin@root@name \the\dynkin@Root@Number) circle ({\dynkin@root@radius});%
+	\draw[/Dynkin diagram,t,#2]%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+({\dynkin@root@radius/sqrt(2)},{\dynkin@root@radius/sqrt(2)})$)%
+		--%
+		($(\dynkin@root@name \the\dynkin@Root@Number)-({\dynkin@root@radius/sqrt(2)},{\dynkin@root@radius/sqrt(2)})$);%
+	\draw[/Dynkin diagram,t,#2]%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+({-\dynkin@root@radius/sqrt(2)},{\dynkin@root@radius/sqrt(2)})$)%
+		--%
+		($(\dynkin@root@name \the\dynkin@Root@Number)+({\dynkin@root@radius/sqrt(2)},{-\dynkin@root@radius/sqrt(2)})$);%
+}%
+
+% \dynkinRootMark{<s>}{<n>}
+% Prints a dot at root <n> on the current Dynkin diagram using mark style <s>.
+% Use <s> empty to get the default mark style.
+% The starred form accepts <n> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinRootMark{smm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\IfStrEqCase{#2}%
+		{%
+			{}{\dynkinRootMark*{\dynkin@root@mark}{#3}}%
+			{*}{\dynkinSolidRootMark*{#3}}%
+			{O}{\dynkinDoubleHollowRootMark*{#3}}%
+			{X}{\dynkinHeavyCrossRootMark*{#3}}%
+			{o}{\dynkinHollowRootMark*{#3}}%
+			{t}{\dynkinTensorRootMark*{#3}}%
+			{x}{\dynkinCrossRootMark*{#3}}%
+		}%
+		[\ClassError%
+			{Dynkin diagrams}%
+			{Unrecognized root mark: ``#2'' in Dynkin diagram%
+			 \dynkin@user@series{\dynkin@user@string}}%
+			{}]
+	}%
+	{%
+		\IfStrEqCase{#2}%
+		{%
+			{}{\dynkinRootMark{\dynkin@root@mark}{#3}}%
+			{*}{\dynkinSolidRootMark{#3}}%
+			{O}{\dynkinDoubleHollowRootMark{#3}}%
+			{X}{\dynkinHeavyCrossRootMark{#3}}%
+			{o}{\dynkinHollowRootMark{#3}}%
+			{t}{\dynkinTensorRootMark{#3}}%
+			{x}{\dynkinCrossRootMark{#3}}%
+		}%
+		[\ClassError{Dynkin diagrams}{Unrecognized root mark: ``#2'' in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}{}]
+	}%
+}%
+
+%% \dynkinDefiniteSingleEdge{<p>}{<q>}
+%% Draws a single line from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteSingleEdge{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+		\draw[/Dynkin diagram,edge,#2] 
+			($(\dynkin@root@name \the\@dynkin@from@root)$) 
+			-- 
+			($(\dynkin@root@name \the\@dynkin@to@root)$);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteSingleEdge{<p>}{<q>}
+%% Draws a single line from root <p> to root <q> on the current Dynkin diagram in the current label ordering,
+%% drawn as dashed to indicate an edge containing an indefinite number of roots.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteSingleEdge{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+		\draw[/Dynkin diagram,edge,#2] 
+			($(\dynkin@root@name \the\@dynkin@from@root)$) 
+			-- 
+			(${(2/3)}*(\dynkin@root@name \the\@dynkin@from@root)+{(1/3)}*(\dynkin@root@name \the\@dynkin@to@root)$);%
+		\draw[/Dynkin diagram,indefinite edge,#2] 
+			(${(2/3)}*(\dynkin@root@name \the\@dynkin@from@root)+{(1/3)}*(\dynkin@root@name \the\@dynkin@to@root)$)
+			-- 
+			(${(1/3)}*(\dynkin@root@name \the\@dynkin@from@root)+{(2/3)}*(\dynkin@root@name \the\@dynkin@to@root)$);%
+		\draw[/Dynkin diagram,edge,#2] 
+			(${(1/3)}*(\dynkin@root@name \the\@dynkin@from@root)+{(2/3)}*(\dynkin@root@name \the\@dynkin@to@root)$)
+			-- 
+			($(\dynkin@root@name \the\@dynkin@to@root)$);%
+	\end{pgfonlayer}%
+}%	
+
+%%% \dynkinRightFold{<p>}{<q>}
+%%% Draws an arrow to represent folding from root <p> to root <q> on the current Dynkin diagram in the current label ordering, curving to the right.
+%%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinRightFold{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\dynkinFold*[/Dynkin diagram,fold right style,#2]{#3}{#4}%
+	}%
+	{%
+		\dynkinFold[/Dynkin diagram,fold right style,#2]{#3}{#4}%
+	}%
+}%
+
+%%% \dynkinLeftFold{<p>}{<q>}
+%%% Draws an arrow to represent folding from root <p> to root <q> on the current Dynkin diagram in the current label ordering, curving to the left.
+%%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinLeftFold{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\dynkinFold*[/Dynkin diagram,fold left style,#2]{#3}{#4}%
+	}%
+	{%
+		\dynkinFold[/Dynkin diagram,fold left style,#2]{#3}{#4}%
+	}%
+}%
+
+%% \dynkinFold{<p>}{<q>}
+%% Draws some colouring to indicate which roots are being folded together, including roots <p> and <q>.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinFold{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+%	\convertRootPair{\@dynkin@from@root}{\@dynkin@to@root}%
+	\begin{pgfonlayer}{Dynkin behind}%
+		\draw[/Dynkin diagram/fold style,#2] 
+			($(\dynkin@root@name \the\@dynkin@from@root)$)
+			to 
+			($(\dynkin@root@name \the\@dynkin@to@root)$);
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteRightDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteRightDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (90:0:\dynkin@fold@radius);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteRightDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteRightDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\node (center) at ($(\dynkin@root@name \the\@dynkin@from@root)-(0,\dynkin@fold@radius)$) {};%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		(center)
+		++(90:\dynkin@fold@radius)
+		arc [start angle=90, end angle=60, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,indefinite edge,fill=none,#2]
+		(center)
+		++(60:\dynkin@fold@radius)
+		arc [start angle=60, end angle=30, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,edge,fill=none,#2]
+		(center)
+		++(30:\dynkin@fold@radius)
+		arc [start angle=30, end angle=0, radius=\dynkin@fold@radius];%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinDefiniteRightUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteRightUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (-90:0:\dynkin@fold@radius);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteRightUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteRightUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\node (center) at ($(\dynkin@root@name \the\@dynkin@from@root)+(0,\dynkin@fold@radius)$) {};%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		(center)
+		++(-90:\dynkin@fold@radius)
+		arc [start angle=-90, end angle=-60, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,indefinite edge,fill=none,#2]
+		(center)
+		++(-60:\dynkin@fold@radius)
+		arc [start angle=-60, end angle=-30, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,edge,fill=none,#2]
+		(center)
+		++(-30:\dynkin@fold@radius)
+		arc [start angle=-30, end angle=0, radius=\dynkin@fold@radius];%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteLeftDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteLeftDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (90:180:\dynkin@fold@radius);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteLeftDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteLeftDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\node (center) at ($(\dynkin@root@name \the\@dynkin@from@root)-(0,\dynkin@fold@radius)$) {};%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		(center)
+		++(90:\dynkin@fold@radius)
+		arc [start angle=90, end angle=120, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,indefinite edge,fill=none,#2]
+		(center)
+		++(120:\dynkin@fold@radius)
+		arc [start angle=120, end angle=150, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,edge,fill=none,#2]
+		(center)
+		++(150:\dynkin@fold@radius)
+		arc [start angle=150, end angle=180, radius=\dynkin@fold@radius];%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinDefiniteLeftUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteLeftUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		($(\dynkin@root@name \the\@dynkin@from@root)$) 
+		arc (-90:-180:\dynkin@fold@radius);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteLeftUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteLeftUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\node (center) at ($(\dynkin@root@name \the\@dynkin@from@root)+(0,\dynkin@fold@radius)$) {};%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		(center)
+		++(-90:\dynkin@fold@radius)
+		arc [start angle=-90, end angle=-120, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,indefinite edge,fill=none,#2]
+		(center)
+		++(-120:\dynkin@fold@radius)
+		arc [start angle=-120, end angle=-150, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,edge,fill=none,#2]
+		(center)
+		++(-150:\dynkin@fold@radius)
+		arc [start angle=-150, end angle=-180, radius=\dynkin@fold@radius];%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteSemiCircle{<p>}{<q>}
+%% Draws a half circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteSemiCircle{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		($(\dynkin@root@name \the\@dynkin@from@root)$) 
+		arc (90:-90:\dynkin@fold@radius);%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinIndefiniteSemiCircle{<p>}{<q>}
+%% Draws a half circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinIndefiniteSemiCircle{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\node (center) at ($(\dynkin@root@name \the\@dynkin@from@root)-(0,\dynkin@fold@radius)$) {};%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,fill=none,#2] 
+		(center)
+		++(90:\dynkin@fold@radius)
+		arc [start angle=90, end angle=30, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,indefinite edge,fill=none,#2]
+		(center)
+		++(30:\dynkin@fold@radius)
+		arc [start angle=30, end angle=-30, radius=\dynkin@fold@radius];%
+	\draw[/Dynkin diagram,edge,fill=none,#2]
+		(center)
+		++(-90:\dynkin@fold@radius)
+		arc [start angle=-90, end angle=-30, radius=\dynkin@fold@radius];%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinDefiniteDoubleRightDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleRightDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (90:0:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (0:45:{\dynkin@fold@radius});%
+		\else%
+			\path[
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (90:45:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteDoubleUpRightArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleUpRightArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (180:90:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (90:135:{\dynkin@fold@radius});%
+		\else%
+			\path[
+				/Dynkin diagram/arrow shape,
+			tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (180:135:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteDoubleUpLeftArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleUpLeftArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (0:90:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (90:45:{\dynkin@fold@radius});%
+		\else%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (0:45:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+
+
+%% \dynkinDefiniteDoubleDownRightArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleDownRightArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		-- 
+		($(\dynkin@root@name \the\@dynkin@to@root)+(-\dynkin@fold@radius,\dynkin@fold@radius)$)%
+		arc (-180:-90:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (-90:-135:{\dynkin@fold@radius});%
+		\else%
+			\path[%
+				/Dynkin diagram/arrow shape,
+				,tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (180:225:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteDoubleRightUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleRightUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (270:360:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			,tips] 
+			($(\dynkin@root@name \the\@dynkin@to@root)$)%
+			arc (0:-45:\dynkin@fold@radius);%
+		\else%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			,tips] 
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (270:315:\dynkin@fold@radius);%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+%% \dynkinDefiniteDoubleLeftDownArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleLeftDownArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (90:180:{\dynkin@fold@radius});%
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[%
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (180:{180-45}:{\dynkin@fold@radius});%
+		\else%
+			\path[
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (90:135:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteDoubleDownLeftArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleDownLeftArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+	\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+		($(\dynkin@root@name \the\@dynkin@from@root)$)%
+		arc (360:270:{\dynkin@fold@radius});% 
+	\ifdynkin@arrows%
+		\ifdynkin@reverse@arrows%
+			\path[
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				arc (-90:-45:{\dynkin@fold@radius});%
+		\else%
+			\path[
+				/Dynkin diagram/arrow shape,
+			,tips] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				arc (360:315:{\dynkin@fold@radius});%
+		\fi%
+	\fi%
+	\end{pgfonlayer}%
+}%
+
+
+
+%% \dynkinDefiniteDoubleLeftUpArc{<p>}{<q>}
+%% Draws a quarter circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleLeftUpArc{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+		\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (-90:-180:{\dynkin@fold@radius});%
+		\ifdynkin@arrows%
+			\ifdynkin@reverse@arrows%
+				\path[%
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@to@root)$)%
+					arc (-180:-135:\dynkin@fold@radius);%
+			\else%
+				\path[,
+				/Dynkin diagram/arrow shape,
+				tips] 
+					($(\dynkin@root@name \the\@dynkin@from@root)$)%
+					arc (-90:-135:\dynkin@fold@radius);%
+			\fi%
+		\fi%
+	\end{pgfonlayer}%
+}%
+
+
+%% \dynkinDefiniteDoubleDownRightSemiCircle{<p>}{<q>}
+%% Draws a semi circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleDownRightSemiCircle{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+		\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (90:-90:{\dynkin@fold@radius});%
+		\ifdynkin@arrows%
+			\ifdynkin@reverse@arrows%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@to@root)$)%
+					arc (-90:0:\dynkin@fold@radius);%
+			\else%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@from@root)$)%
+					arc (90:0:\dynkin@fold@radius);%
+			\fi%
+		\fi%
+	\end{pgfonlayer}%
+}%
+
+
+
+
+%%% \dynkinDefiniteTripleDownRightSemiCircle{<p>}{<q>}
+%%% Draws a semi circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%%% as a triple path.
+%%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteTripleDownRightSemiCircle{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+		\draw[/Dynkin diagram,
+			edge,
+			double,
+			double distance=\dynkin@root@radius,
+			fill=none,
+			{Straight Barb[length=1pt]}-{Straight Barb[length=1pt]},
+			#2]%
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (90:-90:{\dynkin@fold@radius});%
+		\draw[/Dynkin diagram,edge,fill=none,#2]%
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (90:-90:{\dynkin@fold@radius});%
+		\ifdynkin@arrows%
+			\ifdynkin@reverse@arrows%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@to@root)$)%
+					arc (-90:0:\dynkin@fold@radius);%
+			\else%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@from@root)$)%
+					arc (90:0:\dynkin@fold@radius);%
+			\fi%
+		\fi%
+	\end{pgfonlayer}%%
+}%
+
+
+
+
+%% \dynkinDefiniteDoubleUpRightSemiCircle{<p>}{<q>}
+%% Draws a semi circle from root <p> to root <q> on the current Dynkin diagram in the current label ordering
+%% as a double path.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleUpRightSemiCircle{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+		\draw[/Dynkin diagram,edge,double,fill=none,#2]%
+			($(\dynkin@root@name \the\@dynkin@from@root)$)%
+			arc (-90:90:{\dynkin@fold@radius});%
+		\ifdynkin@arrows%
+			\ifdynkin@reverse@arrows%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@to@root)$)%
+					arc (90:0:\dynkin@fold@radius);%
+			\else%
+				\path[
+				/Dynkin diagram/arrow shape,
+				,tips] 
+					($(\dynkin@root@name \the\@dynkin@from@root)$)%
+					arc (-90:0:\dynkin@fold@radius);%
+			\fi%
+		\fi%
+	\end{pgfonlayer}%%
+}%
+
+
+%% \dynkinEdge[<o>]{<f>}{<p>}{<q>}
+%% Applies \dynkinDefinite<f>[<o>]{<p>}{<q>} if the edge <p><q> is definite, 
+%% otherwise applies \dynkinIndefinite<f>[<o>]{<p>}{<q>}
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinEdge{sO{}mmm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#4}{#5}%
+		\dynkin@is@edge@indefinite{\@dynkin@from@root}{\@dynkin@to@root}%
+		\ifdynkin@is@indefinite@edge%
+			\csname dynkinIndefinite#3\endcsname[#2]%
+				{\@dynkin@from@root}{\@dynkin@to@root}%
+		\else%
+			\csname dynkinDefinite#3\endcsname[#2]%
+				{\@dynkin@from@root}{\@dynkin@to@root}%
+		\fi%
+	}%
+	{%
+		\dynkin@is@edge@indefinite{#4}{#5}%
+		\ifdynkin@is@indefinite@edge%
+			\csname dynkinIndefinite#3\endcsname[#2]{#4}{#5}%
+		\else%
+			\csname dynkinDefinite#3\endcsname[#2]{#4}{#5}%
+		\fi%
+	}%
+}%
+
+%% \dynkinEdgeArrow{<p>}{<q>}
+%% Draws an arrow head on the edge from root <p> to root <q>.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinEdgeArrow{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\ifdynkin@arrows%
+		\IfBooleanTF{#1}%
+		{%
+			\convertRootPair{#3}{#4}%
+		}%
+		{%
+			\@dynkin@from@root=#3\relax%
+			\@dynkin@to@root=#4\relax%
+		}%
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\ifdynkin@reverse@arrows%
+				\node (from-arrow-node) 
+					at
+					($(\dynkin@root@name \the\@dynkin@to@root)$){};%
+				\node (to-arrow-node) 
+					at
+					($(\dynkin@root@name \the\@dynkin@from@root)$){};%
+			\else%
+				\node (from-arrow-node) 
+					at
+					($(\dynkin@root@name \the\@dynkin@from@root)$){};%
+				\node (to-arrow-node) 
+					at
+					($(\dynkin@root@name \the\@dynkin@to@root)$){};%
+			\fi%
+			\node (middle-node)
+				at
+				($.5*(from-arrow-node)+.5*(to-arrow-node)$){};%
+			\node (arrow-node)
+				at
+				($(middle-node)!.5*\dynkin@arrow@width!(to-arrow-node)$) {};%
+			\path[
+				/Dynkin diagram/arrow shape,
+				tips] 
+				($(from-arrow-node)$) 
+				-- 
+				($(arrow-node)$);%
+		\end{pgfonlayer}%%
+	\fi%
+}%
+\NewDocumentCommand\dynkinKacDoubleArrow{O{}mm}%
+{%
+	\draw[
+		arrows = {-{Triangle Cap[length=.8mm,fill=white]}},%
+		/Dynkin diagram,
+		edge,
+		double=white,
+		fill=white,
+		double distance=1.8pt,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+	\draw[
+		arrows = {-{Classical TikZ Rightarrow[length=1mm]}},%
+		/Dynkin diagram,
+		edge,
+		double distance=1.8pt,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+}%
+\NewDocumentCommand\dynkinKacTripleArrow{O{}mm}%
+{%
+	\draw[
+		arrows = {-{Triangle Cap[length=.8mm,fill=white]}},%
+		/Dynkin diagram,
+		edge,
+		double=white,
+		fill=white,
+		double distance=1.8pt,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+	\draw[
+		arrows = {-{Classical TikZ Rightarrow[length=1mm]}},%
+		/Dynkin diagram,
+		edge,
+		double distance=1.8pt,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+	\draw[
+		/Dynkin diagram,
+		edge,
+		shorten >=1.1mm,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+}%
+\NewDocumentCommand\dynkinKacQuadrupleArrow{O{}mm}%
+{%
+	\draw[
+		arrows = {-{Triangle Cap[length=1.127mm,fill=white]}},%
+		/Dynkin diagram,
+		edge,
+		double=white,
+		fill=white,
+		shorten >=1mm,
+		shorten <=1mm, 
+		double distance=3.6pt,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+	\draw[
+		arrows = {-{Classical TikZ Rightarrow[length=1.2mm]}},%
+		/Dynkin diagram,
+		edge,
+		double distance=3.6pt,
+		shorten <=.83mm,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+	\draw[
+		arrows = {-{Classical TikZ Rightarrow[length=1.2mm]}},%
+		/Dynkin diagram,
+		edge,
+		double distance=1.2pt,
+		shorten <= .83mm,
+		#1]%
+		(\dynkin@root@name \the#2)--(\dynkin@root@name \the#3);%
+}%
+\newcount\dynkin@onesbit%
+\newcount\dynkin@twosbit%
+%% \dynkinDefiniteDoubleEdge{<p>}{<q>}
+%% Draws an oriented double line from root <p> to root <q> on the current Dynkin diagram.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinDefiniteDoubleEdge{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\StrChar{\dynkin@roots}{\the\@dynkin@from@root}[\my@root@marker]%
+	\IfStrEq{\my@root@marker}{x}%
+	{%
+		\global\dynkin@onesbit=1\relax%
+	}%
+	{%
+		\global\dynkin@onesbit=0\relax%
+	}%
+	\StrChar{\dynkin@roots}{\the\@dynkin@to@root}[\my@root@marker]%
+	\IfStrEq{\my@root@marker}{x}%
+	{%
+		\global\dynkin@twosbit=1\relax%
+	}%
+	{%
+		\global\dynkin@twosbit=0\relax%
+	}%
+	\ifdynkin@Kac@arrows
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\ifdynkin@arrows%
+				\ifdynkin@reverse@arrows
+					\ifdynkin@is@backwards
+						\dynkinKacDoubleArrow[#2]%
+							{\@dynkin@from@root}{\@dynkin@to@root}
+					\else%
+						\dynkinKacDoubleArrow[#2]%
+							{\@dynkin@to@root}{\@dynkin@from@root}
+					\fi%
+				\else%
+					\ifdynkin@is@backwards
+						\dynkinKacDoubleArrow[#2]%
+							{\@dynkin@to@root}{\@dynkin@from@root}
+					\else%
+						\dynkinKacDoubleArrow[#2]%
+							{\@dynkin@from@root}{\@dynkin@to@root}
+					\fi%
+				\fi%
+			\else%
+				\draw[/Dynkin diagram,edge,double distance=3pt,#2]%
+					(\dynkin@root@name \the\@dynkin@from@root)%
+					--%
+					(\dynkin@root@name \the\@dynkin@to@root);%
+			\fi%
+		\end{pgfonlayer}%%
+	\else
+		\def\LL{.5*\dynkin@root@radius}
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\draw[/Dynkin diagram,edge,#2]%
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				--%
+				+({\the\dynkin@onesbit*\LL},{\LL})%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(-\the\dynkin@twosbit*\LL,\LL)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				-(\the\dynkin@twosbit*\LL,\LL)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(\the\dynkin@onesbit*\LL,-\LL)$)%
+				--%
+				cycle;%
+		\end{pgfonlayer}%%
+		\ifdynkin@arrows%
+			\dynkinEdgeArrow[#2]%
+			{\the\@dynkin@from@root}%
+			{\the\@dynkin@to@root}%
+		\fi%
+	\fi%
+}%
+
+%% \dynkinTripleEdge{<p><q>}
+%% Draws an oriented triple line from root <p> to root <q> on the current Dynkin diagram.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinTripleEdge{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\StrChar{\dynkin@roots}{\the\@dynkin@from@root}[\my@root@marker]%
+	\IfStrEq{\my@root@marker}{x}%
+	{%
+		\global\dynkin@onesbit=1\relax%
+	}%
+	{%
+		\global\dynkin@onesbit=0\relax%
+	}%
+	\StrChar{\dynkin@roots}{\the\@dynkin@to@root}[\my@root@marker]%
+	\IfStrEq{\my@root@marker}{x}%
+	{%
+		\global\dynkin@twosbit=1\relax%
+	}%
+	{%
+		\global\dynkin@twosbit=0\relax%
+	}%
+	\ifdynkin@Kac@arrows
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\ifdynkin@arrows%
+				\ifdynkin@reverse@arrows
+					\ifdynkin@is@backwards
+						\dynkinKacTripleArrow[#2]{\@dynkin@from@root}{\@dynkin@to@root}
+					\else%
+						\dynkinKacTripleArrow[#2]{\@dynkin@to@root}{\@dynkin@from@root}
+					\fi%
+				\else%
+					\ifdynkin@is@backwards
+						\dynkinKacTripleArrow[#2]{\@dynkin@to@root}{\@dynkin@from@root}
+					\else%
+						\dynkinKacTripleArrow[#2]{\@dynkin@from@root}{\@dynkin@to@root}
+					\fi%
+				\fi%
+			\else%
+				\draw[/Dynkin diagram,edge,double distance=3pt,#2]%
+					(\dynkin@root@name \the\@dynkin@from@root)%
+					--%
+					(\dynkin@root@name \the\@dynkin@to@root);%
+				\draw[/Dynkin diagram,edge,#2]%
+					(\dynkin@root@name \the\@dynkin@from@root)%
+					--%
+					(\dynkin@root@name \the\@dynkin@to@root);%
+			\fi%
+		\end{pgfonlayer}%%
+	\else
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\draw[/Dynkin diagram,edge,#2]%
+				($(\dynkin@root@name \the\@dynkin@from@root)$)%
+				--%
+				+({\the\dynkin@onesbit*\dynkin@root@radius},%
+				{\dynkin@root@radius})%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(-\dynkin@twosbit*\dynkin@root@radius,%
+				\dynkin@root@radius)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				-(\dynkin@twosbit*\dynkin@root@radius,%
+				\dynkin@root@radius)$)%
+				--%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(\dynkin@onesbit*\dynkin@root@radius,%
+				-\dynkin@root@radius)$)%
+				--%
+				cycle;%
+			\draw[/Dynkin diagram,edge,#2] 
+				($(\dynkin@root@name \the\@dynkin@from@root)$) 
+				-- 
+				($(\dynkin@root@name \the\@dynkin@to@root)$);%
+		\end{pgfonlayer}%%
+		\ifdynkin@arrows%
+			\dynkinEdgeArrow[#2]%
+				{\the\@dynkin@from@root}%
+				{\the\@dynkin@to@root}%
+		\fi%
+	\fi%
+}%
+
+
+%% \dynkinQuadrupleEdge{<p>}{<q>}
+%% \dynkinQuadrupleEdge*{<p>}{<q>}
+%% Draws an oriented edge of valence 4 from root <p> to root <q> on the current Dynkin diagram.
+%% The starred form accepts <p> and <q> in the Bourbaki ordering.
+\NewDocumentCommand\dynkinQuadrupleEdge{sO{}mm}%
+{%
+	\dynkin@check@if@in@tikZ%	
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#4}%
+	}%
+	{%
+		\@dynkin@from@root=#3\relax%
+		\@dynkin@to@root=#4\relax%
+	}%
+	\ifdynkin@Kac@arrows
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\ifdynkin@arrows%
+				\ifdynkin@reverse@arrows
+					\ifdynkin@is@backwards
+						\dynkinKacQuadrupleArrow[#2]%
+							{\@dynkin@from@root}{\@dynkin@to@root}
+					\else%
+						\dynkinKacQuadrupleArrow[#2]%
+							{\@dynkin@to@root}{\@dynkin@from@root}
+					\fi%
+				\else%
+					\ifdynkin@is@backwards
+						\dynkinKacQuadrupleArrow[#2]%
+							{\@dynkin@to@root}{\@dynkin@from@root}
+					\else%
+						\dynkinKacQuadrupleArrow[#2]%
+							{\@dynkin@from@root}{\@dynkin@to@root}
+					\fi%
+				\fi%
+			\else%
+				\draw[/Dynkin diagram,edge,double distance=3pt,#2]%
+					(\dynkin@root@name \the\@dynkin@from@root)%
+					--%
+					(\dynkin@root@name \the\@dynkin@to@root);%
+				\draw[/Dynkin diagram,edge,#2]%
+					(\dynkin@root@name \the\@dynkin@from@root)%
+					--%
+					(\dynkin@root@name \the\@dynkin@to@root);%
+			\fi%
+		\end{pgfonlayer}%%
+	\else
+		\begin{pgfonlayer}{Dynkin behind}%%
+			\draw[/Dynkin diagram,edge,#2]%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(0,\dynkin@root@radius)$)--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(0,\dynkin@root@radius)$)--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(0,-\dynkin@root@radius)$)--%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(0,-\dynkin@root@radius)$)--%
+				cycle;
+			\draw[/Dynkin diagram,edge,#2]%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(0,\dynkin@root@radius/3)$)--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(0,\dynkin@root@radius/3)$)--%
+				($(\dynkin@root@name \the\@dynkin@to@root)%
+				+(0,-\dynkin@root@radius/3)$)--%
+				($(\dynkin@root@name \the\@dynkin@from@root)%
+				+(0,-\dynkin@root@radius/3)$)--%
+				cycle;
+		\end{pgfonlayer}%%
+		\ifdynkin@arrows%
+			\dynkinEdgeArrow[#2]%
+				{\the\@dynkin@from@root}%
+				{\the\@dynkin@to@root}%
+		\fi%
+	\fi%
+}%
+
+
+%% \repeatCharacter{<n>}{<s>} 
+%% Outputs <n> copies of the string <s>
+\ExplSyntaxOn
+\DeclareExpandableDocumentCommand{\repeatCharacter}{O{}mm}
+ {
+  \int_compare:nT { #2 > 0 }
+   {
+    #3 \prg_replicate:nn { #2 - 1 } { #1#3 }
+   }
+ }
+\ExplSyntaxOff
+
+%% \stringCharacterInPosition{<s>}{<n>} 
+%% Outputs the element of string <s> in position <n>.
+\ExplSyntaxOn
+\cs_new:Npn \stringCharacterInPosition #1 #2
+{
+\str_item:fn { #1 } { #2 }
+}
+\cs_generate_variant:Nn \str_item:nn {f}
+\ExplSyntaxOff
+
+
+
+
+%%% 
+%%% Implementation:
+%%%
+
+\def\dynkin@diagram@name{anonymous}
+% Default diagram name
+\def\dynkin@root@mark{*} 	
+% Default mark
+\def\dynkin@affine@root@mark{o}
+% Default affine root mark
+\def\dynkin@roots{}
+% List of marks for each root.
+\def\dynkin@user@series{}
+% Series string passed from user. 
+% For example: 
+%      \dynkin{A}{3} passes the string A,
+%      \dynkin{A2}{*o*} passes the string A2,
+%      \dynkin{E2}{} passes the string E2.
+\def\dynkin@user@string{}
+% Control string passed from user. 
+% For example: 
+%      \dynkin{A}{3} passes the string 3,
+%      \dynkin{A}{*o*} passes the string *o*,
+%      \dynkin{A}{III} passes the string III.
+\def\dynkin@string{}
+% \dynkin@user@string{} with some modifications to it to expand it out.
+\def\dynkin@series{A}
+% Which series of root system: A,B,C,D,E,F,G
+\def\dynkin@involution@list{}
+% List of involutions among roots to draw.
+\def\dynkin@label@list{}
+% List of labels for the roots.
+\def\dynkin@label@list@star{}
+% List of alternate labels for the roots.
+\newcount\dynkin@rank%
+\newcount\dynkin@rank@minus@one%
+\newcount\dynkin@rank@minus@two%
+\newcount\dynkin@rank@minus@three%
+% Which rank of root system: 1,2,...
+\newcount\dynkin@nodes
+% How many nodes (besides the zero node for affine diagrams) are there?
+\newif\ifdynkin@is@backwards
+% Are we drawing this thing in a reverse direction?
+\newif\ifdynkin@is@upsidedown
+% Are we drawing this thing in a reverse direction?
+\newif\ifdynkin@is@extended
+% Is this an extended extended root system?
+\newif\ifdynkin@is@twisted
+% Is this a twisted extended root system?
+\def\dynkin@twisted@series{0}
+% Which Kac series? 0=finite, 1,2,3->infinite
+\newif\ifdynkin@label@the@roots
+% Should we label the roots by the current root ordering convention?
+\newif\ifdynkin@label@star@the@roots
+% Should we label the roots by the current root ordering convention?
+\newif\ifdynkin@reverse@arrows
+% Should we reverse the directions of all arrows?
+\newif\ifdynkin@arrows
+% Should we draw arrows on Dynkin diagrams?
+\newif\ifdynkin@left@fold
+% Is the left side of the Dynkin diagram folded?
+\newif\ifdynkin@right@fold
+% Is the right side of the Dynkin diagram folded?
+\newif\ifdynkin@Coxeter
+% Should we draw Coxeter diagrams?
+\newif\ifdynkin@Kac@arrows
+% Should we draw arrows following Kac?
+\newif\ifdynkin@odd
+% For twisted A series diagrams, is the rank odd?
+\newcount\dynkin@ply
+% Maximum number of nodes arranged vertically in the folding of the Dynkin diagram
+\def\dynkin@ply@value{1}
+% Default maximum number of nodes arranged vertically in the folding of the Dynkin diagram
+\def\dynkin@label@directions{}
+% List of directions in which to draw the labels attached to the roots.
+\def\dynkin@label@directions@override{}
+% List of directions in which to draw the labels attached to the roots, as overridden by the user.
+\def\dynkin@label@directions@star{}
+% List of directions in which to draw the labels attached to the roots, for alternate labels.
+\def\dynkin@current@location{(0,0)}
+\def\dynkin@arrow@width{1.5*\dynkin@root@radius}
+\def\dynkin@arrow@style{length=\dynkin@arrow@width}
+\def\dynkin@horizontal@shift{0pt}
+\def\dynkin@vertical@shift{.5ex}
+% Shift applied to all Dynkin diagrams
+\NewDocumentCommand\regurgitate{m}{#1}
+\pgfkeys{
+ /Dynkin diagram/.is family,
+ /Dynkin diagram,
+	affine mark/.estore in = \dynkin@affine@root@mark,
+	affinemark/.forward to = /Dynkin diagram/affine mark,
+	affine-mark/.forward to = /Dynkin diagram/affine mark,
+	affine-mark = o,
+	arrow color/.estore in = /Dynkin diagram/arrow style,
+	arrow-color/.forward to=/Dynkin diagram/arrow style,
+	arrowcolor/.forward to=/Dynkin diagram/arrow style,
+	arrow shape/.style={-{Computer Modern Rightarrow[\dynkin@arrow@style]}},
+	arrow style/.estore in = \dynkin@arrow@style,
+	arrow-style/.forward to=/Dynkin diagram/arrow style,
+	arrowstyle/.forward to=/Dynkin diagram/arrow style,
+	arrow width/.estore in = \dynkin@arrow@width,
+	arrows/.is if = dynkin@arrows,
+	arrows = true,
+	at/.estore in = \dynkin@current@location,
+	at/.default = {(0,0)},
+	backwards/.is if = dynkin@is@backwards,
+	backwards = false,
+	bird-arrow/.style = {
+		arrow shape/.style={-{bird[length=1.25*\dynkin@root@radius]}},
+	},
+	bird arrow/.style = {
+		arrow shape/.style={-{bird[length=1.25*\dynkin@root@radius]}},
+	},
+	Bourbaki-arrow/.style={
+		arrow shape/.style={-{Bourbaki[length=2*\dynkin@root@radius]}},
+	},
+	Bourbaki arrow/.style = {
+		arrow shape/.style={-{Bourbaki[length=2*\dynkin@root@radius]}},
+	},
+	Coxeter/.is if = dynkin@Coxeter,
+	Coxeter=false,
+	double edges/.style = {
+	 	fold style/.style = {
+	 		draw=black,
+	 		double=white,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	},
+	double-edges/.forward to=/Dynkin diagram/double edges/.style,
+	doubleedges/.forward to=/Dynkin diagram/double edges/.style,
+	double fold/.style = {
+	 	fold style/.style = {
+	 		draw=black,
+	 		double=black!40,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	},
+	double-fold/.forward to=/Dynkin diagram/double fold/.style,
+	doublefold/.forward to=/Dynkin diagram/double fold/.style,
+	double left/.style = {
+	 	fold left style/.style = {
+	 		draw=black,
+	 		double=white,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	 	},
+	double-left/.forward to=/Dynkin diagram/double left/.style,
+	doubleleft/.forward to=/Dynkin diagram/double left/.style,
+	double fold left/.style = {
+	 	fold left style/.style = {
+	 		draw=black,
+	 		double=black!40,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	 	},
+	double-fold-left/.forward to=/Dynkin diagram/double fold left/.style,
+	doublefoldleft/.forward to=/Dynkin diagram/double fold left/.style,
+	double right/.style = {
+	 	fold right style/.style = {
+	 		draw=black,
+	 		double=white,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	 	},
+	double-right/.forward to=/Dynkin diagram/double right/.style,
+	doubleright/.forward to=/Dynkin diagram/double right/.style,
+	double fold right/.style = {
+	 	fold right style/.style = {
+	 		draw=black,
+	 		double=black!40,
+	 		fill=none,
+	 		double distance=\dynkin@root@radius,
+	 		line width=\defaultpgflinewidth}
+	 	},
+	double-fold-right/.forward to=/Dynkin diagram/double fold right/.style,
+	doublefoldright/.forward to=/Dynkin diagram/double fold right/.style,
+	edge label/.style={text height=0,text depth=0,label distance=-4pt},
+	edgelabel/.forward to=/Dynkin diagram/edge label/.style,
+	edge length/.estore in = \dynkin@edge@length,
+	edge-length/.forward to=/Dynkin diagram/edge length,
+	edgelength/.forward to=/Dynkin diagram/edge length,
+	edge length = .35cm,
+	edge/.style={solid,draw=black,fill=white,thin},
+	extended/.is if = dynkin@is@extended,
+	extended = false,
+	fold left/.is if = dynkin@left@fold,
+	fold-left/.forward to = /Dynkin diagram/fold left,
+	foldleft/.forward to = /Dynkin diagram/fold left,
+	fold left = false,
+	fold/.style={/Dynkin diagram/ply=2,fold style},
+	fold style/.style = {
+		/Dynkin diagram/ply=2,
+		solid,
+		draw=black!40,
+		fill=none,
+		line width=\dynkin@root@radius,
+		{Triangle Cap[]}-{Triangle Cap[]}
+		},
+	fold-style/.forward to=/Dynkin diagram/fold style/.style,
+	foldstyle/.forward to=/Dynkin diagram/fold style/.style,
+	fold left style/.style = {},
+	fold-left-style/.forward to=/Dynkin diagram/fold left style/.style,
+	foldleftstyle/.forward to=/Dynkin diagram/fold left style/.style,
+	fold radius/.estore in = \dynkin@fold@radius,
+	fold-radius/.forward to=/Dynkin diagram/fold radius,
+	foldradius/.forward to=/Dynkin diagram/fold radius,
+	fold radius=.3cm,
+	fold right/.is if = dynkin@right@fold,
+	fold-right/.forward to = fold right,
+	foldright/.forward to = fold right,
+	fold right = false,
+	fold right style/.style = {},
+	fold-right-style/.forward to=/Dynkin diagram/fold right style/.style,
+	foldrightstyle/.forward to=/Dynkin diagram/fold right style/.style,
+	gonality/.estore in = \dynkin@gonality,
+	gonality/.default = 0,
+	horizontal shift/.estore in=\dynkin@horizontal@shift,
+	horizontal shift/.default=0pt,
+	horizontal-shift/.forward to=/Dynkin diagram/horizontal shift,
+	horizontalshift/.forward to=/Dynkin diagram/horizontal shift,
+	indefinite edge ratio/.estore in = \dynkin@indefinite@edge@ratio,
+	indefinite-edge-ratio/.forward to = /Dynkin diagram/indefinite edge ratio,
+	indefiniteedgeratio/.forward to = /Dynkin diagram/indefinite edge ratio,
+	indefinite edge ratio = 1.6,
+	indefinite edge/.style={
+		solid,
+		draw=black,
+		fill=white,
+		thin,
+		densely dotted
+	},
+	indefinite-edge/.forward to=/Dynkin diagram/indefinite edge/.style,
+	indefiniteedge/.forward to=/Dynkin diagram/indefinite edge/.style,
+	involution/.style={latex-latex,black},
+	involutions/.default = {},
+ 	involutions/.store in = \dynkin@involution@list,
+	Kac arrows/.is if = dynkin@Kac@arrows,
+	Kac-arrows/.forward to = /Dynkin diagram/Kac arrows,
+	Kacarrows/.forward to = /Dynkin diagram/Kac arrows,
+	Kac arrows=false,
+	Kac/.style={
+		Kac arrows=true,
+		ordering=Kac,
+		root radius=.05cm,
+		edge length=.66cm,
+		indefinite edge ratio = 3,
+		edge/.style={
+			solid,
+			draw=black,
+			fill=white,
+			thin,
+			shorten <=1mm,
+			shorten >=1mm
+		},
+		fold style/.style = {
+			solid,
+			draw=black!40,
+			fill=none,
+			line width=\dynkin@root@radius,
+			shorten <=1mm,
+			shorten >=1mm
+		},
+		mark=o,
+		indefinite edge/.style={
+			solid,
+			draw=black,
+			fill=none,
+			thin,
+			loosely dotted
+		},
+	},
+	label/.is if = dynkin@label@the@roots,
+	label = false,
+	label*/.is if = dynkin@label@star@the@roots,
+	label*=false,
+	label depth/.style={
+		/tikz/every label/.append style={
+			text depth={depth("#1"}
+		}
+	},
+	label depth/.default=g,
+	label depth,
+	label-depth/.forward to = /Dynkin diagram/label depth,
+	labeldepth/.forward to = /Dynkin diagram/label depth, 
+	label directions/.default = {},
+	label directions/.store in = \dynkin@label@directions@override,
+	label* directions/.default = {},
+	label* directions/.store in = \dynkin@label@star@directions@override,
+	label height/.style={/tikz/every label/.append style={text height={height("#1"}}},
+	label height/.default=b,
+	label height,
+	label-height/.forward to = /Dynkin diagram/label height,
+	labelheight/.forward to = /Dynkin diagram/label height,
+	label macro/.code = {\regurgitate{#1}},
+	label-macro/.forward to=/Dynkin diagram/label macro,
+	labelmacro/.forward to=/Dynkin diagram/label macro,
+	label macro*/.code = {\regurgitate{#1}},
+	label-macro*/.forward to=/Dynkin diagram/label macro*,
+	labelmacro*/.forward to=/Dynkin diagram/label macro*,
+	labels/.default = {},
+ 	labels/.store in = \dynkin@label@list,
+	labels*/.default = {},
+ 	labels*/.store in = \dynkin@label@list@star,
+	make indefinite edge/.code={\dynkin@set@edge@indefinite@pair{#1}},
+	make-indefinite-edge/.forward to=/Dynkin diagram/make indefinite edge,
+	makeindefiniteedge/.forward to=/Dynkin diagram/make indefinite edge,
+	mark/.estore in = \dynkin@root@mark,
+	mark = *,
+	name/.estore in = \dynkin@diagram@name,
+	name = anonymous,
+	odd/.is if = dynkin@odd,
+	odd=false,
+	ordering/.store in = \dynkin@ordering,
+	ordering = Bourbaki,
+	parabolic/.estore in = \dynkin@parabolic,
+	parabolic/.default = 0,
+	ply/.estore in = \dynkin@ply@value,
+	ply/.default = 1,
+	reverse arrows/.is if = dynkin@reverse@arrows,
+	reverse arrows = false,
+	reverse-arrows/.forward to = /Dynkin diagram/reverse arrows,
+	reversearrows/.forward to = /Dynkin diagram/reverse arrows,
+	root radius/.estore in = \dynkin@root@radius,
+	root-radius/.forward to=/Dynkin diagram/root radius,
+	rootradius/.forward to=/Dynkin diagram/root radius,
+	root radius=.05cm,
+	text style/.style={#1},
+	text style/.default={black,scale=.7},
+	text-style/.forward to=text style/.style,
+	textstyle/.forward to=text style/.style,
+	twisted/.is if = dynkin@is@twisted,
+	twisted = false,
+	twisted series/.estore in = \dynkin@twisted@series,
+	twisted-series/.forward to = /Dynkin diagram/twisted series,
+	twistedseries/.forward to = /Dynkin diagram/twisted series,
+	twisted series/.default = 0,
+	upside down/.is if = dynkin@is@upsidedown,
+	upside down = false,
+	upside-down/.forward to = /Dynkin diagram/upside down,
+	upsidedown/.forward to = /Dynkin diagram/upside down,
+	vertical shift/.estore in=\dynkin@vertical@shift,
+	vertical shift/.default=.5ex,
+	vertical-shift/.forward to=/Dynkin diagram/vertical shift,
+	verticalshift/.forward to=/Dynkin diagram/vertical shift,
+	x shift in edge lengths/.code=%
+		{%
+			\pgfmathsetlengthmacro%
+				\dynkin@horizontal@shift%
+				{(#1*\dynkin@edge@length)+\dynkin@horizontal@shift}%
+		},%
+	y shift in edge lengths/.code=%
+		{%
+			\pgfmathsetlengthmacro%
+				\dynkin@vertical@shift%
+				{(#1*\dynkin@edge@length)+\dynkin@vertical@shift}%
+		},%
+	*/.style = {
+		solid,
+		draw=black,
+		fill=black,
+	},
+	O/.style = {
+		solid,
+		draw=black,
+		fill=white,
+	},
+	X/.style = {
+		solid,
+		draw=black, 
+		very thick,
+		line cap=round
+	},
+	o/.style = {
+		solid,
+		draw=black,
+		fill=white,
+	},
+	t/.style = {
+		solid,
+		draw=black,
+		fill=white,
+	},
+	x/.style = {
+		solid,
+		thick,
+		draw=black,
+		line cap=round		
+	},
+	ceref/.style={
+		edge length=.48cm,	
+		indefinite edge/.style={
+			shorten <=2pt,
+			shorten >=2pt,
+			solid,
+			draw=black,
+			fill=white,
+			thin,
+			densely dotted
+		},
+		edge/.style={
+			solid,
+			draw=black,
+			fill=white,
+			thin,
+			double copy shadow={
+				draw=black!90,
+				fill=none,
+				thin,
+				shadow xshift=.1pt, 
+				shadow yshift=-.15pt
+			},
+		},
+		*/.style={
+			yscale=1.2,
+			solid,
+			draw=black,
+			fill=gray,
+			double copy shadow={
+				fill=black,
+				shadow xshift=0.1pt,
+				shadow yshift=-0.15pt
+			},
+		},
+		o/.style={
+			yscale=1.2,
+			solid,
+			draw=black,
+			fill=white,
+			double copy shadow={
+				fill=black,
+				shadow xshift=0.1pt, 
+				shadow yshift=-0.15pt
+			},
+		},
+		O/.style={
+			yscale=1.2,
+			solid,
+			draw=black,
+			fill=white,
+			double copy shadow={
+				fill=green,
+				shadow xshift=0.1pt,
+				shadow yshift=-0.15pt
+			},
+		}
+		t/.style={
+			yscale=1.2,
+			solid,
+			draw=black,
+			fill=white,
+		},
+	},
+	.search also={/tikz},
+}
+\ProcessPgfPackageOptions{/Dynkin diagram}\relax
+\newcount\dynkin@drpo%
+\newcount\dynkin@where%
+%% \dynkinPutLabelInDirection{<r>}{<d>}
+%% Assigns to \dynkin@label@directions or \dynkin@label@directions@star the direction that the label of root <r> (in default ordering) should sit from the root node location, <d>=0,1,2,3,4,5,6,7 to indicate direction in multiples of 45 degrees
+\NewDocumentCommand\dynkinPutLabelInDirection{smm}%
+{%
+	\dynkin@drpo=\the\dynkin@nodes\relax%
+	\advance\dynkin@drpo by 1\relax%
+	\dynkin@where=#2\relax%
+	\IfBooleanTF{#1}%
+	{%
+		\StrMid{\dynkin@label@directions@star}%
+			{1}{\the\dynkin@where}[\dynkin@start]%
+		\advance\dynkin@where by 2\relax%
+		\StrMid{\dynkin@label@directions@star}%
+			{\the\dynkin@where}{\the\dynkin@drpo}[\dynkin@end]%
+		\IfStrEqCase{#3}{%
+			{right}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 0\dynkin@end}%
+			}%
+			{above right}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 1\dynkin@end}%
+			}%
+			{above}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 2\dynkin@end}%
+			}%
+			{above left}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 3\dynkin@end}%
+			}%
+			{left}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 4\dynkin@end}%
+			}%
+			{below left}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 5\dynkin@end}%
+			}%
+			{below}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 6\dynkin@end}%
+			}%
+			{below right}%
+			{%
+				\xdef\dynkin@label@directions@star%
+					{\dynkin@start 7\dynkin@end}%
+			}%
+		}%
+		[\ClassError{Dynkin diagrams}%
+			{Unrecognized direction: ``#2'' in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}{}]%
+	}%
+	{%
+		\StrMid{\dynkin@label@directions}{1}%
+			{\the\dynkin@where}[\dynkin@start]%
+		\advance\dynkin@where by 2\relax%
+		\StrMid{\dynkin@label@directions}{\the\dynkin@where}%
+			{\the\dynkin@drpo}[\dynkin@end]%
+		\IfStrEqCase{#3}{%
+			{right}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 0\dynkin@end}%
+			}%
+			{above right}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 1\dynkin@end}%
+			}%
+			{above}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 2\dynkin@end}%
+			}%
+			{above left}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 3\dynkin@end}%
+			}%
+			{left}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 4\dynkin@end}%
+			}%
+			{below left}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 5\dynkin@end}%
+			}%
+			{below}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 6\dynkin@end}%
+			}%
+			{below right}%
+			{%
+				\xdef\dynkin@label@directions%
+					{\dynkin@start 7\dynkin@end}%
+			}%
+		}%
+		[\ClassError{Dynkin diagrams}%
+			{Unrecognized direction: ``#2'' in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}{}]%
+	}%
+}%
+% \expand@Dynkin@Roots@By@Char{<c>}, 
+% for example if <c> is the letter x, expands out any expression like 
+% x7 in \dynkin@string into 7 copies of the letter x.
+\NewDocumentCommand\expand@Dynkin@Roots@By@Char{m}%
+{%
+	\xdef\replace@DR{}%
+	\foreach \i in {0,...,9}%
+	{%
+		\StrSubstitute[0]{\dynkin@string}{#1\i}{\replace@DR}[\temp@DR]%
+		\xdef\dynkin@string{\temp@DR}%
+		\xdef\replace@DR{\replace@DR #1}%
+	}%
+}%
+% \expand@Dynkin@Roots@Digits{} expands out any expression like x7 in \dynkin@roots into 7 copies of the letter x, and so on for any letter which is not a digit.
+\NewDocumentCommand\expand@Dynkin@Roots@Digits{}%
+{%
+	\edef\current@string{\dynkin@string}%
+	\StrLen{\current@string}[\string@len]
+	\foreach \j in {1,...,\string@len}%
+	{%
+		\StrChar{\current@string}{\j}[\cccc]%
+		\IfInteger{\cccc}%
+		{}%
+		{%
+			\expand@Dynkin@Roots@By@Char{\cccc}%	
+		}%
+	}%
+}%
+% \dynkin@integer@rank{} expands a \dynkin@string 3 into ***, i.e.
+% writes the given number <n> of copies of the default root mark into the string \dynkin@string.
+\NewDocumentCommand\dynkin@integer@rank{}%
+{%
+	\global\dynkin@rank=\dynkin@string\relax%
+	\global\dynkin@nodes=\dynkin@string\relax%
+	\ifdynkin@is@twisted%
+		\IfStrEqCase{\dynkin@series}%
+		{%
+			{A}%
+			{%
+				\divide\dynkin@nodes by 2\relax%
+				\ifodd\dynkin@rank%
+					\global\dynkin@oddtrue%
+					\advance\dynkin@nodes by 1\relax%
+				\else%
+					\global\dynkin@oddfalse%
+				\fi%
+			}%
+			{D}%
+			{%
+				\IfStrEqCase{\dynkin@twisted@series}%
+				{%
+					{2}%
+					{%
+						\global\advance\dynkin@nodes by -1\relax%
+					}%
+					{3}%
+					{%
+						\IfStrEq{\dynkin@string}{4}%
+						{%
+							\global\dynkin@nodes=2\relax%
+						}%
+						{%
+							\dynkin@error@series%
+						}%
+					}%
+				}%
+				[\dynkin@error@series]%
+			}%
+			{E}%
+			{%
+				\IfStrEq{\dynkin@twisted@series}{2}%
+				{%
+					\IfStrEq{\dynkin@string}{6}%
+					{%
+						\global\dynkin@nodes=4\relax%
+					}%
+					{%
+						\dynkin@error@series%
+					}%
+				}%
+				{%
+					\dynkin@error@series%
+				}%
+			}%
+		}%
+	\fi%
+	\xdef\dynkin@string{\repeatCharacter{\the\dynkin@nodes}{\dynkin@root@mark}}%
+}%
+\NewDocumentCommand\dynkin@clear@indefinite@edge@list{}%
+{%
+	\xdef\dynkin@indefinite@edge@list{}%
+}%
+%
+\newcount\dynkin@first@root@no%
+\newcount\dynkin@second@root@no%
+\NewDocumentCommand\dynkin@set@edge@indefinite{mm}%
+{%
+	\dynkin@first@root@no=#1\relax%
+	\dynkin@second@root@no=#2\relax%
+	\ifnum\the\dynkin@first@root@no<\the\dynkin@second@root@no\relax%
+		\listxadd\dynkin@indefinite@edge@list{\the\dynkin@first@root@no,\the\dynkin@second@root@no}%
+	\else%
+		\listxadd\dynkin@indefinite@edge@list{\the\dynkin@second@root@no,\the\dynkin@first@root@no}%
+	\fi%
+}%
+
+\NewDocumentCommand\dynkin@set@edge@indefinite@pair%
+{>{\SplitArgument{1}{-}}m}%
+{%
+\dynkin@set@edge@indefinite#1%
+}%
+\newif\ifdynkin@is@indefinite@edge%
+\NewDocumentCommand\dynkin@typeout@indefinite@edge@list{}%
+{%
+	\renewcommand*{\do}[1]{\typeout{##1}}%
+	\typeout{Indefinite edges: [}\dolistloop{\dynkin@indefinite@edge@list}\typeout{]}%
+}%
+
+
+%% \dynkin@is@edge@indefinite{<p>}{<q>} sets the global if \ifdynkin@is@indefinite@edge to true or false 
+%% depending on whether there is an indefinite edge between roots <p> and <q>. 
+%% The starred form uses Bourbaki ordering.
+\NewDocumentCommand\dynkin@is@edge@indefinite{smm}%
+{%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#2}{#3}%
+	}%
+	{%
+		\@dynkin@from@root=#2\relax%
+		\@dynkin@to@root=#3\relax%
+	}%
+	% Next we sort the order, since edges are stored as undirected edges.
+	\global\dynkin@first@root@no=\@dynkin@from@root\relax%
+	\global\dynkin@second@root@no=\@dynkin@to@root\relax%
+	\ifnum\the\dynkin@second@root@no<\the\dynkin@first@root@no\relax%
+		\global\dynkin@first@root@no=\@dynkin@to@root\relax%
+		\global\dynkin@second@root@no=\@dynkin@from@root\relax%
+	\fi%
+	\global\dynkin@is@indefinite@edgefalse\relax%
+	\renewcommand*{\do}[1]{%
+	\IfStrEq{##1}{\the\dynkin@first@root@no,\the\dynkin@second@root@no}%
+		{\global\dynkin@is@indefinite@edgetrue\listbreak}%
+		{}}%
+	\dolistloop{\dynkin@indefinite@edge@list}%
+}%
+\newcount\dynkin@Root@Numbr%
+\newcount\dynkin@string@length%
+\newcount\dynkin@Root@Numbrpo%
+% \dynkin@grok@indefinite@edges{} reads the input string <s> found when you write \dynkin{<c>}{<s>}, and
+% interprets it to say which edges are indefinite edges.
+\NewDocumentCommand\dynkin@grok@indefinite@edges{}%
+{%
+	\dynkin@Root@Numbr=1\relax
+	\StrLen{\dynkin@string}[\temp]%
+	\dynkin@string@length=\temp\relax%
+	\foreach \i in {2,...,\the\dynkin@string@length}%
+	{%
+		\StrChar{\dynkin@string}{\i}[\c]%
+		\IfStrEq{\c}{.}%
+		{%
+			\dynkin@Root@Numbrpo=\dynkin@Root@Numbr\relax%
+			\advance\dynkin@Root@Numbrpo by 1\relax%
+			\ifnum\the\dynkin@Root@Numbr<\the\dynkin@nodes\relax%
+				\dynkin@set@edge@indefinite{\dynkin@Root@Numbr}{\dynkin@Root@Numbrpo}%
+			\fi%
+		}%
+		{%
+			\global\advance\dynkin@Root@Numbr by 1\relax%
+		}%
+	}%
+}%
+\xdef\dynkin@spacy{ }
+\NewDocumentCommand\dynkin@clear@label@directions{}%
+{%
+	\xdef\dynkin@label@directions{}%
+	\xdef\dynkin@label@directions@star{}%
+}%
+\NewDocumentCommand\dynkin@set@default@label@directions{}%
+{%
+	\dynkin@drpo=\the\dynkin@nodes\relax%
+	\advance\dynkin@drpo by 1\relax%
+	\xdef\dynkin@label@directions{\repeatCharacter{\the\dynkin@drpo}{?}}%
+	\xdef\dynkin@label@directions@star{\repeatCharacter{\the\dynkin@drpo}{?}}%
+}%
+\newlength{\defaultpgflinewidth}%
+%
+%
+%% \@dynkin[<s>]{<X>}[<sb>]{<Y>}
+%% Draws a complete Dynkin diagram of 
+%% series <X> and 
+%% subseries <sb>, 
+%% described by the string <Y> 
+%% with TikZ options specified by <s>.
+\NewDocumentCommand\@dynkin{O{}mO{0}m}%
+{%
+	\setcounter{dynkinRootNo}{0}%
+	\setlength{\defaultpgflinewidth}{\pgflinewidth}%
+	\global\defaultpgflinewidth=\defaultpgflinewidth\relax%
+	\dynkin@clear@indefinite@edge@list%
+	\xdef\dynkin@parabolic{0}%
+	\pgfkeys{/Dynkin diagram, #1}%
+	\ifdynkin@is@backwards%
+		\tikzset{xscale=-1}%
+	\fi%
+	\ifdynkin@is@upsidedown%
+		\tikzset{yscale=-1}%
+	\fi%
+	\ifx\dynkin@label@list\empty\relax\else\global\dynkin@label@the@rootstrue\fi%
+\ifx\dynkin@label@list@star\empty\relax\else\global\dynkin@label@star@the@rootstrue\fi%
+	\xdef\dynkin@user@series{#2}%
+	\xdef\dynkin@twisted@series{#3}%
+	\xdef\dynkin@user@string{#4}%
+	\global\dynkin@ply=\dynkin@ply@value\relax%
+\xdef\dynkin@indefinite@edge@length{(\dynkin@edge@length*\dynkin@indefinite@edge@ratio)}\relax%
+	\xdef\dynkin@series{#2}%
+	\IfStrEq{\dynkin@diagram@name}{anonymous}%
+	{%
+		\xdef\dynkin@root@name{root\dynkin@spacy}%
+	}%
+	{%
+		\xdef\dynkin@root@name{\dynkin@diagram@name\dynkin@spacy root\dynkin@spacy}%
+	}%
+	\dynkin@grok@series%
+	\IfSubStr{ABCDEFGHI}{\dynkin@series}{}{\dynkin@error@series}%
+	\xdef\dynkin@string{#4}%
+	\IfInteger{\dynkin@string}%
+	{%
+		\dynkin@integer@rank%
+	}%
+	{%
+		% Turn Satake codes into Dynkin diagram expressions in \dynkin@string.
+		\dynkin@grok@Satake@codes%
+	}%
+
+	% Expand out any digits in \dynkin@string into multiples of the various root marks.
+	\expand@Dynkin@Roots@Digits%
+	% Assign to \dynkin@roots the input string \dynkin@string with all . symbols removed,
+	% so we only get the symbols representing the marks for the various roots.
+	\StrDel{\dynkin@string}{.}[\temp]%
+	\xdef\dynkin@roots{\temp}%
+	\StrLen{\dynkin@roots}[\temp]%
+	\global\dynkin@nodes=\temp\relax%
+	\dynkin@grok@indefinite@edges%
+	\dynkin@find@rank{}%
+	\dynkin@cross@out@parabolics{}%
+	\dynkin@set@default@label@directions{}%
+	\check@Dynkin@diagram{}%
+	\ifdefined\initialize@roots@as@sums@table%
+		\initialize@roots@as@sums@table%
+	\fi%
+	\node[anchor=base,inner sep=0pt,outer sep=0pt] 
+		(origin) 
+		at 
+		\dynkin@current@location 
+		{};%
+	\node 
+		(Dynkin current) 
+		at 
+		($(origin)+(\dynkin@horizontal@shift,\dynkin@vertical@shift)$)%
+		{};%
+	\ifdynkin@is@twisted%
+		\csname twisted\dynkin@series dynkin\endcsname%
+	\else%
+		\ifdynkin@is@extended%
+			\csname extended\dynkin@series dynkin\endcsname%
+		\else%
+			\csname\dynkin@series dynkin\endcsname%
+		\fi%
+	\fi%
+	\dynkin@draw@involutions%
+	\dynkinRefreshRoots%
+}%
+%
+%% We know the number of nodes; lets find the rank.
+\NewDocumentCommand\dynkin@find@rank{}%
+{%
+	\global\dynkin@rank=\the\dynkin@nodes\relax%
+	\ifdynkin@is@twisted%
+		\IfStrEqCase{\dynkin@series}%
+		{%
+			{A}%
+			{%
+				\global\multiply\dynkin@rank by 2%
+				\ifdynkin@odd%
+					\global\advance\dynkin@rank by -1\relax%
+				\fi%
+			}%
+			{D}%
+			{%
+				\IfStrEqCase{\dynkin@twisted@series}%
+				{%
+					{2}
+					{%
+						\global\advance\dynkin@rank by 1\relax%
+					}%
+					{3}
+					{%
+						\global\advance\dynkin@rank by 2\relax%
+					}%
+				}%
+			}%
+			{E}%
+			{%
+				\global\advance\dynkin@rank by 2\relax%
+			}%
+		}%
+	\fi%
+	\global\dynkin@rank@minus@one\the\dynkin@rank\relax%
+	\global\advance\dynkin@rank@minus@one by -1\relax%
+	\global\dynkin@rank@minus@two\the\dynkin@rank@minus@one\relax%
+	\global\advance\dynkin@rank@minus@two by -1\relax%
+	\global\dynkin@rank@minus@three\the\dynkin@rank@minus@two\relax%
+	\global\advance\dynkin@rank@minus@three by -1\relax%
+}%
+\newcount\dynkin@lenny%
+%% \dynkin@grok@series
+%% Interprets the dynkin@series, to see if it is extended, twisted, and what twisted series it is.
+\NewDocumentCommand\dynkin@grok@series{}%
+{%
+	\StrLen{\dynkin@series}[\dynkin@lenny]
+	\ifnum\dynkin@lenny>1\relax%
+		\dynkin@error@series%
+	\fi%
+	\edef\series{\dynkin@series}%
+	\IfStrEqCase{\dynkin@twisted@series}%
+	{%
+		{0}{}%
+		{1}{ \global\dynkin@is@extendedtrue}%
+		{2}{%
+			\IfSubStr{ADE}{\dynkin@series}%
+			{%
+				\global\dynkin@is@twistedtrue%
+			}%
+			{%
+				\dynkin@error@series%
+			}%	
+		}%
+		{3}{%
+			\IfStrEq{\dynkin@series}{D}%
+			{%
+				\global\dynkin@is@twistedtrue%
+			}%
+			{%
+				\dynkin@error@series%
+			}%
+		}%
+	}%
+	[\dynkin@error@series]%
+}%
+\newif\ifdynkin@Satake@diagram%
+\NewDocumentCommand\dynkin@grok@Satake@codes{}%
+{%
+	\ifdynkin@is@extended%
+	\else%
+		\ifdynkin@is@twisted%
+		\else%
+			\global\dynkin@Satake@diagramtrue%
+		\fi%
+	\fi%
+	\IfStrEqCase{\dynkin@series}%
+	{%
+		{A}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{even}%
+				{%
+					\gdef\dynkin@string{ddd.ddd}%
+					\global\dynkin@oddfalse%
+					\global\dynkin@Satake@diagramfalse%
+				}%
+				{odd}%
+				{%
+					\gdef\dynkin@string{dddd.ddd}%
+					\global\dynkin@oddtrue%
+					\global\dynkin@Satake@diagramfalse%
+				}%
+				{}%
+				{%
+					\gdef\dynkin@string{dd.dd}%
+					\global\dynkin@Satake@diagramfalse%
+				}%
+				{I}
+				{%
+					\gdef\dynkin@string{oo.oo}%
+				}%
+				{II}%
+				{%
+					\gdef\dynkin@string{*o*.o*}%
+				}%
+				{IIIa}%
+				{%
+					\global\dynkin@ply=2\relax%
+					\gdef\dynkin@string{oo.o**.**o.oo}%
+				}%
+				{IIIb}%
+				{%
+					\global\dynkin@ply=2\relax%
+					\gdef\dynkin@string{oo.ooo.oo}%
+				}%
+				{IV}%
+				{%
+					\global\dynkin@ply=2\relax%
+					\gdef\dynkin@string{o*.*o}%
+				}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{B}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}{%
+					\global\dynkin@Satake@diagramfalse%
+					\ifdynkin@Coxeter%
+						\gdef\dynkin@string{ddd.ddd}%
+					\else%
+						\ifdynkin@is@extended%
+							\gdef\dynkin@string{ddd.ddd}%
+						\else%
+							\gdef\dynkin@string{dd.ddd}%
+						\fi%
+					\fi%
+					}%
+				{I}{\gdef\dynkin@string{oo.o*.**}}%
+				{II}{\gdef\dynkin@string{o*.**}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{C}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}{%
+					\global\dynkin@Satake@diagramfalse%
+					\ifdynkin@Coxeter%
+						\gdef\dynkin@string{ddd.ddd}%
+					\else%
+						\gdef\dynkin@string{dd.ddd}%
+					\fi%
+					}%
+				{I}{\gdef\dynkin@string{oo.oo}}%
+				{IIa}{\gdef\dynkin@string{*o*.o*.**}}%
+				{IIb}{\gdef\dynkin@string{*o*.o*o}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{D}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}{%
+					\global\dynkin@Satake@diagramfalse%
+					\ifdynkin@is@extended%
+							\ifnum\dynkin@ply=4\relax%
+								\gdef\dynkin@string{dddd.d.ddddd}
+							\else%
+								\gdef\dynkin@string{ddd.dddd}%
+							\fi%
+					\else%
+						\ifdynkin@is@twisted%
+							\IfStrEqCase{\dynkin@twisted@series}%
+							{%
+								{2}{	\gdef\dynkin@string{dd.ddd}}%
+								{3}{\gdef\dynkin@string{ddd}}%
+							}%
+							[\dynkin@error@series]%
+						\else%
+							\gdef\dynkin@string{dd.dddd}%
+						\fi%
+					\fi%
+				}%
+				{Ia}{\gdef\dynkin@string{oo.o*.***}}%
+				{Ib}{\global\dynkin@ply=2\relax\gdef\dynkin@string{o.ooo}}%
+				{Ic}{\gdef\dynkin@string{o.ooo}}%
+				{II}	{\gdef\dynkin@string{o*.***}}%
+				{IIIa}{\gdef\dynkin@string{*o*.o*o}}%
+				{IIIb}{\global\dynkin@ply=2\relax\gdef\dynkin@string{*o*.o*oo}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{E}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}%
+				{%
+					\global\dynkin@Satake@diagramfalse%
+					\IfStrEq{\dynkin@twisted@series}{2}%
+					{%
+						\gdef\dynkin@string{ddddd}%
+					}%
+					{%
+						\dynkin@error@series%
+					}%
+				}%
+				{I}{	\global\dynkin@rank=6\relax\gdef\dynkin@string{oooooo}}%
+				{II}	{\global\dynkin@ply=2\relax\gdef\dynkin@string{oooooo}}%
+				{III}{\global\dynkin@ply=2\relax\gdef\dynkin@string{oo***o}}%
+				{IV}	{\gdef\dynkin@string{o****o}}%
+				{V}{	\gdef\dynkin@string{ooooooo}}%
+				{VI}	{\gdef\dynkin@string{o*oo*o*}	}%
+				{VII}{\gdef\dynkin@string{o****oo}}%
+				{VIII}{\gdef\dynkin@string{oooooooo}}%
+				{IX}	{\gdef\dynkin@string{o****ooo}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{F}%
+		{%
+			\global\dynkin@rank=4\relax%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{I}{	\gdef\dynkin@string{oooo}}%
+				{II}	{\gdef\dynkin@string{***o}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{G}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{I}{\gdef\dynkin@string{oo}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{H}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}{\gdef\dynkin@string{**}}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+		{I}%
+		{%
+			\IfStrEqCase{\dynkin@string}%
+			{%
+				{}{\gdef\dynkin@string{**}}%
+				{%
+				}%
+			}%
+			[\global\dynkin@Satake@diagramfalse]%
+		}%
+	}%
+	[\dynkin@error@series]%
+	\ifdynkin@Satake@diagram%
+	\else%
+		\StrSubstitute{\dynkin@string}{d}{\dynkin@root@mark}[\temp]%
+		\xdef\dynkin@string{\temp}%
+	\fi%
+}%
+\NewDocumentCommand\dynkin@error@not@in@tikz{}
+{%
+	\ClassError%
+		{Dynkin diagrams}%
+		{Dynkin diagram macros called outside of tikz environment}%
+		{}%
+}%
+\NewDocumentCommand\dynkin@error@root@ordering{}
+{%
+	\ClassError%
+		{Dynkin diagrams}%
+		{Unrecognized root ordering: ``\dynkin@ordering'' 
+		in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}%
+		{}%
+}%
+\NewDocumentCommand\dynkin@error@rank{}%
+{%
+	\ClassError%
+		{Dynkin diagrams}%
+		{Unrecognized \dynkin@user@series\dynkin@spacy series rank: 
+		``\the\dynkin@rank'' in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}%
+		{}%
+}%
+\NewDocumentCommand\dynkin@error@series{}%
+{%
+	\ClassError%
+		{Dynkin diagrams}%
+		{Unrecognized series ``\dynkin@user@series'' 
+		in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}%
+		{}%
+}%
+\NewDocumentCommand\dynkin@error@ply{}
+{%
+	\ClassError%
+		{Dynkin diagrams}%
+		{Unrecognized ply: ``\the\dynkin@ply'' 
+		in Dynkin diagram \dynkin@user@series{\dynkin@user@string}}%
+		{}%
+}%
+%% \check@Dynkin@Roots
+%% Raises error messages for erroneous input in the list of Dynkin roots.
+\NewDocumentCommand\check@Dynkin@Roots{}%
+{%
+	\foreach \i in {1,...,\the\dynkin@nodes}%
+	{%
+		\StrChar{\dynkin@roots}{\i}[\cccc]%
+		\IfSubStr{*OXotx}{\cccc}%
+		{%
+		}%
+		{%else
+			\ClassError%
+				{Dynkin diagrams}%
+				{Unrecognized Dynkin diagram root mark: 
+				``\cccc'' in Dynkin diagram  \dynkin@user@series{\dynkin@user@string}}%
+				{}%
+		}%
+	}%
+}%
+
+%% \check@Dynkin@root@order
+\NewDocumentCommand\check@Dynkin@root@order{m}%
+{%
+	\IfStrEqCase{#1}%
+	{%
+		{Adams}{}%
+		{Bourbaki}{}%
+		{Carter}{}%
+		{Dynkin}{}%
+		{Kac}{}%
+		{TestOrder}{}%
+	}%
+	[\ClassError%
+		{Dynkin diagrams}%
+		{Unrecognized label ordering: ``#1'' }%
+		{}]%
+}%
+%% \check@Dynkin@diagram
+%% Raises error messages for erroneous inputs.
+\NewDocumentCommand\check@Dynkin@diagram{}%
+{%
+	\IfSubStr{1234}{\the\dynkin@ply}{}{\dynkin@error@ply}%
+	\check@Dynkin@Roots%
+	\check@Dynkin@root@order{\dynkin@ordering}%
+	\IfStrEqCase{\dynkin@series}%
+	{%
+		{A}{}%
+		{B}{}%
+		{C}{}%
+		{D}{}%
+		{E}%
+		{%
+			\ifnum\dynkin@nodes=5\relax%
+				\ifnum\dynkin@rank=6\relax%
+					\IfStrEq{\dynkin@twisted@series}{2}%
+					{%
+					}%
+					{%
+						\dynkin@error@rank%
+					}%
+				\else%
+					\dynkin@error@rank%
+				\fi%
+			\else
+				\ifnum\dynkin@rank=6\relax%
+				\else%
+					\ifnum\dynkin@rank=7\relax%
+					\else%
+						\ifnum\dynkin@rank=8\relax%
+						\else%
+							\IfStrEq{\dynkin@ordering}{Kac}{}{\dynkin@error@rank}%
+						\fi%
+					\fi%
+				\fi%
+			\fi%
+		}%
+		{F}%
+		{%
+			\ifnum\dynkin@rank=4\relax%
+			\else%
+				\dynkin@error@rank%
+			\fi%
+		}%
+		{G}%
+		{%
+			\ifnum\dynkin@rank=2\relax%
+			\else%
+				\dynkin@error@rank%
+			\fi%
+		}%
+		{H}{}%
+		{I}{}%
+	}%
+	[\dynkin@error@series]%
+}%
+
+
+%% A slight headache: all of the routines that draw Dynkin diagrams are written 
+%% in Bourbaki ordering. We store the roots in the current ordering.
+%% So when we draw edges, we need to convert from the Bourbaki ordering each time.
+%% We store the conversions here.
+\newcount\dynkin@Root@Number%
+\newcount\@dynkin@from@root%
+\newcount\@dynkin@to@root%
+%% \swapRootIfInLastTwoRoots{<r>}
+%% If the input root <r> is one of the last two roots, then put the other in \dynkin@Root@Number, otherwise
+%% let \dynkin@Root@Number be <r>.
+\NewDocumentCommand\swapRootIfInLastTwoRoots{m}%
+{%
+	\ifnum\dynkin@rank>1\relax%
+		\ifnum\dynkin@rank=#1\relax%
+			\global\dynkin@Root@Number=\the\dynkin@rank@minus@one\relax%
+		\else%
+			\ifnum\dynkin@rank@minus@one=#1\relax%
+				\global\dynkin@Root@Number=\the\dynkin@rank\relax%
+			\else%
+				\global\dynkin@Root@Number=#1\relax%
+			\fi%
+		\fi%
+	\else%
+		\global\dynkin@Root@Number=#1\relax%
+	\fi%
+}%
+\newcount\dynkin@r%
+\NewDocumentCommand\swap@if@in@last@two{mm}%
+{%
+	\global\dynkin@r=#2\relax%
+	\ifnum\dynkin@r=#1\relax%
+		\global\advance \dynkin@r by -1\relax%
+	\else%
+		\global\advance \dynkin@r by 1\relax%
+		\ifnum\dynkin@r=#1\relax%
+		\else%
+			\global\advance \dynkin@r by -1\relax%
+		\fi%
+	\fi%
+	\the\dynkin@r%
+}%
+\newcount\dynkin@root@no%
+\NewDocumentCommand\dynkinOrderToBourbaki{mmmmm}%
+%% \dynkinOrderToBourbaki{series}{rank}{from order}{root}{counter to store result}
+%% Stores the number of root in Bourbaki order which corresponds to
+%% the root <number> in <from order>, for the series of simple Lie algebra 
+%% <series>, rank <rank>.
+%% Example: \dynkinOrderToBourbaki{E}{8}{Carter}{7}
+%% yields 3, because the 7th root in E8 according  to Carter's ordering is the
+%% 3rd in Bourbaki's.
+{%
+%	\check@Dynkin@root@order{#3}%
+	\IfStrEq{#4}{0}%
+	{%
+		% The affine root is often labelled as root 0, and it is the same in all orderings.
+		\global#5=0%
+	}%
+	{%
+		\IfStrEqCase{#1}%
+		{%
+			{A}%
+			{%
+				\global#5=#4\relax%
+			}%
+			{D}%
+			{%
+				\IfStrEqCase{#3}%
+				{%
+					{Adams}{%
+						\global#5=%
+						\swap@if@in@last@two{#2}{#4}%
+						\relax%
+					}%
+					{Dynkin}{%
+						\global#5=%
+						\swap@if@in@last@two{#2}{#4}%
+						\relax%
+					}%
+					{Kac}{%
+						\global#5=%
+						\swap@if@in@last@two{#2}{#4}%
+						\relax%
+						}%
+				}%
+				[\global#5=#4\relax]%
+			}%
+			{E}%
+			{%
+					\ifnum#2=6\relax%
+							\IfStrEqCase{#3}%
+							{%
+								{Adams}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{135426}{#4}%
+									\relax%
+								}%
+								{Carter}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{134256}{#4}%
+									\relax%
+								}%
+								{Dynkin}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition{134562}{#4}%
+									\relax%
+								}%
+								{Kac}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{134562}{#4}%
+									\relax%
+								}%
+							}%
+							[\global#5=#4\relax]%
+					\else%
+						\ifnum#2=7\relax%
+							\IfStrEqCase{#3}%
+							{%
+								{Adams}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{6524317}{#4}%
+									\relax%
+								}%
+								{Carter}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{7654231}{#4}%
+									\relax%
+								}%
+								{Dynkin}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{1345672}{#4}%
+									\relax%
+								}%
+								{Kac}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{1245672}{#4}%
+									\relax%
+								}%
+							}%
+							[\global#5=#4\relax]%
+						\else%
+							\ifnum#2=8\relax%
+								\IfStrEqCase{#3}%
+								{%
+									{Adams}%
+									{%
+										\global#5=%
+										\stringCharacterInPosition%
+										{13245678}{#4}%
+										\relax%
+									}%
+									{Carter}%
+									{%
+										\global#5=%
+										\stringCharacterInPosition%
+										{87654231}{#4}%
+										\relax%
+									}%
+									{Dynkin}%
+									{%
+										\global#5=%
+										\stringCharacterInPosition%
+										{13456782}{#4}%
+										\relax%
+									}%
+									{Kac}%
+									{%
+										\global#5=%
+										\stringCharacterInPosition%
+										{87654312}{#4}%
+										\relax%
+									}%
+								}%
+								[\global#5=#4\relax]%
+							\else%
+								\global#5=#4\relax%
+							\fi%
+						\fi%
+					\fi%
+			}%
+			{F}%
+			{%
+				\IfStrEqCase{#3}%
+				{%
+					{Adams}{\global#5=%
+							\stringCharacterInPosition{4321}{#4}%
+							\relax}%
+				}%
+				[\global#5=#4\relax]%
+			}%
+			{G}%
+			{%
+				\IfStrEqCase{#3}%
+				{%
+					{Carter}{\global#5=%
+							\stringCharacterInPosition{21}{#4}%
+							\relax}%
+					{Dynkin}{\global#5=%
+							\stringCharacterInPosition{21}{#4}%
+							\relax}%
+				}%
+				[\global#5=#4\relax]%
+			}%
+		}%
+		[\global#5=#4\relax]%
+	}%
+}%
+\NewDocumentCommand\dynkinOrderFromBourbaki{mmmmm}%
+%% \dynkinOrderFromBourbaki{series}{rank}{root}{to order}{count to store result}
+%% Stores the number of root in <from order> which corresponds to
+%% the root <number> in Bourbaki ordering, for the series of simple Lie algebra 
+%% <series>, rank <rank>.
+%% Example: \dynkinOrderFromBourbaki{E}{8}{7}{Carter}
+%% yields 2, because the 7th root in E8 according  to Bourbaki's ordering is the
+%% 2nd in Carter's.
+{%
+%	\check@Dynkin@root@order{#4}%
+	\IfStrEq{#3}{0}%
+	{%
+		% The affine root is often labelled as root 0, and it is the same in all orderings.
+		\global#5=0\relax%
+	}%
+	{%
+	\IfStrEqCase{#1}%
+	{%
+		{A}%
+		{%
+			\global#5=#3\relax%
+		}%
+		{D}%
+		{%
+			\IfStrEqCase{#4}%
+			{%
+				{Adams}{%
+					\global#5=%
+					\swap@if@in@last@two{#2}{#3}%
+					\relax%
+				}%
+				{Dynkin}{%
+					\global#5=%
+					\swap@if@in@last@two{#2}{#3}%
+					\relax%
+				}%
+				{Kac}{%
+					\global#5=%
+					\swap@if@in@last@two{#2}{#3}%
+					\relax%
+					}%
+			}%
+			[\global#5=#3\relax]%
+		}%
+		{E}%
+		{%
+				\ifnum#2=6\relax%
+						\IfStrEqCase{#4}%
+						{%
+							{Adams}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition%
+								{152436}{#3}%
+								\relax%
+							}%
+							{Carter}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition%
+								{142356}{#3}%
+								\relax%
+							}%
+							{Dynkin}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition%
+								{162345}{#3}%
+								\relax%
+							}%
+							{Kac}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition%
+								{162345}{#3}%
+								\relax%
+							}%
+						}%
+						[\global#5=#3\relax]%
+				\else%
+					\ifnum#2=7\relax%
+						\IfStrEqCase{#4}%
+						{%
+							{Adams}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition{6354217}{#3}%
+								\relax%
+							}%
+							{Carter}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition{7564321}{#3}%
+								\relax%
+							}%
+							{Dynkin}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition{1723456}{#3}%
+								\relax%
+							}%
+							{Kac}%
+							{%
+								\global#5=%
+								\stringCharacterInPosition{1723456}{#3}%
+								\relax%
+							}%
+						}%
+						[\global#5=#3\relax]%
+					\else%
+						\ifnum#2=8\relax%
+							\IfStrEqCase{#4}%
+							{%
+								{Adams}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+										{13245678}{#3}%
+									\relax%
+								}%
+								{Carter}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{86754321}{#3}%
+									\relax%
+								}%
+								{Dynkin}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{18234567}{#3}%
+									\relax%
+								}%
+								{Kac}%
+								{%
+									\global#5=%
+									\stringCharacterInPosition%
+									{78654321}{#3}%
+									\relax%
+								}%
+							}%
+							[\global#5=#3\relax]%
+						\else%
+							\global#5=#3\relax%
+						\fi%
+					\fi%
+				\fi%
+			%\fi%
+		}%
+		{F}%
+		{%
+			\IfStrEqCase{#4}%
+			{%
+				{Adams}%
+				{%
+					\global#5=%
+					\stringCharacterInPosition%
+					{4321}{#3}%
+					\relax%
+				}%
+			}%
+			[\global#5=#3\relax]%
+		}%
+		{G}%
+		{%
+			\IfStrEqCase{#4}%
+			{%
+				{Carter}%
+				{%
+					\global#5=%
+					\stringCharacterInPosition{21}{#3}%
+					\relax%
+				}%
+				{Dynkin}%
+				{%
+					\global#5=%
+					\stringCharacterInPosition{21}{#3}%
+					\relax%
+				}%
+			}%
+			[\global#5=#3\relax]%
+		}%
+	}%
+	[\global#5=#3\relax]%
+	}%
+}%
+\newcount\dynkin@order@temp%
+\newcount\dynkin@order@temp@b%
+\NewDocumentCommand\dynkinOrder{mmD.:{Bourbaki}r:-D>.{Bourbaki}m}%
+%% \dynkinOrder <series><rank>.<from order>::<from root number>-><to order>.<storage counter>
+%% Example: \newcount\r\dynkinOrder D7.Carter::7->Bourbaki.{\r}
+{%
+	\dynkinOrderToBourbaki{#1}{#2}{#3}{#4}{\dynkin@order@temp}%
+	\dynkinOrderFromBourbaki{#1}{#2}{\the\dynkin@order@temp}{#5}{#6}%
+}%
+
+
+%% \typeDynkinOrder <series><rank>.<from order>::<from root number>-><to order>.
+%% Example: \typeDynkinOrder D7.Carter::7->Bourbaki.
+\newcount\tempDynkinReorder%
+\NewDocumentCommand\typeDynkinOrder{mmD.:{Bourbaki}r:-D>.{Bourbaki}}%
+{%
+\dynkinOrder{#1}{#2}.#3::#4->#5.{\tempDynkinReorder}\the\tempDynkinReorder%
+}%
+%% \convertRootNumber{<n>}
+%% Converts <n> from Bourbaki ordering to the current ordering, storing the result in a count called \dynkin@Root@Number.
+\NewDocumentCommand\convertRootNumber{m}%
+{%
+	\IfStrEq{#1}{0}%
+	{%
+		\global\dynkin@Root@Number=0\relax%
+	}%
+	{%
+	\IfStrEqCase{\dynkin@series}%
+	{%
+		{A}%
+		{%
+			\IfStrEqCase{\dynkin@ordering}%
+			{%
+				{TestOrder}%
+				{%
+					\global\dynkin@Root@Number=#1\relax%
+					\global\advance\dynkin@Root@Number by 1\relax%
+					\ifnum\dynkin@Root@Number>\the\dynkin@rank\relax%
+						\global\dynkin@Root@Number=1\relax%
+					\fi%
+				}%
+			}%
+			[\global\dynkin@Root@Number=#1\relax]%
+		}%
+		{D}%
+		{%
+			\IfStrEqCase{\dynkin@ordering}%
+			{%
+				{Adams}{\swapRootIfInLastTwoRoots{#1}}%
+				{Dynkin}{\swapRootIfInLastTwoRoots{#1}}%
+				{Kac}{%
+					\ifdynkin@is@twisted
+						\global\dynkin@Root@Number=#1\relax%
+					\else
+						\ifdynkin@is@extended
+							\global\dynkin@Root@Number=#1\relax%
+						\else
+							\swapRootIfInLastTwoRoots{#1}
+						\fi
+					\fi}%
+			}%
+			[\global\dynkin@Root@Number=#1\relax]%
+		}%
+		{E}%
+		{%
+			\ifdynkin@is@twisted%
+				\global\dynkin@Root@Number=#1\relax%
+			\else%
+				\ifnum\dynkin@rank=6\relax%
+						\IfStrEqCase{\dynkin@ordering}%
+						{%
+							{Adams}{\global\dynkin@Root@Number=\stringCharacterInPosition{152436}{#1}\relax}%
+							{Carter}{\global\dynkin@Root@Number=\stringCharacterInPosition{142356}{#1}\relax}%
+							{Dynkin}{\global\dynkin@Root@Number=\stringCharacterInPosition{162345}{#1}\relax}%
+							{Kac}{\global\dynkin@Root@Number=\stringCharacterInPosition{162345}{#1}\relax}%
+						}%
+						[\global\dynkin@Root@Number=#1\relax]%
+				\else%
+					\ifnum\dynkin@rank=7\relax%
+						\IfStrEqCase{\dynkin@ordering}%
+						{%
+							{Adams}{\global\dynkin@Root@Number=\stringCharacterInPosition{6354217}{#1}\relax}%
+							{Carter}{\global\dynkin@Root@Number=\stringCharacterInPosition{7564321}{#1}\relax}%
+							{Dynkin}{\global\dynkin@Root@Number=\stringCharacterInPosition{1723456}{#1}\relax}%
+							{Kac}{\global\dynkin@Root@Number=\stringCharacterInPosition{1723456}{#1}\relax}%
+						}%
+						[\global\dynkin@Root@Number=#1\relax]%			
+					\else%
+						\ifnum\dynkin@rank=8\relax%
+							\IfStrEqCase{\dynkin@ordering}%
+							{%
+								{Adams}{\global\dynkin@Root@Number=\stringCharacterInPosition{13245678}{#1}\relax}%
+								{Carter}{\global\dynkin@Root@Number=\stringCharacterInPosition{86754321}{#1}\relax}%
+								{Dynkin}{\global\dynkin@Root@Number=\stringCharacterInPosition{18234567}{#1}\relax}%
+								{Kac}{\global\dynkin@Root@Number=\stringCharacterInPosition{78654321}{#1}\relax}%
+							}%
+							[\global\dynkin@Root@Number=#1\relax]%
+						\else%
+							\global\dynkin@Root@Number=#1\relax%
+						\fi%
+					\fi%
+				\fi%
+			\fi%
+		}%
+		{F}%
+		{%
+			\IfStrEqCase{\dynkin@ordering}%
+			{%
+				{Adams}{\global\dynkin@Root@Number=\stringCharacterInPosition{4321}{#1}\relax}%
+			}%
+			[\global\dynkin@Root@Number=#1\relax]%
+		}%
+		{G}%
+		{%
+			\IfStrEqCase{\dynkin@ordering}%
+			{%
+				{Carter}{\global\dynkin@Root@Number=\stringCharacterInPosition{21}{#1}\relax}%
+				{Dynkin}{\global\dynkin@Root@Number=\stringCharacterInPosition{21}{#1}\relax}%
+			}%
+			[\global\dynkin@Root@Number=#1\relax]%
+		}%
+	}%
+	[\global\dynkin@Root@Number=#1\relax]%
+	}%
+}%
+
+%% \convertRootPair{<p>}{<q>}
+%% Stores conversions in \@dynkin@from@root and \@dynkin@to@root.
+\NewDocumentCommand\convertRootPair{mm}
+{%
+	\convertRootNumber{#1}%
+	\global\@dynkin@from@root=\dynkin@Root@Number\relax%
+	\convertRootNumber{#2}%
+	\global\@dynkin@to@root=\dynkin@Root@Number\relax%
+}%
+%% \testbit{<n>}{<b>}
+%% If bit number <b> of <n> is 1 then set bittrue else set bitfalse
+\newif\ifdynkin@bit
+\newcount\test@bit@a
+\newcount\test@bit@b
+\newif\iftest@bit@more
+\NewDocumentCommand\testbit{mm}%
+{%
+	\test@bit@a#1\relax%
+	\test@bit@b#2\relax%
+	\ifnum\test@bit@a=0\relax%
+		\global\bitfalse%
+	\else%
+		\global\test@bit@moretrue%
+		\loop%
+			\ifnum\test@bit@b=0\relax%
+				\global\test@bit@morefalse%
+				\ifodd\test@bit@a\empty%
+					\global\dynkin@bittrue%
+				\else%
+					\global\dynkin@bitfalse%
+				\fi%
+			\else%
+				\divide\test@bit@a by 2\relax%
+				\advance\test@bit@b by -1\relax%
+			\fi%
+		\iftest@bit@more\repeat%
+	\fi%
+}%
+%% \replaceNthChar{<string>}{<N>}{<char>}
+%% redefines the string <string>, a name of a macro returning a character string,
+%% to be the same as its original output, but with character <N> replaced by <char>.
+\newcount\replaceNthCounter
+\newcount\replacementN
+\xdef\replacementLeftString{}
+\xdef\replacementRightString{}
+\NewDocumentCommand\replaceNthChar{mmm}%
+{%
+	\ifnum#2<1\relax%
+	\else%
+		\StrLen{#1}[\thatreplaceNthCounter]%
+		\replaceNthCounter\thatreplaceNthCounter\relax%
+		\ifnum\replaceNthCounter<#2\relax%
+		\else%
+			\replacementN#2\relax%
+			\advance\replacementN by -1\relax%
+			\StrLeft{#1}{\the\replacementN}[\replacementLeftString]%
+			\advance\replacementN by 1\relax%
+			\StrGobbleLeft{#1}{\the\replacementN}[\replacementRightString]%
+			\xdef#1{\replacementLeftString#3\replacementRightString}%
+		\fi%
+	\fi%
+}%
+\newcount\dynkin@where%
+\NewDocumentCommand\dynkin@put@cross{m}%
+{%
+	\dynkin@where#1\relax%
+	\advance\dynkin@where by 1\relax%
+	\replaceNthChar{\dynkin@roots}{\the\dynkin@where}{x}%
+}%
+\newcount\dynkin@nodes@minus@one%
+\NewDocumentCommand\dynkin@cross@out@parabolics{}%
+{%
+	\IfInteger{\dynkin@parabolic}%
+	{%
+		\IfStrEq{\dynkin@parabolic}{0}%
+		{%
+		}%
+		{%
+			\dynkin@nodes@minus@one=\the\dynkin@nodes\relax%
+			\advance\dynkin@nodes@minus@one by -1\relax%
+			\foreach \b in {0,...,\the\dynkin@nodes@minus@one}%
+			{%
+				\testbit{\dynkin@parabolic}{\b}%
+				\ifdynkin@bit\dynkin@put@cross{\b}\fi%
+			}%
+		}%
+	}%
+	{%
+	}%
+}%
+\NewDocumentCommand\dynkinMoveToRoot{sm}%
+{%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#2}%
+	}%
+	{%
+		\global\dynkin@Root@Number=#2\relax%
+	}%
+	\node (Dynkin current) at (\dynkin@root@name \the\dynkin@Root@Number){};%
+}%
+%% \dynkinPlaceRootHere{<n>}{<L>}{<L*>}
+%% \dynkinPlaceRootHere*{<n>}{<L>}{<L*>}
+%% Tell TikZ to place node <n> for a root of a Dynkin diagram at the current
+%% cursor location. Draws nothing.
+%% <L>=label positioning: above, below, left, right, above left, above right, below left, below right.
+%% <L*> similarly, the alternate label position.
+%% Starred form converts <n> from Bourbaki ordering to default ordering.
+\NewDocumentCommand\dynkinPlaceRootHere{smmm}%
+{%
+\xdef\yyyy{#2}
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootNumber{#2}%
+	}%
+	{%
+		\global\dynkin@Root@Number=#2\relax%
+	}%
+	\node (\dynkin@root@name \the\dynkin@Root@Number) at (Dynkin current) {};%
+	\dynkinPutLabelInDirection{\the\dynkin@Root@Number}{#3}%
+	\dynkinPutLabelInDirection*{\the\dynkin@Root@Number}{#4}%
+}%
+\newif\ifdynkin@hex@grid
+\dynkin@hex@gridtrue
+%% \dynkinPlaceRootRelativeTo{<p>}{<q>}{<d>}{<L>}{<L*>}
+%% \dynkinPlaceRootRelativeTo*{<p>}{<q>}{<d>}{<L>}{<L*>}
+%% Tell TikZ to place node <p> for a root of a Dynkin diagram at a location
+%% in direction <d> from root <q>. Draws nothing.
+%% <L> is the label position: above, below, left, right, above left, above right, below left, below right.
+%% <L*> is the position of the alternate label similarly.
+%% <d> is the direction from <q>: 
+%% west,east,south,north,
+%% northeast,northwest,southeast,southwest,
+%% southfold,northfold,
+%% southeastfold,southwestfold,northeastfold,northwestfold.
+%% Starred form is in Bourbaki root ordering; otherwise default ordering.
+\NewDocumentCommand\dynkinPlaceRootRelativeTo{smmmmm}%
+{%
+	\IfBooleanTF{#1}%
+	{%
+		\convertRootPair{#3}{#2}%
+	}%
+	{%
+		\global\@dynkin@from@root=#3\relax%
+		\global\@dynkin@to@root=#2\relax%
+	}%
+	\dynkin@is@edge@indefinite{\@dynkin@from@root}{\@dynkin@to@root}%
+	\ifdynkin@is@indefinite@edge%
+		\xdef\dynkin@distance{\dynkin@indefinite@edge@length}
+	\else
+		\xdef\dynkin@distance{\dynkin@edge@length}
+	\fi
+	\ifdynkin@hex@grid
+		\IfStrEqCase{#4}%
+		{%
+			{west}{\xdef\xd{-\dynkin@distance}\xdef\yd{0}}%
+			{east}{\xdef\xd{\dynkin@distance}\xdef\yd{0}}%
+			{south}{\xdef\xd{0}\xdef\yd{-\dynkin@distance}}%
+			{north}{\xdef\xd{0}\xdef\yd{\dynkin@distance}}%
+			{southeast}%
+			{%
+				\xdef\xd{cos(-60)*\dynkin@distance}%
+				\xdef\yd{sin(-60)*\dynkin@distance}%
+			}%
+			{southwest}%
+			{%
+				\xdef\xd{cos(240)*\dynkin@distance}%
+				\xdef\yd{sin(240)*\dynkin@distance}%
+			}%
+			{northeast}%
+			{%
+				\xdef\xd{cos(60)*\dynkin@distance}%
+				\xdef\yd{sin(60)*\dynkin@distance}%
+			}%
+			{northwest}%
+			{%
+				\xdef\xd{cos(120)*\dynkin@distance}%
+				\xdef\yd{sin(120)*\dynkin@distance}%
+			}%
+			{southeastfold}%
+			{%
+				\xdef\xd{\dynkin@fold@radius}%
+				\xdef\yd{-\dynkin@fold@radius}%
+			}%
+			{southwestfold}%
+			{%
+				\xdef\xd{-\dynkin@fold@radius}%
+				\xdef\yd{-\dynkin@fold@radius}%
+			}%
+			{northeastfold}%
+			{%
+				\xdef\xd{\dynkin@fold@radius}%
+				\xdef\yd{\dynkin@fold@radius}%
+			}%
+			{northwestfold}%
+			{%
+				\xdef\xd{-\dynkin@fold@radius}%
+				\xdef\yd{\dynkin@fold@radius}%
+			}%
+			{northfold}%
+			{%
+				\xdef\xd{0}%
+				\xdef\yd{2*\dynkin@fold@radius}%
+			}%
+			{southfold}%
+			{%
+				\xdef\xd{0}%
+				\xdef\yd{-2*\dynkin@fold@radius}%
+			}%
+		}%
+	\else%
+		\IfStrEqCase{#4}%
+		{%
+			{west}{\xdef\xd{-\dynkin@distance}\xdef\yd{0}}%
+			{east}{\xdef\xd{\dynkin@distance}\xdef\yd{0}}%
+			{south}{\xdef\xd{0}\xdef\yd{-\dynkin@distance}}%
+			{north}{\xdef\xd{0}\xdef\yd{\dynkin@distance}}%
+			{southeast}%
+			{%
+				\xdef\xd{cos(-45)*\dynkin@distance}%
+				\xdef\yd{sin(-45)*\dynkin@distance}%
+			}%
+			{southwest}%
+			{%
+				\xdef\xd{cos(225)*\dynkin@distance}%
+				\xdef\yd{sin(225)*\dynkin@distance}%
+			}%
+			{northeast}%
+			{%
+				\xdef\xd{cos(45)*\dynkin@distance}%
+				\xdef\yd{sin(45)*\dynkin@distance}%
+			}%
+			{northwest}%
+			{%
+				\xdef\xd{cos(135)*\dynkin@distance}%
+				\xdef\yd{sin(135)*\dynkin@distance}%
+			}%
+			{southeastfold}%
+			{%
+				\xdef\xd{\dynkin@fold@radius}%
+				\xdef\yd{-\dynkin@fold@radius}%
+			}%
+			{southwestfold}%
+			{%
+				\xdef\xd{-\dynkin@fold@radius}%
+				\xdef\yd{-\dynkin@fold@radius}%
+			}%
+			{northeastfold}%
+			{%
+				\xdef\xd{\dynkin@fold@radius}%
+				\xdef\yd{\dynkin@fold@radius}%
+			}%
+			{northwestfold}%
+			{%
+				\xdef\xd{-\dynkin@fold@radius}%
+				\xdef\yd{\dynkin@fold@radius}%
+			}%
+			{northfold}%
+			{%
+				\xdef\xd{0}%
+				\xdef\yd{2*\dynkin@fold@radius}%
+			}%
+			{southfold}%
+			{%
+				\xdef\xd{0}%
+				\xdef\yd{-2*\dynkin@fold@radius}%
+			}%
+		}%
+	\fi
+	\node (Dynkin current) 
+		at 
+		($(\dynkin@root@name \the\@dynkin@from@root)%
+		+({\xd},{\yd})$){};
+	\dynkinPlaceRootHere{\the\@dynkin@to@root}{#5}{#6}%
+}%
+
+% Jump the current location by a certain multiple of the fold radius.
+\NewDocumentCommand\dynkin@jump{m}%
+{%
+\xdef\yj{#1*\dynkin@fold@radius}%
+\node (Dynkin current) at ($(Dynkin current)+(0,{\yj})$){};%
+}%
+
+% Jump the current location by a certain multiple of the edge radius multiplied by sin(60).
+\NewDocumentCommand\dynkin@hop{m}%
+{%
+\xdef\yjj{#1*\dynkin@edge@length*sin(60)}%
+\node (Dynkin current) at ($(Dynkin current)+(0,{\yjj})$){};%
+}%
+%% \dynkinEast
+%% Moves the TikZ cursor one edge to the right.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinEast{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}
+	\node (Dynkin current) at ($(Dynkin current)+({\distance},0)$) {};%
+}%
+%% \dynkinWest
+%% Moves the TikZ cursor one edge to the left.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinWest{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at ($(Dynkin current)+({-\distance},0)$) {};%
+}%
+%% \dynkinNorth
+%% Moves the TikZ cursor one edge up.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinNorth{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at ($(Dynkin current)+(0,{\distance})$) {};%
+}%
+%% \dynkinSouth
+%% Moves the TikZ cursor one edge to the left.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinSouth{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at ($(Dynkin current)+(0,{-\distance})$) {};%
+}%
+%% \dynkinNorthEast
+%% Moves the TikZ cursor one edge to the north east.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinNorthEast{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at 
+		($(Dynkin current)+
+			({cos(60)*\distance},{sin(60)*\distance})$) {};%
+}%
+%% \dynkinSouthEast
+%% Moves the TikZ cursor one edge to the south east.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinSouthEast{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at 
+		($(Dynkin current)+
+			({cos(-60)*\distance},{sin(-60)*\distance})$) {};%
+}%
+%% \dynkinNorthWest
+%% Moves the TikZ cursor one edge to the north west.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinNorthWest{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at 
+		($(Dynkin current)+
+			({cos(120)*\distance},{sin(120)*\distance})$) {};%
+}%
+%% \dynkinSouthWest
+%% Moves the TikZ cursor one edge to the south west.
+%% Starred form for an indefinite edge.
+\NewDocumentCommand\dynkinSouthWest{s}%
+{%
+	\xdef\distance{\IfBooleanTF{#1}{\dynkin@indefinite@edge@length}{\dynkin@edge@length}}%
+	\node (Dynkin current) at 
+		($(Dynkin current)+
+			({cos(240)*\distance},{sin(240)*\distance})$) {};%
+}%
+%% \dynkinSouthEastFold
+%% Moves the TikZ cursor one edge to the south east in the middle of a fold.
+\NewDocumentCommand\dynkinSouthEastFold{}%
+{%
+	\node (Dynkin current) at ($(Dynkin current)+({\dynkin@fold@radius},{-\dynkin@fold@radius})$) {};%
+}%
+%% \dynkinSouthWestFold
+%% Moves the TikZ cursor one edge to the south west in the middle of a fold.
+\NewDocumentCommand\dynkinSouthWestFold{}%
+{%
+	\node (Dynkin current) at ($(Dynkin current)+({-\dynkin@fold@radius},{-\dynkin@fold@radius})$) {};%
+}%
+%% \dynkinSouthFold
+%% Moves the TikZ cursor one edge to the south in the middle of a fold.
+\NewDocumentCommand\dynkinSouthFold{}%
+{%
+	\node (Dynkin current) at ($(Dynkin current)+(0,{-2*\dynkin@fold@radius})$) {};%
+}%
+
+\NewDocumentCommand\find@mark@of@root{m}%
+{%
+	\StrChar{\dynkin@roots}{#1}[\my@root@marker]%
+	\my@root@marker
+}%
+\NewDocumentCommand\dynkin@draw@all@roots{}%
+{%
+	\foreach \b in {1,...,\the\dynkin@nodes}%
+	{%
+		\StrChar{\dynkin@roots}{\b}[\c]%
+		\dynkinRootMark{\c}{\b}%
+	}%
+	\ifdynkin@is@extended%
+		\dynkinRootMark*{\dynkin@affine@root@mark}{0}%
+	\else%
+		\ifdynkin@is@twisted%
+			\dynkinRootMark*{\dynkin@affine@root@mark}{0}%
+		\fi%
+	\fi%
+}%
+%% \dynkin@fold@arrow@if@oo{<p>}{<q>}
+%% Inputs are roots (in Bourbaki ordering).
+%% If we are working on a Satake diagram, and both roots are 
+%% marked with hollow circles o, then draws a fold arrow between them.
+\NewDocumentCommand\dynkin@fold@arrow@if@oo{mm}%
+{%
+	\convertRootPair{#1}{#2}%
+	\ifdynkin@Satake@diagram%
+		\StrChar{\dynkin@roots}%
+			{\the\@dynkin@from@root}%
+			[\my@root@marker]%
+		\IfStrEq{\my@root@marker}{o}%
+		{%
+				\StrChar{\dynkin@roots}%
+					{\the\@dynkin@to@root}%
+					[\my@other@root@marker]%
+				\IfStrEq{\my@other@root@marker}{o}%
+				{%				
+					\dynkinFold%
+						{\the\@dynkin@from@root}%
+						{\the\@dynkin@to@root}%
+				}%
+				{}%
+		}{}%
+	\else%
+		\dynkinFold{\the\@dynkin@from@root}{\the\@dynkin@to@root}%
+	\fi%
+}%
+\newcount\pipebmo
+\newcount\pipefpo
+\newcount\pipe@end
+\newcount\start@pipe
+%% \dynkin@pipe{<f>}{<t>}{<D>}{<L>}{<L*>}
+%% Layout the roots (as TikZ nodes) <f>, <f>+1, \dots, <t> in the Bourbaki ordering, in a straight line, 
+%% starting at the current position (Dynkin current), moving in the direction <D>=east, west, north, south, with labels placed according to <L>=left,right,above,below.
+%% Assumes that the root <f> is already created as a node in TikZ, but the others are not.
+\NewDocumentCommand\dynkin@pipe{mmmmm}%
+{%
+	\start@pipe=#1\relax%
+	\pipe@end=#2\relax%
+	\ifnum\start@pipe<\the\pipe@end\relax%
+		\global\pipebmo=\the\start@pipe\relax%
+		\global\pipefpo=\the\start@pipe\relax%
+		\global\advance\pipefpo by 1\relax%
+		\foreach \bpipe in {\the\pipefpo,...,\the\pipe@end}%
+		{%
+			\dynkinPlaceRootRelativeTo*{\bpipe}{\the\pipebmo}{#3}{#4}{#5}%
+			\dynkinEdge*{SingleEdge}{\the\pipebmo}{\bpipe}%
+			\global\advance\pipebmo by 1\relax%
+		}%
+	\fi%
+}%
+\newcount\dynkin@h%
+\newcount\dynkin@hpo%
+\newcount\dynkin@afterfold%
+\newcount\dynkin@nrts%
+\newcount\dynkin@countdown%
+%% \dynkin@fold{<f>}{<t>}
+%% Layout the roots (as TikZ nodes) <f>, <f>+1, \dots, <t> in the Bourbaki ordering, in a folded arrangement, 
+%% moving first east, then down, then west, starting at the current position (Dynkin current).
+%% Assumes that the root <f> is already created as a node in TikZ, but the others are not.
+\NewDocumentCommand\dynkin@fold{mm}%
+{%
+	\dynkin@h=#1\relax%
+	\advance\dynkin@h by #2\relax%
+	\advance\dynkin@h by -1\relax%
+	\divide\dynkin@h by 2\relax%
+	\dynkin@pipe{#1}{\the\dynkin@h}{east}{above}{below right}
+	\dynkin@hpo=\the\dynkin@h\relax%
+	\advance\dynkin@hpo by 1\relax%
+	\global\dynkin@afterfold=\the\dynkin@hpo\relax%
+	\dynkin@nrts=#2\relax%
+	\advance\dynkin@nrts by 1\relax%
+	\advance\dynkin@nrts by -#1\relax%
+	\ifodd\dynkin@nrts%
+		\global\advance\dynkin@afterfold by 1\relax%
+		\dynkinPlaceRootRelativeTo*%
+			{\the\dynkin@hpo}%
+			{\the\dynkin@h}%
+			{southeastfold}{right}{left}%
+		\dynkinEdge*{RightDownArc}%
+			{\the\dynkin@h}%
+			{\the\dynkin@hpo}%
+		\dynkinPlaceRootRelativeTo*%
+			{\the\dynkin@afterfold}%
+			{\the\dynkin@hpo}%
+			{southwestfold}%
+			{below}{above right}%
+		\dynkinEdge*{RightUpArc}%
+			{\the\dynkin@afterfold}%
+			{\the\dynkin@hpo}%
+	\else
+		\dynkinPlaceRootRelativeTo*%
+			{\the\dynkin@afterfold}%
+			{\the\dynkin@h}%
+			{southfold}{below}{above right}%
+		\dynkinEdge*{SemiCircle}%
+			{\the\dynkin@h}%
+			{\the\dynkin@afterfold}%
+	\fi
+	\dynkin@pipe{\the\dynkin@afterfold}%
+		{#2}{west}{below}{above right}
+	\ifdynkin@arrows%
+		\dynkin@countdown=#2\relax%
+		\foreach \dynkin@b in {#1,...,\the\dynkin@h}%
+		{%
+			\dynkin@fold@arrow@if@oo{\dynkin@b}{\the\dynkin@countdown}%
+			\global\advance\dynkin@countdown by -1\relax%
+		}%
+	\fi%
+}%
+%% \Adynkin
+%% Draws an A series Dynkin diagram.
+\NewDocumentCommand\Adynkin{}%
+{%
+	\ifnum\dynkin@rank=1\relax%
+		\global\dynkin@ply=1\relax%
+	\fi%
+%	% Create the roots.
+	\ifnum\dynkin@ply>1\relax%
+		\ifnum\dynkin@ply=2\relax%
+			\dynkin@jump{1}%
+		\fi%
+		\dynkinPlaceRootHere*{1}{above}{below right}%
+		\dynkin@fold{1}{\the\dynkin@rank}%
+	\else%
+		\dynkinPlaceRootHere*{1}{below}{above}%
+		\ifnum\dynkin@rank>1\relax%
+			\dynkin@pipe{1}%
+				{\the\dynkin@rank}%
+				{east}{below}{above}%
+		\fi%
+	\fi%
+}%
+%% \Bdynkin 
+%% Draw a B series Dynkin diagram.
+\NewDocumentCommand\Bdynkin{}%
+{%
+	\ifnum\dynkin@rank<2\relax%
+		\Adynkin%
+	\else%
+		\ifdynkin@Coxeter%
+			\Adynkin%
+			\dynkinEdgeLabel%
+				{\the\dynkin@rank@minus@one}%
+				{\the\dynkin@rank}{4}%
+		\else
+			% Create the roots.
+			\ifnum\dynkin@ply>1\relax%
+				\ifnum\dynkin@rank>3\relax%
+					\dynkin@jump{1}%
+					\dynkinPlaceRootHere*{1}{above}{below right}%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{1}%
+						{east}{above}{below right}%
+					\dynkin@fold{2}{\the\dynkin@rank@minus@one}%
+					\dynkinPlaceRootRelativeTo*%
+						{\the\dynkin@rank}{\the\dynkin@rank@minus@one}%
+						{west}{below}{above right}%
+					\dynkinEdge*{DoubleEdge}%
+						{\the\dynkin@rank@minus@one}{\the\dynkin@rank}%
+					\dynkinEdge*{SingleEdge}{1}{2}%
+				\else%
+					\ifnum\dynkin@rank=2\relax%
+						\dynkin@jump{1}%
+						\dynkinPlaceRootHere*{1}{above}{below right}%
+						\dynkinPlaceRootRelativeTo*{2}{1}%
+							{southfold}{below}{above right}%
+						\dynkinEdge*{DoubleDownRightSemiCircle}{1}{2}%
+					\else%
+						\dynkin@jump{1}%
+						\dynkinPlaceRootHere*{1}{above}{below right}%
+						\dynkinPlaceRootRelativeTo*{2}{1}%
+							{southeastfold}{right}{left}%
+						\dynkinPlaceRootRelativeTo*{3}{2}%
+							{southwestfold}{below}{above right}%
+						\dynkinEdge*{RightDownArc}{1}{2}%
+						\dynkinEdge*{DoubleDownLeftArc}{2}{3}%
+					\fi%
+				\fi%
+			\else%
+				\dynkinPlaceRootHere*{1}{below}{above}
+				\dynkin@pipe{1}{\the\dynkin@rank@minus@one}{east}{below}{above}
+				\dynkinPlaceRootRelativeTo*%
+					{\the\dynkin@rank}%
+					{\the\dynkin@rank@minus@one}%
+					{east}{below}{above}
+				\dynkinEdge*{DoubleEdge}%
+					{\the\dynkin@rank@minus@one}%
+					{\the\dynkin@rank}%
+			\fi%
+			\ifdynkin@arrows%
+				\ifnum\dynkin@ply>1\relax%
+					\dynkinLeftFold*{1}{\the\dynkin@rank}%
+				\fi%
+			\fi%
+		\fi%
+	\fi%
+}
+%% \Cdynkin 
+%% Draws a C series Dynkin diagram.
+\newcommand*{\Cdynkin}
+{
+	\ifdynkin@reverse@arrows%
+		\global\dynkin@reverse@arrowsfalse%
+	\else%
+		\global\dynkin@reverse@arrowstrue%
+	\fi%
+	\Bdynkin%
+	\ifdynkin@reverse@arrows%
+		\global\dynkin@reverse@arrowsfalse%
+	\else%
+		\global\dynkin@reverse@arrowstrue%
+	\fi%
+}
+%% \Ddynkin@roots
+%% Tell TikZ where to place the @roots for a D series Dynkin diagram. Draws nothing.
+\newcommand*{\Ddynkin@roots}
+{
+	% Create the roots.
+	\ifdynkin@is@extended%
+		\ifnum\dynkin@ply>1\relax%
+			\ifnum\dynkin@rank=4\relax%
+				\dynkinPlaceRootRelativeTo*%
+					{2}{0}%
+					{southeastfold}%
+					{left}{right}%
+			\else%
+				\dynkinPlaceRootRelativeTo*%
+					{2}{0}%
+					{southeastfold}%
+					{below right}{above right}%
+			\fi%
+			\dynkinPlaceRootRelativeTo*%
+				{1}{2}%
+				{southwestfold}%
+				{left}{above left}%
+		\else%	
+			\ifdynkin@left@fold%	
+				\ifnum\dynkin@rank=4\relax%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{0}%
+						{southeastfold}%
+						{left}{right}%
+				\else%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{0}%
+						{southeastfold}%
+						{below right}{above right}%
+				\fi%
+				\dynkinPlaceRootRelativeTo*%
+					{1}{2}%
+					{southwestfold}%
+					{left}{above left}%
+			\else%
+				\ifnum\dynkin@rank=4\relax%
+					\ifdynkin@right@fold%
+						\dynkinPlaceRootRelativeTo*%
+							{2}{0}%
+							{southeast}%
+							{left}{right}%
+					\else%
+						\dynkinPlaceRootRelativeTo*%
+							{2}{0}%
+							{southeast}%
+							{below}{above}%
+					\fi%
+				\else%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{0}%
+						{southeast}%
+						{below right}{above right}%
+				\fi%
+				\dynkinPlaceRootRelativeTo*%
+					{1}{2}%
+					{southwest}%
+					{left}{above left}%
+			\fi%
+		\fi%
+		\dynkinMoveToRoot*{2}%
+	\else
+		\dynkinPlaceRootHere*{1}{below}{above}
+		\ifnum\dynkin@rank=4\relax%
+			\ifdynkin@right@fold%
+				\dynkinPlaceRootRelativeTo*%
+					{2}{1}%
+					{east}{below}{above}%
+			\else%			
+				\ifnum\dynkin@ply>1\relax%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{1}%
+						{east}%
+						{below left}{above left}%
+				\else%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{1}%
+						{east}%
+						{below left}{above left}%
+				\fi%
+			\fi%
+		\else%
+			\dynkinPlaceRootRelativeTo*%
+				{2}{1}%
+				{east}%
+				{below}{above}%
+		\fi%
+	\fi
+	\ifnum\dynkin@rank>2\relax%
+		\ifnum\dynkin@rank>5\relax%
+			\dynkinPlaceRootRelativeTo*{3}{2}{east}{below}{above}%
+		\else%
+			\ifnum\dynkin@ply>1\relax%
+				\dynkinPlaceRootRelativeTo*%
+					{3}{2}%
+					{east}%
+					{below left}{above left}%
+			\else%
+					\ifnum\dynkin@rank=5\relax%
+						\ifdynkin@right@fold%	
+							\dynkinPlaceRootRelativeTo*%
+								{3}{2}%
+								{east}%
+								{below left}{above left}%
+						\else%
+							\dynkinPlaceRootRelativeTo*%
+								{3}{2}%
+								{east}%
+								{below left}{above left}%
+						\fi%
+					\else%
+						\dynkinPlaceRootRelativeTo*%
+							{3}{2}%
+							{east}%
+							{below right}{above left}%
+					\fi%
+			\fi%
+		\fi%
+		\ifnum\dynkin@rank@minus@three>3\relax%
+			\dynkin@pipe%
+				{3}{\the\dynkin@rank@minus@three}%
+				{east}%
+				{below}{above}%
+		\fi%
+		\ifnum\dynkin@rank@minus@two>3\relax%
+			\ifnum\dynkin@ply>1\relax%
+				\dynkinPlaceRootRelativeTo*%
+					{\dynkin@rank@minus@two}%
+					{\dynkin@rank@minus@three}%
+					{east}%
+					{below left}{above left}%
+			\else%
+				\ifdynkin@right@fold%
+					\dynkinPlaceRootRelativeTo*%
+						{\dynkin@rank@minus@two}%
+						{\dynkin@rank@minus@three}%
+						{east}%
+						{below left}{above left}%
+				\else%
+					\dynkinPlaceRootRelativeTo*%
+						{\dynkin@rank@minus@two}%
+						{\dynkin@rank@minus@three}%
+						{east}%
+						{below left}{above left}%
+				\fi%
+			\fi%
+			\dynkinEdge*{SingleEdge}%
+				{\dynkin@rank@minus@two}%
+				{\dynkin@rank@minus@three}%
+		\fi%
+		\ifnum\dynkin@ply=1\relax%
+			\ifdynkin@right@fold%
+				\dynkinPlaceRootRelativeTo*%
+					{\the\dynkin@rank@minus@one}%
+					{\the\dynkin@rank@minus@two}%
+					{northeastfold}{right}{above right}%
+				\dynkinPlaceRootRelativeTo*%
+					{\the\dynkin@rank}%
+					{\the\dynkin@rank@minus@two}%
+					{southeastfold}{right}{above right}%
+			\else%
+				\dynkinPlaceRootRelativeTo*%
+					{\the\dynkin@rank@minus@one}%
+					{\the\dynkin@rank@minus@two}%
+					{northeast}{right}{above right}%
+				\dynkinPlaceRootRelativeTo*%
+					{\the\dynkin@rank}{\the\dynkin@rank@minus@two}%
+					{southeast}{right}{above right}%
+			\fi%
+		\else%
+			\dynkinPlaceRootRelativeTo*%
+				{\the\dynkin@rank@minus@one}%
+				{\the\dynkin@rank@minus@two}%
+				{northeastfold}%
+				{right}{above right}%
+			\dynkinPlaceRootRelativeTo*%
+				{\the\dynkin@rank}%
+				{\the\dynkin@rank@minus@two}%
+				{southeastfold}%
+				{right}{above right}%
+		\fi%
+	\fi%
+}%
+%% \Ddynkin@edges
+%% Draws edges on a D series Dynkin diagram.
+\NewDocumentCommand\Ddynkin@edges{}%
+{%
+	% Draw the edges.
+	\ifnum\dynkin@ply>1\relax%
+		\ifdynkin@is@extended%
+			\dynkinEdge*{RightUpArc}{1}{2}%
+		\else%
+			\dynkinEdge*{SingleEdge}{1}{2}%
+		\fi%
+		\ifnum\dynkin@rank>4\relax%
+			\dynkinEdge*{SingleEdge}{2}{3}%
+		\fi%
+		\dynkinEdge*{LeftDownArc}%
+			{\the\dynkin@rank@minus@one}%
+			{\the\dynkin@rank@minus@two}%
+		\dynkinEdge*{LeftUpArc}%
+			{\the\dynkin@rank}%
+			{\the\dynkin@rank@minus@two}%
+		\ifdynkin@arrows%
+			\dynkinRightFold*%
+				{\the\dynkin@rank@minus@one}%
+				{\the\dynkin@rank}%
+			\ifdynkin@is@extended%
+				\dynkinLeftFold*{0}{1}%
+			\fi%
+		\fi%
+	\else%
+		\ifnum\dynkin@rank=4\relax%
+		\else%
+			\dynkinEdge*{SingleEdge}{2}{3}%
+		\fi%
+		\ifdynkin@is@extended%
+			\ifdynkin@left@fold%	
+				\dynkinEdge*{RightUpArc}{1}{2}%
+				\ifdynkin@arrows%
+					\ifdynkin@is@extended%
+						\dynkinLeftFold*{0}{1}%
+					\fi%
+				\fi%
+			\else%
+				\dynkinEdge*{SingleEdge}{1}{2}%
+			\fi%
+		\else%
+			\dynkinEdge*{SingleEdge}{1}{2}%
+		\fi%
+		\ifdynkin@right@fold%	
+				\dynkinEdge*{LeftDownArc}%
+					{\the\dynkin@rank@minus@one}%
+					{\the\dynkin@rank@minus@two}%
+				\dynkinEdge*{LeftUpArc}%
+					{\the\dynkin@rank}%
+					{\the\dynkin@rank@minus@two}%
+				\dynkinRightFold*%
+					{\the\dynkin@rank@minus@one}%
+					{\the\dynkin@rank}%
+		\else%
+			\dynkinEdge*{SingleEdge}%
+				{\the\dynkin@rank@minus@two}%
+				{\the\dynkin@rank@minus@one}%
+			\dynkinEdge*{SingleEdge}%
+				{\the\dynkin@rank@minus@two}%
+				{\the\dynkin@rank}%
+		\fi%
+	\fi%
+}%
+\def\centerarc[#1](#2)(#3:#4:#5);%
+%Syntax: [draw options] (center) (initial angle:final angle:radius)
+    {
+    \draw[#1]([shift=(#3:#5)]#2) arc (#3:#4:#5);
+    }
+%% \DthreePly
+%% Draws a D series Dynkin diagram of rank 4, folded over a G2.
+\NewDocumentCommand\DthreePly{}%
+{%
+\ifdynkin@right@fold%
+	\dynkinPlaceRootHere*%
+		{1}%
+		{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{3}{1}%
+		{east}%
+		{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{2}{3}%
+		{north}%
+		{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{4}{3}%
+		{south}%
+		{below}{above right}%
+	\edef\old@fold@radius{\dynkin@fold@radius}%
+	\xdef\dynkin@fold@radius{\dynkin@edge@length}%
+	\dynkinEdge*{SingleEdge}{1}{3}%
+	\dynkinEdge*{LeftDownArc}{2}{1}%
+	\dynkinEdge*{LeftUpArc}{4}{1}%
+	\xdef\dynkin@fold@radius{\old@fold@radius}%
+	\ifdynkin@arrows%
+		\dynkin@fold@arrow@if@oo{2}{3}%
+		\dynkin@fold@arrow@if@oo{3}{4}%
+	\fi%
+\else%
+	\dynkinPlaceRootHere*{1}{left}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{2}{1}%
+		{east}%
+		{below left}{above left}%
+	\dynkinPlaceRootRelativeTo*%
+		{3}{2}%
+		{northeast}%
+		{above right}{below}%
+	\dynkinPlaceRootRelativeTo*%
+		{4}{2}%
+		{southeast}%
+		{below right}{left}%
+	\dynkinEdge*{SingleEdge}{1}{2}%
+	\dynkinEdge*{SingleEdge}{2}{3}%
+	\dynkinEdge*{SingleEdge}{2}{4}%
+	\begin{pgfonlayer}{Dynkin behind}%%
+		\centerarc[/Dynkin diagram/fold style]%
+		(\dynkin@root@name 2)(-60:60:\dynkin@edge@length);
+		\centerarc[/Dynkin diagram/fold style]%
+		(\dynkin@root@name 2)(60:180:\dynkin@edge@length);
+		\centerarc[/Dynkin diagram/fold style]%
+		(\dynkin@root@name 2)(180:300:\dynkin@edge@length);
+	\end{pgfonlayer}%%
+\fi%
+}%
+%% \Ddynkin 
+%% Draws a D series Dynkin diagram.
+\NewDocumentCommand\Ddynkin{}%
+{%
+	\ifnum\dynkin@rank>3\relax%
+		\ifnum\dynkin@rank=4\relax%
+			\ifnum\dynkin@ply=3\relax%
+				\DthreePly%
+			\else%
+				\Ddynkin@roots%
+				\Ddynkin@edges%
+			\fi%
+		\else%
+			\Ddynkin@roots%
+			\Ddynkin@edges%
+		\fi%
+	\else%
+		\gdef\dynkin@series{A}%
+		\Adynkin%
+		\ifnum\dynkin@ply>1\relax%
+			\ifdynkin@arrows%
+				\ifnum\dynkin@rank=1\relax%
+				\else%
+					\dynkinLeftFold*{1}{\the\dynkin@rank}%
+				\fi%
+			\fi%
+		\fi%
+		\gdef\dynkin@series{D}%
+	\fi%
+}%
+\newcount\dynkin@bmo%
+\newcommand*{\Edynkin@unfolded@rank@up@to@eight}%
+{%
+	% Create the @roots.
+	\dynkinPlaceRootHere*{1}{below}{above}%
+	\dynkinPlaceRootRelativeTo*%
+		{3}{1}%
+		{east}%
+		{below}{above}%
+	\dynkinPlaceRootRelativeTo*%
+		{4}{3}%
+		{east}%
+		{below}{above right}%
+	\ifdynkin@is@extended%
+		\ifnum\dynkin@rank=6\relax%
+			\dynkinPlaceRootRelativeTo*%
+				{2}{4}%
+				{north}%
+				{right}{above right}%
+		\else
+			\dynkinPlaceRootRelativeTo*%
+				{2}{4}%
+				{north}%
+				{right}{above}%
+		\fi%
+	\else%
+		\dynkinPlaceRootRelativeTo*%
+			{2}{4}%
+			{north}%
+			{right}{above}%
+	\fi%
+	\dynkin@bmo=4\relax%
+	\foreach \dynkin@b in {5,...,\dynkin@rank}%
+	{%
+		\dynkinPlaceRootRelativeTo*%
+			{\dynkin@b}{\the\dynkin@bmo}%
+			{east}{below}{above}%
+		\dynkinEdge*{SingleEdge}{\the\dynkin@bmo}{\dynkin@b}%
+		\global\advance\dynkin@bmo by 1\relax%
+	}%
+%	% Draw the remaining edges.
+	\dynkinEdge*{SingleEdge}{1}{3}
+	\dynkinEdge*{SingleEdge}{3}{4}
+	\dynkinEdge*{SingleEdge}{4}{2}
+	\ifdynkin@is@extended%
+		\ifnum\dynkin@rank=6\relax%
+			\dynkinPlaceRootRelativeTo*{0}{2}{north}{right}{above}%
+			\dynkinEdge*{SingleEdge}{0}{2}%
+		\else%
+			\ifnum\dynkin@rank=7\relax%
+				\dynkinPlaceRootRelativeTo*%
+					{0}{1}%
+					{west}%
+					{below}{above}%
+				\dynkinEdge*{SingleEdge}{0}{1}%
+			\else%
+				\dynkinPlaceRootRelativeTo*%
+					{0}{8}%
+					{east}%
+					{below}{above}%
+				\dynkinEdge*{SingleEdge}{0}{8}%
+			\fi%
+		\fi%
+	\fi%
+}%
+%% \Edynkin@unfolded
+%% Draws an E series Dynkin diagram not folded.
+\newcommand*{\Edynkin@unfolded}%
+{
+	\ifnum\dynkin@rank>8\relax%
+		% We have to work in Kac ordering directly.
+		\dynkinPlaceRootHere*{1}{below}{above}%
+		\ifnum\dynkin@rank>1\relax%
+			\dynkin@pipe%
+				{1}{\the\dynkin@rank@minus@one}%
+				{east}{below}%
+				{above}%
+			\dynkinPlaceRootRelativeTo*%
+				{\the\dynkin@rank}{\dynkin@rank@minus@three}%
+				{north}{right}{above}%
+			\dynkinEdge*{SingleEdge}%
+				{\the\dynkin@rank}{\dynkin@rank@minus@three}%
+		\fi%
+	\else%
+		\Edynkin@unfolded@rank@up@to@eight%
+	\fi
+}%
+%% \Edynkin@folded
+%% Draws a folded E6, affine E6 or affine E7 Dynkin diagram.
+\NewDocumentCommand\Edynkin@folded{}%
+{%
+	\ifnum\dynkin@rank=6\relax%
+		\ifnum\dynkin@ply=2\relax\ESixTwoPly\else\ESixThreePly\fi%
+	\else%
+		\extendedESevenFolded%
+	\fi%
+}%
+\NewDocumentCommand\ESixTwoPly{}%
+{%
+	\dynkin@jump{1}%
+	\dynkinPlaceRootHere*{1}{above}{below right}%
+	\dynkinPlaceRootRelativeTo*%
+		{3}{1}%
+		{east}%
+		{above}{below right}%
+	\dynkinPlaceRootRelativeTo*%
+		{4}{3}%
+		{southeastfold}%
+		{below right}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{5}{4}%
+		{southwestfold}%
+		{below}{above right}%
+	\dynkinPlaceRootRelativeTo*%
+		{6}{5}%
+		{west}%
+		{below}{above right}%
+	\ifdynkin@is@extended%
+		\dynkinPlaceRootRelativeTo*{2}{4}{east}{below}{above}%
+		\dynkinPlaceRootRelativeTo*{0}{2}{east}{below}{above}%
+		\dynkinEdge*{SingleEdge}{0}{2}%
+	\else%
+		\dynkinPlaceRootRelativeTo*{2}{4}{east}{below}{above}%
+	\fi%
+	\dynkinEdge*{SingleEdge}{1}{3}%
+	\dynkinEdge*{SingleEdge}{2}{4}%
+	\dynkinEdge*{SingleEdge}{5}{6}%
+	\dynkinEdge*{RightDownArc}{3}{4}%
+	\dynkinEdge*{RightUpArc}{5}{4}%
+	\ifdynkin@arrows%
+		\dynkin@fold@arrow@if@oo{1}{6}%
+		\dynkin@fold@arrow@if@oo{3}{5}%
+	\fi%
+}%
+\NewDocumentCommand\ESixThreePly{}%
+{%
+	\dynkin@is@extendedtrue
+	\node (Dynkin current) at ($(Dynkin current)+(0,%1.5*
+	\dynkin@edge@length)$){};%
+	\dynkinPlaceRootHere*{3}{below left}{above}%
+	\dynkinPlaceRootRelativeTo*{2}{3}{south}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{5}{2}{south}{below}{above right}%
+	\dynkinPlaceRootRelativeTo*{1}{3}{west}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{0}{2}{west}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{6}{5}{west}{below}{above right}%
+	\edef\old@fold@radius{\dynkin@fold@radius}%
+	\xdef\dynkin@fold@radius{\dynkin@edge@length}%
+	\dynkinPlaceRootRelativeTo*{4}{2}{east}{below left}{above right}%
+	\dynkinEdge*{SingleEdge}{4}{2}%
+	\dynkinEdge*{SingleEdge}{3}{1}%
+	\dynkinEdge*{SingleEdge}{2}{0}%
+	\dynkinEdge*{SingleEdge}{5}{6}%
+	\dynkinEdge*{RightDownArc}{3}{4}%
+	\dynkinEdge*{RightUpArc}{5}{4}%
+	\xdef\dynkin@fold@radius{\old@fold@radius}%
+	\ifdynkin@arrows%
+		\dynkin@fold@arrow@if@oo{1}{0}%
+		\dynkin@fold@arrow@if@oo{6}{0}%
+		\dynkin@fold@arrow@if@oo{3}{2}%
+		\dynkin@fold@arrow@if@oo{2}{5}%
+	\fi%
+}%
+\NewDocumentCommand\extendedESevenFolded{}%
+{%
+	\dynkin@jump{1}%
+	\dynkinPlaceRootHere*{0}{above}{below}%
+	\dynkinPlaceRootRelativeTo*{1}{0}{east}{above}{below}%
+	\dynkinPlaceRootRelativeTo*{3}{1}{east}{above}{below}%
+	\dynkinPlaceRootRelativeTo*{4}{3}{southeastfold}{left}{right}%
+	\dynkinPlaceRootRelativeTo*{5}{4}{southwestfold}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{6}{5}{west}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{7}{6}{west}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{2}{4}{east}{below}{above}%
+	\dynkinEdge*{SingleEdge}{0}{1}%
+	\dynkinEdge*{SingleEdge}{1}{3}%
+	\dynkinEdge*{SingleEdge}{2}{4}%
+	\dynkinEdge*{SingleEdge}{5}{6}%
+	\dynkinEdge*{SingleEdge}{6}{7}%
+	\dynkinEdge*{RightDownArc}{3}{4}%
+	\dynkinEdge*{RightUpArc}{5}{4}%
+	\ifdynkin@arrows%
+		\dynkin@fold@arrow@if@oo{0}{7}%
+		\dynkin@fold@arrow@if@oo{1}{6}%
+		\dynkin@fold@arrow@if@oo{3}{5}%
+	\fi%
+}%
+%% \Edynkin
+%% Draws an E6 Dynkin diagram.
+\NewDocumentCommand\Edynkin{}%
+{%
+	\ifnum\dynkin@ply>1\relax%
+		\ifnum\dynkin@rank=6\relax%
+			\Edynkin@folded%
+		\else%
+			\ifnum\dynkin@rank=7\relax
+				\ifdynkin@is@extended
+					\Edynkin@folded%
+				\else%
+					\ClassError{Dynkin diagrams}%
+						{Can not fold a diagram of type \dynkin@user@series{} \the\dynkin@rank.}{}%
+				\fi%
+			\fi%
+		\fi%
+	\else%
+		\Edynkin@unfolded%
+	\fi%
+}%
+%% \Fdynkin 
+%% Draws an F series Dynkin diagram.
+\newcommand*{\Fdynkin}%
+{%
+	\dynkinPlaceRootHere*{1}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{2}{1}{east}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{3}{2}{east}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{4}{3}{east}{below}{above}%
+	\ifdynkin@Coxeter%
+		\dynkinEdge*{SingleEdge}{1}{2}%
+		\dynkinEdge*{SingleEdge}{2}{3}%
+		\dynkinEdge*{SingleEdge}{3}{4}%
+		\dynkinEdgeLabel{2}{3}{4}%
+	\else%
+		\dynkinEdge*{SingleEdge}{1}{2}%
+		\dynkinEdge*{SingleEdge}{3}{4}%
+		\dynkinEdge*{DoubleEdge}{2}{3}%
+	\fi%
+}%
+%% \Gdynkin 
+%% Draws a G series Dynkin diagram.
+\NewDocumentCommand\Gdynkin{}%
+{%
+	\ifdynkin@Coxeter%
+		\Idynkin%
+	\else%
+		\ifnum\dynkin@ply>1\relax%
+			\dynkin@jump{1}%
+			\dynkinPlaceRootHere*{1}{left}{above}%
+			\dynkinPlaceRootRelativeTo*{2}{1}{southfold}{left}{below}%
+			\dynkinEdge*{TripleDownRightSemiCircle}{1}{2}%
+			\ifdynkin@arrows%
+				\dynkinLeftFold*{1}{2}%
+			\fi%
+		\else%
+			\dynkinPlaceRootHere*{1}{below}{above}%
+			\dynkinPlaceRootRelativeTo*{2}{1}{east}{below}{above}%
+			\dynkinTripleEdge*{1}{2}%
+		\fi%
+	\fi%
+}%
+
+%% \Hdynkin 
+%% Draws an H series Coxeter diagram.
+\newcommand*{\Hdynkin}%
+{%
+	\Adynkin%
+	\dynkinEdgeLabel{1}{2}{5}%
+}%
+%% \Idynkin 
+%% Draws an I series Coxeter diagram.
+\newcommand*{\Idynkin}%
+{%
+	\dynkin@rank=2\relax%
+	\Adynkin%
+	\dynkinEdgeLabel{1}{2}{\dynkin@gonality}%
+}%
+
+%% \extendedAdynkin
+%% Draws an A series affine Dynkin/Coxeter diagram.
+\NewDocumentCommand\extendedAdynkin{}%
+{%
+	\ifnum\dynkin@rank=1\relax%
+		\dynkinPlaceRootHere{0}{below}{above}%
+		\dynkinPlaceRootRelativeTo*{1}{0}{east}{below}{above}%
+		\convertRootNumber{1}%
+		\begin{pgfonlayer}{Dynkin behind}%
+			\draw[/Dynkin diagram/t,double,
+				{Classical TikZ Rightarrow[length={2*\dynkin@root@radius}]}%
+				-{Classical TikZ Rightarrow[length={2*\dynkin@root@radius}]}%
+			]%
+			($(\dynkin@root@name 0)+(\dynkin@root@radius,0)$) 
+			-- 
+			($(\dynkin@root@name \the\dynkin@Root@Number)-(\dynkin@root@radius,0)$);%
+		\end{pgfonlayer}%%
+	\else%
+		\ifnum\dynkin@ply=4\relax%
+			\node (Dynkin current) at ($(Dynkin current)+(0,\dynkin@edge@length)$){};%
+			\dynkinPlaceRootHere*{0}{left}{above}%
+			\dynkinPlaceRootRelativeTo*{1}{0}{east}{right}{above}%
+			\dynkinPlaceRootRelativeTo*{2}{0}{south}{below}{left}%
+			\dynkinPlaceRootRelativeTo*{3}{1}{south}{below}{right}%
+			\dynkinEdge*{SingleEdge}{0}{1}%
+			\dynkinEdge*{SingleEdge}{1}{2}%
+			\dynkinEdge*{SingleEdge}{2}{3}%
+			\dynkinEdge*{SingleEdge}{3}{0}%
+			\dynkinFold*{0}{2}%
+			\dynkinFold*{1}{3}%
+		\else%
+			\Adynkin{}%
+			\ifnum\dynkin@ply>1\relax%
+				\dynkinPlaceRootRelativeTo*{0}{1}{southwestfold}{left}{right}%
+				\dynkinEdge*{LeftDownArc}{1}{0}%
+				\dynkinEdge*{LeftUpArc}{\the\dynkin@rank}{0}%
+			\else%
+				\node (Dynkin current) 
+					at
+					($.5*(\dynkin@root@name 1)%
+					+.5*(\dynkin@root@name \the\dynkin@rank)$)%
+					{};%
+				\dynkinNorth%
+				\dynkinPlaceRootHere*{0}{above}{below}%
+				\dynkinEdge*{SingleEdge}{0}{1}%
+				\dynkinEdge*{SingleEdge}{\the\dynkin@rank}{0}%
+			\fi%
+			\dynkinRootMark*{}{0}%
+		\fi%
+	\fi%
+}%
+
+\NewDocumentCommand\extendedBthreePly{}%
+{%
+	\ifnum\dynkin@rank=3\relax%
+	\else%
+		\ClassError%
+			{Dynkin diagrams}%
+			{B series extended 3-ply diagrams must have rank 3, so cannot have rank \the\dynkin@rank}{}%
+	\fi%
+	\dynkinPlaceRootHere*{1}{right}{above left}%
+	\dynkinPlaceRootRelativeTo*{0}{1}{north}{above}{below left}%
+	\dynkinPlaceRootRelativeTo*{3}{1}{south}{below}{above left}%
+	\edef\old@fold@radius{\dynkin@fold@radius}%
+	\xdef\dynkin@fold@radius{\dynkin@edge@length}%
+	\dynkinPlaceRootRelativeTo*{2}{1}{west}{left}{above right}%
+	\dynkinEdge*{LeftDownArc}{0}{2}%
+	\dynkinFold*{0}{1}%
+	\dynkinFold*{1}{3}%
+	\dynkinEdge*{SingleEdge}{1}{2}%
+	\dynkinEdge*{DoubleDownRightArc}{2}{3}%
+	\xdef\dynkin@fold@radius{\old@fold@radius}%
+}%
+\newcount\dynkin@bmo%
+%% \extendedBdynkin
+%% Draws a B series affine Dynkin/Coxeter diagram.
+\newcommand*{\extendedBdynkin}%
+{%
+	\ifnum\the\dynkin@rank=1\relax%
+		\extendedAdynkin%
+	\else%
+		\ifnum\the\dynkin@rank=2\relax%
+				\dynkinPlaceRootHere*{0}{below}{above}%
+				\dynkinPlaceRootRelativeTo*{1}{0}{east}{below}{above}%
+				\dynkinPlaceRootRelativeTo*{2}{1}{east}{below}{above}%
+				\dynkinEdge*{SingleEdge}{0}{1}%
+				\dynkinEdge*{DoubleEdge}{1}{2}%
+		\else%
+			\ifnum\dynkin@ply=3\relax%
+				\extendedBthreePly%
+			\else%
+				\ifnum\dynkin@ply=2\relax%
+					\dynkin@jump{1}%
+					\dynkinPlaceRootHere*{0}{left}{above left}%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{0}%
+						{southeastfold}%
+						{below right}{above right}%
+					\dynkinPlaceRootRelativeTo*%
+						{1}{2}%
+						{southwestfold}%
+						{left}{above left}%
+					\dynkinLeftFold*{0}{1}%
+					\dynkinEdge*{RightDownArc}{0}{2}%
+					\dynkinEdge*{RightUpArc}{1}{2}%
+				\else%
+					\dynkin@hop{1}%
+					\dynkinPlaceRootHere*{0}{left}{above left}%
+					\dynkinPlaceRootRelativeTo*%
+						{2}{0}%
+						{southeast}%
+						{below right}{above right}%
+					\dynkinPlaceRootRelativeTo*%
+						{1}{2}%
+						{southwest}%
+						{left}{above left}%
+					\dynkinEdge*{SingleEdge}{0}{2}%
+					\dynkinEdge*{SingleEdge}{1}{2}%
+				\fi%
+				\dynkin@bmo=2\relax%
+				\ifnum\dynkin@rank>3\relax%
+					\foreach \dynkin@b in {3,...,\the\dynkin@rank@minus@one}%
+					{%
+						\dynkinPlaceRootRelativeTo*%
+							{\dynkin@b}{\the\dynkin@bmo}%
+							{east}{below}{above}%
+						\dynkinEdge*{SingleEdge}%
+							{\dynkin@b}{\the\dynkin@bmo}%
+						\global\advance\dynkin@bmo by 1\relax%
+					}%
+				\fi%
+				\ifnum\dynkin@ply<3\relax%
+					\dynkinPlaceRootRelativeTo*%
+						{\the\dynkin@rank}%
+						{\the\dynkin@rank@minus@one}%
+						{east}{below}{above}%
+				\fi%
+				\ifdynkin@Coxeter%
+					\dynkinEdge*{SingleEdge}%
+						{\the\dynkin@rank@minus@one}%
+						{\the\dynkin@rank}%
+					\dynkinEdgeLabel%
+						{\the\dynkin@rank@minus@one}%
+						{\the\dynkin@rank}{4}%
+				\else%
+					\ifnum\dynkin@ply<3\relax%
+						\dynkinEdge*{DoubleEdge}%
+							{\the\dynkin@rank@minus@one}%
+							{\the\dynkin@rank}%
+					\else%
+						\dynkinEdge*{DoubleDownRightArc}%
+							{\the\dynkin@rank@minus@one}%
+							{\the\dynkin@rank}%
+					\fi%							
+				\fi%
+			\fi%
+		\fi%
+	\fi%
+}%
+
+%% \extendedCdynkin
+%% Draws an C series affine Dynkin/Coxeter diagram.
+\newcommand*{\extendedCdynkin}%
+{%
+	\dynkinPlaceRootHere*{0}{below}{above}%
+	\dynkinEast%
+	\Cdynkin{}%
+	\ifdynkin@Coxeter%
+		\dynkinEdge*{SingleEdge}{0}{1}%
+		\dynkinEdgeLabel{0}{1}{4}%
+	\else%
+		\dynkinEdge*{DoubleEdge}{0}{1}%
+	\fi%	
+}%
+%% \DOneFourFourPly
+%% Draws a D^1_4 series affine Dynkin diagram folded about an A^2_2.
+\NewDocumentCommand\DOneFourFourPly{}%
+{%
+	\dynkin@hop{2.25}%
+	\dynkinPlaceRootHere*{0}{right}{left}%
+	\edef\old@edge@length{\dynkin@edge@length}%
+	\dynkinPlaceRootRelativeTo*{1}{0}{south}{right}{left}%
+	\dynkinPlaceRootRelativeTo*{3}{1}{south}{right}{left}%
+	\dynkinPlaceRootRelativeTo*{4}{3}{south}{right}{left}%
+	\convertRootPair{0}{4}%
+	\node 
+		(Dynkin current) 
+		at 
+		($.5*(\dynkin@root@name \the\@dynkin@from@root)%
+		+.5*(\dynkin@root@name \the\@dynkin@to@root)$)%
+		{};%
+	\dynkinWest%
+	\dynkinPlaceRootHere*{2}{right}{left}%
+	\dynkinEdge*{SingleEdge}{0}{2}%
+	\dynkinEdge*{SingleEdge}{1}{2}%
+	\dynkinEdge*{SingleEdge}{3}{2}%
+	\dynkinEdge*{SingleEdge}{4}{2}%
+	\dynkinFold*{0}{1}%
+	\dynkinFold*{1}{3}%
+	\dynkinFold*{3}{4}%
+}%
+%% \DfourPly
+%% Draws a D series affine Dynkin diagram folded about its middle.
+\NewDocumentCommand\DfourPly{}%
+{%
+	\xdef\yfp{2*\dynkin@fold@radius+2*cos(60)*\dynkin@edge@length}%
+	\node (Dynkin current) at ($(Dynkin current)+(0,{\yfp})$){};%
+	\dynkinPlaceRootHere*{0}{left}{above left}%
+	\dynkinPlaceRootRelativeTo*%
+		{2}{0}%
+		{southeastfold}%
+		{above right}{below right}%
+	\dynkinPlaceRootRelativeTo*%
+		{1}{2}%
+		{southwestfold}%
+		{left}{above left}%
+	\dynkinMoveToRoot*{2}%
+	\xdef\old@fold{\dynkin@fold@radius}%
+	\pgfmathparse{\dynkin@fold@radius+2*cos(60)*\dynkin@edge@length}%
+	\xdef\dynkin@fold@radius{\pgfmathresult pt}%
+	\dynkin@fold{2}{\the\dynkin@rank@minus@two}%
+	% We place the root number rank-2 once again (it is already placed in the \dynkin@fold):
+	\dynkinPlaceRootHere*%
+		{\the\dynkin@rank@minus@two}%
+		{below right}{above right}%
+	\xdef\dynkin@fold@radius{\old@fold}%
+	\dynkinPlaceRootRelativeTo*%
+		{\the\dynkin@rank@minus@one}%
+		{\the\dynkin@rank@minus@two}%
+		{northwestfold}%
+		{left}%
+		{above left}%
+	\dynkinPlaceRootRelativeTo*%
+		{\the\dynkin@rank}%
+		{\the\dynkin@rank@minus@two}%
+		{southwestfold}%
+		{left}%
+		{above left}%
+	\dynkinEdge*{RightDownArc}{0}{2}%
+	\dynkinEdge*{RightUpArc}{1}{2}%
+	\dynkinEdge*{RightDownArc}%
+		{\the\dynkin@rank@minus@one}%
+		{\the\dynkin@rank@minus@two}%
+	\dynkinEdge*{RightUpArc}%
+		{\the\dynkin@rank}%
+		{\the\dynkin@rank@minus@two}%
+}%
+
+%% \extendedDthreePly
+%% Draws a D^1_4 series Dynkin diagram, folded over a B^1_3.
+\NewDocumentCommand\extendedDthreePly{}%
+{%
+	\dynkinPlaceRootHere*{0}{below}{above}%
+	\dynkinPlaceRootRelativeTo*{1}{0}{east}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{3}{1}{east}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{2}{3}{north}{below left}{above right}%
+	\dynkinPlaceRootRelativeTo*{4}{3}{south}{below}{above right}%
+	\dynkinEdge*{SingleEdge}{1}{3}%
+	\edef\old@fold@radius{\dynkin@fold@radius}%
+	\xdef\dynkin@fold@radius{\dynkin@edge@length}%
+	\dynkinEdge*{LeftDownArc}{2}{1}%
+	\dynkinEdge*{LeftUpArc}{4}{1}%
+	\xdef\dynkin@fold@radius{\old@fold@radius}%
+	\ifdynkin@arrows%
+		\dynkin@fold@arrow@if@oo{2}{3}%
+		\dynkin@fold@arrow@if@oo{3}{4}%
+	\fi%
+	\dynkinEdge*{SingleEdge}{0}{1}%
+}%
+%% \extendedDdynkin
+%% Draws an D series affine Dynkin/Coxeter diagram.
+\NewDocumentCommand\extendedDdynkin{}%
+{%
+	\ifnum\dynkin@ply=4\relax%
+		\ifnum\dynkin@rank=4\relax%
+			\DOneFourFourPly%
+		\else%
+			\DfourPly%
+		\fi%
+	\else%
+		\ifnum\dynkin@ply=3\relax%
+			\extendedDthreePly%
+		\else%
+			\ifnum\the\dynkin@rank=1\relax%
+				\extendedAdynkin%
+			\else%
+				\ifnum\the\dynkin@rank=4\relax%
+					\global\dynkin@hex@gridfalse
+				\fi
+				\dynkin@hop{1}%
+				\dynkinPlaceRootHere*{0}{left}{above left}%
+				\Ddynkin%
+				\ifnum\dynkin@ply=2\relax%
+					\dynkinEdge*{RightDownArc}{0}{2}%
+				\else%
+					\ifdynkin@left@fold%
+						\dynkinEdge*{RightDownArc}{0}{2}%
+					\else%
+						\dynkinEdge*{SingleEdge}{0}{2}%
+					\fi%
+				\fi%
+				\ifnum\the\dynkin@rank=4\relax%
+					\global\dynkin@hex@gridtrue
+				\fi
+			\fi%
+		\fi%
+	\fi%
+}%
+%% \extendedEdynkin 
+%% Draws an E series affine Dynkin/Coxeter diagram.
+\newcommand*{\extendedEdynkin}%
+{%
+	\Edynkin%
+}%
+%% \extendedFdynkin 
+%% Draws an F series affine Dynkin/Coxeter diagram.
+\newcommand*{\extendedFdynkin}%
+{%
+	\ifnum\dynkin@ply=1\relax%
+		\dynkinPlaceRootHere*{0}{below}{above}%
+		\dynkinEast%
+		\Fdynkin%
+		\dynkinEdge*{SingleEdge}{0}{1}%
+	\else%
+		\dynkin@jump{1}%
+		\dynkinPlaceRootHere*{0}{above}{below}%
+		\dynkinPlaceRootRelativeTo*{1}{0}{east}{above}{below}%
+		\dynkinEdge*{SingleEdge}{0}{1}%
+		\dynkinPlaceRootRelativeTo*{2}{1}{southeastfold}{right}{left}%
+		\dynkinDefiniteRightDownArc*{1}{2}%
+		\dynkinPlaceRootRelativeTo*{3}{2}{southwestfold}{below}{above}%
+		\dynkinDefiniteDoubleDownLeftArc*{2}{3}%
+		\dynkinPlaceRootRelativeTo*{4}{3}{west}{below}{above}%
+		\dynkinEdge*{SingleEdge}{3}{4}%
+		\ifdynkin@arrows%
+			\dynkinFold*{0}{4}%
+			\dynkinFold*{1}{3}%
+		\fi%
+	\fi%
+}%
+
+%% \extendedGdynkin 
+%% Draws an G series affine Dynkin/Coxeter diagram.
+\newcommand*{\extendedGdynkin}%
+{%
+	\xdef\dynkin@gonality{6}%
+	\dynkinPlaceRootHere*{0}{below}{above}%
+	\dynkinEast%
+	\Gdynkin%
+	\dynkinEdge*{SingleEdge}{0}{1}%
+}%
+
+%% \extendedHdynkin 
+%% Draws an H series affine Coxeter diagram.
+\newcommand*{\extendedHdynkin}%
+{%
+	\dynkinPlaceRootHere*{0}{below}{above}%
+	\dynkinEast%
+	\Adynkin%
+	\dynkinEdge*{SingleEdge}{0}{1}%
+	\ifnum\dynkin@rank=3\relax%
+		\convertRootPair{1}{2}%
+	\else%
+		\convertRootPair{0}{1}%
+	\fi%
+	\node[/Dynkin diagram/text style,above] 
+		at 
+		($.5*(\dynkin@root@name \the\@dynkin@from@root)%
+		+.5*(\dynkin@root@name \the\@dynkin@to@root)$)%
+		{\(5\)};%
+}%
+%% \extendedIdynkin 
+%% Draws an I series affine Coxeter diagram.
+\newcommand*{\extendedIdynkin}%
+{%
+	\dynkinPlaceRootHere*{0}{below}{above}%
+	\dynkinEast%
+	\dynkin@rank=1\relax%
+	\Adynkin%
+	\dynkinEdge*{SingleEdge}{0}{1}%
+	\dynkinEdgeLabel{0}{1}{\infty}%
+}%
+\newcount\dynkin@height@minus@one%
+%% \twistedAdynkin 
+%% Draws a twisted A series affine Dynkin diagram.
+\NewDocumentCommand\twistedAdynkin{}%
+{%
+	\ifnum\dynkin@rank=3\relax%
+		\ClassError{Dynkin diagrams}{A2 series twisted diagrams cannot have rank \the\dynkin@rank}{}%
+	\fi%
+	\ifnum\dynkin@rank=2\relax%
+		\dynkinPlaceRootHere*{0}{below}{above}%
+		\dynkinPlaceRootRelativeTo*{1}{0}{east}{below}{above}%
+		\dynkinQuadrupleEdge*{1}{0}%
+	\else%
+		\dynkin@height@minus@one=\the\dynkin@nodes\relax%
+		\advance\dynkin@height@minus@one by -1\relax%
+		\ifodd\dynkin@rank%
+			\ifnum\dynkin@ply>1\relax%
+				\dynkinPlaceRootHere*{2}{below right}{above right}%
+				\dynkinPlaceRootRelativeTo*%
+					{0}{2}%
+					{northwestfold}%
+					{left}{above left}%
+				\dynkinPlaceRootRelativeTo*%
+					{1}{2}%
+					{southwestfold}%
+					{left}{above left}%
+				\dynkinEdge*{RightDownArc}{0}{2}%
+				\dynkinEdge*{RightUpArc}{1}{2}%
+			\else%
+				\dynkin@hop{1}%
+				\dynkinPlaceRootHere*{0}{left}{right}%
+				\dynkinPlaceRootRelativeTo*{2}{0}{southeast}{left}{right}%
+				\dynkinPlaceRootRelativeTo*{1}{2}{southwest}{left}{right}%
+				\dynkinEdge*{SingleEdge}{0}{2}%
+				\dynkinEdge*{SingleEdge}{1}{2}%
+			\fi%
+			\dynkinMoveToRoot*{2}%
+			\dynkin@pipe%
+				{2}{\the\dynkin@height@minus@one}%
+				{east}{below}%
+				{above}%
+			\dynkinPlaceRootRelativeTo*%
+				{\the\dynkin@nodes}%
+				{\the\dynkin@height@minus@one}%
+				{east}%
+				{below}%
+				{above}%
+			\dynkinEdge*{DoubleEdge}%
+				{\the\dynkin@nodes}%
+				{\the\dynkin@height@minus@one}%
+			\ifnum\dynkin@ply>1\relax%
+				\dynkinLeftFold*{0}{1}%
+			\fi%			
+		\else%
+			\ifnum\dynkin@nodes>1\relax%
+				\ifnum\dynkin@ply>1\relax%
+					\ifnum\dynkin@height@minus@one>1\relax%
+						\dynkin@jump{1}%
+					\fi%
+					\dynkinPlaceRootHere*{0}{below}{above}%
+					\dynkinPlaceRootRelativeTo*%
+						{1}{0}%
+						{east}%
+						{below left}{above}%
+					\dynkinEdge*{DoubleEdge}{1}{0}%
+					\ifnum\dynkin@height@minus@one>1\relax%
+						\dynkin@fold{1}{\the\dynkin@height@minus@one}%
+					\fi%
+					\dynkinPlaceRootRelativeTo*%
+						{\the\dynkin@nodes}%
+						{\the\dynkin@height@minus@one}%
+						{west}%
+						{below}%
+						{above}%
+				\else%
+					\dynkinPlaceRootHere*{0}{below}{above}%
+					\dynkinPlaceRootRelativeTo*%
+						{1}{0}%
+						{east}%
+						{below right}{above}%
+					\dynkinEdge*{DoubleEdge}{1}{0}%
+					\ifnum\dynkin@height@minus@one>1\relax%
+						\dynkin@pipe{1}{\the\dynkin@height@minus@one}%
+						{east}{below}{above}%
+					\fi%
+					\dynkinPlaceRootRelativeTo*%
+						{\the\dynkin@nodes}%
+						{\the\dynkin@height@minus@one}%
+						{east}%
+						{below}%
+						{above}%
+				\fi%
+				\dynkinEdge*{DoubleEdge}%
+					{\the\dynkin@nodes}%
+					{\the\dynkin@height@minus@one}%
+			\else%
+				\dynkinPlaceRootHere*{0}{below}{above}%
+				\dynkinPlaceRootRelativeTo*%
+					{1}{0}%
+					{east}%
+					{below right}{above}%
+				\dynkinEdge*{DoubleEdge}{1}{0}%				
+			\fi%
+		\fi%
+	\fi%
+}%
+%% \twistedDdynkin 
+%% Draws a twisted D series affine Dynkin diagram.
+\NewDocumentCommand\twistedDdynkin{}%
+{%
+	\IfStrEqCase{\dynkin@twisted@series}%
+	{%
+		{1}{\extendedDdynkin}%
+		{2}{\twistedDTwo}%
+		{3}%
+		{%
+			\ifnum\dynkin@rank=4\relax%
+				\dynkinPlaceRootHere*{0}{below}{above}%
+				\dynkinPlaceRootRelativeTo*{1}{0}{east}{below}{above}%
+				\dynkinPlaceRootRelativeTo*{2}{1}{east}{below}{above}%
+				\dynkinEdge*{SingleEdge}{0}{1}%
+				\dynkinTripleEdge*{2}{1}%
+			\else%
+				\ClassError%
+					{Dynkin diagrams}%
+					{D3 series twisted diagrams must have rank 2 and cannot have rank \the\dynkin@rank}%
+					{}%
+			\fi%
+		}%
+	}%
+}%
+\newcount\dynkin@nodes@minus@one%
+\NewDocumentCommand\twistedDTwo{}%
+{%
+	\dynkin@nodes@minus@one\dynkin@nodes\relax%
+	\advance\dynkin@nodes@minus@one by -1\relax%
+	\ifnum\dynkin@rank<3\relax%
+		\ClassError{Dynkin diagrams}{D2 series twisted diagrams cannot have rank \the\dynkin@rank}{}%
+	\fi%
+	\ifnum\dynkin@ply=1\relax%
+		\dynkinPlaceRootHere*{0}{below}{above}%
+		\dynkinPlaceRootRelativeTo*{1}{0}{east}{below}{above}%
+	\else%
+		\ifnum\dynkin@rank=3\relax%
+			\dynkin@jump{1}%
+			\dynkinPlaceRootHere*{0}{above}{right}%
+			\dynkinPlaceRootRelativeTo*{1}{0}{southwestfold}{left}{right}%
+			\dynkinPlaceRootRelativeTo*{2}{1}{southeastfold}{below}{right}%
+		\else%
+			\dynkinPlaceRootHere*{0}{above}{below}%
+			\dynkinPlaceRootRelativeTo*{1}{0}{east}{above}{below}%
+		\fi%
+	\fi%
+	\ifnum\dynkin@ply=2\relax%
+		\dynkinEdge*{DoubleUpRightArc}{1}{0}%
+	\else
+		\dynkinEdge*{DoubleEdge}{1}{0}%
+	\fi%
+	\ifnum\dynkin@ply>1\relax%	
+		\ifnum\dynkin@rank>3\relax%
+			\dynkin@fold{1}{\the\dynkin@nodes@minus@one}%
+			\dynkinPlaceRootRelativeTo*%
+				{\the\dynkin@nodes}%
+				{\the\dynkin@nodes@minus@one}%
+				{west}{below}{above}%
+			\dynkinFold*{0}{\the\dynkin@nodes}%
+		\else%
+			\dynkinFold*{0}{2}%
+		\fi%
+	\else%
+		\ifnum\dynkin@rank>2\relax%
+			\dynkin@pipe{1}{\the\dynkin@nodes@minus@one}{east}{below}{above}%
+		\fi%
+		\dynkinPlaceRootRelativeTo*%
+			{\the\dynkin@nodes}%
+			{\the\dynkin@nodes@minus@one}%
+			{east}{below}{above}%
+	\fi%
+	\ifnum\dynkin@ply=2\relax%
+		\dynkinEdge*{DoubleDownRightArc}%
+		{\the\dynkin@nodes@minus@one}%
+		{\the\dynkin@nodes}%
+	\else
+		\dynkinEdge*{DoubleEdge}%
+			{\the\dynkin@nodes@minus@one}%
+			{\the\dynkin@nodes}%
+	\fi%
+}%
+%% \twistedEdynkin 
+%% Draws a twisted E series affine Dynkin diagram.
+\NewDocumentCommand\twistedEdynkin{}%
+{%
+	\IfStrEqCase{\dynkin@twisted@series}%
+	{%
+		{0}{\Edynkin}%
+		{1}{\extendedEdynkin}%
+		{2}%
+		{%
+			\dynkinPlaceRootHere*{0}{below}{above}%
+			\dynkin@pipe{0}{2}{east}{below}{above}%
+			\dynkinPlaceRootRelativeTo*{3}{2}{east}{below}{above}%
+			\dynkinPlaceRootRelativeTo*{4}{3}{east}{below}{above}%
+			\dynkinEdge*{SingleEdge}{3}{4}%
+			\dynkinEdge*{DoubleEdge}{3}{2}%
+		}%
+	}%
+	[\dynkin@error@series]%
+}%
+
+%% An arrow type for drawing arrows in G2 and F4 diagrams:
+\pgfdeclarearrow{
+name = Bourbaki,
+parameters = { \the\pgfarrowlength },
+setup code = {},
+drawing code = {
+  \pgfsetdash{}{0pt} % do not dash
+  \pgfsetroundjoin   % fix join
+  \pgfsetroundcap    % fix cap
+  \pgfsetlinewidth{4\pgflinewidth}
+  \pgfsetstrokecolor{white}
+  \pgfpathmoveto{\pgfpoint{-.75\pgfarrowlength}{.75\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{0}{0}}
+  \pgfpathlineto{\pgfpoint{-.75\pgfarrowlength}{-.75\pgfarrowlength}}
+  \pgfusepathqstroke
+  \pgfsetlinewidth{.25\pgflinewidth}
+  \pgfsetstrokecolor{black}
+  \pgfpathmoveto{\pgfpoint{-.75\pgfarrowlength}{.75\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{0}{0}}
+  \pgfpathlineto{\pgfpoint{-.75\pgfarrowlength}{-.75\pgfarrowlength}}
+  \pgfusepathqstroke
+},
+defaults = { length = 2*\dynkin@root@radius }
+}
+
+%% An arrow type for drawing arrows in G2 and F4 diagrams:
+\pgfdeclarearrow{
+name = bird,
+parameters = { \the\pgfarrowlength },
+setup code = {},
+drawing code = {
+  \pgfsetdash{}{0pt} % do not dash
+  \pgfsetroundjoin   % fix join
+  \pgfsetroundcap    % fix cap
+\begin{pgfscope}
+  \pgfpathmoveto{\pgfpoint{-1.25\pgfarrowlength}{-2.5\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{0}{-2.5\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{0}{2.5\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{-1.25\pgfarrowlength}{2.5\pgfarrowlength}}
+  \pgfpathlineto{\pgfpoint{-1.25\pgfarrowlength}{-2.5\pgfarrowlength}}
+\pgfusepathqclip
+  \pgfsetlinewidth{4\pgflinewidth}
+  \pgfsetstrokecolor{white}
+%  \pgfsetstrokeopacity{.75}
+  \pgfpathmoveto{\pgfpoint{0}{0}}
+  \pgfpatharc{250}{190}{1.4\pgfarrowlength}
+  \pgfpathmoveto{\pgfpoint{0}{0}}
+  \pgfpatharc{110}{170}{1.4\pgfarrowlength}
+  \pgfusepathqstroke
+\end{pgfscope}
+  \pgfsetstrokecolor{black}
+  \pgfpathmoveto{\pgfpoint{0}{0}}
+  \pgfpatharc{250}{190}{1.4\pgfarrowlength}
+  \pgfpathmoveto{\pgfpoint{0}{0}}
+  \pgfpatharc{110}{170}{1.4\pgfarrowlength}
+  \pgfusepathqstroke
+},
+defaults = { length = 1.25*\dynkin@root@radius }
+}
+
+\endinput

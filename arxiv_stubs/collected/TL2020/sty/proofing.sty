@@ -1,0 +1,165 @@
+%%
+%% This is file `proofing.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% proofing.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2003 by Samson de Jager <sjagerde@science.uva.nl>
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.2 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of LaTeX version
+%% 1999/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{proofing}[2007/11/13 v1.8 Proofreading macros]
+\RequirePackage{amssymb,calc}
+
+\newif{\ifmarktypos}
+\marktyposfalse
+\let\ProofingRearrangeLayout=\relax
+\def\ProofingRearrangeLayoutTrue{
+  \setlength{\oddsidemargin}{-0.8in}
+  \setlength{\evensidemargin}{\paperwidth - \textwidth - %
+    1.2in - \marginparsep}
+  \setlength{\marginparwidth}{(\paperwidth - \textwidth - 1in - %
+    \oddsidemargin) * \real{0.6}}
+}
+\def\ProofingDraftModeTrue{
+  \ProofingRearrangeLayout
+  \newcounter{draftmpar}
+  \renewcommand{\thedraftmpar}{\alph{draftmpar}}
+  \newtoks\d@n@t@a \newtoks\d@n@t@b
+  \renewcommand{\draft@mpar}[1]{%
+    \if\thedraftmpar z\setcounter{draftmpar}{0}\fi%
+    \stepcounter{draftmpar}%
+    \raisebox{1ex}{\tiny\bf\sf \thedraftmpar}%
+    \addcontentsline{not}{note}{[\thedraftmpar] \protect{##1}}%
+    \ifhmode
+      \ifinner
+        \store@draft@note{\thedraftmpar}{##1}%
+      \else
+        \flushdraftnotes%
+        \draft@margin@note{\thedraftmpar}{##1}%
+        \xdef\last@draft@label{\thedraftmpar}%
+      \fi
+    \else
+      \store@draft@note{\thedraftmpar}{##1}%
+    \fi
+  }
+  \newcommand{\draft@margin@note}[2]{\marginpar{\tiny\raggedright
+      {\bf ##1.}\sf\ ##2}}
+  \let\stored@draft@notes=\empty
+  \newcommand{\store@draft@note}[2]{%
+    \if\last@draft@label ##1\else
+      \xdef\last@draft@label{##1}
+      \d@n@t@a={{##2}}%
+      \d@n@t@b=\expandafter{\stored@draft@notes}%
+      \xdef\stored@draft@notes{%
+        \the\d@n@t@b\noexpand\d@n{##1}{\thepage}\the\d@n@t@a\noexpand\e@d@n}%
+    \fi
+  }
+  \newcommand{\last@draft@label}{-}
+  \renewcommand{\flushdraftnotes}{%
+    {\def\d@n####1####2####3\e@d@n{%
+        \ifnum\value{page}=####2
+        \draft@margin@note{####1}{####3}%
+        \else
+        \draft@margin@note{####1}{(p.\,####2)\ ####3}%
+        \fi}\stored@draft@notes%
+    }\global\let\stored@draft@notes=\empty%
+  }
+  \let\oldEndDocument=\enddocument
+  \renewcommand{\enddocument}{%
+    \ifx\stored@draft@notes\empty
+    \else
+      \clearpage
+      \noindent\textbf{Unflushed draft notes:}\par
+      \def\d@n####1####2####3\e@d@n{
+        \noindent Pg.\,####2\ \textbf{####1}. ####3\par
+      }\stored@draft@notes
+      \errhelp{
+        Some draft notes outside outer paragraph mode (probably in
+        math mode) have not been flushed. Your document has been
+        partially typeset; check the last page of the output for a
+        list of unflushed draftnotes, and use \flushdraftnotes on the
+        appropriate pages. (See the documentation for the "proofing"
+        package.)
+      }
+      \errmessage{package "proofing": Unflushed draftnotes}
+    \fi
+    \oldEndDocument%
+  }
+  \renewcommand{\onlydraft}[1]{##1}
+  \renewcommand{\onlyfinal}[1]{}
+  \renewcommand{\draft@mark@text}[1]{%
+    \makebox[0pt]{$^\lceil$}##1\makebox[1pt]{\hspace{-2pt}$^\rceil$}}
+} % \ProofingDraftModeTrue
+\newcommand{\draft@mpar}[1]{}
+\newcommand{\draft@mark@text}[1]{#1}
+\newcommand{\onlydraft}[1]{}
+\newcommand{\onlyfinal}[1]{#1}
+\newcommand{\flushdraftnotes}{}
+\def\ProofingDraftMode{}
+\DeclareOption{final}{
+  \def\ProofingDraftModeTrue{}
+}
+\DeclareOption{draft}{
+  \let\ProofingDraftMode=\ProofingDraftModeTrue
+}
+\DeclareOption{marktypos}{
+  \ExecuteOptions{draft}
+  \marktypostrue
+}
+\DeclareOption{layout}{
+  \let\ProofingRearrangeLayout=\ProofingRearrangeLayoutTrue
+}
+\DeclareOption{nolayout}{
+  \let\ProofingRearrangeLayout=\relax
+}
+\ProcessOptions\relax
+\ProofingDraftMode
+\newcommand{\draftnote}[2][]{%
+  \def\tempa{}\def\tempb{#1}%
+  \ifx\tempa\tempb\else\draft@mark@text{#1}\fi\draft@mpar{#2}}
+\newcommand{\draftreplace}[2]{%
+  \draft@mark@text{#2}%
+  \ifmmode
+    \draft@mpar{\textbf{Replaced:}\\\ensuremath{#1}}%
+  \else
+    \draft@mpar{\textbf{Replaced:}\\#1}%
+  \fi
+}
+\newcommand{\typo}[2]{%
+  \ifmarktypos%
+    \draft@mark@text{#2}%
+    \ifmmode
+      \draft@mpar{\textbf{Typo:}\\\ensuremath{#1}}%
+    \else
+      \draft@mpar{\textbf{Typo:}\\#1}%
+    \fi
+  \else#2\fi}
+\newcommand{\draftremove}[1]{%
+  \ifmmode
+    \draft@mpar{\textbf{Removed:}\\\ensuremath{#1}}%
+  \else
+    \draft@mpar{\textbf{Removed:}\\#1}%
+  \fi
+}
+\newcommand{\draftadd}[1]{\draft@mark@text{#1}\draft@mpar{\textbf{Added}}}
+\newcommand{\listofnotes}{\onlydraft{\subsubsection*{Marginal notes}
+    \begin{enumerate}\@starttoc{not}\end{enumerate}}}
+\newcommand\l@note[2]{\item#1 (pg.~#2)}
+\InputIfFileExists{proofing.cfg}{}{}
+\endinput
+%%
+%% End of file `proofing.sty'.

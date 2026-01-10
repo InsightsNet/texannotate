@@ -1,0 +1,183 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{paperpkg}[Professor's Paper package]
+
+% \usepackage [english]{babel}
+% \usepackage [autostyle, english = american]{csquotes}
+% \MakeOuterQuote{"}
+
+% \usepackage{amssymb,amsfonts,amsmath,amssymb,indentfirst,endnotes,rotating,arydshln,amsthm}
+% \usepackage{amssymb,amsfonts,amsmath,amssymb,indentfirst,endnotes,rotating,arydshln}
+\usepackage{mathrsfs}
+\usepackage{bm}
+% \usepackage[nohead]{geometry}
+% \usepackage[singlespacing]{setspace}
+% \usepackage[bottom]{footmisc}
+\usepackage{graphicx,array,booktabs,bbm}
+% \RequirePackage[OT1]{fontenc} 
+\RequirePackage{amssymb,amsthm,amsmath}
+% \usepackage[authoryear]{natbib}
+% \RequirePackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}
+
+% \usepackage{subfigure}
+% \graphicspath{ {./images/} }
+% \usepackage{float}
+% \renewcommand\thefigure{\arabic{figure}}
+% \setcounter{figure}{1}
+
+% \usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\mtx}[1]{\bm{#1}}
+\newcommand{\Prob}[1]{\mathbb{P}\left\{ {#1} \right\}}
+\newcommand{\Expect}{\operatorname{\mathbb{E}}}
+\newcommand{\psdle}{\preccurlyeq}
+\newcommand{\psdge}{\succcurlyeq}
+\newcommand{\econst}{\mathrm{e}}
+\newcommand{\adj}{*}
+
+\newtheorem{thm}{Theorem}
+%\newtheorem*{thm*}{Theorem}
+\newtheorem{lem}[thm]{Lemma}
+%\newtheorem{prop}{Proposition}
+%\newtheorem{assumption}{Assumption}
+%\newtheorem{assumption}[theorem]{Assumption}
+%\newtheorem*{remark}{Remark}
+%\newtheorem{definition}{Definition}[section]
+
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\R}{\field{R}}
+\newcommand{\F}{\field{F}}
+\newcommand{\p}{\field{P}}
+\newcommand{\N}{\field{N}}
+\newcommand{\Z}{\field{Z}}
+\newcommand{\X}{\field{X}}
+\newcommand{\E}{\field{E}}
+\def\qed{\hfill$\diamondsuit$}
+\def\II{I\negthinspace I}
+\def\B{I\negthinspace\negthinspace B}
+\def\ccirc{\negthinspace\circ}
+% \theoremstyle{example} \theoremstyle{remark} \theoremstyle{lemma}
+% \theoremstyle{definition} \theoremstyle{corol}
+% \theoremstyle{proposition} \theoremstyle{condition}
+% \theoremstyle{assumption}
+% \newtheorem{assumption}{\n{Assumption}}[section]
+\newtheorem{theorem}{{Theorem}}[section]
+% \newtheorem{example}{\n{Example}}[section]
+% \newtheorem{remark}{\n{Remark}}[section]
+\newtheorem{lemma}{{Lemma}}[section]
+\newtheorem{definition_supp}{{Definition}}[section]
+% \newtheorem{corollary}{\n{Corollary}}[section]
+% \newtheorem{condition}{\n{Condition}}[section]
+% \newtheorem{proposition}{\n{Proposition}}[section]
+% \newcommand{\rmnum}[1]{\romannumeral #1}
+% \newcommand{\Rmnum}[1]{\expandafter\romannumeral #1}
+\newcommand*{\I}{\imath}
+\def\cod{\stackrel{\cal D}{\longrightarrow}}
+\def\cop{\stackrel{\cal P}{\longrightarrow}}
+\def\eqd{\stackrel{\cal D}{=}}
+\def\eqp{\stackrel{\cal P}{=}}
+\def\ap#1{\smash{\mathop{\approx}\limits^{#1}}}
+\def\lf{\lfloor}
+\def\rf{\rfloor}
+\def\lc{\lceil}
+\def\rc{\rceil}
+\font\n=cmcsc12
+\def\cov{{\mbox{cov}}}
+\def\corr{{\mbox{corr}}}
+\def\var{{\mbox{var}}}
+\def\cum{{\mbox{cum}}}
+\def\Z{{\mathcal{Z}}}
+
+% \makeatletter \makeatother
+% \textwidth = 420pt
+% \geometry{left=1in,right=1in,top=1.25in,bottom=1.0in}
+% \renewcommand{\baselinestretch}{1.3}
+
+\newcommand{\dotp}[2]{\left\langle #1, #2\right\rangle}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Tr}{Tr}
+\newcommand{\Var}{\mathop{\rm Var}}
+\newcommand{\Cov}{\mathop{\rm Cov}}
+\newcommand{\dom}{\mathop{\rm dom} \,}
+
+\newcommand{\bfY} {\mbox{\boldmath $Y$}}
+% \newcommand{\bfX} {\mbox{\boldmath $X$}}
+\newcommand{\bfX}{{\bf X}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\bfk}{{\bf k}}
+\newcommand{\bfK}{{\bf K}}
+\newcommand{\ci}{\mid\mid}
+
+\newcommand{\ve}{\varepsilon}
+
+\newcommand{\bfth} {\mbox{\boldmath $\theta$}}
+\newcommand{\bfgam} {\mbox{\boldmath $\gamma$}}
+\newcommand{\bfe} {\mbox{\boldmath $\epsilon$}}
+\newcommand{\bfeb} {\mbox{\boldmath $\underline{\epsilon}$}}
+\newcommand{\bfxi} {\mbox{\boldmath $\xi$}}
+\newcommand{\bfph} {\mbox{\boldmath $\phi$}}
+\newcommand{\bfPh} {\mbox{\boldmath $\Phi$}}
+
+\newcommand{\wt}{\widetilde}
+\newcommand{\wht}{\widehat}
+\usepackage{amsmath}
+
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+% \newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\seq}[1]{\left<#1\right>}
+\newcommand{\norm}[1]{\left\Vert#1\right\Vert}
+\newcommand{\essnorm}[1]{\norm{#1}_{\ess}}
+\newcommand{\dd}{{\mathrm d}}
+\newcommand \bbP{\mathbb{P}}
+\newcommand \bbE{\mathbb{E}}
+\newcommand \bbR{\mathbb{R}}
+\newcommand \bbL{\mathbb{L}}
+
+%\newcommand{\cmi}{\mbox{i}}
+\def\m{\mathcal}
+\def\ms{\mathscr}
+\def\mb{\mathbb}
+\def\mr{\mathrm}
+\def\mx{\mbox}
+\def\Gauss{{ \mathrm{N} }}
+\newcommand{\ind}{\mathbbm{1}}
+
+\def\T{{ \mathrm{\scriptscriptstyle T} }}
+\def\ADG{\textcolor{magenta}} % leave comments
+
+\def \nystrom {{Nystr\"{o}m }}
+\def \matern {{Mat\'{e}rn }}
+
+
+% Uschi's macros
+
+\newcommand{\bmp}{\begin{minipage}}
+\newcommand{\emp}{\end{minipage}}
+\newcommand{\ben}{\begin{eqnarray*}}
+\newcommand{\non}{\end{eqnarray*}}
+\newcommand{\1}{\\[1ex]}
+\newcommand{\2}{\\[2ex]}
+\newcommand{\3}{\\[3ex]}
+\newcommand{\4}{\\[4ex]}
+\newcommand{\cS}{{\cal S}}
+\newcommand{\A}{{\cal A}}
+\newcommand{\0}{\emptyset}
+\newcommand{\si}{\sum_{i=1}^n}
+\newcommand{\avi}{\frac 1 n \si}
+\newcommand{\sj}{\sum_{j=1}^n}
+\newcommand{\cupi}{\cup_{i=1}^n}
+\newcommand{\capi}{\cap_{i=1}^n}
+\newcommand{\ds}{\displaystyle}
+%\newcommand{\n}{\noindent}
+\newcommand{\real}{\ensuremath{\mathbb R}}
+\newcommand{\nat}{\ensuremath{\mathbb N}}
+%\renewcommand{\baselinestretch}{0.98}
+\newcommand{\darrow}{\stackrel{\cal D}{\longrightarrow} }
+\newcommand{\parrow}{\stackrel{P}{\rightarrow} }
+\newcommand{\nn}{\newpage \noindent}
+\newcommand{\bc}{\begin{center}}
+\newcommand{\ec}{\end{center}}

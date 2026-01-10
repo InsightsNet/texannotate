@@ -1,0 +1,62 @@
+\NeedsTeXFormat{LaTeX2e}
+\def\filedate{2015/07/03}
+\def\fileversion{1.052}
+\ProvidesPackage{newtxtt}[\filedate\space v\fileversion]
+\message{`newtxtt' v\fileversion, \filedate\space Typewriter text macros based on txfonts (msharpe)}
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage{textcomp}
+\DeclareEncodingSubset{TS1}{newtxtt}{0}
+\DeclareEncodingSubset{TS1}{newtxttz}{0}
+\renewcommand{\ttdefault}{newtxtt}
+\newcommand{\ttzdefault}{newtxttz}
+
+
+\newif\iftxtt@upq 
+\newif\iftxtt@tt
+\newif\iftxtt@ttz
+\edef\newtxtt@fig{a}
+\IfFileExists{xkeyval.sty}{
+    \RequirePackage{xkeyval}
+	\define@choicekey*+{newtxtt.sty}{zerostyle}[\val\nr]{a,b,c,d,e}[a]{%
+		\ifcase\nr\relax
+			\edef\newtxtt@fig{a}
+		\or
+			\edef\newtxtt@fig{b}
+		\or
+			\edef\newtxtt@fig{c}
+		\or
+			\edef\newtxtt@fig{d}
+		\or
+			\edef\newtxtt@fig{e}
+		\fi
+	}{%
+		\PackageWarning{newtxtt}{Option zerostyle must be one of a,b,c,d,e. Using `a'.}%
+	}
+    \newcommand*{\newtxtt@scale}{1}
+    \DeclareOptionX{scale}{\renewcommand*{\newtxtt@scale}{##1}}
+    \DeclareOptionX{scaled}{\renewcommand*{\newtxtt@scale}{##1}}
+    \DeclareOptionX{nomono}{\let\ttdefault\ttzdefault}
+    \DeclareOptionX{straightquotes}{\txtt@upqtrue}
+    \DeclareOptionX{ttdefault}{\txtt@tttrue}
+    \DeclareOptionX{ttzdefault}{\txtt@ttztrue}
+}{
+    \let\DeclareOptionX\DeclareOption
+    \let\ExecuteOptionsX\ExecuteOptions
+    \let\ProcessOptionsX\ProcessOptions
+}
+%\ProcessOptionsX%<newtxtt.sty>
+\ProcessOptionsX\relax
+% ttz takes precedence over tt
+\iftxtt@ttz \renewcommand{\familydefault}{\ttzdefault}
+\else
+\iftxtt@tt \renewcommand{\familydefault}{\ttdefault}\fi
+\fi
+
+\DeclareRobustCommand{\ttzfamily}{%
+        \not@math@alphabet\ttzfamily\mathtt
+         \fontfamily\ttzdefault\selectfont}
+\DeclareOldFontCommand{\ttz}{\normalfont\ttzfamily}{\mathtt}
+\DeclareTextFontCommand{\textttz}{\ttzfamily}
+
+\endinput

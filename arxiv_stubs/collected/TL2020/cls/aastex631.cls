@@ -652,13 +652,12 @@ revtex4-1.cls^^J^^J}\stop
 \expandafter\gdef\csname report\the\rptnum\endcsname{\hbox to
 \textwidth{\hskip.75\textwidth\relax#1\relax\hfill}}}
 
-\iffalse
 \long\def\frontmatter@title@above{
 \ifrnaas
 \vspace*{-\headsep}\vspace*{\headheight}
-%\footnotesize
-%\noindent{\sc Draft version \today}\\[2pt]
-%{\footnotesize Typeset using \LaTeX\ {\bf RNAAS} style in AASTeX631}
+\footnotesize
+\noindent{\sc Draft version \today}\\[2pt]
+{\footnotesize Typeset using \LaTeX\ {\bf RNAAS} style in AASTeX631}
 \par\vspace*{-\baselineskip}\vspace*{0.625in}
 \else
 \vbox to 0pt{\vskip-48pt\normalsize\rptloopnum=0\loop
@@ -725,7 +724,6 @@ AASTeX631}
 \fi %% ends test to see if rnaas option was used; if rnaas is true
     %% none of this command will be activated.
 }%
-\fi
 
 \def\frontmatter@title@produce{%
  \begingroup
@@ -1493,8 +1491,8 @@ APPENDIX}\hfill\mbox{}\par
 % \submitted{Draft version \today}
 % \journalinfo{\@submitted}
 
-\def\journalinfo#1{\gdef\@journalinfo{#1}}
-\journalinfo{Draft version \today}
+ \def\journalinfo#1{\gdef\@journalinfo{#1}}
+ \journalinfo{Draft version \today}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

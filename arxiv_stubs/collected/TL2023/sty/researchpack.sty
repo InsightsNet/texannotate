@@ -1,0 +1,203 @@
+%\ProvidesPackage{researchpack}
+
+% =============================================================================
+% PACKAGES
+% =============================================================================
+
+% Fonts & Math
+\RequirePackage{amsmath,amssymb,amsfonts,amsthm}
+%\RequirePackage{bbm}
+%\RequirePackage{mathrsfs}
+%\RequirePackage[cal=boondoxo]{mathalfa}
+%\RequirePackage{fontspec}
+%\RequirePackage{ulem}
+\usepackage{stmaryrd} % double square brackets
+
+%\newfontfamily\DejaSans{DejaVu Sans}
+
+% Hyperlinks
+%\RequirePackage{hyperref}
+
+% Pictures
+%\RequirePackage{graphicx}
+
+% Algorithms
+%\RequirePackage{algorithm}
+%\RequirePackage[noend]{algpseudocode}
+
+% Trees and graphs
+%\RequirePackage{tikz}
+%\RequirePackage{tikz-qtree}
+%\RequirePackage{tkz-graph}
+
+% Fixme items
+%\RequirePackage[draft]{fixme}
+
+% =============================================================================
+% THEOREM ENVIRONMENTS
+% =============================================================================
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}{Lemma}
+\newtheorem{prop}{Proposition}
+\newtheorem{cor}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+%\newtheorem*{example}{Example}
+
+\theoremstyle{remark}
+\newtheorem*{rem}{Remark}
+%\newtheorem*{note}{Note}
+
+% =============================================================================
+% ALGORITHMIC CONFIGURATION
+% =============================================================================
+
+%\algrenewcommand{\algorithmicrequire}{\textbf{Input:}}
+%\algrenewcommand{\algorithmicensure}{\textbf{Output:}}
+
+% =============================================================================
+% SHORTCUTS
+% =============================================================================
+
+\newcommand{\boldparagraph}[1]{\textbf{#1} $\;$}
+
+% Override the standard emptyset symbol, it looks awful
+\let\oldemptyset\emptyset
+\let\emptyset\varnothing
+
+% Bold math symbols
+\newcommand{\bbA}{\mathbb{A}}
+\newcommand{\bbB}{\mathbb{B}}
+\newcommand{\bbC}{\mathbb{C}}
+\newcommand{\bbD}{\mathbb{D}}
+\newcommand{\bbE}{\mathbb{E}}
+\newcommand{\bbF}{\mathbb{F}}
+\newcommand{\bbG}{\mathbb{G}}
+\newcommand{\bbH}{\mathbb{H}}
+\newcommand{\bbI}{\mathbb{I}}
+\newcommand{\bbJ}{\mathbb{J}}
+\newcommand{\bbK}{\mathbb{K}}
+\newcommand{\bbL}{\mathbb{L}}
+\newcommand{\bbM}{\mathbb{M}}
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\bbO}{\mathbb{O}}
+\newcommand{\bbP}{\mathbb{P}}
+\newcommand{\bbQ}{\mathbb{Q}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\bbS}{\mathbb{S}}
+\newcommand{\bbT}{\mathbb{T}}
+\newcommand{\bbU}{\mathbb{U}}
+\newcommand{\bbV}{\mathbb{V}}
+\newcommand{\bbW}{\mathbb{W}}
+\newcommand{\bbX}{\mathbb{X}}
+\newcommand{\bbY}{\mathbb{Y}}
+\newcommand{\bbZ}{\mathbb{Z}}
+
+% Calligraphic math symbols
+\newcommand{\calvar}[1]{\ensuremath{\mathcal{#1}}}
+\newcommand{\calA}{\calvar{A}}
+\newcommand{\calB}{\calvar{B}}
+\newcommand{\calC}{\calvar{C}}
+\newcommand{\calD}{\calvar{D}}
+\newcommand{\calE}{\calvar{E}}
+\newcommand{\calF}{\calvar{F}}
+\newcommand{\calG}{\calvar{G}}
+\newcommand{\calH}{\calvar{H}}
+\newcommand{\calI}{\calvar{I}}
+\newcommand{\calJ}{\calvar{J}}
+\newcommand{\calK}{\calvar{K}}
+\newcommand{\calL}{\calvar{L}}
+\newcommand{\calM}{\calvar{M}}
+\newcommand{\calN}{\calvar{N}}
+\newcommand{\calO}{\calvar{O}}
+\newcommand{\calP}{\calvar{P}}
+\newcommand{\calQ}{\calvar{Q}}
+\newcommand{\calR}{\calvar{R}}
+\newcommand{\calS}{\calvar{S}}
+\newcommand{\calT}{\calvar{T}}
+\newcommand{\calU}{\calvar{U}}
+\newcommand{\calV}{\calvar{V}}
+\newcommand{\calW}{\calvar{W}}
+\newcommand{\calX}{\calvar{X}}
+\newcommand{\calY}{\calvar{Y}}
+\newcommand{\calZ}{\calvar{Z}}
+
+% Frak math symbols
+\newcommand{\fkA}{\mathfrak{A}}
+\newcommand{\fkB}{\mathfrak{B}}
+\newcommand{\fkC}{\mathfrak{C}}
+\newcommand{\fkD}{\mathfrak{D}}
+\newcommand{\fkE}{\mathfrak{E}}
+\newcommand{\fkF}{\mathfrak{F}}
+\newcommand{\fkG}{\mathfrak{G}}
+\newcommand{\fkH}{\mathfrak{H}}
+\newcommand{\fkI}{\mathfrak{I}}
+\newcommand{\fkJ}{\mathfrak{J}}
+\newcommand{\fkK}{\mathfrak{K}}
+\newcommand{\fkL}{\mathfrak{L}}
+\newcommand{\fkM}{\mathfrak{M}}
+\newcommand{\fkN}{\mathfrak{N}}
+\newcommand{\fkO}{\mathfrak{O}}
+\newcommand{\fkP}{\mathfrak{P}}
+\newcommand{\fkQ}{\mathfrak{Q}}
+\newcommand{\fkR}{\mathfrak{R}}
+\newcommand{\fkS}{\mathfrak{S}}
+\newcommand{\fkT}{\mathfrak{T}}
+\newcommand{\fkU}{\mathfrak{U}}
+\newcommand{\fkV}{\mathfrak{V}}
+\newcommand{\fkW}{\mathfrak{W}}
+\newcommand{\fkX}{\mathfrak{X}}
+\newcommand{\fkY}{\mathfrak{Y}}
+\newcommand{\fkZ}{\mathfrak{Z}}
+
+% Vectors
+\newcommand{\vecvar}[1]{\ensuremath{\boldsymbol{#1}}}
+
+\newcommand{\valpha}{\vecvar{\alpha}}
+\newcommand{\vphi}{\vecvar{\phi}}
+\newcommand{\vpsi}{\vecvar{\psi}}
+\newcommand{\vepsilon}{\vecvar{\varepsilon}}
+\newcommand{\vomega}{\vecvar{\omega}}
+\newcommand{\vDelta}{\vecvar{\Delta}}
+\newcommand{\vX}{\vecvar{X}}
+
+% Operators
+\DeclareMathOperator*{\maximize}{maximize}
+\DeclareMathOperator*{\minimize}{minimize}
+
+% Combinatorics
+\newcommand{\ffact}[2]{\ensuremath{{#1}^{\underline{#2}}}}
+\newcommand{\rfact}[2]{\ensuremath{{#1}^{\overline{#2}}}}
+
+% Algebra
+\newcommand{\Ind}{\ensuremath{\mathbbm{1}}}
+\newcommand{\Iso}{\ensuremath{\text{\sf Iso}}}
+\newcommand{\Aut}{\ensuremath{\text{\sf Aut}}}
+\newcommand{\CSI}{\ensuremath{\text{\sf CSI}}} % Common Subgraph Isomorphism
+\newcommand{\BSH}{\ensuremath{\text{\sf BSH}}} % Bisimilarity Homomorphisms
+
+% Relations
+\newcommand{\rel}[1]{\stackrel{#1}{\to}}
+\DeclareMathOperator{\isom}{\equiv}
+\DeclareMathOperator{\bisim}{\sim}
+\newcommand{\bisimk}[1]{\stackrel{#1}{\;\bisim\;}}
+\DeclareMathOperator{\ssim}{\precsim}
+
+\newcommand{\liff}{\Leftrightarrow}
+
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\abs}[1]{|#1|}
+
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+% Text equation number
+% \makeatletter
+% \newcommand{\eqnum}{\leavevmode\hfill\refstepcounter{equation}\textup{\tagform@{\theequation}}}
+% \makeatother
+
+%centered plus-minus symbol
+\newcommand{\rpm}{\raisebox{.2ex}{$\scriptstyle\pm$}}

@@ -1,0 +1,102 @@
+\ProvidesPackage{format}
+\RequirePackage{ifthen,url,graphicx,color,array,amsthm}
+\usepackage[a4paper, total={6.5in, 8.5in}]{geometry}
+
+
+%----------------------------------------------------------------
+%   Set font styles
+%----------------------------------------------------------------
+% \usepackage[charter]{mathdesign}
+% \usepackage{libertine,libertinust1math}
+% \usepackage{amsmath,amsfonts,bm,amssymb,mathrsfs}
+
+\usepackage{amsmath,amsfonts,bm,amssymb,mathrsfs}
+\usepackage[type1]{libertine}
+\usepackage{libertinust1math}
+\usepackage[cal=rsfso]{mathalfa}
+
+% \usepackage{mathpazo}
+% \usepackage[type1]{libertine}
+
+%----------------------------------------------------------------
+%   Section header spacing
+%----------------------------------------------------------------
+\usepackage{titlesec}
+\titlelabel{\thetitle.\quad}
+\titlespacing*\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing*\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing*\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titleformat*{\section}{\large\bfseries}
+\titleformat*{\subsection}{\normalsize\bfseries}
+
+\setlength{\parindent}{1em}
+\renewcommand{\baselinestretch}{1.25}
+% \renewcommand{\baselinestretch}{1.125}
+\setlength\intextsep{1.11cm}
+
+\def\hlinewd#1{%
+\noalign{\ifnum0=`}\fi\hrule \@height #1 %
+\futurelet\reserved@a\@xhline} 
+
+\newcommand\template[2]{
+\usepackage{fancyhdr}
+% \pagestyle{fancy}
+% \fancyhf{}
+% \fancyhead[LO]{\thepage \hfill \footnotesize{\textbf{#1:}  \emph{#2}}}
+% \fancyfoot[RO]{\thepage}
+\renewcommand\headrulewidth{0pt}
+% \renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\lhead{}\chead{}\rhead{}
+\cfoot{\vspace*{1.5\baselineskip}\thepage}
+}
+
+
+% default values
+\def\HOOKtop{\vspace*{0pt}}%
+\def\HOOKa{\vspace*{0pt}}%
+\def\HOOKb{\vspace*{0pt}}%
+\def\HOOKc{\vspace*{0pt}}%
+
+
+\usepackage{titling}
+\newcommand \linedabstractkw[2]{% Default width = 0.9
+  \renewcommand\maketitlehookd{
+    \begin{minipage}{.95\linewidth}
+      \footnotesize #1 \\
+      \par\footnotesize \textit{Key words}: \footnotesize #2 \\
+    \end{minipage}
+    \par\noindent\rule{\linewidth}{1pt}
+    }      
+}
+
+%----------------------------------------------------------------
+%   Own theoremstyle
+%----------------------------------------------------------------
+\newtheoremstyle{mytheoremstyle} % name
+    {\topsep}                    % Space above
+    {\topsep}                    % Space below
+    {\itshape}                   % Body font
+    {}                           % Indent amount
+    {\scshape}                   % Theorem head font
+    {.}                          % Punctuation after theorem head
+    {.5em}                       % Space after theorem head
+    {\thmname{#1}\thmnumber{ #2}\thmnote{ \bfseries(\textnormal{\bf #3})}}  % Theorem head spec (can be left empty, meaning ‘normal’)
+
+\theoremstyle{mytheoremstyle}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{claim}{Claim}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{hypothesis}{Hypothesis}
+\newtheorem{assumption}{Assumption}
+
+
+
+\newcommand \ACKNOWLEDGMENT[1]{
+	\section*{Acknowledgments}
+	\small #1
+}

@@ -1,0 +1,204 @@
+% \usepackage{enumerate}
+\usepackage{enumitem}
+% \usepackage[OT1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{natbib}
+% \usepackage[usenames,dvipsnames]{xcolor}
+%\usepackage{parskip}
+%\usepackage[dvips]{graphicx}
+%\usepackage{bm}
+%\usepackage{geometry}
+% \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+
+\def\shownotes{1}  %set 1 to show author notes
+\ifnum\shownotes=1
+\newcommand{\authnote}[2]{{\scriptsize $\ll$\textsf{#1 notes: #2}$\gg$}}
+\else
+\newcommand{\authnote}[2]{}
+\fi
+\newcommand{\yub}[1]{{\color{red}\authnote{Yu}{#1}}}
+\newcommand{\lei}[1]{{\color{blue}\authnote{Lei}{#1}}}
+
+
+\usepackage{dsfont}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{smile}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{enumerate}
+\usepackage{esvect}
+%\usepackage{enumitem}
+% \usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{arrows}
+%\usepackage{subfigure}
+%\usepackage{makecell}
+% \usepackage[colorlinks,
+%             linkcolor=red,
+%             anchorcolor=blue,
+%             citecolor=blue
+%             ]{hyperref}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks,
+  citecolor=blue!70!black,
+  linkcolor=blue!70!black,
+  urlcolor=blue!70!black
+}
+%\usepackage{algorithm}  
+%\usepackage{algpseudocode}
+%\usepackage{algorithmicx}  
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}  % Use Input in the format of Algorithm  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % Use Output in the format of Algorithm 
+
+
+
+\def \mrm{\mathrm}
+\def\sign{\mathop{\text{sign}}}
+\def\supp{\mathrm{supp}}
+\def\card{\mathop{\text{card}}}
+\def\rank{\mathrm{rank}}
+\def\tr{\mathop{\text{Tr}}}
+\def\trc{\mathop{\text{TRC}}}
+\def\cS{{\mathcal{S}}}
+\def\dr{\displaystyle \rm}
+\providecommand{\bnorm}[1]{\Big\vvvert#1\Big\vvvert}
+\providecommand{\norm}[1]{\vvvert#1\vvvert}
+\def\oper{\mathop{\text{op}}}
+\newcommand{\rkhs}{\textrm{RKHS}}
+\def\RLPfull{\textsc{Reward Learning with Pessimism}}
+\def\RLP{\textsc{RLP}}
+\def\RLEfull{\textsc{Reward Learning with Exploration}}
+\def\RLE{\textsc{RLE}}
+\newcommand{\bel}{\begin{eqnarray}\label}
+\newcommand{\eel}{\end{eqnarray}}
+\newcommand{\bes}{\begin{eqnarray*}}
+\newcommand{\ees}{\end{eqnarray*}}
+\def\bess{\bes\small }
+\def\Shat{{\widehat S}}
+\def\lam{\rho}
+\def\real{{\mathbb{R}}}
+\def\R{{\real}}
+\def\Ti{T_{\rm init}}
+\def\Tm{T_{\rm main}}
+\def\bcdot{{\bm \cdot}}
+\newcommand{\red}{\color{red}}
+\newcommand{\blue}{\color{blue}}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\cIs}{\cI_{\hat{s}}}
+\newcommand{\pess}{\texttt{Pess}}
+\newcommand{\linpess}{\texttt{Pess}}
+\newcommand{\mc}{\mathcal}
+\newcommand{\msf}{\mathsf}
+\newcommand{\indic}[1]{\mathbf{1}\left\{#1\right\}} % Indicator function
+% \newcommand{\indic}[1]{1_{#1}}
+% \newcommand{\indic}[1]{1\{#1\}}
+\newcommand{\indics}[1]{\mathbf{1}\{#1\}} % Indicator function small
+\newcommand{\MDPR}{{MDP\textbackslash R}}
+
+\let\oldemptyset\emptyset
+\let\emptyset\varnothing
+\let\hat\widehat
+\let\tilde\widetilde
+\def\mid{\,|\,}
+\def\eps{\epsilon}
+\def\reals{{\mathbb R}}
+\def\GG{{\mathbb G}}
+\def\HH{{\mathbb H}}
+\def\E{{\mathbb E}}
+\def\B{{\mathbb B}}
+\def\htheta{\widehat \btheta}
+\def\ttheta{\widetilde \btheta}
+\def\hSigma{\widehat \bSigma}
+\def\hS{\widehat S}
+\def\hR{\widehat \Rb}
+\def\hu{\widehat \bu}
+\def\supp{\mathop{\text{supp}\kern.2ex}}
+\def\argmin{\mathop{\text{\rm arg\,min}}}
+\def\argmax{\mathop{\text{\rm arg\,max}}}
+\def\S{\mathbb{S}}
+\def\Deltab{{\mathbf \Delta}}
+\def\given{{\,|\,}}
+\def\ds{\displaystyle}
+%\def\bs{\backslash}
+\def\R{{\mathcal{R}}}
+\def\tr{{\rm{Tr}}}
+\def\sign{\mathrm{sign}}
+\def\supp{\mathop{\text{\rm supp}}}
+\def\card{\mathop{\text{card}}}
+\def\rank{\mathrm{rank}}
+\def\median{\mathrm{median}}
+\def\M{{\mathrm M}}
+\def\Q{{\mathrm Q}}
+\def\Psib{{\mathbf \Psi}}
+\def\hmedian{\hat{\mathrm{median}}}
+\def\skeptic{{\sc skeptic}}
+\def\NPN{\mbox{\it NPN}}
+\def\vec{\mathop{\textrm{vec}}}
+\def\tr{\mathrm{Tr}}
+\def\trc{\mathop{\textrm{TRC}}}
+\def\var{\mathop{\textrm{var}}}
+\def\I{{\mathbf{I}}}
+\def\v{{\mathbb{V}}}
+\def\pp{{\mathbb{P}}}
+
+\newcommand{\op}{o_{\raisemath{-1.5pt}\PP}}
+\newcommand{\Op}{O_{\raisemath{-1.5pt}\PP}}
+
+
+\theoremstyle{plain}
+
+\usepackage{mathrsfs}
+%\usepackage{refcheck}
+% \usepackage{fullpage}
+% \renewcommand{\baselinestretch}{1.05}
+
+\def\sep{\;\big|\;}
+\def \trunc{\mathop{\text{trunc}}}
+\def \obs {{\rm obs}}
+\def \mis {{\rm mis}}
+\def \hbSigma {\widehat{\bSigma}}
+\def \bbSigma {\bar{\bSigma}}
+\def \iid {\stackrel{\text{i.i.d.}}{\sim}}
+\def \iidtext {\textrm{i.i.d.}}
+\def \s{\mathcal{S}}
+\def \a{\mathcal{A}}
+\def \m{\mathcal{M}}
+\def \r{\mathbb{R}}
+\def \rl{\mathcal{R}}
+\def \p{\mathbb{P}}
+\def \rma{R_{\text{max}}}
+\def \d{\mathcal{D}}
+\def \h{\mathcal{H}}
+\def \bv{\mathbf{v}}
+
+\def \barV{\bar{\mathcal{V}}}
+\def \V{\mathcal{V}}
+\def \vaw{\m_{\mathbf{v}\overset{a}{\leftarrow} w}}
+\def \vaww{\m_{\mathbf{v}\overset{a}{\leftarrow} w^\star}}
+\usepackage{hyperref}
+\usepackage[protrusion=false,expansion=true]{microtype}
+
+\def\##1\#{\begin{align}#1\end{align}}
+\def\$#1\${\begin{align*}#1\end{align*}}
+\newcommand{\Bin}{{\rm Bin}}
+\newcommand{\abs}[1]{{\left| #1 \right|}}
+\newcommand{\paren}[1]{{\left( #1 \right)}}
+\newcommand{\brac}[1]{{\left[ #1 \right]}}
+\newcommand{\set}[1]{{\left\{ #1 \right\}}}
+\newcommand{\sets}[1]{{\{ #1 \}}}
+\newcommand{\Eqref}[1]{Eq.\eqref{#1}}
+
+% Operator
+\newcommand{\defeq}{\mathrel{\mathop:}=}
+\newcommand{\eqdef}{=\mathrel{\mathop:}}
+
+
+\newcommand{\revise}[1]{{\color{black} #1}}
+% \newtheorem{proposition}[lemma]{Proposition}

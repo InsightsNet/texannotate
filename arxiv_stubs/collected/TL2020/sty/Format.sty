@@ -1,0 +1,544 @@
+\RequirePackage{cmap} % to provide correct cyrillic encoding in pdf - use pdflatex for compilation
+\RequirePackage[cp1251]{inputenc}
+\RequirePackage[T2A]{fontenc}
+\RequirePackage{amsmath}
+\RequirePackage{amstext}
+\RequirePackage{amssymb}
+\RequirePackage{bm}
+\RequirePackage{graphicx}
+\RequirePackage{epstopdf}
+
+\topmargin=0.96cm% line at 2cm put \topmargin=-0.54cm
+\headheight=0cm \oddsidemargin=-4.5mm \evensidemargin=-4.5mm
+\textwidth=167.0mm  %column=85.6mm
+\columnsep=5.0mm \columnseprule=0.5pt\textheight=206.0mm
+\footskip=7mm \headsep=5mm
+\def\column{81.0mm}
+\setlength\belowcaptionskip{-6\p@}
+\newlength{\tablesep}
+\setlength{\tablesep}{-18\p@}
+\mathindent=0pt % formulas flushed left
+\setcounter{footnote}{1}
+
+\clubpenalty=10000 %preventing a break after the first line of a paragraph
+\widowpenalty=10000 %preventing a break before the last line of a paragraph
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%font definition as in article.cls size10.clo
+\def\normalsize{%
+   \@setfontsize\normalsize\@xpt{12.0}% as in size10.clo {11.5} is 10pt.rtx
+   \abovedisplayskip 10\p@ \@plus2\p@ \@minus5\p@
+   \belowdisplayskip \abovedisplayskip
+   \abovedisplayshortskip  \abovedisplayskip
+   \belowdisplayshortskip \abovedisplayskip
+   \let\@listi\@listI
+}%
+\def\small{%
+  \@setfontsize\small\@ixpt{11}%{10.5}%
+  \abovedisplayskip 8.5\p@ \@plus3\p@ \@minus4\p@
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus2\p@
+  \belowdisplayshortskip 4\p@ \@plus2\p@ \@minus2\p@
+  \def\@listi{%
+    \leftmargin\leftmargini
+    \topsep 4\p@ \@plus2\p@ \@minus2\p@
+    \parsep 2\p@ \@plus\p@ \@minus\p@
+    \itemsep \parsep
+  }%
+}%
+\def\footnotesize{%
+  \@setfontsize\footnotesize\@viiipt{10.5pt}%
+  \abovedisplayskip 6\p@ \@plus2\p@ \@minus4\p@
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus\p@
+  \belowdisplayshortskip 3\p@ \@plus\p@ \@minus2\p@
+  \def\@listi{%
+    \leftmargin\leftmargini
+    \topsep 3\p@ \@plus\p@ \@minus\p@
+    \parsep 2\p@ \@plus\p@ \@minus\p@
+    \itemsep \parsep
+  }%
+}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\uppercase codes for cyrillic
+\uccode`і=`І
+\uccode`є=`Є
+\uccode`ї=`Ї
+\uccode`ґ=`Ґ
+\uccode`І=`І
+\uccode`Є=`Є
+\uccode`Ї=`Ї
+\uccode`Ґ=`Ґ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\@udk{}
+\def\udk#1{\def\@udk{#1}}
+\def\@pacs{}
+\def\pacs#1{\def\@pacs{#1}}
+\def\@razd{}
+\def\razd#1{\def\@razd{\MakeUppercase{#1}}}
+\def\flagcyr{00} % true
+\def\flagpacs{00} % true
+\def\flagcopyright{00} % true
+\def\flagtitle{00} % true
+
+\def\year{ZZZZ}
+\def\volume{YY}
+\def\jnumber{XX}
+\def\ISSN{2071-0186}
+\def\vol{Vol.}
+\def\num{No.~}
+\def\journal{Ukr.~J.~Phys.}
+\def\udkpacs{PACS}
+\def\udkpacsnum{\@pacs}
+\def\keywordname{K\,e\,y\,w\,o\,r\,d\,s}
+\def\etal{ et al.}
+\def\fnum@figure{\footnotesize {\bfseries\itshape Fig.~\thefigure.}\normalfont}
+\renewcommand\thetable{\@arabic\c@table}
+\def\fnum@table{\vspace{\tablesep}\footnotesize{\it Table~\thetable.}\normalfont\bf}
+\def\razdelblock{}
+\def\seci{Fields and elementary particles}
+\def\secii{Optics, atoms and molecules}
+\def\seciii{General physics}
+\def\seciv{Plasma physics}
+\def\secv{Physics of liquids and liquid systems, biophysics and
+medical physics}
+\def\secvi{Liquid crystals and polymers}
+\def\secvii{Semiconductors and dielectrics}
+\def\secviii{\scriptsize\@shorttitle}
+\def\secx{Structure of materials}
+\def\secxi{Chronicle}
+\def\bitp{Bogolyubov Institute for Theoretical Physics, Nat. Acad. of Sci. of Ukraine}
+\def\bitpaddr{14b, Metrolohichna Str., Kyiv 03680, Ukraine}
+\def\iop{Institute of Physics, Nat. Acad. of Sci. of Ukraine}
+\def\iopaddr{46, Prosp. Nauky, Kyiv 03028, Ukraine}
+\def\isp{V.E. Lashkaryov Institute of Semiconductor Physics, Nat. Acad. of Sci. of Ukraine}
+\def\ispaddr{41, Prosp. Nauky, Kyiv 03680, Ukraine}
+\def\kinr{Institute for Nuclear Research, Nat. Acad. of Sci. of Ukraine}
+\def\kinraddr{47, Prosp. Nauky, Kyiv 03680, Ukraine}
+\def\knu{Taras Shevchenko National University of Kyiv}
+\def\knuaddr{2, Prosp. Academician Glushkov, Kyiv 03022, Ukraine}
+\def\lnu{Ivan Franko National University of L'viv}
+\def\lnuaddr{8, Kyrylo i Mefodiy Str., Lviv 79005, Ukraine}
+\def\kipt{National Science Center ``Kharkov Institute of Physics and Technology'',\\ Nat. Acad. of Sci. of Ukraine}
+\def\kiptaddr{1, Akademichna Str., Kahrkiv 61108, Ukraine}
+
+\DeclareOption{cyr}
+   {\def\ISSN{0372-400X}
+    \def\vol{\textcyrillic{Т}.}
+    \def\num{\textcyrillic{№~}}
+    \def\journal{\textcyrillic{Укр.~фіз.~журн.}}
+    \def\udkpacs{\textcyrillic{УДК}}
+    \def\udkpacsnum{\@udk}
+    \def\keywordname{\textcyrillic{К\,л\,ю\,ч\,о\,в\,і\, с\,л\,о\,в\,а}}
+    \def\etal{ \textcyrillic{та ін.}}
+    \def\fnum@figure{\footnotesize {\bfseries\itshape\textcyrillic{Рис.}~\thefigure.}\normalfont}
+    \def\fnum@table{\vspace{\tablesep}\footnotesize{\it \textcyrillic{Таблиця}~\thetable.}\normalfont\bf}
+    \def\seci{\textcyrillic{Поля та елементарні частинки}}
+    \def\secii{\textcyrillic{Оптика, атоми і молекули}}
+    \def\seciii{\textcyrillic{Загальна фізика}}
+    \def\seciv{\textcyrillic{Фізика плазми}}
+    \def\secv{\textcyrillic{Фізика рідин та рідинних систем, біофізика і медична фізика}}
+    \def\secvi{\textcyrillic{Рідкі кристали та полімери}}
+    \def\secvii{\textcyrillic{Напівпровідники і діелектрики}}
+    \def\secviii{\textcyrillic{Фізика магнітних явищ і фізика фероїків}}
+    \def\secix{\textcyrillic{Фізика поверхні}}
+    \def\secx{\textcyrillic{Структура речовини}}
+    \def\secxi{\textcyrillic{Хроніка}}
+    \def\bitp{\textcyrillic{Інститут теоретичної фізики ім. М.М. Боголюбова НАН України}}
+    \def\bitpaddr{\textcyrillic{Вул. Метрологічна, 14b, Київ 03143}}
+    \def\iop{\textcyrillic{Інститут фізики НАН України}}
+    \def\iopaddr{\textcyrillic{Просп. Науки, 46, Київ 03028}}
+    \def\isp{\textcyrillic{Інститут фізики напівпровідників ім. В.Є. Лашкарьова НАН України}}
+    \def\ispaddr{\textcyrillic{Просп. Науки, 41, Київ 03680}}
+    \def\kinr{\textcyrillic{Інститут ядерних досліджень НАН України}}
+    \def\kinraddr{\textcyrillic{Просп. Науки, 47, Київ 03680}}
+    \def\knu{\textcyrillic{Київський національний університет ім. Тараса Шевченка}}
+    \def\knuaddr{\textcyrillic{Просп. Академіка Глушкова, 2, Київ 03022}}
+    \def\lnu{\textcyrillic{Львівський національний університет ім. Івана Франка}}
+    \def\lnuaddr{\textcyrillic{Вул. Кирила і Мефодія, 8, Львів 79005}}
+    \def\kipt{\textcyrillic{Національний науковий центр ``Харківський фізико-технічний інститут'' \\ НАН України}}
+    \def\kiptaddr{\textcyrillic{Вул. Академічна, 1, Харків 61108}}
+    \def\flagcyr{01} % false
+   }
+\DeclareOption{encyr}
+   {\def\ISSN{0372-400X}
+    \def\vol{\textcyrillic{Т}.}
+    \def\num{\textcyrillic{№~}}
+    \def\journal{\textcyrillic{Укр.~фіз.~журн.}}
+    \def\udkpacs{\textcyrillic{UDC}}
+    \def\udkpacsnum{\@udk}
+    \def\keywordname{\textcyrillic{K\,e\,y\,w\,o\,r\,d\,s}}
+    \def\seci{Fields and elementary particles}
+\def\secii{Optics, atoms and molecules}
+\def\seciii{General physics}
+\def\seciv{Plasma physics}
+\def\secv{Physics of liquids and liquid systems, biophysics and
+medical physics}
+\def\secvi{Liquid crystals and polymers}
+\def\secvii{Semiconductors and dielectrics}
+\def\secviii{Physics of magnetic phenomena
+and physics of ferroics}
+\def\secix{Surface physics}
+\def\secx{Structure of materials}
+\def\secxi{Chronicle}
+   }
+\DeclareOption{web}
+   {\def\ISSN{2071-0194}
+   }
+\DeclareOption{sec}
+   {\def\razdelblock{
+    \thispagestyle{empty}%
+    \vspace*{-11.5mm}%
+    \vbox{\hbox{{\raggedright\bfseries\sf\Large\raisebox{0pt}{\hspace{0mm}\parbox[t]{167mm}\@razd}\vspace{-2.5mm}\strut\hfil}}
+    \hbox{\rule{\textwidth}{0.5pt}}\vspace{4mm}}
+    \vspace*{18.5mm}%
+
+%     \noindent\raisebox{-194.0mm}[0pt][0pt]{\vbox{\hbox{\hspace{0mm}\parbox[t]{81mm}
+%        {\copyright\year}}}}
+
+    \ifodd\thepage
+        \noindent\raisebox{-188.0mm}[0pt][0pt]{\vbox{\hbox to\textwidth
+        {{\small\it} \hfil \large\bf\thepage}
+        }}
+    \else
+         \noindent\raisebox{-188.0mm}[0pt][0pt]{\vbox{\hbox to\textwidth
+    {{\small{\large\bf\thepage} \hfil\it ISSN~\ISSN.~\journal~\year.~\vol~\volume,~\num\jnumber}}
+        }}
+    \fi
+    }
+   }
+\DeclareOption{nopacs}
+   {\def\flagpacs{01} % false
+   }
+\DeclareOption{nocpr}
+   {\def\flagcopyright{01} % false
+   }
+\DeclareOption{notitle}
+   {\def\flagtitle{01} % false
+   }
+\ProcessOptions
+
+\if\flagcyr\RequirePackage[russian,ukrainian,english]{babel}
+\else\RequirePackage[english,russian,ukrainian]{babel} \fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% abstract and resume
+%\renewenvironment{abstract}{
+%\fussy\noindent\footnotesize\kern-0pt}
+%{\\
+%\rule{81.0mm}{0.3pt}\vspace{4mm}\par}
+
+\renewenvironment{abstract}{%
+  \aftermaketitle@chk{\begin{abstract}}%
+  \global\setbox\absbox\vbox\bgroup
+   \color@begingroup
+   \columnwidth\textwidth
+   \hsize\frontmatter@abstractwidth
+   \@parboxrestore
+   \def\@mpfn{mpfootnote}\def\thempfn{\thempfootnote}\c@mpfootnote\z@
+   \let\@footnotetext\frontmatter@footnotetext
+   \minipagefootnote@init
+   \let\@listdepth\@mplistdepth \@mplistdepth\z@
+   \@minipagerestore
+   \@setminipage
+    \frontmatter@abstractheading
+    \frontmatter@abstractfont
+    \let\footnote\mini@note
+}{%
+    \par
+    \unskip
+    \minipagefootnote@here
+    \@minipagefalse   %% added 24 May 89
+    \color@endgroup
+  \egroup
+}%
+\def\frontmatter@abstractfont{\it\small}%
+\def\frontmatter@abstractwidth{13.2cm}
+\def\frontmatter@preabstractspace{-3pt}
+
+\newcommand{\rezume}[3]{\selectlanguage{russian}\footnotesize
+{\vspace{5mm}%
+\noindent {\it#1}\\*[1.5mm]%\MakeUppercase
+{#2}\\*[2mm]%
+\textcyrillic{Р~е~з~ю~м~е}\\*[2mm]%
+#3}}
+%
+\newcommand{\rezumang}[4]{\footnotesize
+{\vspace{5mm}%
+\noindent\footnotesize{\it#1}\\*[1.5mm]%\MakeUppercase
+{#2}\\*[2mm]%
+%{#3}\\*[2mm]%
+S~u~m~m~a~r~y\\*[2mm]\selectlanguage{english}%
+#3}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% heading parameters for maketitle
+
+%\def\frontmatter@title@above{\vspace{-11pt}}
+\def\frontmatter@title@above{\vspace{6pt}}
+\def\frontmatter@title@format{\raggedright\large\bf}
+\def\frontmatter@title@below{\vspace{0pt}}
+\def\frontmatter@authorformat{\small\selectfont}
+\def\frontmatter@above@affiliation@script{\vspace{0pt}}%
+\def\frontmatter@above@affiliation{\vspace{0pt}}
+\def\frontmatter@affiliationfont{\footnotesize\vspace{3pt}}%
+
+\newcounter{tempavt}%running author number in the author heading
+\setcounter{tempavt}{1}
+\def\@avtorcol{}
+\def\doauthor#1#2#3{%
+  \ifnum\arabic{tempavt}=1
+        {\gappdef\@avtorcol{#1}} % avtorcol
+        \else
+        {\ifnum\arabic{tempavt}<100
+               {\gappdef\@avtorcol{, #1}}
+               \else
+               {\ifnum\arabic{tempavt}=100
+                      {\gappdef\@avtorcol{\etal}}
+                      \else
+                      \fi\unskip
+               }
+               \fi\unskip
+        }
+        \fi\unskip
+        \addtocounter{tempavt}{1}
+  \ignorespaces#1\unskip\@listcomma@comma %instead of \@listcomma to suppress and
+  \def\@tempifx{#3}%
+  \@ifx{\@tempifx\@empty}{%
+   \def\@tempifx{#2}%
+   \@ifx{\@tempifx\@empty}{}{\frontmatter@footnote{#2}}%
+  }{%
+   #3%
+   \def\@tempifx{#2}%
+   \@ifx{\@tempifx\@empty}{}{\comma@space\frontmatter@footnote{#2}}%
+  }%
+  %\space
+  \@listand
+}%
+
+\def\@listand{\@ifnum{\@tempcnta=\tw@}{}{}}% to suppress and
+\def\cat@comma@active{}%\catcode`\,\active}%No comma splitting
+\def\@email#1#2{%
+ \endgroup
+ \@AF@join{#1#2}%
+}%
+\renewcommand*\email[1][e-mail: ]{\begingroup\sanitize@url\@email{#1}}%e-mail instead of Electronic address
+\def\MakeTextUppercase{} % to make section headings lowercase
+
+\def\address{\replace@command\address\thanks}
+
+\def\@affil@script#1#2#3{%
+ \@ifnum{#1=\z@}{}{%
+  \par
+  \begingroup
+   \frontmatter@affiliationfont
+   \textsuperscript{#1}%
+   \hspace*{0.5mm}#2%
+   \@if@empty{#3}{}{\par\it \hspace*{1.5mm}(#3)\vspace*{-1mm}}%между адресами
+   \par
+  \endgroup
+ }%
+}%
+
+\def\@affil@group#1#2#3{%
+  \@ifnum{\count@=#1\relax}{%
+    \@ifx{#2\blankaffiliation}{}{%
+#2%
+\@if@empty{#3}{}{%
+%\frontmatter@footnote{#3}%
+\par {\it (#3)\vspace*{-1mm}}
+}%
+\after@address
+    }%
+    \advance\@tempcnta\m@ne
+  }{}%
+}%
+
+\def\frontmatter@keys@format{\small}
+\def\@keywords@produce#1{%
+ \showKEYS@sw{%
+  \begingroup
+   \frontmatter@keys@format
+%   {\it К\,л\,ю\,ч\,о\,в\,і\, с\,л\,о\,в\,а: }#1\par
+   {\it \keywordname{\rm :} }#1\par
+  \endgroup
+ }{%
+  \@if@empty{#1}{}{%
+   \class@warn{If you want your keywords to appear in your output, use document class option showkeys}%
+  }%
+ }%
+}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITLEPAGE
+\renewcommand\title[2][]{%
+ \def\@title{{#2}}% to make title in uppercase
+ \def\@shorttitle{{\textcyrillic{#1}}}%
+ \let\@AF@join\@title@join
+}%
+\def\@author@def#1#2{%
+ \move@AU\move@AF\move@AUAF
+ \let\@AF@join\@author@join
+ #1%
+ \def\@author{{\MakeUppercase{#2}}{}}% to make authors in uppercase
+ %\def\@author{{#2}{}}
+}%
+
+
+\renewcommand{\maketitle}{
+\onecolumngrid \if\flagtitle{ \razdelblock \vbox{\vspace*{1mm}\hbox{
+\kern-3.2pt\rule[1em]{30mm}{0.5pt}\hspace{4.6mm}\parbox[t]{132mm}%
+%\vbox{\hbox{
+%\raisebox{-82pt}[0pt][0mm]{\includegraphics[height=28mm]{logotip.eps}}\hspace{11.5mm}\parbox[t]{135mm}%
+{{\vspace*{-3.8mm}}\raggedright {}
+\vspace*{2mm}
+%\frontmatter@title@produce
+\@author@finish \ifnum\theaffil=1
+      {\frontmatter@author@produce@group\vspace{-3pt}}
+      \else
+      {\frontmatter@author@produce@script}
+      \fi
+\vspace{1mm} \frontmatter@title@produce
+%\frontmatter@abstract@produce
+} } {\scriptsize\vspace{-6pt}
+\if\flagpacs\noindent{\udkpacs~\udkpacsnum}\\[-12pt]
+\else \noindent\\\fi \if\flagcopyright{\bf\copyright\year} \else
+{}\fi \vspace{-1.0mm} }
+\par
+\hbox{\rule{\textwidth}{0.5pt}}\vspace{7mm} }
+   \hbox{\hspace{34.6mm}\parbox[b]{132mm}
+   {\phantom{}
+   \frontmatter@abstract@produce
+\vspace{-5.5pt}
+   \@keywords@produce\@keywords
+   }}
+\vspace{3.0mm} } \else{
+\def\frontmatter@title@above{\vspace*{5mm}}
+\def\frontmatter@title@format{\large\bf}
+\centering\frontmatter@title@produce \vspace{7mm} } \fi
+\twocolumngrid
+\blfootnote{\hspace*{-0.3cm}\parbox[b]{8cm}{\raggedright
+\leftmargini0.42cm
+\begin{itemize}
+\parskip-1.0cm
+\item[\copyright]
+\@avtorcol\vspace*{-1.5mm}
+\end{itemize}
+}}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Running heads
+\def\autorcol#1{\def\@autorcol{#1}}
+
+\newcommand{\@evenhead}%
+{\raisebox{0pt}[\headheight][0pt]%
+{\vbox{\hbox to\textwidth{%
+\strut\scriptsize\it\@autorcol\strut\hfil}\kern-0pt\hrule height 0.5pt}}%
+}
+\newcommand{\@oddhead}%
+{\raisebox{0pt}[\headheight][0pt]%
+{\vbox{\hbox to\textwidth{%
+\hfil\strut\scriptsize\it\@shorttitle}\hrule height 0.5pt}}%
+}
+\newcommand{\@evenfoot}
+{\small{\large\bf\thepage} \hfil\it}
+\newcommand{\@oddfoot}
+{{\small\it}%
+\hfil \large\bf\thepage}
+
+%\renewcommand{\sectionmark}[1]{\markright%пробел после номера в колонтитуле
+%{\thesection.\hspace{1.0mm}#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sections
+\renewcommand\section{\@startsection{section}{1}{0pt}%
+                                    {-2.5ex \@plus -1ex \@minus -.2ex}%
+                                    {1.5mm
+                                    %\@plus.2ex
+                                    }%
+                                    {\raggedright\normalfont\normalsize\bfseries}}
+
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                      {-2.25ex\@plus -1ex \@minus -.2ex}%
+                                      {1.5mm}%
+                                      {\raggedright\normalfont\normalsize\bfseries\itshape}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                      {2mm}%
+                                      {\normalfont\footnotesize\bfseries}}
+
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                     {3.25ex \@plus1ex \@minus.2ex}%
+                                     {-1em}%
+                                     {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                        {3.25ex \@plus1ex \@minus .2ex}%
+                                        {-1em}%
+                                       {\normalfont\normalsize\bfseries}}
+\renewcommand\thesection{\@arabic\c@section{}}%{\@arabic\c@section{.}}
+\renewcommand\thesubsection{\thesection.\@arabic\c@subsection{}}
+
+%\def\@startsection#1#2#3#4#5#6{%
+%  \@startsection@hook
+%  \if@noskipsec \leavevmode \fi
+%  \par
+%  \@tempskipa #4\relax
+%  \@afterindenttrue
+%  \ifdim \@tempskipa <\z@
+%    \@tempskipa -\@tempskipa \@afterindentfalse
+%  \fi
+%  \if@nobreak
+%    \everypar{}%
+%  \else
+%    \addpenalty\@secpenalty\addvspace\@tempskipa
+%  \fi
+%  \@ifstar
+%    {\@ssect{#3}{#4}{#5}{#6}}% this part was replaced from latex.ltx to make the indent-alignment of the section text
+%    {\@dblarg{\@sect{#1}{#2}{#3}{#4}{#5}{#6}}}} % this part was replaced from latex.ltx to make the indent-alignment of the section text
+
+\def\@seccntformat#1{\csname the#1\endcsname.\hspace*{1mm}}%smaller indent between the number and the text
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+\RequirePackage{natbib}
+\bibpunct{[}{]}{,\!}{n}{,}{,}
+\renewcommand{\bibnumfmt}[1]{#1.}
+\renewcommand{\bibfont}{\footnotesize}
+%\setlength\bibsep{3pt plus 1pt minus 1pt}
+\setlength\bibsep{0pt plus 0pt minus 0pt}
+\renewcommand{\bibsection}{\par\vspace{12pt}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%figures and tables
+\long\def\@makecaption#1#2{%
+  \par
+  \vskip\abovecaptionskip
+  \begingroup
+   \small\rmfamily
+   \sbox\@tempboxa{%
+    \let\\\heading@cr
+    #1 #2%
+   }%
+%   \@ifdim{\wd\@tempboxa >\hsize}{% when the table caption fills only one row, it remains to be flushed
+    \begingroup
+     \samepage
+     \flushing
+     \let\footnote\@footnotemark@gobble
+     #1 #2\par
+    \endgroup
+%   }%{%
+%     \global \@minipagefalse
+%     \hb@xt@\hsize{\hfil\unhbox\@tempboxa\hfil}%
+%   }%
+  \endgroup
+  \vskip\belowcaptionskip
+}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\skip\footins 12pt plus 4pt minus 2pt %39pt plus 4pt minus 2pt
+\def\footnoterule{\kern0pt\hrule width2cm\kern6.6pt\relax}%
+
+\makeatletter
+\def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
+\makeatother

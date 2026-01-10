@@ -1,0 +1,31 @@
+% ``tightenum'' enviornoment
+\newcounter{bean}
+\newenvironment{tightenum}%
+{
+\begin{list}%
+{\arabic{bean}.}{\usecounter{bean}
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1.5em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+}
+}%
+{ \end{list}}
+
+\newcounter{beanmarg}
+\newenvironment{tightenummarg}%
+{
+\begin{list}%
+{\arabic{beanmarg}.}{\usecounter{beanmarg}
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\rightmargin}{1.5in}
+}
+}%
+{ \end{list}}
+

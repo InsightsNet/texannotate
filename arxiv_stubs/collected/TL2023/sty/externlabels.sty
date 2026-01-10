@@ -1,0 +1,200 @@
+%%% EXTERNLABELS.STY %%%
+%
+% This style file creates several commands to use labels from other
+% latex files in the current document.
+% The command
+%
+% \externlabels{filename}
+%
+% will take out all the labels in filename.aux so that they can be used in
+% the current document just as though they had been created in that
+% document.  It is preferable not to include the .tex extension on the
+% filename.  If it is included AND there is a period anywhere else in the
+% name before the extension (due say to a relative pathname) \externlabels
+% will fail.
+%
+% To use the references, the commands \ref and \pageref could be used, but
+% it is preferable to use the following \externalref command (also defined in
+% this style package) because 1) it shows the labels are from other documents
+% and  2) it makes the reference suitable for use by latex2html.
+%                                                                          
+% \externalref[opt]{label}
+%
+% should be used where the optional parameter opt can be any of the
+% following:
+%
+% \externalref{label}           -->    does a \ref{label} in the latex  file
+% \externalref[ref]{label}      -->    does a \ref{label} in the latex file
+% \externalref[page]{label}     -->    does a \pageref{label} in the latex file
+% \externalref[pageref]{label}  -->    does a \pageref{label} in the latex file
+% \externalref[no]{label}       -->    no output in the latex file 
+% \externalref[noref]{label}    -->    no output in the latex file
+% \externalref[external]{label} -->    prints the label in the latex file
+%
+% The name of \externalref has been chosen to mirror the latex2html command
+% of the same name, which, provided the LATEX2HTML command \externallabels
+% (note the difference with \externlabels above) has been put in the
+% current document, will place hyperlinks to the other documents when the
+% HTML docs are created. (It is for this reason \externalref[no/noref] are
+% defined, because latex2html can use them.) The latex2html commands
+% \externalref and \externallabels are defined in html.sty, so if that
+% package is being used, then externlabels.sty must be included AFTER that
+% package, otherwise \externalref will produce no output in the dvi file.
+% (i.e. in html.sty \externalref is essentially what this package now
+% defines \externalref[no].  Ultimately it would be desirable if
+% \externalref were redefined in the html.sty package to be what it is
+% defined here to be (if this revision is considered desirable.)  Note
+% that externlabels.sty will be completely ignored by latex2html.
+%
+% As a final note, the latex2html command \externallabels{}{} could be
+% redefined to have an optional argument which would be filename as above
+% which would cause \externallabels[filename]{ ... }{ ... } to behave like
+% \externlabels{filename} in latex.  This redefinition is found at the end of
+% the file and commented out because the latex2html file html.perl would have
+% to first be modified to handle (i.e. ignore) this optional argument. 
+%  
+% SOURCE
+% This was written by Robert Petry on March 8, 2000 with limited
+% knowledge of the TeXnology, so my apologies for the awkwardness. It
+% should be revamped by someone who knows what they are doing!
+% The code to define \externalref is essentially the same as that found in
+% html.sty package included with latex2html to define \hyperref with a few
+% of the arguments removed.
+%
+%%% 
+%
+% The following (pseudo)command tells latex2html to ignore these
+% definitions.  This is currently unnecessary since latex2html typically
+% ignores style files for which it has no perl implementation, but we
+% put this just to be safe.
+%begin{latexonly}
+%
+% \externlabels code:
+%
+% This creates the command stripextension which takes the filename as
+% either file or file.tex and returns file.  Note however it will get
+% confused if there is more than one period in the name.
+\def\basestripextension #1.#2\par{#1}
+\def\stripextension#1{\basestripextension #1.tex\par}
+%
+% Create a command \ifneof to test when one is NOT at an end of file.
+% There should be an easier way of doing this but it wasn't obvious.
+\newif\ifneofflag
+\def\ifneof#1{\ifeof#1 \neofflagfalse \else \neofflagtrue \fi \ifneofflag}
+%
+% Next make a copy of the \newlabel command so that we can redefine
+% \newlabel to a \dummyfunc function which just produces a \%.  This will
+% allow for testing which lines are \newlabel lines in the .aux file since when
+% \newlabel is defined as \dummyfunc, it will make \newlabel{...}{...}  appear
+% as a \% which can be easily checked.  Note that \% cannot exist normally in
+% an .aux file since it produces output and would flag an error.
+% Any \%'s will be selected to be executed, but we'll redefine \newlabel back
+% to its real definition first so that the labels get executed.  As a final
+% note we actually have to check for "\% " because the space gets added
+% due to the carriage return at the end of each line in the aux file.
+% We define \dummyfunccontents to be the command "\% ".
+\let\copynewlabel=\newlabel
+\def\dummyfunc#1#2{\%}
+\def\dummyfunccontents{\% }
+%
+% Now the actual command itself.
+\def\externlabels#1{
+\begingroup 
+% Modify the use of the @ symbol so that it won't mess up our program
+% when we read in commands which include that symbol which Latex doesn't
+% like.
+\makeatletter
+\let\newlabel=\dummyfunc
+% First try opening the file putting on the extension.
+\openin0=#1.aux
+% If this failed, try opening the file stripping off the extension.
+\ifeof0
+\openin0=\stripextension{#1}.aux
+\fi
+% File not found warning if not found.
+\ifeof0
+  \message{------------------------------------------------------------}
+  \message{Externlabels Warning: Auxilliary file of #1 not found.      }
+  \message{If you are using a complicated filename with periods in it, }
+  \message{don't use a filename extension in the externlabels command. }
+  \message{Also make sure that #1 has been latex'd. External references}
+  \message{to #1 will not be included in this pass.                    }
+  \message{------------------------------------------------------------}
+\fi
+%
+\loop
+  \ifneof0
+    \read0 to\inline
+    % Now get the line's value.  If it's a \label it becomes "\% "
+    \edef\inlinecontents{\inline}
+    % If it's a "\% " (i.e. a label) put \newlabel back and execute it.
+    \ifx\inlinecontents\dummyfunccontents
+      \let\newlabel=\copynewlabel
+      \inline
+      \let\newlabel=\dummyfunc
+    \fi
+\repeat
+%
+\closein0
+\let\newlabel=\copynewlabel
+% Return @ symbol.
+\makeatother
+\endgroup
+}
+%
+% \externref code taken almost entirely from \hyperref definition
+% in html.sty
+%
+% avoid possible confict with previous definition
+\ifx\undefined\externalref
+ \newcommand{\externalrefexternal}[1]{#1}
+ \def\next{\newcommand}
+\else
+ \let\externalrefexternal\externalref
+ \def\next{\renewcommand}
+\fi
+\next{\externalref}{\externalrefi[]}\let\next=\relax
+
+\def\externalrefi[#1]{{\def\next{#1}\def\tmp{}
+ \ifx\next\tmp\aftergroup\externalrefdef
+ \else\def\tmp{ref}\ifx\next\tmp\aftergroup\externalrefref
+ \else\def\tmp{pageref}\ifx\next\tmp\aftergroup\externalrefpageref
+ \else\def\tmp{page}\ifx\next\tmp\aftergroup\externalrefpage
+ \else\def\tmp{noref}\ifx\next\tmp\aftergroup\externalrefnoref
+ \else\def\tmp{no}\ifx\next\tmp\aftergroup\externalrefno
+ \else\def\tmp{external}\ifx\next\tmp\aftergroup\externalrefexternal
+ \else\typeout{*** unknown option \next\space to  externalref ***}
+ \fi\fi\fi\fi\fi\fi\fi}}
+\newcommand{\externalrefdef}[1]{\ref{#1}}
+\newcommand{\externalrefpageref}[1]{\pageref{#1}}
+\newcommand{\externalrefnoref}[1]{}
+\let\externalrefref=\externalrefdef
+\let\externalrefpage=\externalrefpageref
+\let\externalrefno=\externalrefnoref
+\ifx\undefined\externalrefexternal\newcommand{\externalrefexternal}[1]{#1}\fi
+\let\externalrefhtml=\externalrefdef
+\renewcommand{\externalref}[1][]{\externalrefi[#1]}
+
+% \externallabels code
+%
+% The following lines of tex redefine the \externallabels command
+% contained in the html.sty package of latex2html to have an optional
+% first argument which is the location of external labels to be
+% inserted in the latex document.  It just passes the option through
+% \externlabels above so see that for details.  Currently the
+% redefinition is commented out because html.perl in the latex2html package
+% must be modified so that it ignores this latexonly optional argument
+% properly. Hence don't use this command yet. If this command is
+% implemented remember to change the warning above from externlabels to
+% externallabels.
+%
+%\ifx\undefined\externallabels
+% \def\next{\newcommand}
+%\else
+% \def\next{\renewcommand}
+%\fi
+%\next{\externallabels}[3][]{\externlabels{#1}}
+%\let\next=\relax
+
+% The following is a pseudo command for latex2html - leave it in.
+%end{latexonly}

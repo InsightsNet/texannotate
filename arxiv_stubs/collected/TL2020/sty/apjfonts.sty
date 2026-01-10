@@ -1,14 +1,26 @@
-% Wed Dec  4 20:36:44 1996
-% Alexey Vikhlinin <alexey@head-cfa.harvard.edu>
-% Maxim Markevitch <maxim@head-cfa.harvard.edu>
-% This is a style file to use Times fonts for text and math, using CM versions
-% for greek letters and math symbols. Works for both LaTeX2e and older LaTeX
-% 2.09. 
-% 
-% Report any bugs or problems to alexey@head-cfa.harvard.edu
-%
-%  Nov 4 2003:  \AA was broken because of redefinition of \r
-%
+%% This is apjfonts.sty, version Jul 21 1999
+%%
+%% This is a style file to switch to Times fonts for text and math, while
+%% using CM versions for greek letters and math symbols. Works for LaTeX 2e
+%% and 2.09.  
+%% 
+%% (Based in part on timesmat.sty, whose authors are unknown to us, and Alan
+%% Jeffrey's mathptm.sty)
+%% 
+%% 21.07.99  AV    Removed \let\r\relax in the 2e mode as it broke \AA
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Copyright 1996-1999 Alexey Vikhlinin and Maxim Markevitch.
+%%
+%% This program can be redistributed and/or modified under the terms
+%% of the LaTeX Project Public License available from CTAN archives in
+%% directory macros/latex/base/lppl.txt. This means you are free to use and
+%% distribute this package; however, if you modify anything, please change the
+%% file name and remove the author's email addresses.
+%%
+%% Alexey Vikhlinin <alexey@head-cfa.harvard.edu>
+%% Maxim Markevitch <maxim@head-cfa.harvard.edu>
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \@ifundefined{documentclass}{
@@ -196,9 +208,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{apjfonts}[\filedate{} Times + math package]
 
-\let\rold\r
-\def\AA{\rold A}
-\RequirePackage[T1]{fontenc} \let\r\relax
+\RequirePackage[T1]{fontenc} %%% \let\r\relax -- THIS BROKE \AA
 
 \DeclareOption{onecolumn}{
 \relax   % this style is often used as \usepackage{emulateapj,timesfonts}
@@ -249,7 +259,7 @@
 \thickmuskip=4mu plus 1.5mu minus 1mu
 
 % \everydisplay {\thinmuskip=2mu \medmuskip=2.5mu plus 1mu minus 1mu%
-%       \thickmuskip=4mu plus 1.5mu minus 1mu}
+% 	\thickmuskip=4mu plus 1.5mu minus 1mu}
 % \thinmuskip=2mu 
 % \medmuskip=2mu  minus 1mu
 % \thickmuskip=2mu  minus 1mu
@@ -351,7 +361,7 @@
 \DeclareMathAccent{\dot}    {\mathalpha}{cmitoperators}{'137}
 \DeclareMathAccent{\grave}  {\mathalpha}{cmoperators}{'022}
 \DeclareMathAccent{\hat}    {\mathalpha}{cmoperators}{'136}
-\DeclareMathAccent{\tild}   {\mathalpha}{cmoperators}{'176}
+\DeclareMathAccent{\tilde}   {\mathalpha}{cmoperators}{'176}
 \DeclareMathAccent{\vec}    {\mathord}  {cmletters}  {"7E}
 
 \DeclareMathSymbol{\barbar}    {\mathalpha}{cmoperators}{'026}

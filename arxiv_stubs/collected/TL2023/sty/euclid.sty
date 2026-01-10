@@ -1,0 +1,233 @@
+%------------------------------------------------------------------------------
+% Style file for Euclid mission publications
+%
+% based in part on the Planck style file that was
+% generously provided to us by C.R. Lawrence
+%
+% Usage:  after specifying the \documentclass command in the La\TeX\ input file,
+%         add this command:  \usepackage{euclid}
+%
+% Please send questions/comments to:
+% Thomas Erben (terben@astro.uni-bonn.de)
+%------------------------------------------------------------------------------
+
+\ProvidesPackage{euclid}[2022/04/26 Version 2.1 Euclid publication package]
+\NeedsTeXFormat{LaTeX2e}
+
+% packages that we always need/want:
+
+% AMS mathematical packages:
+\RequirePackage{amsmath,amssymb}
+% Units
+\RequirePackage{siunitx}
+% correct spaces after 'newcommand' definitions
+\RequirePackage{xspace}
+
+%-----------------------------------------------------------------------
+% Deinitions for the correct spelling of space missions
+%-----------------------------------------------------------------------
+\newcommand*{\Euclid}{\textit{Euclid}\xspace}
+\newcommand*{\Planck}{\textit{Planck}\xspace}
+\newcommand*{\Herschel}{\textit{Herschel}\xspace}
+\newcommand*{\Fermi}{\textit{Fermi}\xspace}
+\newcommand*{\Chandra}{\textit{Chandra}\xspace}
+\newcommand*\XMMN{XMM-\textit{Newton}\xspace}
+\newcommand*{\WMAP}{\textit{Wilkinson} Microwave Anisotropy Probe\xspace}
+\newcommand*{\Spitzer}{\textit{Spitzer} Space Telescope\xspace}
+\newcommand*{\HST}{\textit{Hubble} Space Telescope\xspace}
+
+%-----------------------------------------------------------------------
+% Deinitions/shortcuts for mathematical and physical symbols/operators
+% I just transfered them from Peters original Euclid.tex file
+%-----------------------------------------------------------------------
+\DeclareMathOperator{\logten}{log_{10}}
+\newcommand*{\Ltwo}{\ensuremath{L_2}}
+\newcommand*{\inv}{\ensuremath{^{-1}}}
+\newcommand*{\superscr}[1]{\ensuremath{^{\rm #1}}}
+\newcommand*{\expo}[1]{\ensuremath{\times 10^{#1}}}
+\newcommand*{\diff}{\ensuremath{{\rm d}}}
+
+% The following two newcommands finally define the command 'simprop'
+% for a \propto with a \sim underneath. It is from stackoverflow
+% (https://tex.stackexchange.com/questions/33538/how-to-get-an-approximately-proportional-to-symbol)
+% The definition makes sure that the symbol can also be used correctly in
+% sub- and superscripts:
+\newcommand{\simpropinn}[2]{\mathrel{\vcenter{
+  \offinterlineskip\halign{\hfil$##$\cr
+    #1\propto\cr\noalign{\kern2pt}#1\sim\cr\noalign{\kern-2pt}}}}}
+\newcommand{\simprop}{\mathpalette\simpropinn\relax}
+
+% Definition of small fonts, to be used for Capitals in sub-/superscrips:
+\newcommand{\sfont}[1]{{\scriptscriptstyle\rm #1}}
+
+% Definition of Euclid photometric bands:
+\newcommand{\IE}{\ensuremath{I_\sfont{E}}}
+\newcommand{\YE}{\ensuremath{Y_\sfont{E}}}
+\newcommand{\JE}{\ensuremath{J_\sfont{E}}}
+\newcommand{\HE}{\ensuremath{H_\sfont{E}}}
+
+
+%-----------------------------------------------------------------------
+% Definitions for mathematical expressions in parenthese/brackets ..
+% of correct size
+%-----------------------------------------------------------------------
+% parentheses
+\newcommand*{\paren}[1]{\left( #1 \right)}
+% brackets
+\newcommand*{\brackets}[1]{\left[ #1 \right]}
+% curly braces
+\newcommand*{\curly}[1]{\left\{ #1 \right\}}
+% averages
+\newcommand*{\ave}[1]{\left\langle #1 \right\rangle}
+% absolute values
+\newcommand*{\abs}[1]{\left| #1 \right|}
+% within Euclid we want vectors to be printed in mathbold:
+\renewcommand*\vec[1]{\ensuremath{\boldsymbol{#1}}}
+%\newcommand*\tens[1]{\ensuremath{\mathsf{#1}}}
+\renewcommand*\tens[1]{\ensuremath{\mathsf{#1}}}
+
+%----------------------------------------------------------------------
+% Definitions for units with siunitx
+%----------------------------------------------------------------------
+%
+% some more base units which are not defined within siunitx but wich
+% are very common in astronomy:
+\DeclareSIUnit \century{century}
+\DeclareSIUnit \parsec{pc}
+\DeclareSIUnit \year{yr}
+\DeclareSIUnit \steradian{sr}
+%
+% small 'h' Hubble constant - we define it for siunitx so that it
+% can be used easily 'as a unit':
+% solar-mass as unit
+\DeclareSIUnit \solarmass{\text{\ensuremath{{M}_{\odot}}}}
+% solar-luminosity as unit
+\DeclareSIUnit \solarluminosity{\text{\ensuremath{{L}_{\odot}}}}
+\DeclareSIUnit \h{\ensuremath{\mathnormal{h}}}
+\DeclareSIUnit \hubble{\h}
+% Definition for h_{70} Hubble constant
+\DeclareSIUnit \hseventy{\ensuremath{\mathnormal{h_{70}}}}
+% shortcut for h^{-1} Mega parsec
+\DeclareSIUnit \hMpc{\per\h\mega\parsec}
+% shortcut for micrometer
+\DeclareSIUnit \micron{\micro\meter}
+% shortcut for kilometers per second
+\DeclareSIUnit \kms{\kilo\meter\per\second}
+% shortcut for kilometers per second per Mega Parsec
+\DeclareSIUnit \kmsMpc{\kilo\meter\per\second\per\mega\parsec}
+
+% newcommand to typeset Ra-values in hours, minutes and seconds
+% (angles in degrees, minutes and seconds can be done with the
+% ang-command)
+\newcommand*{\ra}[2][]{{% extra pair of braces to keep the \defintion local!
+    \def\SIUnitSymbolDegree{\textsuperscript{h}}%
+    \def\SIUnitSymbolArcminute{\textsuperscript{m}}%
+    \def\SIUnitSymbolArcsecond{\textsuperscript{s}}%
+    \ang[#1]{#2}}%
+}
+% Euclid convention to print angle symbol over the decimal
+% point:
+\sisetup{angle-symbol-over-decimal}
+\sisetup{arc-separator = \,}
+% Euclid convention to print errors with a +/- sign:
+\sisetup{separate-uncertainty = true}
+% to print ranges of numbers with a dash
+\sisetup{range-phrase= ~\textendash~}
+
+%----------------------------------------------------------------------
+% Intuitive abbreviations for often used LaTeX-commands
+%----------------------------------------------------------------------
+%
+\newcommand*{\bea}{\begin{align}}
+\newcommand*{\eea}{\end{align}}
+\newcommand*{\be}{\begin{equation}}
+\newcommand*{\ee}{\end{equation}}
+\newcommand*{\bc}{\begin{center}}
+\newcommand*{\ec}{\end{center}}
+\newcommand*{\bfig}{\begin{figure}}
+\newcommand*{\bfigs}{\begin{figure}\sidecaption}
+\newcommand*{\efig}{\end{figure}}
+\newcommand*{\btable}{\begin{table}}
+\newcommand*{\etable}{\end{table}}
+\newcommand*{\bi}{\begin{itemize}}
+\newcommand*{\ei}{\end{itemize}}
+\newcommand*{\ben}{\begin{enumerate}}
+\newcommand*{\een}{\end{enumerate}}
+\newcommand*{\bd}{\begin{description}}
+\newcommand*{\ed}{\end{description}}
+
+%----------------------------------------------------------------------
+% Convenience abbreviations for manual unit typesetting
+% These abbreviations can be used by people who do not want
+% to use siunitx to typeset units
+%----------------------------------------------------------------------
+%
+\newcommand*{\degree}{\si{\degree}}
+\newcommand*{\arcminute}{\si{\arcminute}}
+\newcommand*{\arcsecond}{\si{\arcsecond}}
+\newcommand*{\GHz}{\si{\giga\hertz}}
+\newcommand*{\hMpc}{\si{\hMpc}}
+\newcommand*{\kms}{\si{\kilo\meter\per\second}}
+\newcommand*{\kmsMpc}{\si{\kmsMpc}}
+\newcommand*{\mHz}{\si{\mega\hertz}}
+\newcommand*{\micron}{\si{\micro\meter}}
+
+% ------------------------------------------------------------
+% Macros for acknowledgement texts
+%
+\newcommand*{\AckInstitutions}{a number of agencies and
+  institutes that have supported the development of \Euclid, in
+  particular the Academy of Finland, the Agenzia Spaziale
+  Italiana, the Belgian Science Policy, the Canadian Euclid
+  Consortium, the French Centre National d'Etudes Spatiales, the
+  Deutsches Zentrum f\"ur Luft- und Raumfahrt, the Danish Space
+  Research Institute, the Funda\c{c}\~{a}o para a Ci\^{e}ncia e a
+  Tecnologia, the Ministerio de Ciencia e
+  Innovaci\'{o}n, the National Aeronautics and Space
+  Administration, the National Astronomical Observatory of Japan,
+  the Netherlandse Onderzoekschool Voor Astronomie, the Norwegian
+  Space Agency, the Romanian Space Agency, the State Secretariat
+  for Education, Research and Innovation (SERI) at the Swiss
+  Space Office (SSO), and the United Kingdom Space Agency. A
+  complete and detailed list is available on the \Euclid\ web site
+  (\texttt{http://www.euclid-ec.org}).\xspace}
+\newcommand{\AckEC}{The Euclid Consortium acknowledges the European
+  Space Agency and \AckInstitutions}
+\newcommand{\AckECon}{The authors acknowledge the Euclid Consortium,
+  the European Space Agency, and \AckInstitutions}
+\newcommand{\AckECol}{The authors acknowledge the Euclid
+  Collaboration, the European Space Agency, and \AckInstitutions}
+
+
+\makeatletter
+\renewcommand*\maketitle{%
+  \thispagestyle{firstpage}
+\begingroup
+    \if@wideboxfn
+    \setlength\bibindent{1.4\parindent}
+    \else
+    \setlength\bibindent{\parindent}
+    \fi
+    \renewcommand*\thefootnote{\@fnsymbol\c@footnote}%
+    \renewcommand\@makefntext[1]{%
+    \ifaa@longfn\hsize\textwidth\fi
+    \noindent
+    \hb@xt@\bibindent{\hss\@makefnmark\enspace}##1}
+  \ifaa@twocolumn
+  \begingroup
+  \begin{aa@strip}
+    \nolinenumbers
+          \aa@maketitle
+    \end{aa@strip}
+    \@thanks
+  \endgroup
+  \else
+    \begingroup
+      \let\thanks\footnote
+      \aa@maketitle
+    \endgroup
+  \fi
+\endgroup
+  \setcounter{footnote}{0}%
+}
+\makeatother

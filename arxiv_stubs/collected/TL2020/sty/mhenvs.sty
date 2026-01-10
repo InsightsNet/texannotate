@@ -1,0 +1,72 @@
+\ProvidesPackage{mhenvs}
+\RequirePackage{ntheorem}
+\RequirePackage{ifthen}
+
+\def\@begintheorem#1#2{\it \trivlist \item[\hskip \labelsep{\bf #1\ #2.}]}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{corollary}[lemma]{Corollary}
+{\theorembodyfont{\rmfamily}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{notation}[lemma]{Notation}
+\newtheorem{remark}[lemma]{Remark}}
+
+\newcommand\prop[1]{Proposition~\ref{#1}}
+\newcommand\lem[1]{Lemma~\ref{#1}}
+\newcommand\theo[1]{Theorem~\ref{#1}}
+\newcommand\cor[1]{Corollary~\ref{#1}}
+\newcommand\sect[1]{Section~\ref{#1}}
+\newcommand\app[1]{Appendix~\ref{#1}}
+\newcommand\rem[1]{Remark~\ref{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%
+%  Squares
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\sqr#1#2{%
+	\fboxsep0pt%
+	\fboxrule#2pt%
+	\fbox{\hbox to #1pt{\hss\vbox to #1pt{\vss}}}}
+\def\qed{\unskip\nobreak\hfil\penalty50\hskip0.3em\hbox{}\nobreak
+      \hfil\sqr{5.5}{0.2}\parfillskip=\z@ \finalhyphendemerits=0 \par}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+%
+%  Proof & Remarks
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{proof}[1][ ]{\ifthenelse{\equal{#1}{ }}{\def\MH@pfName{.}}{\def\MH@pfName{ #1.}}%
+	\trivlist\item[\hskip\labelsep{\it Proof\MH@pfName}]\ignorespaces}%
+	{\phantom{a}\nobreak\qed\endtrivlist}
+
+\newenvironment{likerem}[1][Remark.]{
+	\trivlist\item[\hskip\labelsep{\bf #1}]\ignorespaces}%
+	{\endtrivlist}
+
+\newenvironment{mylist}{\list{\labelitemi}{\leftmargin=\parindent \parsep=0.3em \topsep=0.2em \labelwidth=1em \itemsep=0pt}}{\endlist}
+
+\newenvironment{claim}[1][MM]
+               {\list{$\bullet$}{%
+  \setbox\@tempboxa\hbox{#1}\@tempdima\wd\@tempboxa%
+  \setlength{\labelwidth}{\@tempdima}
+ \advance\@tempdima by 1em%
+  \setlength{\leftmargin}{\@tempdima}
+  \setlength{\parsep}{1mm}\setlength{\itemindent}{0mm}%
+  \setlength{\labelsep}{2mm}\setlength{\itemsep}{0mm}%
+  \setlength{\topsep}{1mm}%
+}}
+               {\endlist}
+\newenvironment{hypo}[1]
+               {\list{{\bf H{#1}.}}{\setlength{\rightmargin}{0mm}}%
+                \item\relax}
+               {\endlist}
+\newenvironment{assum}[1]
+               {\list{{\bf A{#1}.}}{\setlength{\rightmargin}{0mm}}%
+                \item\relax}
+               {\endlist}
+\newenvironment{myitem}[1]
+               {\list{#1}{\rightmargin\leftmargin}%
+                \item\relax}
+               {\endlist}
+\newcommand\hyp[1]{{\bf H#1}}
+\newcommand\ass[1]{{\bf A#1}}

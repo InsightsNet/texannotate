@@ -1,0 +1,319 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% mhequ.sty v1.62, Copyright 2005 by Martin Hairer
+%   This package is public domain. You are strongly encouraged to
+%   use it and to widespread it.
+%
+%   You may download the latest version of this package on my homepage:
+%
+%              http://www.hairersoft.com/LaTeXUtils.html
+%
+% Notes:
+%   Version 1.5 supports the packages "showkeys" (thus the [draft] option is suppressed)
+%   and "hyperref".
+%
+% Options:
+%
+%   [lefttag] : Puts equation numbers to the left side of the page
+%   [righttag]: Puts equation numbers to the right side of the page (default)
+%
+% Syntax:
+%
+%   \begin{equ}[label]
+%
+%	label : if a label is given, the equation is numbered. (default : no label)
+%
+%   \begin{equs}[n][label]
+%
+%	Creates a multiline / multicolumn equation environment.
+%
+%	n : number of columns. (default : 1) You can also choose n=0.
+%	label : if a label is given, the environment is numbered. (one tag for the whole block)
+%     The order of [n] and [label] is irrelevant.
+%
+%	If no label is given, one can number each line of the block individually by
+%	using the \label command.
+%
+%   In the equs environment, the number of '&' signs per line has to be equal to 
+%	2*n-1 if n>0 and to 0 if n=0. If there are less '&' signs, they are automatically 
+%	appended at the end of the line.
+%
+% Provided commands:
+%
+%   \tag{theTag}     Replaces the number of the current equation by "theTag"
+%
+%   \minilab{label}  If "label" has already been used, switches to the minilab "label".
+%                    If not, creates a new minilab. Inside a minilab, equations are labelled
+%                    (1a), (1b),... instead of (1), (2), etc... You can refer to the number
+%                    of the minilab with \ref.
+%
+%   \setlabtype{style}  Sets the style of the numbering of the minilab. Default is
+%                    \setlabtype{alph}.
+%
+%   \intertext{material} Inserts 'material' between two lines in normal text mode.
+%
+%   \multicol{n}{material} Spans n columns of the equation array with 'material'. It
+%                    has to be placed between two & signs, or at the end or the start
+%                    of the line.
+%
+%   \text{material} Creates a \hbox containing 'material'.
+%
+% Warnings:
+%
+%   If you use the \tag command, a quite large number of runs may be needed in
+%   order to get the desired output.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mhequ}
+\DeclareOption{righttag}{\global\@leftfalse}
+\DeclareOption{lefttag}{\global\@lefttrue}
+\DeclareOption{fleqn}{\global\@flushtrue}
+\DeclareOption{leqno}{\global\@lefttrue}
+
+\newif\if@haslab
+\newif\if@useminilab
+\newcount\@nocols
+\newcount\@nocolstot
+\newif\if@tag
+\newif\if@left
+\newif\if@flush
+\@haslabfalse
+
+
+\ProcessOptions
+
+\def\MH@changecodes{\catcode`\:=12\catcode`\,=12\catcode`\.=12%
+	\catcode`\'=12\catcode`\*=12\catcode`\&=12}
+
+\def\@MHputleft#1{\hb@xt@.01\p@{}\rlap{\hskip-\displaywidth#1\@MHputnumber}} 
+\def\@MHputright#1{\hb@xt@.01\p@{}\llap{#1\@MHputnumber}}
+
+\if@left\let\@MHput@lbl\@MHputleft%
+	\else\let\@MHput@lbl\@MHputright\fi
+
+\def\@MHref#1{\@ifundefined{r@#1}{??}{\@saveref{#1}}}
+%%%%% Computes the length of its argument
+\newcount\@MHLength
+\def\computelength#1{\@MHLength=0 \getlength#1\end}
+\def\getlength#1{\ifx#1\end \let\next=\relax \else \advance\@MHLength by1 \let\next=\getlength \fi \next}
+	
+\def\@makelabel#1{\refstepcounter{equation}\global\def\@mylabel{#1}%
+	\@ifundefined{c@lab@#1}{\newcounter{lab@#1}}{}\setcounter{lab@#1}{0}%
+	\immediate\write\@auxout{\string\@ifundefined{c@lab@#1}{\string\newcounter{lab@#1}}%
+		{}\string\setcounter{lab@#1}{0}}%
+	\global\expandafter\let\expandafter\c@MHCurrentCount\csname c@lab@#1\endcsname%
+	\global\@namedef{MHused@#1}{}%
+	\def\@currentlabel{\theequation}\MHsavelabel{#1}%
+	}
+\def\@uselabel#1{\global\def\@mylabel{#1}
+	\global\expandafter\let\expandafter\c@MHCurrentCount\csname c@lab@#1\endcsname
+	}
+\def\@MHreset{\global\def\@MHeqno{\theequation}\global\@useminilabfalse\global\@haslabfalse}
+\def\@MHbuildlab#1{\@ifundefined{r@#1}%
+	{\global\def\@MHeqno{\theequation\sublabeltype{MHCurrentCount}}}%
+	{\global\def\@MHeqno{\ref{\@mylabel}\sublabeltype{MHCurrentCount}}}%
+	}
+\def\@MHUseLab#1{\@MHbuildlab{#1}\global\@useminilabtrue}
+
+
+\newskip\MHcenter \MHcenter=0pt plus 1000pt minus 1000pt
+\newskip\MHbig \MHbig=1000pt plus 0pt minus 1000pt
+\newskip\@MHlineskip
+\def\openup{\afterassignment\@penup\dimen@=}
+\def\@penup{\advance\lineskip\dimen@
+  \advance\baselineskip\dimen@
+  \advance\lineskiplimit\dimen@}
+\newif\ifdt@p
+\def\displ@y{\global\dt@ptrue\openup\jot\m@th
+  \everycr{\noalign{\ifdt@p \global\dt@pfalse \ifdim\prevdepth>-1000\p@
+      \vskip-\lineskiplimit \vskip\normallineskiplimit \fi
+      \else \vskip\@MHlineskip\penalty\interdisplaylinepenalty \fi}}}
+\def\@lign{\tabskip\z@skip\everycr{}}%% restore inside \displ@y
+\def\displaylines#1{\displ@y \tabskip\z@skip
+  \halign{\hbox to\displaywidth{$\@lign\hfil\displaystyle##\hfil$}\crcr
+    #1\crcr}}
+
+\def\@MHcrl{{\ifnum0=`}\fi\@ifnextchar[{\@MHcrlwith}{\@MHcrlwith[\z@]}}
+\def\@MHcrlwith[#1]{\ifnum0=`{\fi}\MH@dd@nds&\global\@MHlineskip=#1\cr}
+
+\def\@MHcrb{{\ifnum0=`}\fi\@ifnextchar[{\@MHcrbwith}{\@MHcrbwith[\z@]}}
+\def\@MHcrbwith[#1]{\ifnum0=`{\fi}\MH@dd@nds\global\@MHlineskip=#1\cr}
+
+\def\@MHlabel#1{\global\@haslabtrue\global\def\@MHcurrentlabel{#1}}
+
+\def\@MHwritelabel{\def\@currentlabel{\@MHeqno}%
+	\if@left\kern\displaywidth\kern0.2truecm\else\kern0.2cm\fi%
+	\MHsavelabel{\@MHcurrentlabel}%
+	\if@left\kern-\displaywidth\kern-0.2truecm\else\kern-0.2cm\fi}
+
+\def\@MHstep{\if@tag\else\if@useminilab\stepcounter{MHCurrentCount}%
+	\else\refstepcounter{equation}\fi\fi}
+
+\def\@MHputnumber{\if@haslab\@MHstep\if@left\@MHwritelabel\fi%
+        \hbox{\rm(\@MHeqno)}%
+	\if@left\else\@MHwritelabel\fi%
+	\fi\global\@haslabfalse}
+
+\def\@saveMHComms{\@restoretag\let\MHsavecr=\\\let\\=\@MHcr\let\@saveref=\ref\let\ref=\@MHref%
+	\let\MHsavelabel=\label\let\label=\@MHlabel\let\@MHsavemult\multicol%
+	\let\multicol\@MHspan\let\@MHsavetext\text\let\text\hbox\let\@MHsaveequation\theequation\let\theequation\@MHequation}
+\def\@restoreMHComms{\let\\=\MHsavecr\let\label=\MHsavelabel\@MHreset\let\ref=\@saveref%
+	\let\multicol\@MHsavemult\let\text\@MHsavetext\let\theequation\@MHsaveequation\global\def\@MHequation{\@MHsaveequation}}
+
+
+
+\def\@minilab#1{\let\MHsavelabel=\label%
+	\@MHUseLab{#1}\@ifundefined{MHused@#1}%
+	{\@makelabel{#1}}{\@uselabel{#1}}%
+	\let\label=\MHsavelabel\egroup\global\@ignoretrue}
+\def\minilab{\bgroup\MH@changecodes\@minilab}
+\def\@MHequation{\@MHsaveequation}
+
+
+
+%% Preamble commands
+\def\MHpre@ne{\MHs@tr@m\hfil$\MH@lign\displaystyle{\MHsh@rp}$\tabskip\z@skip&%
+	\MHdecrt@t$\MH@lign\displaystyle{{}\MHsh@rp}$}
+\def\MHpretw@{\tabskip\z@skip&\hfil\MHdecrt@t$\MH@lign\displaystyle{\MHsh@rp}$%
+	\tabskip\z@skip&\MHdecrt@t$\MH@lign\displaystyle{{}\MHsh@rp}$}
+\def\MHprethr@@{\hfil\tabskip\MHcenter&\tabskip\z@skip\my@MHput{\MHsh@rp}\crcr}
+\def\MHprethr@@notag{\hfil\tabskip\MHcenter\crcr}
+\def\MHd@cr{\global\advance\MHrem@inc@ls by -1}
+
+\def\@MHspan#1#2{\multispan{#1}\ifnum\MHrem@inc@ls<1\global\MHrem@inc@ls=\MHt@tc@ls
+	\global\advance\MHrem@inc@ls by 1\fi%
+	\global\advance\MHrem@inc@ls by -#1%
+	{\hfill$\displaystyle{#2}$\hfill}}
+
+%% Building the preamble
+\newcount\MHC@ls
+\newcount\MHt@tc@ls
+\newcount\MHrem@inc@ls
+\def\MH@ddonecol{\xdef\MHpre@mble{\MHpre@mble\MHpretw@}}
+\def\MH@ddcols{\if\the\MHC@ls1\let\comm\relax\else%
+	\global\advance\MHt@tc@ls by 2%
+	\MH@ddonecol\advance\MHC@ls by -1%
+	\let\comm\MH@ddcols\fi\comm}
+\def\MHm@kepre@mble#1{
+	\if#10
+	\global\MHt@tc@ls=0
+	\xdef\MHpre@mble{\MHs@tr@m\hfil$\MH@lign\displaystyle{\MHsh@rp}$\MHpre@nd}
+	\else
+	\MHC@ls=#1
+	\global\MHt@tc@ls=1
+	\xdef\MHpre@mble{\MHpre@mble\MHpre@ne}
+	\MH@ddcols
+	\xdef\MHpre@mble{\MHpre@mble\MHpre@nd}
+	\fi
+	}
+
+%% Build enough & signs to fill up the box
+\def\MHm@ke@nds{\if\the\MHrem@inc@ls0\let\comm\relax\else%
+	\xdef\MH@nds{\MH@nds &}\global\advance\MHrem@inc@ls by -1%
+	\let\comm\MHm@ke@nds%
+	\fi\comm}
+\def\MH@dd@nds{\def\MH@nds{}\MHm@ke@nds\MH@nds}
+\def\MHr@mto@ne{\global\MHrem@inc@ls=\MHt@tc@ls}
+
+\def\MH@initone{\gdef\MHpre@mble{}
+	\let\MH@restoretag\relax\let\MHsh@rp\relax\let\MH@lign\relax
+	\let\my@MHput\relax\let\MHdecrt@t\relax\let\MHs@tr@m\relax%\let\@MHfill\relax
+	}
+\def\MH@inittwo{\let\MH@restoretag\@restoretag\let\MHsh@rp##\let\MH@lign\@lign
+	\let\my@MHput\@MHput@lbl\let\MHdecrt@t\MHd@cr\let\MHs@tr@m\MHr@mto@ne%\let\@MHfill\my@fill
+	\MHpre@mble
+	}
+
+\def\@newalign#1{\displ@y\tabskip\MHcenter
+	\MH@initone
+	\let\MHpre@nd\MHprethr@@
+	\MHm@kepre@mble{#1}
+	\xdef\MHpre@mble{\halign to\displaywidth\bgroup\MH@restoretag\MHpre@mble}
+	\MH@inittwo
+	}  
+\def\@newbalign#1{\vcenter\bgroup\displ@y\tabskip\MHcenter
+	\MH@initone
+	\let\MHpre@nd\MHprethr@@notag
+	\MHm@kepre@mble{#1}
+	\xdef\MHpre@mble{\halign to\displaywidth\bgroup\MHpre@mble}
+	\MH@inittwo
+	}  
+	    
+
+\def\@begalign[#1]{\global\let\@MHcr\@MHcrl$$\@saveMHComms\@newalign{#1}}
+
+\def\@ealign{\@MHcr\egroup}
+
+\def\@restoretag{\if@tag\global\@tagfalse\global\let\@MHeqno=\@MHsaveno\fi}
+\def\@MHtag#1{%
+	\global\@tagtrue\global\let\@MHsaveno=\@MHeqno%
+	\global\def\@MHeqno{#1}\egroup}
+\def\tag{\bgroup\MH@changecodes\@MHtag}
+
+\def\@equnolabel{\global\@haslabfalse}
+\def\@equlabel[#1]{\label{#1}\global\@haslabtrue}
+
+\def\@ealignb{\@MHcr\egroup\egroup}
+  
+\def\@equbopt[#1]{\computelength{#1}\ifnum\@MHLength=1\@nocols=#1\else
+	\label{#1}\global\@haslabtrue\fi
+	\@ifnextchar[{\@equbopt}{\@equb}}
+\def\@equb{\@newbalign{\the\@nocols}}
+
+%\def\equa{\global\let\@MHcr\@MHcrb%
+%	$$\@saveMHComms\global\@nocols=1%
+%	\@ifnextchar[{\@equbopt}{\@equb}}
+%\def\endequa{\@ealignb\if@haslab\@MHput@lbl{}\fi%
+%	\@restoreMHComms$$\global\@ignoretrue}
+
+\if@flush
+	\def\equ{\@saveMHComms
+	          \@beginparpenalty\predisplaypenalty
+                   \@endparpenalty\postdisplaypenalty
+	\trivlist\item[]\leavevmode
+       \hb@xt@\linewidth\bgroup $\m@th% $
+         \displaystyle
+         \hskip\mathindent\@ifnextchar[\@equlabel\@equnolabel}
+\def\endequ{%
+	$\hfil % $
+         \displaywidth\linewidth\hbox{\@MHputnumber}%
+       \egroup
+     \endtrivlist\@restoreMHComms\global\@ignoretrue}
+\else
+	\def\equ{$$\@saveMHComms\@ifnextchar[\@equlabel\@equnolabel}
+	\def\endequ{%
+		\if@haslab\if@left\leqno\else\eqno\fi{\@MHputnumber}\fi%
+		\@restoreMHComms$$\global\@ignoretrue}
+\fi
+
+%\def\equs{\@ifnextchar[{\@begalign}{\@begalign[1]}}
+%\def\endequs{\@ealign\@restoreMHComms$$\global\@ignoretrue}
+
+
+\newif\if@isequa
+\def\@analyzearg[#1]{\computelength{#1}\ifnum\@MHLength=1\@nocols=#1\else
+	\@MHlabel{#1}\global\@isequatrue\fi%
+	\@ifnextchar[{\@analyzearg}{\if@isequa%
+	\global\let\@MHcr\@MHcrb%
+	$$\@saveMHComms\@equb%
+	\else\@begalign[\the\@nocols]\fi}}
+\def\@endequs{\@ealign\@restoreMHComms$$}
+\def\@endequa{\@ealignb\if@haslab\@MHput@lbl{}\fi%
+	\@restoreMHComms$$}
+\def\equs{\global\@isequafalse\@nocols=1\@ifnextchar[{\@analyzearg}{\@begalign[1]}}
+\def\endequs{\if@isequa\@endequa\else\@endequs\fi\global\@ignoretrue}
+\let\equa\equs
+\let\endequa\endequs
+
+\def\setlabtype#1{\global\expandafter\let\expandafter\sublabeltype\csname #1\endcsname}
+
+\@MHreset
+\let\sublabeltype=\alph
+\def\intertext#1{\noalign{\noindent#1}}
+
+\def\strutdepth{0pt}
+\def\@MHmargin#1{\strut\vadjust{\kern-\strutdepth\@MHspecial{#1}}}
+\def\@MHspecial#1{\vtop to \strutdepth{\baselineskip\strutdepth\vss\llap{#1}\null}}
+
+\let\MHgobble\@gobblecr

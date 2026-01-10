@@ -1,0 +1,86 @@
+%%
+%% This is file `mmathdgm.sty',
+%% -----------------------------------------------------------------
+%% Author:     le-tex publishing services
+%% Maintainer: le-tex publishing services
+%% 
+%% This file is part of the mmathdgm package providing minionmath 
+%% with some chars from the DGMetaSerif and DGMeta fonts.
+%% 
+%%       Copyright (C) 2014 Walter de Gruyter GmbH
+%% -----------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}[2011/06/27]
+\ProvidesPackage{mmathdgm}
+    [2014/08/24 v0.5 Minionmath with DGMeta]
+\DeclareOption*{\PassOptionsToPackage\CurrentOption{minionmath}}
+\ProcessOptions\relax
+\RequirePackage{minionmath}
+\DeclareMathVersion{ss}
+\DeclareMathVersion{ssbold}
+\def\@tempa{minion-oldmath}
+\ifx\M@layout\@tempa
+  \DeclareSymbolFont{operators}       {OT1} {DGMetaSerifScience-TLF}{m}{n}
+  \SetSymbolFont{operators}   {bold}  {OT1} {DGMetaSerifScience-TLF}{b}{n}
+  \SetSymbolFont{operators}   {ss}    {OT1} {DGMetaScience-TLF}     {m}{n}
+  \SetSymbolFont{operators}   {ssbold}{OT1} {DGMetaScience-TLF}     {b}{n}
+  \SetMathAlphabet{\mathrm}   {bold}  {OT1} {DGMetaSerifScience-TLF}{b}{n} %mind! (gives more flexibility)
+  \SetMathAlphabet{\mathrm}   {ss}    {OT1} {DGMetaScience-TLF}     {m}{n} %mind! (gives more flexibility)
+  \SetMathAlphabet{\mathrm}   {ssbold}{OT1} {DGMetaScience-TLF}     {b}{n} %mind! (gives more flexibility)
+  \DeclareMathAlphabet{\mathit}       {OT1} {DGMetaSerifScience-TLF}{m}{it}
+  \SetMathAlphabet{\mathit}   {bold}  {OT1} {DGMetaSerifScience-TLF}{b}{it}
+  \SetMathAlphabet{\mathit}   {ss}    {OT1} {DGMetaScience-TLF}     {m}{it}
+  \SetMathAlphabet{\mathit}   {ssbold}{OT1} {DGMetaScience-TLF}     {b}{it}
+  \DeclareMathAlphabet{\mathbf}       {OT1} {DGMetaSerifScience-TLF}{b}{n}
+  \SetMathAlphabet{\mathbf}   {ss}    {OT1} {DGMetaScience-TLF}     {b}{n} 
+  \SetMathAlphabet{\mathbf}   {ssbold}{OT1} {DGMetaScience-TLF}     {b}{n} 
+  \DeclareMathAlphabet{\mathsf}       {OT1} {DGMetaScience-TLF}     {m}{n}
+  \SetMathAlphabet{\mathsf}   {bold}  {OT1} {DGMetaScience-TLF}     {b}{n}
+  \SetMathAlphabet{\mathsf}   {ssbold}{OT1} {DGMetaScience-TLF}     {b}{n}
+  \DeclareMathAlphabet{\mathtt}       {OT1} {\ttdefault}            {m}{n}
+  \SetMathAlphabet{\mathtt}   {bold}  {OT1} {\ttdefault}            {b}{n}
+  \SetMathAlphabet{\mathtt}   {ssbold}{OT1} {\ttdefault}            {b}{n}
+  \DeclareSymbolFont{letters}         {OML} {mmathdgmserif}         {m}{it}
+  \SetSymbolFont{letters}     {bold}  {OML} {mmathdgmserif}         {b}{it}
+  \SetSymbolFont{letters}     {ss}    {OML} {mmathdgm}              {m}{it}
+  \SetSymbolFont{letters}     {ssbold}{OML} {mmathdgm}              {b}{it}
+  \DeclareMathAlphabet{\mathbold}     {OML} {mmathdgmserif}         {b}{it}
+  \SetMathAlphabet{\mathbold} {ss}    {OML} {mmathdgm}              {b}{it}
+  \SetMathAlphabet{\mathbold} {ssbold}{OML} {mmathdgm}              {b}{it}
+  \SetSymbolFont{symbols}     {ssbold}{OMS} {minionmath}            {b}{n}
+  \SetSymbolFont{largesymbols}{ssbold}{MXP} {minionmath}            {b}{n}
+  \SetSymbolFont{AMSa}        {ssbold}{OMSA}{minionmath}            {b}{n}
+  \SetSymbolFont{AMSb}        {ssbold}{OMSB}{minionmath}            {b}{n}
+\else
+  \DeclareFontEncoding{MC}{}{\noaccents@}
+  \DeclareSymbolFont{operators}       {T1}  {DGMetaSerifScience-TLF}{m}{n}
+  \SetSymbolFont{operators}   {bold}  {T1}  {DGMetaSerifScience-TLF}{b}{n}
+  \SetSymbolFont{operators}   {ss}    {T1}  {DGMetaScience-TLF}     {m}{n}
+  \SetSymbolFont{operators}   {ssbold}{T1}  {DGMetaScience-TLF}     {b}{n}
+  \SetMathAlphabet{\mathrm}   {bold}  {T1}  {DGMetaSerifScience-TLF}{b}{n} %mind! (gives more flexibility)
+  \SetMathAlphabet{\mathrm}   {ss}    {T1}  {DGMetaScience-TLF}     {m}{n} %mind! (gives more flexibility)
+  \SetMathAlphabet{\mathrm}   {ssbold}{T1}  {DGMetaScience-TLF}     {b}{n} %mind! (gives more flexibility)
+  \DeclareMathAlphabet{\mathit}       {T1}  {DGMetaSerifScience-TLF}{m}{it}
+  \SetMathAlphabet{\mathit}   {bold}  {T1}  {DGMetaSerifScience-TLF}{b}{it}
+  \SetMathAlphabet{\mathit}   {ss}    {T1}  {DGMetaScience-TLF}     {m}{it}
+  \SetMathAlphabet{\mathit}   {ssbold}{T1}  {DGMetaScience-TLF}     {b}{it}
+  \DeclareMathAlphabet{\mathbf}       {T1}  {DGMetaSerifScience-TLF}{b}{n}
+  \SetMathAlphabet{\mathbf}   {ss}    {T1}  {DGMetaScience-TLF}     {b}{n} 
+  \SetMathAlphabet{\mathbf}   {ssbold}{T1}  {DGMetaScience-TLF}     {b}{n} 
+  \DeclareMathAlphabet{\mathsf}       {T1}  {DGMetaScience-TLF}     {m}{n}
+  \SetMathAlphabet{\mathsf}   {bold}  {T1}  {DGMetaScience-TLF}     {b}{n}
+  \SetMathAlphabet{\mathsf}   {ssbold}{T1}  {DGMetaScience-TLF}     {b}{n}
+  \DeclareMathAlphabet{\mathtt}       {T1}  {\ttdefault}            {m}{n}
+  \SetMathAlphabet{\mathtt}   {bold}  {T1}  {\ttdefault}            {b}{n}
+  \SetMathAlphabet{\mathtt}   {ssbold}{T1}  {\ttdefault}            {b}{n}
+  \DeclareSymbolFont{symbols}         {MC}  {mmathdgmserif}         {m}{n}
+  \DeclareFontSubstitution            {MC}  {mmathdgmserif}         {m}{n}
+  \SetSymbolFont{symbols}     {bold}  {MC}  {mmathdgmserif}         {b}{n}
+  \SetSymbolFont{symbols}     {ss}    {MC}  {mmathdgm}              {m}{n}
+  \SetSymbolFont{symbols}     {ssbold}{MC}  {mmathdgm}              {b}{n}
+  \DeclareMathAlphabet{\mathbold}     {MC}  {mmathdgmserif}         {b}{it}
+  \SetMathAlphabet{\mathbold} {ss}    {MC}  {mmathdgm}              {b}{it}
+  \SetMathAlphabet{\mathbold} {ssbold}{MC}  {mmathdgm}              {b}{it}
+  \SetSymbolFont{letters}     {ssbold}{MSP} {minionmath-rsfs}       {b}{n}
+  \SetSymbolFont{largesymbols}{ssbold}{MXP} {minionmath}            {b}{\@extshape}
+\fi
+\endinput

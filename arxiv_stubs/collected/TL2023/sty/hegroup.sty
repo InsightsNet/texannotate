@@ -1,0 +1,52 @@
+\usepackage{mathptmx}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{pslatex}
+\usepackage{cite}
+\usepackage[hyphens]{url}
+\urlstyle{tt}
+\usepackage{xcolor}
+\usepackage[pagebackref=true,breaklinks=true,colorlinks,bookmarks=false]{hyperref}
+\hypersetup{
+  colorlinks,
+  linkcolor={blue!70!green},
+  citecolor={green!70!blue},
+  urlcolor={orange!70!red}
+}
+\renewcommand*{\sectionautorefname}{Section}
+\renewcommand*{\subsectionautorefname}{Section}
+
+\usepackage{booktabs}
+\usepackage[labelfont={small,bf},textfont={small,bf}]{caption}
+\captionsetup{compatibility=false}
+\usepackage{subcaption}
+\usepackage{balance}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage
+[
+        a4paper,
+        left=1.5cm,
+        right=1.5cm,
+        top=2.5cm,
+        bottom=2.5cm,
+        columnsep=1cm,
+]
+{geometry}
+
+\let\oldbibliography\thebibliography
+\renewcommand{\thebibliography}[1]{%
+  \oldbibliography{#1}%
+  \setlength{\itemsep}{1pt}%
+}
+
+\usepackage{titlesec}
+\titleformat*{\section}{\large\bfseries}
+\titleformat*{\subsection}{\large\bfseries}
+\titleformat*{\subsubsection}{\large\bfseries}
+\titlespacing*{\section}{0cm}{*3}{0.2cm}
+\titlespacing*{\subsection}{0cm}{*2}{0.15cm}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{titling}
+\settowidth{\thanksmarkwidth}{*}
+\setlength{\thanksmargin}{-\thanksmarkwidth}

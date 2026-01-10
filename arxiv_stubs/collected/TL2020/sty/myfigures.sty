@@ -1,0 +1,1496 @@
+% !TEX root = paper.tex
+
+\newcommand{\myvcenter}[1]{\vcenter{\hbox{#1}}}
+
+%%%
+%%% core
+%%%
+\newcommand{\mytikzcore}[2][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcore{X}{#2} \lleg{X} \rleg{X}
+}}
+
+%%%
+%%% supercore
+%%%
+\newcommand{\mytikzsupercore}[2][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2} \lleg{X} \blegt{X} \rleg{X}
+}}
+
+%%%
+%%% center core
+%%%
+\newcommand{\mytikzcentercore}[4][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcore{Q}{#3}
+\lmat[7.5mm]{L}{Q}{#2} \lleg{L}
+\rmat[7.5mm]{R}{Q}{#4} \rleg{R}
+}}
+
+%%%
+%%% center supercore
+%%%
+\newcommand{\mytikzcentersupercore}[5][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{O1}{#5}           \lleg{O1}
+\rcor[7.5mm]{Q}{O1}{#2} \bleg{Q}
+\rmat[7.5mm]{S}{Q}{#3}
+\rcor[7.5mm]{U}{S}{#4}  \bleg{U}
+\rmat[7.5mm]{O2}{U}{#5} \rleg{O2}
+}}
+
+%%%
+%%% center supercore (thick leg)
+%%%
+\newcommand{\mytikzcentersupercorecombined}[4][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{Q}{#3} \blegt{Q}
+\lmat[7.5mm]{L}{Q}{#2} \lleg{L}
+\rmat[7.5mm]{R}{Q}{#4} \rleg{R}
+}}
+
+% ============================================================================ %
+% === 2. NOTATION ============================================================ %
+% ============================================================================ %
+
+%%%
+%%% notation: scalar
+%%%
+\newcommand{\mytikznotsca}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{a}{#2}
+}}
+
+%%%
+%%% notation: vector
+%%%
+\newcommand{\mytikznotvec}[3][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-2.6mm) rectangle (2.6mm,2.6mm);
+\fmat{v}{#2} \lleg[5.5mm]{v} \brtind{$(v)+(-6mm,2.9mm)$}{#3}
+}}
+
+%%%
+%%% notation: matrix
+%%%
+\newcommand{\mytikznotmat}[4][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-2.6mm) rectangle (5.6mm,2.6mm);
+\fmat{M}{#2}
+\lleg[5.5mm]{M} \brtind{$(M)+(-6.0mm,2.9mm)$}{#3}
+\rleg[5.5mm]{M} \bltind{$(M)+( 6.0mm,2.9mm)$}{#4}
+}}
+
+%%%
+%%% notation: tensor
+%%%
+\newcommand{\mytikznotten}[5][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-5.6mm) rectangle (5.6mm,2.6mm);
+\fcor{T}{#2}
+\lleg[5.5mm]{T} \artind{$(T)+(-6.0mm,0mm)$}{#3}
+\bleg[5.5mm]{T}  \rtind{$(T)+(   0mm,-4.5mm)$}{#4}
+\rleg[5.5mm]{T} \altind{$(T)+( 6.0mm,0mm)$}{#5}
+}}
+
+%%%
+%%% notation: matvec
+%%%
+\newcommand{\mytikznotmatvec}[5][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-2.6mm) rectangle (11.6mm,2.6mm);
+\fmat{M}{#2}         \lleg[5.5mm]{M} \brtind{$(M)+(-6.0mm,2.9mm)$}{#4}
+\rmat[9mm]{v}{M}{#3}                 \btind{$0.5*(M)+0.5*(v)+(0mm,2.9mm)$}{#5}
+}}
+
+%%%
+%%% notation: matmat
+%%%
+\newcommand{\mytikznotmatmat}[6][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-2.6mm) rectangle (14.6mm,2.6mm);
+\fmat{A}{#2}         \lleg[5.5mm]{A} \brtind{$(A)+(-6.0mm,2.9mm)$}{#4}
+\rmat[9mm]{B}{A}{#3}                 \btind{$0.5*(A)+0.5*(B)+(0mm,2.9mm)$}{#5}
+                     \rleg[5.5mm]{B} \altind{$(B)+( 6.0mm,0mm)$}{#6}
+}}
+
+%%%
+%%% notation: tenten super core
+%%%
+\newcommand{\mytikznottentensuper}[5][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-5.65mm) rectangle (6.2mm,2.6mm);
+\fcor{X}{#2}
+\lleg[5.5mm]{X}  \artind{$(X)-(6.0mm,0mm)$}{#3}
+\blegt[5.5mm]{X} \rtind{$(X)+(0mm,-4.5mm)$}{#4}
+\rleg[5.5mm]{X}  \altind{$(X)+(7.0mm,0mm)$}{#5}
+}}
+
+%%%
+%%% notation: tenten
+%%%
+\newcommand{\mytikznottenten}[8][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-5.6mm) rectangle (16.2mm,2.6mm);
+\fcor{X}{#2} \rcor[10mm]{Y}{X}{#3}
+\lleg[5.5mm]{X} \artind{$(X)-(6.0mm,0mm)$}{#4}
+\bleg[5.5mm]{X} \rtind{$(X)+(0mm,-4.5mm)$}{#5}
+                \atind{$0.5*(X)+0.5*(Y)$}{#6}
+\bleg[5.5mm]{Y} \rtind{$(Y)+(0mm,-4.5mm)$}{#7}
+\rleg[5.5mm]{Y} \altind{$(Y)+(7.0mm,0mm)$}{#8}
+}}
+
+%%%
+%%% notation: trace
+%%%
+\newcommand{\mytikznottrace}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{M}{#2} \ringup{M}{M}
+}}
+
+%%%
+%%% notation: vector^T
+%%%
+\newcommand{\mytikznotvectrans}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{v}{#2} \rleg[5mm]{v}
+}}
+
+%%%
+%%% notation: vecM
+%%%
+\newcommand{\mytikznotvecM}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{M}{#2}
+\draw[rounded corners] (M) -- ($(M)+(0mm,5mm)$) -- ($(M)+(-3mm,5mm)$);
+\draw[rounded corners] (M) -- ($(M)-(0mm,5mm)$) -- ($(M)-( 3mm,5mm)$);
+}}
+
+%%%
+%%% notation: vecM^T
+%%%
+\newcommand{\mytikznotvecMtrans}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{M}{#2}
+\draw[rounded corners] (M) -- ($(M)+(0mm,5mm)$) -- ($(M)+( 3mm,5mm)$);
+\draw[rounded corners] (M) -- ($(M)-(0mm,5mm)$) -- ($(M)-(-3mm,5mm)$);
+}}
+
+%%%
+%%% notation: vecT
+%%%
+\newcommand{\mytikznotvecT}[2][-0.85mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{T}{#2} \bleg[4.75mm]{T}
+\draw[rounded corners] (T) -- ($(T)-(5mm,0mm)$) -- ($(T)-(5mm, 4.75mm)$);
+\draw[rounded corners] (T) -- ($(T)+(5mm,0mm)$) -- ($(T)+(5mm,-4.75mm)$);
+}}
+
+%%%
+%%% notation: vecI*vecS2^T
+%%%
+\newcommand{\mytikznotvecIvecST}[2][-5mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-11.35mm,-10.6mm) rectangle (4.6mm,2.6mm);
+\fmat{St}{#2}      \rleg{St} \lnode[12.5mm]{It}{St}{}
+\ubmat{Sb}{St}{#2} \rleg{Sb} \lnode[12.5mm]{Ib}{Sb}{}
+\veceyet[4.5mm]{St}{Sb} \veceye{It}{Ib}
+}}
+
+%%%
+%%% notation: vecS2*vecI^T
+%%%
+\newcommand{\mytikznotvecSvecIT}[2][-5mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-4.6mm,-10.6mm) rectangle (11.35mm,2.6mm);
+\fmat{St}{#2}      \lleg{St} \rnode[12.5mm]{It}{St}{}
+\ubmat{Sb}{St}{#2} \lleg{Sb} \rnode[12.5mm]{Ib}{Sb}{}
+\veceye[4.5mm]{St}{Sb} \veceyet{It}{Ib}
+(Ib);
+}}
+
+% ============================================================================ %
+% === 3. TRANSLATIONAL INVARIANT INFINITE TENSOR RING ======================== %
+% ============================================================================ %
+
+%%%
+%%% TR
+%%%
+\newcommand{\mytikzTRing}[7][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-5.6mm,-6.2mm) rectangle (29.6mm,5.1mm);
+\fcore{X1}{#2}      \brphind{X1}{#5}
+\rcore{X2}{X1}{#3}  \brphind{X2}{#6}
+\rinf{inf}{X2}
+\rcore{X3}{inf}{#4} \brphind{X3}{#7}
+\ringup{X1}{X3}
+}}
+
+%%%
+%%% iTR1
+%%%
+\newcommand{\mytikziTR}[5][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.2mm) rectangle (29.6mm,5.1mm);
+\fcore{X1}{#2}     \linf{linf}{X1} \brphind{X1}{#3}
+\rcore{X2}{X1}{#2}                 \brphind{X2}{#4}
+\rcore{X3}{X2}{#2} \rinf{rinf}{X3} \brphind{X3}{#5}
+\ringup{linf}{rinf}
+}}
+
+%%%
+%%% iTR1: transfer matrix
+%%%
+\newcommand{\mytikzT}[2][-5mm]{%
+\tikz[baseline=#1]{%
+\fcor{Xt}{#2}     \lleg{Xt} \rleg{Xt}
+\bcor{Xb}{Xt}{#2} \lleg{Xb} \rleg{Xb}
+}}
+
+%%%
+%%% iTR1: transfer matrix (left eigenvectors)
+%%%
+\newcommand{\mytikzTleft}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Xt}{#2} \bcor[10mm]{Xb}{Xt}{#2} \rleg{Xt} \rleg{Xb}
+\node (C) at ($0.5*(Xt)+0.5*(Xb)$) {}; \ulmat[6mm]{VL}{C}{#3}
+\draw (Xt) -- ($(Xt)-(3.5mm,0mm)$) to[out=180,in=90]  (VL);
+\draw (Xb) -- ($(Xb)-(3.5mm,0mm)$) to[out=180,in=270] (VL);
+}}
+
+%%%
+%%% iTR1: transfer matrix (right eigenvectors)
+%%%
+\newcommand{\mytikzTright}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Xt}{#2} \bcor[10mm]{Xb}{Xt}{#2} \lleg{Xt} \lleg{Xb}
+\node (C) at ($0.5*(Xt)+0.5*(Xb)$) {}; \urmat[6mm]{VR}{C}{#3}
+\draw (Xt) -- ($(Xt)+(3.5mm,0mm)$) to[out=0,in=90]  (VR);
+\draw (Xb) -- ($(Xb)+(3.5mm,0mm)$) to[out=0,in=270] (VR);
+}}
+
+%%%
+%%% left eigenvector
+%%%
+\newcommand{\mytikzlefteigv}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fmat{V}{#2}
+\draw (V) to[out= 90,in=180] ($(V)+(2.5mm, 5mm)$) -- ($(V)+(4mm, 5mm)$);
+\draw (V) to[out=-90,in=180] ($(V)+(2.5mm,-5mm)$) -- ($(V)+(4mm,-5mm)$);
+}}
+
+%%%
+%%% right eigenvector
+%%%
+\newcommand{\mytikzrighteigv}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fmat{V}{#2}
+\draw (V) to[out= 90,in=0] ($(V)+(-2.5mm, 5mm)$) -- ($(V)+(-4mm, 5mm)$);
+\draw (V) to[out=-90,in=0] ($(V)+(-2.5mm,-5mm)$) -- ($(V)+(-4mm,-5mm)$);
+}}
+
+%%%
+%%% vec(VL)^T * vec(VR)
+%%%
+\newcommand{\mytikzvLTvR}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fmat{VL}{#2} \urmat{VR}{VL}{#3}
+\draw (VL) to[out= 90,in=180] ($(VL)+(2.5mm, 5mm)$) -- ($(VL)+(5.5mm, 5mm)$)
+           to[out=  0,in= 90] (VR);
+\draw (VL) to[out=-90,in=180] ($(VL)+(2.5mm,-5mm)$) -- ($(VL)+(5.5mm,-5mm)$)
+           to[out=  0,in=-90] (VR);
+}}
+
+%%%
+%%% iTR1: norm
+%%%
+\newcommand{\mytikziTRnorm}[2][-5mm]{%
+\tikz[baseline=#1]{%
+\fcor{X1}{$X$}     \bcor{Y1}{X1}{$X$}
+\rcor{X2}{X1}{$X$} \bcor{Y2}{X2}{$X$} \draw (Y1) -- (Y2);
+\rcor{X3}{X2}{$X$} \bcor{Y3}{X3}{$X$} \draw (Y2) -- (Y3);
+\linf{linfX}{X1} \rinf{rinfX}{X3} \ringup{linfX}{rinfX}
+\linf{linfY}{Y1} \rinf{rinfY}{Y3} \ringdown{linfY}{rinfY}
+}}
+
+%%%
+%%% iTR1c
+%%%
+\newcommand{\mytikziTRc}[6][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.2mm) rectangle (51.1mm,5.1mm);
+\fcore{Q1}{#2}            \rmat[7.5mm]{S1}{Q1}{#3} \brphind{Q1}{#4}
+\rcore[7.5mm]{Q2}{S1}{#2} \rmat[7.5mm]{S2}{Q2}{#3} \brphind{Q2}{#5}
+\rcore[7.5mm]{Q3}{S2}{#2} \rmat[7.5mm]{S3}{Q3}{#3} \brphind{Q3}{#6}
+\linf{linf}{Q1} \rinf{rinf}{S3} \ringup{linf}{rinf}
+}}
+
+%%%
+%%% iTR1c: left transfer matrix
+%%%
+\newcommand{\mytikzTL}[3][-5mm]{%
+\tikz[baseline=#1]{%
+\fcor{Qt}{#2}
+\bcor{Qb}{Qt}{#2}\rleg{Qt}\rleg{Qb}
+\lmat[7.5mm]{St}{Qt}{#3}
+\lmat[7.5mm]{Sb}{Qb}{#3}\lleg{St}\lleg{Sb}
+}}
+
+%%%
+%%% iTR1c: right transfer matrix
+%%%
+\newcommand{\mytikzTR}[3][-5mm]{%
+\tikz[baseline=#1]{%
+\fcor{Qt}{#2}
+\bcor{Qb}{Qt}{#2}\lleg{Qt}\lleg{Qb}
+\rmat[7.5mm]{St}{Qt}{#3}
+\rmat[7.5mm]{Sb}{Qb}{#3}\rleg{St}\rleg{Sb}
+}}
+
+%%%
+%%% vecI
+%%%
+\newcommand{\mytikzvecI}[1][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (1.2mm,-8.1mm) rectangle (4.45mm,0.1mm);
+\fnode{It}{} \bnode{Ib}{It}{} \veceye[2mm]{It}{Ib}
+}}
+
+%%%
+%%% vecI^T
+%%%
+\newcommand{\mytikzvecIT}[1][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-4.45mm,-8.1mm) rectangle (-1.2mm,0.1mm);
+\fnode{It}{} \bnode{Ib}{It}{} \veceyet[2mm]{It}{Ib}
+}}
+
+%%%
+%%% vecSS
+%%%
+\newcommand{\mytikzvecSS}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-4.6mm,-10.6mm) rectangle (6mm,2.6mm);
+\fmat{St}{#2} \ubmat{Sb}{St}{#2} \lleg{St} \lleg{Sb} \veceye[3.5mm]{St}{Sb}
+}}
+
+%%%
+%%% vecSS^T
+%%%
+\newcommand{\mytikzvecSST}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-6mm,-10.6mm) rectangle (4.6mm,2.6mm);
+\fmat{St}{#2} \ubmat{Sb}{St}{#2} \rleg{St} \rleg{Sb} \veceyet[3.5mm]{St}{Sb}
+}}
+
+%%%
+%%% iTR1c: left transfer matrix (left eigenvectors)
+%%%
+\newcommand{\mytikzTQLleft}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-16mm,-10.6mm) rectangle (4.6mm,2.6mm);
+\fcor{Xt}{#2}            \bcor{Xb}{Xt}{#2}        \rleg{Xt} \rleg{Xb}
+\lmat[7.5mm]{St}{Xt}{#3} \lmat[7.5mm]{Sb}{Xb}{#3} \lleg{St} \lleg{Sb}
+\veceyet[1mm]{$(St)-(5mm,0mm)$}{$(Sb)-(5mm,0mm)$}
+}}
+
+%%%
+%%% iTR1c: right transfer matrix (left eigenvectors)
+%%%
+\newcommand{\mytikzTQRleft}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-4.6mm,-10.6mm) rectangle (16mm,2.6mm);
+\fcor{Xt}{#2}            \bcor{Xb}{Xt}{#2}        \lleg{Xt} \lleg{Xb}
+\rmat[7.5mm]{St}{Xt}{#3} \rmat[7.5mm]{Sb}{Xb}{#3} \rleg{St} \rleg{Sb}
+\veceye[1mm]{$(St)+(5mm,0mm)$}{$(Sb)+(5mm,0mm)$}
+}}
+
+%%%
+%%% iTR1c: left transfer matrix (right eigenvectors)
+%%%
+\newcommand{\mytikzTQLright}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-12.1mm,-10.6mm) rectangle (15.5mm,2.6mm);
+\fcor{Xt}{#2}             \bcor{Xb}{Xt}{#2}        \rleg{Xt} \rleg{Xb}
+\lmat[7.5mm]{St}{Xt}{#3}  \lmat[7.5mm]{Sb}{Xb}{#3} \lleg{St} \lleg{Sb}
+\urmat[9.5mm]{Rt}{Xt}{#3} \urmat[9.5mm]{Rb}{Xb}{#3}
+\lleg{Rt} \lleg{Rb} \veceye[3.5mm]{Rt}{Rb}
+}}
+
+%%%
+%%% iTR1c: right transfer matrix (right eigenvectors)
+%%%
+\newcommand{\mytikzTQRright}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.5mm,-10.6mm) rectangle (12.1mm,2.6mm);
+\fcor{Xt}{#2}             \bcor{Xb}{Xt}{#2}        \lleg{Xt} \lleg{Xb}
+\rmat[7.5mm]{St}{Xt}{#3}  \rmat[7.5mm]{Sb}{Xb}{#3} \rleg{St} \rleg{Sb}
+\ulmat[9.5mm]{Rt}{Xt}{#3} \ulmat[9.5mm]{Rb}{Xb}{#3}
+\rleg{Rt} \rleg{Rb} \veceyet[3.5mm]{Rt}{Rb}
+}}
+
+%%%
+%%% iTR1c: frame matrix
+%%%
+\newcommand{\mytikziTRframe}[9][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.4mm) rectangle (66.1mm,7.6mm);
+\fcore{Q1}{#2}            \rmat[7.5mm]{S1}{Q1}{#3} \linf{linf}{Q1}
+\rcore[7.5mm]{Q2}{S1}{#2}
+\rnode[15mm]{Q3}{Q2}{}    \bleg{Q3}
+\urcore[30mm]{Q4}{Q2}{#2} \rmat[7.5mm]{S4}{Q4}{#3} \rinf{rinf}{S4}
+\ringup[7.5mm]{linf}{rinf}
+\draw ($(Q3)-(0mm,2mm)$) -- ($(Q3)+(0mm,5mm)$);
+\draw[rounded corners] (Q2) -- ($(Q2)+(7.5mm,0mm)$) -- ($(Q2)+(7.5mm, 4.5mm)$);
+\draw[rounded corners] (Q4) -- ($(Q4)-(7.5mm,0mm)$) -- ($(Q4)-(7.5mm,-4.5mm)$);
+\brphind{Q1}{$#4_{#6}$}
+\brphind{Q2}{$#4_{#7}$} \brtind{$(Q2)+( 7.5mm,6.75mm)$}{$#5_{#7}$}
+\brphind{Q3}{$#4_{#8}$} \brtind{$(Q3)+(   0mm,6.75mm)$}{$#5_{#8}$}
+\brphind{Q4}{$#4_{#9}$} \brtind{$(Q4)+(-7.5mm,6.75mm)$}{$#5_{#9}$}
+}}
+
+%%%
+%%% iTR1c: frame matrix (orthogonality 1)
+%%%
+\newcommand{\mytikziTRframeorthA}[3][-5mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-13.1mm) rectangle (58.6mm,5.1mm);
+\fcor{Q1}{#2}              \rmat[7.5mm]{S1}{Q1}{#3} \linf{ltinf}{Q1}
+\bcor{U1}{Q1}{#2}          \rmat[7.5mm]{T1}{U1}{#3} \linf{lbinf}{U1}
+\rcor[7.5mm]{Q2}{S1}{#2}   \rnode[11.25mm]{Q3}{Q2}{}
+\rcor[7.5mm]{U2}{T1}{#2}   \rnode[11.25mm]{U3}{U2}{}
+\urcor[22.5mm]{Q4}{Q2}{#2} \rmat[7.5mm]{S4}{Q4}{#3} \rinf{rtinf}{S4}
+\urcor[22.5mm]{U4}{U2}{#2} \rmat[7.5mm]{T4}{U4}{#3} \rinf{rbinf}{T4}
+%
+\draw (Q2) -- (U2); \draw (Q4) -- (U4);
+\ringup{ltinf}{rtinf} \ringdown{lbinf}{rbinf}
+%
+\draw ($(U3)-(0mm,4mm)$) -- ($(Q3)+(0mm,4mm)$);
+\draw[rounded corners] (Q2) -- ($(Q2)+(7.5mm,0mm)$) -- ($(Q2)+(7.5mm, 4mm)$);
+\draw[rounded corners] (U2) -- ($(U2)+(7.5mm,0mm)$) -- ($(U2)+(7.5mm,-4mm)$);
+\draw[rounded corners] (Q4) -- ($(Q4)-(7.5mm,0mm)$) -- ($(Q4)-(7.5mm,-4mm)$);
+\draw[rounded corners] (U4) -- ($(U4)-(7.5mm,0mm)$) -- ($(U4)-(7.5mm, 4mm)$);
+}}
+
+%%%
+%%% iTR1c: frame matrix (orthogonality 2)
+%%%
+\newcommand{\mytikziTRframeorthB}[3][-5mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-13.1mm) rectangle (50.6mm,5.1mm);
+\fnode{Q1}{}             \urmat[7.5mm]{S1}{Q1}{#3}
+\bnode{U1}{Q1}{}         \urmat[7.5mm]{T1}{U1}{#3}
+\rcor[7.5mm]{Q2}{S1}{#2} \rnode[11.25mm]{Q3}{Q2}{}
+\rcor[7.5mm]{U2}{T1}{#2} \rnode[11.25mm]{U3}{U2}{}
+\rnode[22.5mm]{Q4}{Q2}{} \urmat[7.5mm]{S4}{Q4}{#3}
+\rnode[22.5mm]{U4}{U2}{} \urmat[7.5mm]{T4}{U4}{#3}
+%
+\draw (Q2) -- (U2);
+\veceyet[4.5mm]{S1}{T1} \veceye[0mm]{$(S1)-(10mm,0mm)$}{$(T1)-(10mm,0mm)$}
+\veceyet[4.5mm]{S4}{T4} \veceye[0mm]{$(S4)-(10mm,0mm)$}{$(T4)-(10mm,0mm)$}
+\ringup{$(S1)-(10mm,0mm)$}{S4}
+\ringdown{$(T1)-(10mm,0mm)$}{T4}
+%
+\draw ($(U3)-(0mm,4mm)$) -- ($(Q3)+(0mm,4mm)$);
+\draw[rounded corners] (Q2) -- ($(Q2)+(7.5mm,0mm)$) -- ($(Q2)+(7.5mm, 4mm)$);
+\draw[rounded corners] (U2) -- ($(U2)+(7.5mm,0mm)$) -- ($(U2)+(7.5mm,-4mm)$);
+\draw[rounded corners] ($(S4)-(10mm,0mm)$) -- ($(Q4)-(7.5mm,0mm)$)
+                                           -- ($(Q4)-(7.5mm,-4mm)$);
+\draw[rounded corners] ($(T4)-(10mm,0mm)$) -- ($(U4)-(7.5mm,0mm)$)
+                                           -- ($(U4)-(7.5mm,4mm)$);
+}}
+
+%%%
+%%% iTR1c: frame matrix (orthogonality 3)
+%%%
+\newcommand{\mytikziTRframeorthC}[3][-5mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-13.1mm) rectangle (50.6mm,5.1mm);
+\fnode{Q1}{}             \rnode[7.5mm]{S1}{Q1}{}
+\bnode{U1}{Q1}{}         \rnode[7.5mm]{T1}{U1}{}
+\rnode[15mm]{Q2}{Q1}{}   \rnode[11.25mm]{Q3}{Q2}{}
+\rnode[15mm]{U2}{U1}{}   \rnode[11.25mm]{U3}{U2}{}
+\rnode[22.5mm]{Q4}{Q2}{} \urmat[7.5mm]{S4}{Q4}{#3}
+\rnode[22.5mm]{U4}{U2}{} \urmat[7.5mm]{T4}{U4}{#3}
+%
+\veceyet[0mm]{Q2}{U2} \veceye[0mm]{$(S1)-(10mm,0mm)$}{$(T1)-(10mm,0mm)$}
+\veceyet[4.5mm]{S4}{T4}
+\ringup{$(S1)-(10mm,0mm)$}{S4}
+\ringdown{$(T1)-(10mm,0mm)$}{T4}
+%
+\draw ($(U3)-(  0mm,4mm)$) -- ($(Q3)+(   0mm,4mm)$);
+\draw ($(U4)-(7.5mm,4mm)$) -- ($(Q4)+(-7.5mm,4mm)$);
+\draw[rounded corners] (Q2) -- ($(Q2)+(7.5mm,0mm)$) -- ($(Q2)+(7.5mm, 4mm)$);
+\draw[rounded corners] (U2) -- ($(U2)+(7.5mm,0mm)$) -- ($(U2)+(7.5mm,-4mm)$);
+}}
+
+%%%
+%%% iTR2
+%%%
+\newcommand{\mytikziTRR}[7][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.2mm) rectangle (37.6mm,5.1mm);
+\fcore{X1}{#2}            \linf{linf}{X1} \brphind{X1}{#4}
+\rcore[7.5mm]{Y1}{X1}{#3}                 \brphind{Y1}{#5}
+\rcore[9mm]{X2}{Y1}{#2}                   \brphind{X2}{#6}
+\rcore[7.5mm]{Y2}{X2}{#3} \rinf{rinf}{Y2} \brphind{Y2}{#7}
+\ringup{linf}{rinf}
+}}
+
+%%%
+%%% iTR2: transfer matrices
+%%%
+\newcommand{\mytikzTT}[3][-5mm]{%
+\tikz[baseline=#1]{%
+\fcor{Xt}{#2}     \rcor{Yt}{Xt}{#3} \lleg{Xt}\rleg{Yt}
+\bcor{Xb}{Xt}{#2} \rcor{Yb}{Xb}{#3} \lleg{Xb}\rleg{Yb} \draw (Yt) -- (Yb);
+}}
+
+%%%
+%%% iTR2c
+%%%
+\newcommand{\mytikziTRRc}[9][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.2mm) rectangle (67.6mm,5.1mm);
+\fcore{Q1}{#2}            \rmat[7.5mm]{S1}{Q1}{#3} \brphind{Q1}{#6}
+\rcore[7.5mm]{U1}{S1}{#4} \rmat[7.5mm]{O1}{U1}{#5} \brphind{U1}{#7}
+\rcore[9mm]{Q2}{O1}{#2}   \rmat[7.5mm]{S2}{Q2}{#3} \brphind{Q2}{#8}
+\rcore[7.5mm]{U2}{S2}{#4} \rmat[7.5mm]{O2}{U2}{#5} \brphind{U2}{#9}
+\linf{linf}{Q1} \rinf{rinf}{O2} \ringup{linf}{rinf}
+}}
+
+%%%
+%%% iTR2c: left transfer matrix (right eigenvectors)
+%%%
+\newcommand{\mytikzTQULright}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-12.1mm,-10.6mm) rectangle (30.5mm,2.6mm);
+\fcor{Qt}{#2}             \bcor{Qb}{Qt}{#2}
+\lmat[7.5mm]{Ot}{Qt}{#5}  \lmat[7.5mm]{Ob}{Qb}{#5} \lleg{Ot} \lleg{Ob}
+\rmat[7.5mm]{St}{Qt}{#4}  \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#3}  \rcor[7.5mm]{Ub}{Sb}{#3} \draw (Ut) -- (Ub);
+\urmat[9.5mm]{Rt}{Ut}{#5} \urmat[9.5mm]{Rb}{Ub}{#5}
+\rleg{Ut} \rleg{Ub} \lleg{Rt} \lleg{Rb} \veceye[3.5mm]{Rt}{Rb}
+}}
+
+%%%
+%%% iTR2c: right transfer matrix (right eigenvectors)
+%%%
+\newcommand{\mytikzTQURright}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.5mm,-10.6mm) rectangle (27.1mm,2.6mm);
+\fcor{Qt}{#2}             \bcor{Qb}{Qt}{#2}        \lleg{Qt} \lleg{Qb}
+\rmat[7.5mm]{St}{Qt}{#4}  \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#3}  \rcor[7.5mm]{Ub}{Sb}{#3} \draw (Ut) -- (Ub);
+\rmat[7.5mm]{Ot}{Ut}{#5}  \rmat[7.5mm]{Ob}{Ub}{#5} \rleg{Ot} \rleg{Ob}
+\ulmat[9.5mm]{Rt}{Qt}{#5} \ulmat[9.5mm]{Rb}{Qb}{#5}
+\rleg{Rt} \rleg{Rb} \veceyet[3.5mm]{Rt}{Rb}
+}}
+
+%%%
+%%% supermatrix with indices
+%%%
+\newcommand{\mytikzsupermatind}[4][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-8.5mm,-2.6mm) rectangle (8.7mm,2.7mm);
+\fmat{M}{#2}
+\llegt{M} \altind{$(M)-(3mm,0mm)$}{#3}
+\rlegt{M} \artind{$(M)+(3.5mm,0mm)$}{#4}
+}}
+
+%%%
+%%% supercore with indices
+%%%
+\newcommand{\mytikzsupercoreind}[5][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.1mm,-6.1mm) rectangle (6.3mm,2.7mm);
+\fcor{X}{#2}
+\lleg{X}  \altind{$(X)-(3mm,0mm)$}{#3}
+\blegt{X} \brphind{X}{#4}
+\rleg{X}  \artind{$(X)+(3.5mm,0mm)$}{#5}
+}}
+
+%%%
+%%% TMT product with indices
+%%%
+\newcommand{\mytikzTMTind}[8][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.1mm,-6.2mm) rectangle (22.2mm,2.7mm);
+\fcor{X}{#2}    \lleg{X} \altind{$(X)-(3mm,0mm)$}{#5}   \bleg{X} \brphind{X}{#6}
+\rmat{M}{X}{#3}
+\rcor{Y}{M}{#4} \rleg{Y} \artind{$(Y)+(3.5mm,0mm)$}{#5} \bleg{Y} \brphind{Y}{#7}
+}}
+
+% ============================================================================ %
+% === 4. EIGENVALUE APPROXIMATION ============================================ %
+% ============================================================================ %
+
+%%%
+%%% iTR matrix (unit cell = 2)
+%%%
+\newcommand{\mytikzbHk}[8][0mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-0.1mm,-7.1mm) rectangle (56mm,6.8mm);
+\fnode{c1}{}           \anode[6.5mm]{i1}{c1}{} \bnode[6.5mm]{j1}{c1}{}
+\rnode[10mm]{c2}{c1}{} \anode[6.5mm]{i2}{c2}{} \bnode[6.5mm]{j2}{c2}{}
+\rnode[10mm]{c3}{c2}{} \anode[6.5mm]{i3}{c3}{} \bnode[6.5mm]{j3}{c3}{}
+\rnode[10mm]{c4}{c3}{} \anode[6.5mm]{i4}{c4}{} \bnode[6.5mm]{j4}{c4}{}
+\rnode[10mm]{c5}{c4}{} \anode[6.5mm]{i5}{c5}{} \bnode[6.5mm]{j5}{c5}{}
+\rnode[10mm]{c6}{c5}{} \anode[6.5mm]{i6}{c6}{} \bnode[6.5mm]{j6}{c6}{}
+\draw (i1) -- (j1); \draw (i2) -- (j2); \draw (i3) -- (j3);
+\draw (i4) -- (j4); \draw (i5) -- (j5); \draw (i6) -- (j6);
+\oper{op}{($0.5*(c3)+0.5*(c4)$)}{#2}
+%
+\brtind{$(c1)-(0mm,4.25mm)$}{$j_{#3}$} \brtind{$(c1)+(0mm,7.25mm)$}{$i_{#3}$}
+\brtind{$(c2)-(0mm,4.25mm)$}{$j_{#4}$} \brtind{$(c2)+(0mm,7.25mm)$}{$i_{#4}$}
+\brtind{$(c3)-(0mm,4.25mm)$}{$j_{#5}$} \brtind{$(c3)+(0mm,7.25mm)$}{$i_{#5}$}
+\brtind{$(c4)-(0mm,4.25mm)$}{$j_{#6}$} \brtind{$(c4)+(0mm,7.25mm)$}{$i_{#6}$}
+\brtind{$(c5)-(0mm,4.25mm)$}{$j_{#7}$} \brtind{$(c5)+(0mm,7.25mm)$}{$i_{#7}$}
+\brtind{$(c6)-(0mm,4.25mm)$}{$j_{#8}$} \brtind{$(c6)+(0mm,7.25mm)$}{$i_{#8}$}
+}}
+
+%%%
+%%% iTR2: Rayleigh quotient (inf)
+%%%
+\newcommand{\mytikzrqinf}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{X1t}{#2} \bcor[14mm]{X1b}{X1t}{#2}
+\rcor{X2t}{X1t}{#3} \rcor{X2b}{X1b}{#3} \draw (X2t) -- (X2b);
+\rcor{X3t}{X2t}{#2} \rcor{X3b}{X2b}{#2} \draw (X3t) -- (X3b);
+\rcor{X4t}{X3t}{#3} \rcor{X4b}{X3b}{#3} \draw (X4t) -- (X4b);
+\rcor{X5t}{X4t}{#2} \rcor{X5b}{X4b}{#2} \draw (X5t) -- (X5b);
+\rcor{X6t}{X5t}{#3} \rcor{X6b}{X5b}{#3} \draw (X6t) -- (X6b);
+\linf{linft}{X1t} \rinf{rinft}{X6t} \ringup{linft}{rinft}
+\linf{linfb}{X1b} \rinf{rinfb}{X6b} \ringdown{linfb}{rinfb}
+\oper[minimum width=13mm]%
+{op}{($0.25*(X3t)+0.25*(X3b)+0.25*(X4t)+0.25*(X4b)$)}{$M$}
+}}
+
+%%%
+%%% iTR2: Rayleigh quotient
+%%%
+\newcommand{\mytikzrq}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Xt}{#2}     \bcor[14mm]{Xb}{Xt}{#2}
+\rcor{Yt}{Xt}{#3} \rcor{Yb}{Xb}{#3} \draw (Yt) -- (Yb);
+\node (CX) at ($0.5*(Xt)+0.5*(Xb)$) {}; \ulmat{VL}{CX}{#4}
+\node (CY) at ($0.5*(Yt)+0.5*(Yb)$) {}; \urmat{VR}{CY}{#5}
+\oper[minimum width=13mm]{op}{($0.5*(CX)+0.5*(CY)$)}{{$M$}}
+\draw (Xt) -- ($(Xt)-(3.5mm,0mm)$) to[out=180,in=90]  (VL);
+\draw (Xb) -- ($(Xb)-(3.5mm,0mm)$) to[out=180,in=270] (VL);
+\draw (Yt) -- ($(Yt)+(3.5mm,0mm)$) to[out=0,in=90]  (VR);
+\draw (Yb) -- ($(Yb)+(3.5mm,0mm)$) to[out=0,in=270] (VR);
+}}
+
+%%%
+%%% iTR2: Mt
+%%%
+\newcommand{\mytikzMt}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Xt}{#2}     \bcor[14mm]{Xb}{Xt}{#2}
+\rcor{Yt}{Xt}{#3} \rcor{Yb}{Xb}{#3}
+\lleg{Xt} \lleg{Xb} \rleg{Yt} \rleg{Yb} \draw (Yt) -- (Yb);
+\oper[minimum width=13mm]{op}{($0.25*(Xt)+0.25*(Yt)+0.25*(Xb)+0.25*(Yb)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: Rayleigh quotient
+%%%
+\newcommand{\mytikzrqcan}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.2mm,-16.6mm) rectangle (30.2mm,2.6mm);
+\fcor{Qt}{#2}     \bcor[14mm]{Qb}{Qt}{#2}
+\rmat[7.5mm]{St}{Qt}{#4} \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#3} \rcor[7.5mm]{Ub}{Sb}{#3} \draw (Ut) -- (Ub);
+\rmat[7.5mm]{Ot}{Ut}{#5} \rmat[7.5mm]{Ob}{Ub}{#5}
+\lmat[7.5mm]{Lt}{Qt}{#5} \lmat[7.5mm]{Lb}{Qb}{#5}
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+\veceyet[3.5mm]{Lt}{Lb} \veceye[3.5mm]{Ot}{Ob}
+}}
+
+%%%
+%%% iTR2c: Rayleigh quotient (inf)
+%%%
+\newcommand{\mytikzrqinfcan}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Q1t}{#2}              \bcor[14mm]{Q1b}{Q1t}{#2}
+\rmat[7.5mm]{S1t}{Q1t}{#4} \rmat[7.5mm]{S1b}{Q1b}{#4}
+\rcor[7.5mm]{Q2t}{S1t}{#3} \rcor[7.5mm]{Q2b}{S1b}{#3} \draw (Q2t) -- (Q2b);
+\rmat[7.5mm]{S2t}{Q2t}{#5} \rmat[7.5mm]{S2b}{Q2b}{#5}
+\rcor[7.5mm]{Q3t}{S2t}{#2} \rcor[7.5mm]{Q3b}{S2b}{#2} \draw (Q3t) -- (Q3b);
+\rmat[7.5mm]{S3t}{Q3t}{#4} \rmat[7.5mm]{S3b}{Q3b}{#4}
+\rcor[7.5mm]{Q4t}{S3t}{#3} \rcor[7.5mm]{Q4b}{S3b}{#3} \draw (Q4t) -- (Q4b);
+\rmat[7.5mm]{S4t}{Q4t}{#5} \rmat[7.5mm]{S4b}{Q4b}{#5}
+\linf{linft}{Q1t} \rinf{rinft}{S4t} \ringup{linft}{rinft}
+\linf{linfb}{Q1b} \rinf{rinfb}{S4b} \ringdown{linfb}{rinfb}
+\oper[minimum width=20mm]{op}{($0.5*(S2t)+0.5*(S2b)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: MtQ
+%%%
+\newcommand{\mytikzMtQ}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fcor{Q1t}{#2}              \bcor[14mm]{Q1b}{Q1t}{#2}
+\rmat[7.5mm]{S1t}{Q1t}{#4} \rmat[7.5mm]{S1b}{Q1b}{#4}
+\rcor[7.5mm]{Q2t}{S1t}{#3} \rcor[7.5mm]{Q2b}{S1b}{#3}
+\rmat[7.5mm]{S2t}{Q2t}{#5} \rmat[7.5mm]{S2b}{Q2b}{#5}
+\lleg{Q1t} \lleg{Q1b} \rleg{S2t} \rleg{S2b} \draw (Q2t) -- (Q2b);
+\oper[minimum width=20mm]{op}{($0.5*(S1t)+0.5*(S1b)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: Ht (k = -3,-4,...)
+%%%
+\newcommand{\mytikzHtmk}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-26.6mm,-11.1mm) rectangle (7.5mm,3.1mm);
+\fnode{Qt}{} \bnode{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \ulmat[24mm]{l}{C}{#2}
+\draw[rounded corners] (l) to[out=90,in=180] ($(Qt)-(20.5mm,0mm)$) --
+                       ($(Qt)-(3mm,0mm)$) -- ($(Qt)+(-3mm,3mm)$);
+\draw[rounded corners] (l) to[out=-90,in=180]($(Qb)-(20.5mm,0mm)$) --
+                       ($(Qb)-(3mm,0mm)$) -- ($(Qb)-(3mm,3mm)$);
+\draw ($(Qt)+(0mm,3mm)$) -- ($(Qb)-(0mm,3mm)$);
+\draw[rounded corners] ($(Qt)+(5mm,0mm)$) -- ($(Qt)+(3mm,0mm)$)
+                                          -- ($(Qt)+(3mm,3mm)$);
+\draw[rounded corners] ($(Qb)+(5mm,0mm)$) -- ($(Qb)+(3mm,0mm)$)
+                                          -- ($(Qb)+(3mm,-3mm)$);
+\veceye[0mm]{$(Qt)+(5mm,0mm)$}{$(Qb)+(5mm,0mm)$}
+\node[draw,fill=white,minimum width=13mm,minimum height=13mm]%
+ (T) at ($(C)-(13mm,0mm)$) {#3};
+}}
+
+%%%
+%%% iTR2c: Ht (k = -1)
+%%%
+\newcommand{\mytikzHtmone}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-16.6mm,-17.1mm) rectangle (20.3mm,3.1mm);
+\fcor{Q1t}{#2}             \bcor[14mm]{Q1b}{Q1t}{#2}
+\rnode[10mm]{Q2t}{Q1t}{}   \rnode[10mm]{Q2b}{Q1b}{}
+\lmat[7.5mm]{Slt}{Q1t}{#3} \lmat[7.5mm]{Slb}{Q1b}{#3} \veceyet[3.5mm]{Slt}{Slb}
+\draw[rounded corners] (Q1t) -- ($(Q2t)-(3mm,0mm)$) -- ($(Q2t)+(-3mm,3mm)$);
+\draw[rounded corners] (Q1b) -- ($(Q2b)-(3mm,0mm)$) -- ($(Q2b)-(3mm,3mm)$);
+\draw ($(Q2t)+(0mm,3mm)$) -- ($(Q2b)-(0mm,3mm)$);
+\veceye[0mm]{$(Q2t)+(6mm,0mm)$}{$(Q2b)+(6mm,0mm)$}
+\draw[rounded corners] ($(Q2t)+(6mm,0mm)$) -- ($(Q2t)+(3mm,0mm)$)
+                                           -- ($(Q2t)+(3mm,3mm)$);
+\draw[rounded corners] ($(Q2b)+(6mm,0mm)$) -- ($(Q2b)+(3mm,0mm)$)
+                                           -- ($(Q2b)+(3mm,-3mm)$);
+\oper[minimum width=15mm]%
+{op}{($0.25*(Q1t)+0.25*(Q2t)+0.25*(Q1b)+0.25*(Q2b)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: Ht (k = 0)
+%%%
+\newcommand{\mytikzHtzero}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-16.6mm,-17.1mm) rectangle (35.2mm,3.1mm);
+\fnode{Q0t}{}
+\rnode[10mm]{Q1t}{Q0t}{}   \bnode[14mm]{Q1b}{Q1t}{}
+\urcor[10mm]{Q2t}{Q1t}{#2} \urcor[10mm]{Q2b}{Q1b}{#2} \draw (Q2t) -- (Q2b);
+\rmat[7.5mm]{Srt}{Q2t}{#3} \rmat[7.5mm]{Srb}{Q2b}{#3} \veceye[3.5mm]{Srt}{Srb}
+\veceyet[0mm]{$(Q1t)-(6mm,0mm)$}{$(Q1b)-(6mm,0mm)$}
+\draw[rounded corners] ($(Q1t)-(6mm,0mm)$) -- ($(Q1t)-(3mm,0mm)$)
+                                           -- ($(Q1t)+(-3mm,3mm)$);
+\draw[rounded corners] ($(Q1b)-(6mm,0mm)$) -- ($(Q1b)-(3mm,0mm)$)
+                                           -- ($(Q1b)-(3mm,3mm)$);
+\draw ($(Q1t)+(0mm,3mm)$) -- ($(Q1b)-(0mm,3mm)$);
+\draw[rounded corners] (Q2t) -- ($(Q1t)+(3mm,0mm)$) -- ($(Q1t)+(3mm,3mm)$);
+\draw[rounded corners] (Q2b) -- ($(Q1b)+(3mm,0mm)$) -- ($(Q1b)+(3mm,-3mm)$);
+\oper[minimum width=15mm]%
+{op}{($0.25*(Q1t)+0.25*(Q2t)+0.25*(Q1b)+0.25*(Q2b)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: Ht (k = 2,3,...)
+%%%
+\newcommand{\mytikzHtk}[3][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-16.6mm,-11.1mm) rectangle (36.6mm,3.1mm);
+\fnode{Q0t}{} \rnode[10mm]{Qt}{Q0t}{} \bnode{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \urmat[24mm]{r}{C}{#3}
+\veceyet{$(Qt)-(5mm,0mm)$}{$(Qb)-(5mm,0mm)$}
+\draw[rounded corners] ($(Qt)-(5mm,0mm)$) -- ($(Qt)-(3mm,0mm)$)
+                                          -- ($(Qt)+(-3mm,3mm)$);
+\draw[rounded corners] ($(Qb)-(5mm,0mm)$) -- ($(Qb)-(3mm,0mm)$)
+                                          -- ($(Qb)-(3mm,3mm)$);
+\draw ($(Qt)+(0mm,3mm)$) -- ($(Qb)-(0mm,3mm)$);
+\draw[rounded corners] ($(Qt)+(3mm,3mm)$) -- ($(Qt)+(3mm,0mm)$) --
+                       ($(Qt)+(20.5mm,0mm)$) to[out=0,in=90] (r);
+\draw[rounded corners] ($(Qb)+(3mm,-3mm)$) -- ($(Qb)+(3mm,0mm)$) --
+                       ($(Qb)+(20.5mm,0mm)$) to[out=0,in=-90] (r);
+\node[draw,fill=white,minimum width=13mm,minimum height=13mm]%
+ (T) at ($(C)+(13mm,0mm)$) {#2};
+}}
+
+%%%
+%%% iTR2c: HL
+%%%
+\newcommand{\mytikzHLdef}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-2.6mm,-7.1mm) rectangle (4.6mm,7.1mm);
+\fmat{H}{#2}
+\arnode[7mm and 4.5mm]{T}{H}{}
+\brnode[7mm and 4.5mm]{B}{H}{}
+\draw (H) to[out=90, in=180] (T) -- ($(T)+(0.1mm,0mm)$);
+\draw (H) to[out=270,in=180] (B) -- ($(B)+(0.1mm,0mm)$);
+}}
+
+%%%
+%%% iTR2c: hL
+%%%
+\newcommand{\mytikzhL}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.2mm,-16.6mm) rectangle (19.6mm,2.6mm);
+\fcor{Qt}{#3}            \bcor[14mm]{Qb}{Qt}{#3}
+\rmat[7.5mm]{St}{Qt}{#4} \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#5} \rcor[7.5mm]{Ub}{Sb}{#5} \draw (Ut) -- (Ub);
+\lmat[7.5mm]{Ot}{Qt}{#2} \lmat[7.5mm]{Ob}{Qb}{#2}
+\rleg{Ut} \rleg{Ub} \veceyet[3.5mm]{Ot}{Ob}
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: HR
+%%%
+\newcommand{\mytikzHRdef}[2][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-4.6mm,-7.1mm) rectangle (2.6mm,7.1mm);
+\fmat{H}{#2}
+\alnode[7mm and 4.5mm]{T}{H}{}
+\blnode[7mm and 4.5mm]{B}{H}{}
+\draw (H) to[out=90, in=0] (T) -- ($(T)-(0.1mm,0mm)$);
+\draw (H) to[out=270,in=0] (B) -- ($(B)-(0.1mm,0mm)$);
+}}
+
+%%%
+%%% iTR2c: hR
+%%%
+\newcommand{\mytikzhR}[5][0mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-4.6mm,-16.6mm) rectangle (30.2mm,2.6mm);
+\fcor{Qt}{#3}            \bcor[14mm]{Qb}{Qt}{#3}
+\rmat[7.5mm]{St}{Qt}{#4} \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#5} \rcor[7.5mm]{Ub}{Sb}{#5} \draw (Ut) -- (Ub);
+\rmat[7.5mm]{Ot}{Ut}{#2} \rmat[7.5mm]{Ob}{Ub}{#2}
+\lleg{Qt} \lleg{Qb} \veceye[3.5mm]{Ot}{Ob}
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: residual (term 1)
+%%%
+\newcommand{\mytikzresA}[3][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-11.1mm,-17mm) rectangle (8.7mm,2.6mm);
+\fcor{Qt}{#2} \bnode[14mm]{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \ulmat[8.5mm]{H}{C}{#3}
+%
+\draw (Qt) -- ($(Qt)-(4.5mm,0mm)$) to[out=180,in=90] (H);
+\draw (H) to[out=270,in=180] ($(Qb)-(4.5mm,0mm)$);
+\draw (Qt) -- ($(Qt)+(4.5mm,0mm)$) to[out=0,in=0] ($(Qb)+(4.5mm,0mm)$);
+%
+\draw[rounded corners] ($(Qb)-(4.5mm,0mm)$) -- ($(Qb)-(3mm,0mm)$)
+                                            -- ($(Qb)-(3mm,3mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,3mm)$);
+\draw[rounded corners] ($(Qb)+(4.5mm,0mm)$) -- ($(Qb)+(3mm,0mm)$)
+                                            -- ($(Qb)+(3mm,-3mm)$);
+}}
+
+%%%
+%%% iTR2c: residual (term 2)
+%%%
+\newcommand{\mytikzresB}[5][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.2mm,-17mm) rectangle (30.2mm,2.6mm);
+\fcor{Q1t}{#2}             \bcor[14mm]{Q1b}{Q1t}{#2}
+\rmat[7.5mm]{St}{Q1t}{#4}  \rnode[7.5mm]{Sb}{Q1b}{}
+\rcor[7.5mm]{Q2t}{St}{#3}  \rnode[7.5mm]{Q2b}{Sb}{}
+\lmat[7.5mm]{Slt}{Q1t}{#5} \lmat[7.5mm]{Slb}{Q1b}{#5} \veceyet[3.5mm]{Slt}{Slb}
+\rmat[7.5mm]{Srt}{Q2t}{#5} \rnode[7.5mm]{Srb}{Q2b}{}  \veceye[3.5mm]{Srt}{Srb}
+\draw[rounded corners] (Q1b) -- ($(Q2b)-(3mm,0mm)$) -- ($(Q2b)-(3mm,3mm)$);
+\draw (Q2t) -- ($(Q2b)-(0mm,3mm)$);
+\draw[rounded corners] ($(Srb)+(2mm,0mm)$) -- ($(Q2b)+(3mm,0mm)$)
+                                           -- ($(Q2b)+(3mm,-3mm)$);
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: residual (term 3)
+%%%
+\newcommand{\mytikzresC}[5][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.2mm,-17mm) rectangle (30.2mm,2.6mm);
+\fcor{Q1t}{#2}             \bnode[14mm]{Q1b}{Q1t}{}
+\rmat[7.5mm]{St}{Q1t}{#4}  \rnode[7.5mm]{Sb}{Q1b}{}
+\rcor[7.5mm]{Q2t}{St}{#3}  \urcor[7.5mm]{Q2b}{Sb}{#3} \draw (Q2t) -- (Q2b);
+\lmat[7.5mm]{Slt}{Q1t}{#5} \lnode[7.5mm]{Slb}{Q1b}{}  \veceyet[3.5mm]{Slt}{Slb}
+\rmat[7.5mm]{Srt}{Q2t}{#5} \rmat[7.5mm]{Srb}{Q2b}{#5} \veceye[3.5mm]{Srt}{Srb}
+\draw[rounded corners] ($(Slb)-(2mm,0mm)$) -- ($(Q1b)-(3mm,0mm)$)
+                                           -- ($(Q1b)-(3mm,3mm)$);
+\draw (Q1t) -- ($(Q1b)-(0mm,3mm)$);
+\draw[rounded corners] (Q2b) -- ($(Q1b)+(3mm,0mm)$) -- ($(Q1b)+(3mm,-3mm)$);
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+}}
+
+%%%
+%%% iTR2c: residual (term 4)
+%%%
+\newcommand{\mytikzresD}[3][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-8.7mm,-17mm) rectangle (11.1mm,2.6mm);
+\fcor{Qt}{#2} \bnode[14mm]{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \urmat[8.5mm]{H}{C}{#3}
+%
+\draw (Qt) -- ($(Qt)-(4.5mm,0mm)$) to[out=180,in=180] ($(Qb)-(4.5mm,0mm)$);
+\draw (Qt) -- ($(Qt)+(4.5mm,0mm)$) to[out=0,in=90]    (H);
+\draw (H) to[out=270,in=0] ($(Qb)+(4.5mm,0mm)$);
+%
+\draw[rounded corners] ($(Qb)-(4.5mm,0mm)$) -- ($(Qb)-(3mm,0mm)$)
+                                            -- ($(Qb)-(3mm,3mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,3mm)$);
+\draw[rounded corners] ($(Qb)+(4.5mm,0mm)$) -- ($(Qb)+(3mm,0mm)$)
+                                            -- ($(Qb)+(3mm,-3mm)$);
+}}
+
+%%%
+%%% vectorization of 1 core
+%%%
+\newcommand{\mytikzveccore}[2][-4mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{T}{#2} \bleg[8mm]{T}
+\draw[rounded corners] (T) -- ($(T)-(6mm, 0mm)$) -- ($(T)-(6mm, 6mm)$)
+                           -- ($(T)-(3mm, 6mm)$) -- ($(T)-(3mm, 8mm)$);
+\draw[rounded corners] (T) -- ($(T)+(6mm, 0mm)$) -- ($(T)+(6mm,-6mm)$)
+                           -- ($(T)+(3mm,-6mm)$) -- ($(T)+(3mm,-8mm)$);
+}}
+
+%%%
+%%% iTR2c: residual proof: theta*vec(Qc)
+%%%
+\newcommand{\mytikzresproofthetaQc}[6][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-15.2mm,-16.6mm) rectangle (48.2mm,2.6mm);
+\fcor{Qt}{#2}            \bcor[14mm]{Qb}{Qt}{#2}
+\rmat[7.5mm]{St}{Qt}{#4} \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#3} \rcor[7.5mm]{Ub}{Sb}{#3} \draw (Ut) -- (Ub);
+\rmat[7.5mm]{Ot}{Ut}{#5} \rmat[7.5mm]{Ob}{Ub}{#5}
+\lmat[7.5mm]{Lt}{Qt}{#5} \lmat[7.5mm]{Lb}{Qb}{#5}
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+\veceyet[3.5mm]{Lt}{Lb} \veceye[3.5mm]{Ot}{Ob}
+%
+\urcor[17mm]{Qct}{Ot}{#6} \bnode[14mm]{Qcb}{Qct}{}
+\draw (Qct) -- ($(Qct)-(4.5mm,0mm)$) to[out=180,in=180] ($(Qcb)-(4.5mm,0mm)$);
+\draw[rounded corners] ($(Qcb)-(4.5mm,0mm)$) -- ($(Qcb)-(3mm,0mm)$)
+                                             -- ($(Qcb)-(3mm,3mm)$);
+\draw (Qct) -- ($(Qcb)-(0mm,3mm)$);
+\draw (Qct) -- ($(Qct)+(4.5mm,0mm)$) to[out=0,in=0] ($(Qcb)+(4.5mm,0mm)$);
+\draw[rounded corners] ($(Qcb)+(4.5mm,0mm)$) -- ($(Qcb)+(3mm,0mm)$)
+                                             -- ($(Qcb)+(3mm,-3mm)$);
+}}
+
+%%%
+%%% iTR2c: residual proof: vec(Qc)*theta
+%%%
+\newcommand{\mytikzresproofQctheta}[6][-7.85mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-33.2mm,-16.6mm) rectangle (30.2mm,2.6mm);
+\fcor{Qt}{#2}            \bcor[14mm]{Qb}{Qt}{#2}
+\rmat[7.5mm]{St}{Qt}{#4} \rmat[7.5mm]{Sb}{Qb}{#4}
+\rcor[7.5mm]{Ut}{St}{#3} \rcor[7.5mm]{Ub}{Sb}{#3} \draw (Ut) -- (Ub);
+\rmat[7.5mm]{Ot}{Ut}{#5} \rmat[7.5mm]{Ob}{Ub}{#5}
+\lmat[7.5mm]{Lt}{Qt}{#5} \lmat[7.5mm]{Lb}{Qb}{#5}
+\oper[minimum width=20mm]{op}{($0.5*(St)+0.5*(Sb)$)}{$M$}
+\veceyet[3.5mm]{Lt}{Lb} \veceye[3.5mm]{Ot}{Ob}
+%
+\ulcor[17mm]{Qct}{Lt}{#6} \bnode[14mm]{Qcb}{Qct}{}
+\draw (Qct) -- ($(Qct)-(4.5mm,0mm)$) to[out=180,in=180] ($(Qcb)-(4.5mm,0mm)$);
+\draw[rounded corners] ($(Qcb)-(4.5mm,0mm)$) -- ($(Qcb)-(3mm,0mm)$)
+                                             -- ($(Qcb)-(3mm,3mm)$);
+\draw (Qct) -- ($(Qcb)-(0mm,3mm)$);
+\draw (Qct) -- ($(Qct)+(4.5mm,0mm)$) to[out=0,in=0] ($(Qcb)+(4.5mm,0mm)$);
+\draw[rounded corners] ($(Qcb)+(4.5mm,0mm)$) -- ($(Qcb)+(3mm,0mm)$)
+                                             -- ($(Qcb)+(3mm,-3mm)$);
+}}
+
+%%%
+%%% iTR2c: residual proof: Qc (left open)
+%%%
+\newcommand{\mytikzresproofQcl}[2][-5mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-5.1mm,-10.6mm) rectangle (7.45mm,2.6mm);
+\fcor{Qt}{#2} \bnode{Qb}{Qt}{}
+\draw (Qt) -- ($(Qt)-(5mm,0mm)$);
+\draw (Qt) -- ($(Qt)+(5mm,0mm)$) to[out=0,in=0] ($(Qb)+(5mm,0mm)$);
+\draw[rounded corners] ($(Qb)-(5mm,0mm)$) -- ($(Qb)-(2.5mm,  0mm)$)
+                                          -- ($(Qb)-(2.5mm,2.5mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,2.5mm)$);
+\draw[rounded corners] ($(Qb)+(5mm,0mm)$) -- ($(Qb)+(2.5mm,   0mm)$)
+                                          -- ($(Qb)+(2.5mm,-2.5mm)$);
+}}
+
+%%%
+%%% iTR2c: proof residual: Qc (right open)
+%%%
+\newcommand{\mytikzresproofQcr}[2][-5mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-7.45mm,-10.6mm) rectangle (5.1mm,2.6mm);
+\fcor{Qt}{#2} \bnode{Qb}{Qt}{}
+\draw (Qt) -- ($(Qt)-(5mm,0mm)$) to[out=180,in=180] ($(Qb)-(5mm,0mm)$);
+\draw (Qt) -- ($(Qt)+(5mm,0mm)$);
+\draw[rounded corners] ($(Qb)-(5mm,0mm)$) -- ($(Qb)-(2.5mm,  0mm)$)
+                                          -- ($(Qb)-(2.5mm,2.5mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,2.5mm)$);
+\draw[rounded corners] ($(Qb)+(5mm,0mm)$) -- ($(Qb)+(2.5mm,   0mm)$)
+                                          -- ($(Qb)+(2.5mm,-2.5mm)$);
+}}
+
+%%%
+%%% iTR residual: HL (small)
+%%%
+\newcommand{\mytikzHLdefsmall}[2][-1mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fmat{H}{#2}
+\draw (H) to[out=90, in=180] ($(H)+(2mm, 4mm)$) -- ($(H)+(3.5mm, 4mm)$);
+\draw (H) to[out=270,in=180] ($(H)+(2mm,-4mm)$) -- ($(H)+(3.5mm,-4mm)$);
+}}
+
+%%%
+%%% iTR residual: HR (small)
+%%%
+\newcommand{\mytikzHRdefsmall}[2][-1mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\fmat{H}{#2}
+\draw (H) to[out=90, in=0] ($(H)+(-2mm, 4mm)$) -- ($(H)+(-3.5mm, 4mm)$);
+\draw (H) to[out=270,in=0] ($(H)+(-2mm,-4mm)$) -- ($(H)+(-3.5mm,-4mm)$);
+}}
+
+%%%
+%%% iTR1c: residual (proof -infinity terms)
+%%%
+\newcommand{\mytikzresproofRl}[4][-5mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-26.6mm,-11.1mm) rectangle (7.5mm,3.1mm);
+\fcor{Qt}{#4} \bnode{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \ulmat[24mm]{l}{C}{#2}
+\draw[rounded corners] (l) to[out=90,in=180] ($(Qt)-(20.5mm,0mm)$) -- (Qt);
+\draw[rounded corners] (l) to[out=-90,in=180]($(Qb)-(20.5mm,0mm)$) --
+                       ($(Qb)-(3mm,0mm)$) -- ($(Qb)-(3mm,3mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,3mm)$);
+\draw (Qt) -- ($(Qt)+(5mm,0mm)$) to[out=0,in=0] ($(Qb)+(5mm,0mm)$);
+\draw[rounded corners] ($(Qb)+(5mm,0mm)$) -- ($(Qb)+(3mm,0mm)$)
+                                          -- ($(Qb)+(3mm,-3mm)$);
+\node[draw,fill=white,minimum width=13mm,minimum height=13mm]%
+ (T) at ($(C)-(13mm,0mm)$) {#3};
+}}
+
+%%%
+%%% iTR1c: residual (proof +infinity terms)
+%%%
+\newcommand{\mytikzresproofRr}[4][-5mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\clip (-7.5mm,-11.1mm) rectangle (26.6mm,3.1mm);
+\fcor{Qt}{#2} \bnode{Qb}{Qt}{}
+\node (C) at ($0.5*(Qt)+0.5*(Qb)$) {}; \urmat[24mm]{r}{C}{#4}
+\draw[rounded corners] (r) to[out=90,in=0] ($(Qt)+(20.5mm,0mm)$) -- (Qt);
+\draw[rounded corners] (r) to[out=-90,in=0] ($(Qb)+(20.5mm,0mm)$) --
+                       ($(Qb)+(3mm,0mm)$) -- ($(Qb)+(3mm,-3mm)$);
+\draw (Qt) -- ($(Qb)-(0mm,3mm)$);
+\draw (Qt) -- ($(Qt)-(5mm,0mm)$) to[out=180,in=180] ($(Qb)-(5mm,0mm)$);
+\draw[rounded corners] ($(Qb)-(5mm,0mm)$) -- ($(Qb)-(3mm,0mm)$)
+                                          -- ($(Qb)-(3mm,3mm)$);
+\node[draw,fill=white,minimum width=13mm,minimum height=13mm]%
+ (T) at ($(C)+(13mm,0mm)$) {#3};
+}}
+
+% ============================================================================ %
+% === 5. FLEXIBLE POWER METHOD =============================================== %
+% ============================================================================ %
+
+%%%
+%%% iTR matrix
+%%%
+\newcommand{\mytikziTRmatrix}[5][0mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-10mm,-6.7mm) rectangle (27mm,6.5mm);
+\foper{M1}{#2}            \bleg[5mm]{M1} \aleg[5mm]{M1} \linf{linf}{M1}
+\roper[8.5mm]{M2}{M1}{#2} \bleg[5mm]{M2} \aleg[5mm]{M2}
+\roper[8.5mm]{M3}{M2}{#2} \bleg[5mm]{M3} \aleg[5mm]{M3} \rinf{rinf}{M3}
+\draw (M1) -- (M2) -- (M3);
+\brtind{$(M1)-(0mm,4mm)$}{$j_{#3}$} \brtind{$(M1)+(0mm,7mm)$}{$i_{#3}$}
+\brtind{$(M2)-(0mm,4mm)$}{$j_{#4}$} \brtind{$(M2)+(0mm,7mm)$}{$i_{#4}$}
+\brtind{$(M3)-(0mm,4mm)$}{$j_{#5}$} \brtind{$(M3)+(0mm,7mm)$}{$i_{#5}$}
+}}
+
+%%%
+%%% exp(-At)
+%%%
+\newcommand{\mytikzexpAt}[5][-0.85mm]{%
+\tikz[baseline=#1]{%
+\clip (-7mm,-6.7mm) rectangle (29mm,6.5mm);
+\fnode{C1}{}           \oper[minimum width=8mm]{M1}{(C1)}{#2}
+\rnode[11mm]{C2}{M1}{} \oper[minimum width=8mm]{M2}{(C2)}{#2}
+\rnode[11mm]{C3}{M2}{} \oper[minimum width=8mm]{M3}{(C3)}{#2}
+\bleg[5mm]{M1} \aleg[5mm]{M1} \draw[densely dotted] (M1) -- ($(M1)-(7mm,0mm)$);
+\bleg[5mm]{M2} \aleg[5mm]{M2} \draw[densely dotted] (M1) -- (M2) -- (M3);
+\bleg[5mm]{M3} \aleg[5mm]{M3} \draw[densely dotted] (M3) -- ($(M3)+(7mm,0mm)$);
+\brtind{$(M1)-(0mm,4mm)$}{$j_{#3}$} \brtind{$(M1)+(0mm,7mm)$}{$i_{#3}$}
+\brtind{$(M2)-(0mm,4mm)$}{$j_{#4}$} \brtind{$(M2)+(0mm,7mm)$}{$i_{#4}$}
+\brtind{$(M3)-(0mm,4mm)$}{$j_{#5}$} \brtind{$(M3)+(0mm,7mm)$}{$i_{#5}$}
+}}
+
+%%%
+%%% exp(-Mt)
+%%%
+\newcommand{\mytikzexpMt}[8][-0.85mm]{%
+\tikz[baseline=#1]{%
+\clip (-11mm,-6.7mm) rectangle (61mm,6.5mm);
+\fnode{C1}{}           \bleg[5mm]{C1} \aleg[5mm]{C1} \ulinf[9mm]{linf}{C1}
+\rnode[10mm]{C2}{C1}{} \bleg[5mm]{C2} \aleg[5mm]{C2}
+\rnode[10mm]{C3}{C2}{} \bleg[5mm]{C3} \aleg[5mm]{C3}
+\rnode[10mm]{C4}{C3}{} \bleg[5mm]{C4} \aleg[5mm]{C4}
+\rnode[10mm]{C5}{C4}{} \bleg[5mm]{C5} \aleg[5mm]{C5}
+\rnode[10mm]{C6}{C5}{} \bleg[5mm]{C6} \aleg[5mm]{C6} \urinf[9mm]{rinf}{C6}
+\oper[minimum width=15mm]{M1}{($0.5*(C1)+0.5*(C2)$)}{#2}
+\oper[minimum width=15mm]{M2}{($0.5*(C3)+0.5*(C4)$)}{#2}
+\oper[minimum width=15mm]{M3}{($0.5*(C5)+0.5*(C6)$)}{#2}
+\draw[densely dotted] (linf) -- (M1) -- (M2) -- (M3) -- (rinf);
+\brtind{$(C1)-(0mm,4mm)$}{$j_{#3}$} \brtind{$(C1)+(0mm,7mm)$}{$i_{#3}$}
+\brtind{$(C2)-(0mm,4mm)$}{$j_{#4}$} \brtind{$(C2)+(0mm,7mm)$}{$i_{#4}$}
+\brtind{$(C3)-(0mm,4mm)$}{$j_{#5}$} \brtind{$(C3)+(0mm,7mm)$}{$i_{#5}$}
+\brtind{$(C4)-(0mm,4mm)$}{$j_{#6}$} \brtind{$(C4)+(0mm,7mm)$}{$i_{#6}$}
+\brtind{$(C5)-(0mm,4mm)$}{$j_{#7}$} \brtind{$(C5)+(0mm,7mm)$}{$i_{#7}$}
+\brtind{$(C6)-(0mm,4mm)$}{$j_{#8}$} \brtind{$(C6)+(0mm,7mm)$}{$i_{#8}$}
+}}
+
+%%%
+%%% exp(-Mt) combined
+%%%
+\newcommand{\mytikzexpMtcomb}[5][-0.85mm]{%
+\tikz[baseline=#1]{%
+\clip (-16mm,-6.9mm) rectangle (56mm,6.5mm);
+\fnode{C1}{}           \ulinf[14mm]{linf}{C1}
+\rnode[20mm]{C2}{C1}{}
+\rnode[20mm]{C3}{C2}{} \urinf[14mm]{rinf}{C3}
+\oper[minimum width=15mm]{M1}{(C1)}{#2} \blegt[5mm]{M1} \alegt[5mm]{M1}
+\oper[minimum width=15mm]{M2}{(C2)}{#2} \blegt[5mm]{M2} \alegt[5mm]{M2}
+\oper[minimum width=15mm]{M3}{(C3)}{#2} \blegt[5mm]{M3} \alegt[5mm]{M3}
+\draw[densely dotted] (linf) -- (M1) -- (M2) -- (M3) -- (rinf);
+\brtind{$(M1)-(0mm,4mm)$}{$j_{#3}$} \brtind{$(M1)+(0mm,7mm)$}{$i_{#3}$}
+\brtind{$(M2)-(0mm,4mm)$}{$j_{#4}$} \brtind{$(M2)+(0mm,7mm)$}{$i_{#4}$}
+\brtind{$(M3)-(0mm,4mm)$}{$j_{#5}$} \brtind{$(M3)+(0mm,7mm)$}{$i_{#5}$}
+}}
+
+%%%
+%%% supercore (dimension physical leg)
+%%%
+\newcommand{\mytikzsupercoredim}[3][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2} \lleg{X} \rleg{X} \blegt[6mm]{X} \tdimva{$(X)-(0mm,4.5mm)$}{#3}
+}}
+
+%%%
+%%% supercore splitted (dimension physical leg)
+%%%
+\newcommand{\mytikzsupercoresplitteddim}[5][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X1}{#2}     \lleg{X1} \bleg[6mm]{X1} \tdimva{$(X1)-(0mm,4.5mm)$}{#4}
+\rcor{X2}{X1}{#3} \rleg{X2} \bleg[6mm]{X2} \tdimva{$(X2)-(0mm,4.5mm)$}{#5}
+}}
+
+%%%
+%%% Y = exp(-At) * X
+%%%
+\newcommand{\mytikzYexpAtX}[3][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2} \lleg{X} \rleg{X}
+\oper[minimum width=9mm]{M}{($(X)-(0mm,7mm)$)}{#3} \bleg{M} \draw (X) -- (M);
+}}
+
+%%%
+%%% Y = exp(-Mt) * X
+%%%
+\newcommand{\mytikzYexpMtX}[3][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2} \lleg{X} \rleg{X}
+\oper[minimum width=9mm]{M}{($(X)-(0mm,7mm)$)}{#3} \blegt{M}
+\draw[very thick] (X) -- (M);
+}}
+
+%%%
+%%% iTR2: split (part 1)
+%%%
+\newcommand{\mytikziTRsplitA}[4][-1mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.6mm,-6.1mm) rectangle (6.6mm,3mm);
+\fcor{Y}{#2}
+\lleg[6.5mm]{Y} \tdimh{ $(Y)-(4.5mm,0mm)$}{#3}
+\blegt[6mm]{Y}  \tdimva{$(Y)-(0mm,4.5mm)$}{#4}
+\rleg[6.5mm]{Y} \tdimh{ $(Y)+(4.5mm,0mm)$}{#3}
+}}
+
+%%%
+%%% iTR2: split (part 2)
+%%%
+\newcommand{\mytikziTRsplitB}[4][-1mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.6mm,-2.6mm) rectangle (6.6mm,3mm);
+\fmat{C}{#2}
+\llegt[6.5mm]{C} \tdimh{$(C)-(4.5mm,0mm)$}{#3}
+\rlegt[6.5mm]{C} \tdimh{$(C)+(4.5mm,0mm)$}{#4}
+}}
+
+%%%
+%%% iTR2: split (part 3)
+%%%
+\newcommand{\mytikziTRsplitC}[6][-1mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.6mm,-2.6mm) rectangle (15.6mm,3mm);
+\fmat{C1}{#2}        \llegt[6.5mm]{C1} \tdimh{$(C1)-(4.5mm,0mm)$}{#4}
+\rmat[9mm]{C2}{C1}{} \rlegt[6.5mm]{C2} \tdimh{$(C2)+(4.5mm,0mm)$}{#6}
+\rnode[9mm]{C2}{C1}{\footnotesize#3}
+\node (C) at ($0.5*(C1)+0.5*(C2)$) {};   \tdimh{C}{#5}
+}}
+
+%%%
+%%% iTR2: split (part 4)
+%%%
+\newcommand{\mytikziTRsplitD}[5][-1mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-6.6mm,-6.1mm) rectangle (15.6mm,3mm);
+\fcor{Y1}{#2} \rcor[9mm]{Y2}{Y1}{#3} \node (Y) at ($0.5*(Y1)+0.5*(Y2)$) {};
+\lleg[6.5mm]{Y1} \tdimh{$(Y1)-(4.5mm,0mm)$}{#4} \tdimh{Y}{#4}
+\rleg[6.5mm]{Y2} \tdimh{$(Y2)+(4.5mm,0mm)$}{#4}
+\bleg[6mm]{Y1}   \tdimva{$(Y1)-(0mm,4.5mm)$}{#5}
+\bleg[6mm]{Y2}   \tdimva{$(Y2)-(0mm,4.5mm)$}{#5}
+}}
+
+%%%
+%%% iTR2: approximation
+%%%
+\newcommand{\mytikziTRRapprox}[7][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\clip (-13.6mm,-6.4mm) rectangle (37.6mm,5.1mm);
+\fcore{X1}{#2}     \linf{linf}{X1} \brphind{X1}{#4}
+\rcore{Y1}{X1}{#3}                 \brphind{Y1}{#5}
+\rcore{X2}{Y1}{#2}                 \brphind{X2}{#6}
+\rcore{Y2}{X2}{#3} \rinf{rinf}{Y2} \brphind{Y2}{#7}
+\ringup{linf}{rinf}
+}}
+
+%%%
+%%% iTR2: matvec (part 1)
+%%%
+\newcommand{\mytikzmatvecA}[4][-0.75mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\node[tt3trans,node distance=8mm] (X0) {\footnotesize\color{gray}#2};
+\node[tt3trans,node distance=8mm] (X1) [right of=X0]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (X0) -- (X1);
+\urcor{X2}{X1}{#2} \rcor{X3}{X2}{#3} \draw[gray] (X1) -- (X2);
+\node[tt3trans,node distance=8mm] (X4) [right of=X3]%
+  {\footnotesize\color{gray}#2};     \draw[gray] (X3) -- (X4);
+\node[tt3trans,node distance=8mm] (X5) [right of=X4]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (X4) -- (X5);
+%
+\draw[gray] (X0) -- ($(X0)-(0mm,11.5mm)$);
+\draw[gray] (X1) -- ($(X1)-(0mm,11.5mm)$);
+\bleg[11.5mm]{X2}
+\bleg[11.5mm]{X3}
+\draw[gray] (X4) -- ($(X4)-(0mm,11.5mm)$);
+\draw[gray] (X5) -- ($(X5)-(0mm,11.5mm)$);
+%
+\draw[gray] (X0) -- ($(X0)-(4.5mm,0mm)$);
+\draw[gray] (X5) -- ($(X5)+(4.5mm,0mm)$);
+\node[node distance=8mm] (linf) [left of=X0]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\node[node distance=8mm] (rinf) [right of=X5]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\draw[gray,rounded corners]%
+  (linf) -- ($(linf)-(5.5mm,0mm)$) -- ($(linf)+(-5.5mm,5mm)$) --
+  ($(rinf)+(5.5mm,5mm)$) -- ($(rinf)+(5.5mm,0mm)$) -- (rinf);
+%
+\node (C1) at ($0.5*(X0)+0.5*(X1)$) {};
+\node (C2) at ($0.5*(X2)+0.5*(X3)$) {};
+\node (C3) at ($0.5*(X4)+0.5*(X5)$) {};
+\oper[opHtrans,minimum width=13mm]{M1}{($(C1)-(0mm,7mm)$)}{\color{gray}#4}
+\oper[minimum width=13mm]{M2}{($(C2)-(0mm,7mm)$)}{#4}
+\oper[opHtrans,minimum width=13mm]{M3}{($(C3)-(0mm,7mm)$)}{\color{gray}#4}
+}}
+
+%%%
+%%% iTR2: matvec (part 2)
+%%%
+\newcommand{\mytikzmatvecB}[4][-0.75mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\node[tt3trans] (Z0) %
+  {\footnotesize\color{gray}#2};
+\node[tt3trans,node distance=8mm] (Z1) [right of=Z0]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (Z0) -- (Z1);
+\node[tt3trans,node distance=8mm] (Z2) [right of=Z1]%
+  {\footnotesize\color{gray}#2};     \draw[gray] (Z1) -- (Z2);
+\urcor{Z3}{Z2}{#3} \rcor{Z4}{Z3}{#2} \draw[gray] (Z2) -- (Z3);
+\node[tt3trans,node distance=8mm] (Z5) [right of=Z4]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (Z4) -- (Z5);
+%
+\draw[gray] (Z0) -- ($(Z0)-(0mm,11.5mm)$);
+\draw[gray] (Z1) -- ($(Z1)-(0mm,11.5mm)$);
+\draw[gray] (Z2) -- ($(Z2)-(0mm,11.5mm)$);
+\bleg[11.5mm]{Z3}
+\bleg[11.5mm]{Z4}
+\draw[gray] (Z5) -- ($(Z5)-(0mm,11.5mm)$);
+%
+\draw[gray] (Z0) -- ($(Z0)-(5.25mm,0mm)$);
+\draw[gray] (Z5) -- ($(Z5)+(5.25mm,0mm)$);
+\node[node distance=8mm] (linf) [left of=Z0]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\node[node distance=8mm] (rinf) [right of=Z5]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\draw[gray,rounded corners]%
+  (linf) -- ($(linf)-(5.5mm,0mm)$) -- ($(linf)+(-5.5mm,5mm)$) --
+  ($(rinf)+(5.5mm,5mm)$) -- ($(rinf)+(5.5mm,0mm)$) -- (rinf);
+%
+\node (C0) at ($(Z0)+0.5*(Z0)-0.5*(Z1)$) {};
+\node (C1) at ($0.5*(Z1)+0.5*(Z2)$) {};
+\node (C2) at ($0.5*(Z3)+0.5*(Z4)$) {};
+\node (C3) at ($(Z5)+0.5*(Z5)-0.5*(Z4)$) {};
+\oper[opHtrans,minimum width=13mm]{M0}{($(C0)-(0mm,7mm)$)}{\color{gray}#4}
+\oper[opHtrans,minimum width=13mm]{M1}{($(C1)-(0mm,7mm)$)}{\color{gray}#4}
+\oper[minimum width=13mm]{M2}{($(C2)-(0mm,7mm)$)}{#4}
+\oper[opHtrans,minimum width=13mm]{M3}{($(C3)-(0mm,7mm)$)}{\color{gray}#4}
+\node (M0) at ($2*(Z0)-(Z1)$) {};
+\node (M3) at ($2*(Z5)-(Z4)$) {};
+\node[fill=white,minimum size=8.5mm,minimum width=11mm,node distance=7mm]%
+  (O0) [below of=M0] {};
+\node[fill=white,minimum size=8.5mm,minimum width=11mm,node distance=7mm]%
+  (O3) [below of=M3] {};
+}}
+
+%%%
+%%% iTR2: matvec (part 3)
+%%%
+\newcommand{\mytikzmatvecC}[3][-0.75mm]{%
+\tikz[on grid,auto,baseline=#1]{%
+\node[tt3trans] (Y0) %
+  {\footnotesize\color{gray}#2};
+\node[tt3trans,node distance=8mm] (Y1) [right of=Y0]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (Y0) -- (Y1);
+\urcor{Y2}{Y1}{#2} \rcor{Y3}{Y2}{#3} \draw[gray] (Y1) -- (Y2);
+\node[tt3trans,node distance=8mm] (Y4) [right of=Y3]%
+  {\footnotesize\color{gray}#2};     \draw[gray] (Y3) -- (Y4);
+\node[tt3trans,node distance=8mm] (Y5) [right of=Y4]%
+  {\footnotesize\color{gray}#3};     \draw[gray] (Y4) -- (Y5);
+%
+\draw[gray] (Y0) -- ($(Y0)-(0mm,4.5mm)$);
+\draw[gray] (Y1) -- ($(Y1)-(0mm,4.5mm)$);
+\bleg{Y2}
+\bleg{Y3}
+\draw[gray] (Y4) -- ($(Y4)-(0mm,4.5mm)$);
+\draw[gray] (Y5) -- ($(Y5)-(0mm,4.5mm)$);
+%
+\draw[gray] (Y0) -- ($(Y0)-(4.5mm,0mm)$);
+\draw[gray] (Y5) -- ($(Y5)+(4.5mm,0mm)$);
+\node[node distance=8mm] (linf) [left of=Y0]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\node[node distance=8mm] (rinf) [right of=Y5]%
+  {\footnotesize\,\color{gray}$\cdots$};
+\draw[gray,rounded corners]%
+  (linf) -- ($(linf)-(5.5mm,0mm)$) -- ($(linf)+(-5.5mm,5mm)$) --
+  ($(rinf)+(5.5mm,5mm)$) -- ($(rinf)+(5.5mm,0mm)$) -- (rinf);
+}}
+
+%%%
+%%% iTR2: matvec (step 1)
+%%%
+\newcommand{\mytikzmatvecstepA}[6][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2} \lleg{X} \blegt{X} \rleg{X}
+%
+\rnode[7.5mm]{eq}{X}{$=$}
+%
+\urmat[7.5mm]{O1}{eq}{#6} \lleg{O1}
+\rcor[7.5mm]{Q}{O1}{#3}   \bleg{Q}
+\rmat[7.5mm]{S}{Q}{#5}
+\rcor[7.5mm]{U}{S}{#4}    \bleg{U}
+\rmat[7.5mm]{O2}{U}{#6}   \rleg{O2}
+}}
+
+%%%
+%%% iTR2: matvec (step 2)
+%%%
+\newcommand{\mytikzmatvecstepB}[4][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{Y}{#2} \lleg{Y} \blegt{Y} \rleg{Y}
+%
+\rnode[7.5mm]{eq}{Y}{$=$}
+%
+\urcor[7.5mm]{X}{eq}{#3} \lleg{X} \rleg{X} \blegt[11.5mm]{X}
+\oper[minimum width=9mm]{eMt}{($(X)-(0mm,7mm)$)}{#4}
+%
+\rnode[48mm]{to}{Y}{$\longrightarrow$}
+%
+\urmat[65mm]{M}{Y}{#2} \llegt{M} \rlegt{M}
+}}
+
+%%%
+%%% iTR2: matvec (step 3)
+%%%
+\newcommand{\mytikzmatvecstepC}[5][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{Y}{#2} \llegt{Y} \rlegt{Y}
+%
+\rnode[7.5mm]{eq}{Y}{$\approx$}
+%
+\urmat[7.5mm]{U}{eq}{#3} \llegt{U}
+\rmat[7.5mm]{S}{U}{#4}
+\rmat[7.5mm]{V}{S}{#5}   \rlegt{V}
+%
+\rnode[48mm]{to}{Y}{$\longrightarrow$}
+%
+\urcor[65mm]{U}{Y}{#3} \lleg{U} \bleg{U}
+\rmat[7.5mm]{S}{U}{#4}
+\rcor[7.5mm]{V}{S}{#5} \rleg{V} \bleg{V}
+}}
+
+%%%
+%%% iTR2: matvec (step 4)
+%%%
+\newcommand{\mytikzmatvecstepD}[9][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fmat{O1}{#5}           \lleg{O1}
+\rcor[7.5mm]{Q}{O1}{#2} \bleg{Q}
+\rmat[7.5mm]{S}{Q}{#4}
+\rcor[7.5mm]{U}{S}{#3}  \bleg{U}
+\rmat[7.5mm]{O2}{U}{#5} \rleg{O2}
+%
+\rnode[7.5mm]{eq}{O2}{$=$}
+%
+\urmat[7.5mm]{O1}{eq}{#5} \lleg{O1}
+\rmat{O2}{O1}{#6}
+\rcor[7.5mm]{U}{O2}{#7}   \bleg{U} \draw[gray,->] (O2) to[out=300,in=225] (U);
+\rmat{S}{U}{#8}
+\rcor{V}{S}{#9}           \bleg{V}
+\rmat[7.5mm]{O3}{V}{#6}            \draw[gray,->] (O3) to[out=240,in=-45] (V);
+\rmat{O4}{O3}{#5}  \rleg{O4}
+}}
+
+%%%
+%%% iTR2: matvec (step 5)
+%%%
+\newcommand{\mytikzmatvecstepE}[9][-0.75mm]{%
+\tikz[on grid,baseline=#1]{%
+\fcor{X}{#2}           \bleg{X} \lleg{X}
+\rmat[7.5mm]{S}{X}{#4}
+\rcor[7.5mm]{Y}{S}{#3} \bleg{Y}
+\rmat[7.5mm]{T}{Y}{#5} \rleg{T}
+%
+\rnode[48mm]{to}{X}{$\longrightarrow$}
+%
+\urcor[65mm]{Q}{X}{#6} \lleg{Q} \bleg{Q}
+\rmat[7.5mm]{S}{Q}{#8}
+\rcor[7.5mm]{U}{S}{#7} \bleg{U}
+\rmat[7.5mm]{O}{U}{#9} \rleg{O}
+}}

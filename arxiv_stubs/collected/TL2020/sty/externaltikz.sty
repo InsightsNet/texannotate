@@ -1,0 +1,173 @@
+%\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{externaltikz}
+
+\RequirePackage{ifthen}
+\RequirePackage{tikz}
+\RequirePackage{pgfplots}
+\RequirePackage{kvoptions}
+\RequirePackage{array}
+\RequirePackage{etoolbox}
+\RequirePackage{graphicx}
+
+\SetupKeyvalOptions{
+	family = ext,
+	prefix = ext@
+}
+
+%Set Directory to store externalized graphics
+\DeclareStringOption[Externals/]{Externaldir}
+
+\DeclareBoolOption{Remake}
+%remake all tikzpictures if set
+\DeclareBoolOption{Publish}
+%switch off tikz and pgf completely, just load pictures instead, useful for submitting a paper when one can't rely on a tikz system beeing present
+\DeclareBoolOption{BW}
+%color model gray for black and white printing
+\DeclareBoolOption{ComplainAboutUnexternalized}
+%issue warning for non externalized tikzpictures
+\DeclareBoolOption{PatchTodo}
+%Patch todo command to get rid of all the non externalized tikzpicture warnings
+\DeclareBoolOption{PatchBeamer}
+%Patch the maketitle command of Beamer to get rid of non externalized tikzpicture warning due to tikzpictures in head and footline
+\DeclareBoolOption{Disable}
+%Plottet Platzhalter statt grafiken
+\DeclareBoolOption{Help}
+%print all options
+
+\ProcessKeyvalOptions*
+
+\relax
+
+
+%% Traditional LaTeX or TeX follows...
+% ...
+
+%some debug commands
+%\newcommand\test{\ext@Externaldir}
+%\newcommand\testbool{\ifext@remake remake \else no remake \fi}
+
+\newcommand\tikzremakenext{\tikzset{external/remake next}\PackageWarning{externaltikz}{tikz remake next aktiv !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}}
+
+\ifext@Publish
+	%nichts tun, da bilder nur eingebunden werden. 	
+\else
+	%externalize initialisieren
+	\usepgfplotslibrary{external}
+	\tikzexternalize[prefix=\ext@Externaldir,up to date check=md5]
+	\tikzexternaldisable
+	\pgfplotscreateplotcyclelist{color mod}{% 
+	blue!30,every mark/.append style={fill=blue!30!black},mark=*\\%
+	red!60,every mark/.append style={fill=red!30!black},mark=square*\\%
+	brown!60!black,every mark/.append style={fill=brown!80!black},mark=diamond\\%
+	black,mark=triangle\\%
+	blue,every mark/.append style={fill=blue!80!black},mark=diamond*\\%
+	red,densely dashed,every mark/.append style={solid,fill=red!80!black},mark=*\\%
+	brown!60!black,densely dashed,every mark/.append style={
+		solid,fill=brown!80!black},mark=square*\\%
+	black,densely dashed,every mark/.append style={solid,fill=gray},mark=otimes*\\%
+	blue,densely dashed,mark=star,every mark/.append style=solid\\%
+	red,densely dashed,every mark/.append style={solid,fill=red!80!black},mark=diamond*\\%
+	}
+	\ifext@BW
+		\selectcolormodel{gray} 	%black/white switch
+	\fi
+	
+	\newlength{\Bildb}
+	\newlength{\Bildh}
+	\newlength{\Bildanker}
+	\newlength{\Bildbbig}
+	
+\fi
+
+\newif\ifinsideexternaltikz
+\insideexternaltikzfalse
+
+\newcommand{\externaltikz}[2]{
+	\ifext@BW
+		\def\externaltikzfigurename{#1-BW}
+	\else
+		\def\externaltikzfigurename{#1}
+	\fi
+	\ifext@Publish
+		\includegraphics{\ext@Externaldir\externaltikzfigurename}		
+	\else
+		\ifext@Remake
+		\tikzremakenext
+		\fi
+		\insideexternaltikztrue
+		\tikzexternalenable
+		%\tikzset{external/export next=true} 	
+		\tikzsetnextfilename{\externaltikzfigurename} #2%
+		\tikzexternaldisable	
+		\insideexternaltikzfalse
+	\fi
+}
+
+\ifext@Disable
+\renewcommand{\externaltikz}[2]{
+	\begin{tikzpicture}
+		\node[draw,shape=rectangle,scale=10] (N1) {Draft};
+	\end{tikzpicture}
+}	
+\fi
+
+
+%Patch tikzpicture to include warning if not inside an externaltikz command
+\ifext@ComplainAboutUnexternalized
+\def\tikz@picture[#1]{%
+	\ifinsideexternaltikz\else\PackageWarning{externaltikz}{Non externalized tikzpicture!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}\fi
+	\pgfpicture%
+	\let\tikz@atbegin@picture=\pgfutil@empty%
+	\let\tikz@atend@picture=\pgfutil@empty%
+	\let\tikz@transform=\relax%
+	\def\tikz@time{.5}%
+	\tikz@installcommands\scope[every picture,#1]%
+	\expandafter\tikz@atbegin@picture%
+	\tikz@lib@scope@check%
+}
+\fi
+
+%patch \todo to avoid all those warnings about non externalized tikzpictures
+\ifext@PatchTodo
+\renewcommand{\todo}[2][]{\insideexternaltikztrue\@bsphack\@todo[#1]{#2}\@esphack\ignorespaces\insideexternaltikzfalse}%
+%\pretocmd{\todo}{\insideexternaltikztrue}{}{}
+%\apptocmd{\todo}{\insideexternaltikzfalse}{}{}
+\fi
+
+\ifext@PatchBeamer     
+%Patch the maketitle command of Beamer to get rid of non externalized tikzpicture warning due to tikzpictures in head and footline 
+\apptocmd{\maketitle}{             
+\addtobeamertemplate{headline}{\insideexternaltikztrue}{\insideexternaltikzfalse}
+\addtobeamertemplate{footline}{\insideexternaltikztrue}{\insideexternaltikzfalse}
+\insideexternaltikzfalse
+}{}{}
+\pretocmd{\maketitle}{\insideexternaltikztrue}{}{}
+\fi
+                           
+\ifext@Help
+	\begin{document}
+		\begin{tabular}{m{0.4\textwidth}|m{0.6\textwidth}}
+			Key & 	Purpose \\
+			\hline
+			Externaldir & Set Directory where the compiled pictures are stored \\
+			\hline
+			Remake 	& Bool to trigger recompilation of all images \\
+			\hline
+			Publish & Bool to trigger Publish mode, i.e. no tikz / pgf, includegraphics instead \\
+			\hline
+			BW		& Bool to trigger colormodel gray for black and white printing. \\ 	
+			\hline
+			ComplainAboutUnexternalized & throws warning wehenever a tikzpicture is not wrapped in an externaltikz command\\
+			\hline
+			PatchTodo & suppresses the non externalized tikzpictures warnings caused by todos \\
+			\hline
+			Help 	& You already know what this does appearently. 
+		\end{tabular}
+	\end{document}
+	%\newcommand\Chapter{testblablubb}
+\fi
+
+
+
+
+\endinput

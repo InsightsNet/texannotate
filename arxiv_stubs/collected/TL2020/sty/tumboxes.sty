@@ -1,0 +1,240 @@
+% File: tumboxes.sty Copyright (C) 2019 The LaTeX4EI Team
+% Provides TUM box styles based on the tcolorbox package.
+%
+% It may be distributed and/or modified under the conditions of the
+% LaTeX Project Public License (LPPL), either version 1.3c of this
+% license or (at your option) any later version. The latest version
+% of this license is in the file
+%
+%    https://www.latex-project.org/lppl.txt
+%
+% This file is part of the "tum-templates bundle" (The Work in LPPL)
+% and all files in that bundle must be distributed together.
+%
+%
+% ----------------------------------------------------------------------------
+%
+% The development version of the bundle can be found at
+%
+%    https://gitlab.lrz.de/latex4ei/tum-templates
+%
+% for those people who are interested.
+%
+% ----------------------------------------------------------------------------
+%
+% Version history:
+% v1.0 2020/10/01 Initial version.
+% v2.0 2021/04/19 Implement inverse and blank box styles.
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tumboxes}[2021/04/19 v2.0]
+
+
+% .:: Required packages
+% ----------------------------------------------------------------------------
+
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins, breakable, theorems, raster}
+
+
+% .:: Package options
+% ----------------------------------------------------------------------------
+
+\newlength{\@tum@rulewidth@}
+
+\pgfqkeys{/TUM/boxes}{
+  rulewidth/.code = {\setlength{\@tum@rulewidth@}{#1}},
+  rulewidth/.default = 1mm,
+}
+
+% set default option
+\pgfkeys{/TUM/boxes/rulewidth}
+
+% process package options
+\ProcessPgfOptions{/TUM/boxes}
+
+% print debug info to logfile
+\typeout{Global options after tumboxes option parsing.}
+\typeout{classoptions: \@classoptionslist}
+\typeout{unused classoptions: \@unusedoptionlist}
+
+
+% .:: TUM Box styles
+% ----------------------------------------------------------------------------
+
+\pgfqkeys{/tcb}{
+  TUMBox/.style = {
+      sharp corners,
+      boxrule = \@tum@rulewidth@,
+      boxsep = 1mm,
+      left = 2\@tum@rulewidth@,
+      right = 2\@tum@rulewidth@,
+      top = 2\@tum@rulewidth@,
+      middle = 2\@tum@rulewidth@,
+      bottom = 2\@tum@rulewidth@,
+      toptitle = 0mm,
+      bottomtitle = 0mm,
+      fonttitle = \sffamily\bfseries\large,
+      attach title,
+      colframe = #1,
+      colbacktitle = #1,
+      coltitle = TUMWhite,
+      colback = TUMWhite,
+      coltext = TUMBlack,
+      enhanced,
+      segmentation style = {
+          #1, line width = .25\@tum@rulewidth@,
+          dashed, dash pattern = on \@tum@rulewidth@ off \@tum@rulewidth@
+        },
+    },
+  TUMBox/.default = TUMBlue,
+  TUMBoxVariant/.style = {
+      sharp corners,
+      boxrule = \@tum@rulewidth@,
+      toprule = 3\@tum@rulewidth@,
+      titlerule = 0mm,
+      boxsep = 1mm,
+      left = 2\@tum@rulewidth@,
+      right = 2\@tum@rulewidth@,
+      top = 2\@tum@rulewidth@,
+      middle = 2\@tum@rulewidth@,
+      bottom = 2\@tum@rulewidth@,
+      toptitle = \@tum@rulewidth@,
+      bottomtitle = \@tum@rulewidth@,
+      fonttitle = \sffamily\bfseries\large,
+      attach title,
+      colframe = #1,
+      colbacktitle = #1!20,
+      coltitle = #1,
+      colback = TUMWhite,
+      coltext = TUMBlack,
+      enhanced,
+      segmentation style = {
+          #1, line width = .25\@tum@rulewidth@,
+          dashed, dash pattern = on \@tum@rulewidth@ off \@tum@rulewidth@
+        },
+    },
+  TUMBoxVariant/.default = TUMBlue,
+  TUMBoxFill/.style = {
+      sharp corners,
+      boxrule = 0mm,
+      boxsep = 1mm,
+      left = 2\@tum@rulewidth@,
+      right = 2\@tum@rulewidth@,
+      top = 2\@tum@rulewidth@,
+      middle = 2\@tum@rulewidth@,
+      bottom = 2\@tum@rulewidth@,
+      toptitle = 0mm,
+      bottomtitle = 0mm,
+      fonttitle = \sffamily\bfseries,
+      attach title to upper,
+      after title = {:\quad},
+      colframe = #1,
+      colbacktitle = #1!20,
+      coltitle = #1,
+      colback = #1!20,
+      coltext = TUMBlack,
+    },
+  TUMBoxFill/.default = TUMBlue,
+  TUMBoxInverse/.style = {
+      sharp corners,
+      boxrule = 0mm,
+      boxsep = 1mm,
+      left = 2\@tum@rulewidth@,
+      right = 2\@tum@rulewidth@,
+      top = 2\@tum@rulewidth@,
+      middle = 2\@tum@rulewidth@,
+      bottom = 2\@tum@rulewidth@,
+      toptitle = 2\@tum@rulewidth@,
+      bottomtitle = \@tum@rulewidth@,
+      fonttitle = \sffamily\bfseries\large,
+      attach title,
+      colframe = TUMWhite,
+      colbacktitle = TUMWhite,
+      coltitle = #1,
+      colback = TUMWhite,
+      coltext = TUMBlack,
+      enhanced,
+      segmentation style = {
+          #1, line width = .25\@tum@rulewidth@,
+          dashed, dash pattern = on \@tum@rulewidth@ off \@tum@rulewidth@
+        },
+    },
+  TUMBoxInverse/.default = TUMBlue,
+  TUMBoxBlank/.style = {
+      sharp corners,
+      size = minimal,
+      fonttitle = \bfseries,
+      attach title to upper,
+      after title = {\par},
+      colframe = TUMWhite,
+      colbacktitle = TUMWhite,
+      coltitle = TUMBlack,
+      colback = TUMWhite,
+      coltext = TUMBlack,
+    }
+}
+
+
+% .:: TUM Box macros
+% ----------------------------------------------------------------------------
+
+\newtcolorbox{TUMBox}[2][TUMBlue]{
+  TUMBox = #1, title = #2
+}
+
+\newtcolorbox{TUMBoxVariant}[2][TUMBlue]{
+  TUMBoxVariant = #1, title = #2
+}
+
+\newtcolorbox{TUMBoxFill}[2][TUMBlue]{
+  TUMBoxFill = #1, title = #2
+}
+
+\newtcolorbox{TUMBoxInverse}[2][TUMBlue]{
+  TUMBoxInverse = #1, title = #2
+}
+
+
+% .:: Highlight Box
+% ----------------------------------------------------------------------------
+
+\newcommand{\@tum@hlsize@}{.09\dimexpr\f@size pt\relax}
+
+\newtcbox{\highlight}[1][TUMOrange]{
+  sharp corners, on line,
+  boxrule = 0pt, boxsep = 0pt,
+  left = \@tum@hlsize@, right = \@tum@hlsize@,
+  top = \@tum@hlsize@, bottom = \@tum@hlsize@,
+  toprule = \@tum@hlsize@, bottomrule = \@tum@hlsize@,
+  colframe = #1, colback = #1!20,
+}
+
+
+% .:: Redefine beamer blocks to use TUMBox
+% ----------------------------------------------------------------------------
+
+%\begin{noindent}
+\@ifclassloaded{beamer}{
+  \defbeamertemplate*{block begin}{TUM boxed}{
+    \begin{tcolorbox}[TUMBox=TUMBlue, title=\insertblocktitle]
+  }
+  \defbeamertemplate*{block end}{TUM boxed}{
+    \end{tcolorbox}
+  }
+  \defbeamertemplate*{block alerted begin}{TUM boxed}{
+    \begin{tcolorbox}[TUMBox=TUMOrange, title=\insertblocktitle]
+  }
+  \defbeamertemplate*{block alerted end}{TUM boxed}{
+    \end{tcolorbox}
+  }
+  \defbeamertemplate*{block example begin}{TUM boxed}{
+    \begin{tcolorbox}[TUMBox=TUMGreen, title=\insertblocktitle]
+  }
+  \defbeamertemplate*{block example end}{TUM boxed}{
+    \end{tcolorbox}
+  }
+}{}
+%\end{noindent}

@@ -1,0 +1,293 @@
+%%
+%% This is the file `quantum.styÕ.
+%%
+%% Copying of this file is authorized only if either:
+%% (1) you make absolutely no changes to your copy, including name; OR
+%% (2) if you do make changes, you first rename it to some other name.
+%%
+%% New commands defined here:
+%% =======================
+%% \ket[]{}           \Ket[]{}     \bra[]{}     \Bra[]{}
+%% \braket[]{}        \Braket[]{}     \ketbra[]{}     \Ketbra[]{}
+%% \tr[]{}            \Tr[]{}        \rank
+%% \prob[]{}         \Prob[]{}    \pr[]{}         \Pr[]{}
+%% \abs{}            \Abs{}        \norm[]{}    \Norm[]{}
+%% \set{}            \Set{}
+%%
+%% Available options:
+%% ==============
+%% SquareTraceBrackets, LowerCaseTrace, LowerCaseProb, LowerCasePr
+%%
+%%
+%% Useful links:
+%% =========
+%%http://tex.stackexchange.com/questions/12362/test-if-a-command-has-been-defined-by-another-package
+%% http://stackoverflow.com/questions/1812214/latex-optional-arguments
+%% http://www.latex-project.org/guides/clsguide.pdf
+%%
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{quantum}[2012/03/12 v0.1 Provides notation for quantum theory such as Dirac notation, and includes shortcuts for commonly used functions, operators and delimiters in quantum information theory.]
+
+%%
+%% Options: change the brackets of the trace from round to square and
+%% change to lower case forms of Tr, Prob, and Pr.
+%%
+\newcommand{\TraceCase}{\mathrm{Tr}}
+\newcommand{\ProbCase}{\mathrm{Prob}}
+\newcommand{\PrCase}{\mathrm{Pr}}
+\newcommand{\LeftTraceBracket}{(}
+\newcommand{\RightTraceBracket}{)}
+\DeclareOption{SquareTraceBrackets}{%
+\renewcommand{\LeftTraceBracket}{[}%
+\renewcommand{\RightTraceBracket}{]}%
+}
+\DeclareOption{LowerCaseTrace}{%
+\renewcommand{\TraceCase}{\mathrm{tr}}%
+}
+\DeclareOption{LowerCaseProb}{%
+\renewcommand{\ProbCase}{\mathrm{pr}}%
+}
+\DeclareOption{LowerCasePr}{%
+\renewcommand{\PrCase}{\mathrm{pr}}%
+}
+\DeclareOption*{\PackageWarning{quantum}{Unknown option `\CurrentOption'}}
+\ProcessOptions\relax
+
+\RequirePackage{amsmath} % required for \DeclareMathOperator, etc.
+\RequirePackage{mathtools} % used for \prescript
+\RequirePackage{xparse} % used for overloading function definitions
+\RequirePackage{bbm} % for double-struck math fonts
+
+%% ket
+%% PK: I added an option that puts a subscript on the ket (and the bra).
+%%
+\newcommand{\ket}[2][]{\lvert #2\rangle_{#1}}
+\newcommand{\Ket}[2][]{\left\lvert #2\right\rangle_{#1}}
+\newcommand{\bigket}[2][]{\bigl\lvert #2\bigr\rangle_{#1}}
+\newcommand{\Bigket}[2][]{\Bigl\lvert #2\Bigr\rangle_{#1}}
+\newcommand{\biggket}[2][]{\biggl\lvert #2\biggr\rangle_{#1}}
+\newcommand{\Biggket}[2][]{\Biggl\lvert #2\Biggr\rangle_{#1}}
+%%
+%% bra
+%%
+\newcommand{\bra}[2][]{{}_{#1} \langle #2\rvert}
+\newcommand{\Bra}[2][]{\prescript{}{#1}{\left\langle #2\right\rvert}}
+\newcommand{\bigbra}[2][]{{}_{#1} \bigl\langle #2\bigr\rvert}
+\newcommand{\Bigbra}[2][]{{}_{#1} \Bigl\langle #2\Bigr\rvert}
+\newcommand{\biggbra}[2][]{{}_{#1} \biggl\langle #2\biggr\rvert}
+\newcommand{\Biggbra}[2][]{{}_{#1} \Biggl\langle #2\Biggr\rvert}
+
+
+%% braket
+%%
+%% PK: I would like two options to this command, corresponding to
+%% subscripts on the left and the right.
+%% STF: I have something nice to show everyone:
+
+\NewDocumentCommand \braket
+{ >{ \SplitArgument{2}{|} } m o }
+    { \InternalFunctionbraket #1 }
+
+\NewDocumentCommand \InternalFunctionbraket
+{ m m m o }
+    {\IfValueTF {#3}
+       { \langle \mathopen{}#1\mathclose{} \vert \mathopen{}#2\mathclose{} \vert \mathopen{}#3\mathclose{} \rangle }
+       {\IfValueTF{#2}
+           { \langle  \mathopen{}#1\mathclose{} \vert \mathopen{}#2\mathclose{} \rangle}
+           { \langle \mathopen{}#1\mathclose{} \rangle }
+       }
+    }
+
+
+\NewDocumentCommand \Braket
+{ >{ \SplitArgument{2}{|} } m o }
+    { \InternalFunctionBraket #1 }
+
+\NewDocumentCommand \InternalFunctionBraket
+{ m m m o }
+    {\IfValueTF {#3}
+       { \left\langle #1 \middle\vert #2 \middle\vert #3 \right\rangle }
+       {\IfValueTF{#2}
+           { \left\langle #1 \middle\vert #2 \right\rangle}
+           { \left\langle #1 \right\rangle }
+       }
+    }
+
+%% For those who want to override the braket size old-skool. Needs work.
+%%
+%\newcommand{\bigbraket}[2]{\bigl\langle #1\bigm\vert #2 \bigr\rangle}
+%\newcommand{\Bigbraket}[2]{\Bigl\langle #1\Bigm\vert #2 \Bigr\rangle}
+%\newcommand{\biggbraket}[2]{\biggl\langle #1\biggm\vert #2 \biggr\rangle}
+%\newcommand{\Biggbraket}[2]{\Biggl\langle #1\Biggm\vert #2 \Biggr\rangle}
+
+%%
+%% PK: Here I would like a single option for a subscript between the ket and the bra.
+%%
+
+\NewDocumentCommand \ketbra
+{ >{ \SplitArgument{1}{|} } m m o }
+    { \InternalFunctionketbra #1 }
+
+\NewDocumentCommand \InternalFunctionketbra
+{ m m o }
+    {\IfValueTF{#2}
+       { \vert \mathopen{}#1\mathclose{} \rangle\langle \mathopen{}#2\mathclose{} \vert}
+       { \vert \mathopen{}#1\mathclose{} \rangle\langle \mathopen{}#1\mathclose{} \vert}
+    }
+
+\NewDocumentCommand \Ketbra
+{ >{ \SplitArgument{1}{|} } m m o }
+    { \InternalFunctionKetbra #1}
+
+\NewDocumentCommand \InternalFunctionKetbra
+{ m m o }
+    {\IfValueTF{#2}
+       {\left\vert #1 \middle\rangle\middle\langle #2 \right\vert}
+       {\left\vert #1 \middle\rangle\middle\langle #1 \right\vert}
+    }
+
+%% For those who want to override the ketbra size. Needs work.
+%%
+%\newcommand{\bigketbra}[2]{\bigl\lvert#1\bigr\rangle \bigl\langle #2\bigr\rvert}
+%\newcommand{\Bigketbra}[2]{\Bigl\lvert#1\Bigr\rangle \Bigl\langle #2\Bigr\rvert}
+%\newcommand{\biggketbra}[2]{\biggl\lvert#1\biggr\rangle \biggl\langle #2\biggr\rvert}
+%\newcommand{\Biggketbra}[2]{\Biggl\lvert#1\Biggr\rangle\Biggl\langle #2\Biggr\rvert}
+
+% This pair of commands parses the input and resizes the internal \vert commands appropriately. :)
+% I just added room for an optional argument at the end, but I didnÕt give it any functionality yet...
+% I envision a command which works as follows:
+% \braket{<arg1> | <arg2> | <arg3>}[<size>]
+% here <size> is an optional command:
+% if it is omitted, then you get the regular braket with default size,
+% 0 = \left \right delimited, i.e. expandable
+% 1 = \big delimited
+% 2 = \Big delimited
+% 3 = \bigg delimited
+% 4 = \Bigg delimited
+% else default size again.
+% This would have the advantage that we always have just ONE command, and a single optional argument with some logical (albeit unconventional) way to resize everything simultaneously.
+% Another option would be to have two functions, \braket and \Braket, where only the second one automatically resizes, but the first one takes an optional input for resizing.  
+
+%%
+%%
+%%
+\newcommand{\tr}[2][]{\TraceCase_{#1} \LeftTraceBracket #2 \RightTraceBracket}
+\newcommand{\Tr}[2][]{\TraceCase_{#1} \mathopen{}\left\LeftTraceBracket #2 \right\RightTraceBracket\mathclose{}}
+
+\newcommand{\prob}[1]{\ProbCase(#1)}
+\NewDocumentCommand \Prob
+{ >{ \SplitArgument{1}{|} } m o }
+    { \InternalFunctionProb #1 }
+
+\NewDocumentCommand \InternalFunctionProb
+{ m m o }
+     {\IfValueTF{#2}
+         {\ProbCase \mathopen{}\left( #1 \middle\vert #2 \right)\mathclose{}}
+         {\ProbCase \mathopen{}\left( #1 \right)\mathclose{}}
+    }
+
+\newcommand{\pr}[1]{\PrCase(#1)}
+\RenewDocumentCommand \Pr
+{ >{ \SplitArgument{1}{|} } m o }
+    { \InternalFunctionPr #1 }
+
+\NewDocumentCommand \InternalFunctionPr
+{ m m o }
+     {\IfValueTF{#2}
+         {\PrCase \mathopen{}\left( #1 \middle\vert #2 \right)\mathclose{}}
+         {\PrCase \mathopen{}\left( #1 \right)\mathclose{}}
+    }
+
+\DeclareMathOperator{\rank}{rank}
+
+% PK added a subscript option to \abs, \norm, and \set. So no need for many different norms.
+% Users can define a shortcut themselves if they want one. Question: subscript text or math?
+%
+% absolute value
+\newcommand{\abs}[2][]{\lvert#2\rvert_{\text{#1}}}
+\newcommand{\Abs}[2][]{\left\lvert#2\right\rvert_{\text{#1}}}
+%\newcommand{\bigabs}[1]{\bigl\lvert#1\bigr\rvert}
+%\newcommand{\Bigabs}[1]{\Bigl\lvert#1\Bigr\rvert}
+%\newcommand{\biggabs}[1]{\biggl\lvert#1\biggr\rvert}
+%\newcommand{\Biggabs}[1]{\Biggl\lvert#1\Biggr\rvert}
+
+% matrix norm
+\newcommand{\norm}[2][]{\lVert #2\rVert_{\text{#1}}}
+\newcommand{\Norm}[2][]{\left\lVert#2\right\rVert_{\text{#1}}}
+%\newcommand{\bignorm}[1]{\bigl\lVert#1\bigr\rVert}
+%\newcommand{\Bignorm}[1]{\Bigl\lVert#1\Bigr\rVert}
+%\newcommand{\biggnorm}[1]{\biggl\lVert#1\biggr\rVert}
+%\newcommand{\Biggnorm}[1]{\Biggl\lVert#1\Biggr\rVert}
+
+% sets
+\newcommand{\set}[2][]{\lbrace #2 \rbrace_{\text{#1}}}
+\newcommand{\Set}[2][]{\left\lbrace #2 \right\rbrace_{\text{#1}}}
+%\newcommand{\bigset}[1]{\bigl\lbrace #1 \bigr\rbrace}
+%\newcommand{\Bigset}[1]{\Bigl\lbrace #1 \Bigr\rbrace}
+%\newcommand{\biggset}[1]{\biggl\lbrace #1 \biggr\rbrace}
+%\newcommand{\Biggset}[1]{\Biggl\lbrace #1 \Biggr\rbrace}
+
+%%
+%% commonly used double-struck symbols
+%%
+\newcommand{\CC}{\mathbbm{C}}
+\newcommand{\EE}{\mathbbm{E}}
+\newcommand{\FF}{\mathbbm{F}}
+\newcommand{\HH}{\mathbbm{H}}
+\newcommand{\NN}{\mathbbm{N}}
+\newcommand{\PP}{\mathbbm{P}} % some people use this for probabilities
+\newcommand{\QQ}{\mathbbm{Q}}
+\newcommand{\RR}{\mathbbm{R}}
+\renewcommand{\SS}{\mathbbm{S}}
+\newcommand{\ZZ}{\mathbbm{Z}}
+\newcommand{\one}{\mathbbm{1}}
+\newcommand{\id}{\one} % alternative to \one
+\newcommand{\identity}{\mathbbm{I}} % alternative to \one
+
+%%
+%% shortcut commands
+%%
+\newcommand{\ox}{\otimes}
+\newcommand{\Ox}{\bigotimes}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\eps}{\epsilon}
+\newcommand{\veps}{\varepsilon}
+
+%%
+%%
+%% End of file `quantum.styÕ.
+%%
+
+
+%% Start MJE additions - to make my most used macros work.
+%
+% Please place after \usepackage{quantum} and before \begin{document}
+%
+% space makes macros that use math work with punctuation marks when used inline.
+\usepackage{xspace}
+% make it easy to colour text in primary colours.
+\newcommand{\RED}[1]{\textcolor{red}{#1}\xspace}
+\newcommand{\BLUE}[1]{\textcolor{blue}{#1}\xspace}
+\newcommand{\GREEN}[1]{\textcolor{green}{#1}\xspace}
+% Matrix Element
+\newcommand{\ME}[3] {\ensuremath{\left\langle {#1} {\left| {#2} \right|} {#3}\right\rangle}\xspace}
+% Inner Product
+\newcommand{\IP}[2] {\ensuremath{\left\langle {#1} | {#2}\right\rangle}\xspace}
+% Commutator
+\newcommand{\COM}[2] {\ensuremath{\left[ {#1} , {#2}\right]}\xspace}
+% Outer product 
+\newcommand{\OP}[2] {\ensuremath{\left| {#1} \right\rangle \left\langle{#2}\right|}\xspace}
+% Yes, I am this lazy
+\newcommand{\Half} {\ensuremath{\frac{1}{2}}\xspace}
+\newcommand{\ihbar}{\ensuremath{\frac{i}{\hbar}}\xspace}
+% Override Pieters ket and bra commands so that they also work in plain text
+% adding this not effect the compilability of his latex at all
+\renewcommand{\ket}[1]{\ensuremath{\left| #1 \right\rangle}\xspace}
+\renewcommand{\bra}[1]{\ensuremath{\left\langle #1 \right|}\xspace}
+% For the proper typesetting of differential d
+\newcommand{\ud}{\mathrm{d}}
+%
+%% END MJE ADDITIONS

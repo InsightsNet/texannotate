@@ -1,0 +1,170 @@
+% $Id: TUINFDISS.sty 1752 2010-03-20 11:07:02Z engel $
+%
+% TU Wien - Faculty of Informatics
+% settings for TUINF thesis
+%
+% For questions and comments send an email to
+% Robert Engel <engel@ec.tuwien.ac.at>
+%
+% Credits:
+% Thomas Krennwallner <tkren@kr.tuwien.ac.at>
+%
+\ProvidesPackage{TUINFDISS}[2011/04/20 v1.0 TU INF DISS style file]
+\typeout{2011/04/20 v1.1 TU INF DISS style file}
+
+% use Helvetica for \sffamily, times for the rest
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{helvet}
+\usepackage{times}
+\usepackage{courier}
+\usepackage{amssymb} % \centerdot
+
+% load english and ngerman
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman,english]{babel}
+
+% search for graphics in ./figures
+\usepackage{graphicx}
+\graphicspath{{figures/titlepage/}}
+
+% TikZ ist kein Zeichenprogramm
+\usepackage{tikz}
+
+% we need a recent geometry for \newgeometry
+\usepackage{geometry}[2010/02/15]
+
+% create new titlepage pagestyle for memoir
+\makepagestyle{tuinftitlepage}
+\makeheadposition{tuinftitlepage}{center}{center}{center}{center}
+
+\newlength{\tuinf@headwidth}
+\setlength{\tuinf@headwidth}{18.2cm}
+\newlength{\tuinf@footwidth}
+\setlength{\tuinf@footwidth}{16cm}
+%the next 2 lines only work with recent versions of memoir
+%\makerunningwidth{tuinftitlepage}[\tuinf@footwidth]{\tuinf@headwidth}
+%\makefootrule{tuinftitlepage}{\tuinf@footwidth}{0.5pt}{1mm}
+
+\makerunningwidth{tuinftitlepage}{\tuinf@headwidth}
+
+% font sizes for the titlepage
+\newcommand{\thesistitlefontHUGE}{\fontsize{22}{25}\selectfont}
+\newcommand{\thesistitlefonthuge}{\fontsize{20}{23}\selectfont}
+\newcommand{\thesistitlefontLARGE}{\fontsize{17}{22}\selectfont}
+\newcommand{\thesistitlefontLarge}{\fontsize{14}{18}\selectfont}
+\newcommand{\thesistitlefontlarge}{\fontsize{12}{14.5}\selectfont}
+\newcommand{\thesistitlefontnormalsize}{\fontsize{11}{13.6}\selectfont}
+
+% a squared bullet
+\def\tuinf@squarebullet{\raisebox{0.4ex}{\thesistitlefontLarge $\centerdot$}}
+
+\def\tuinf@titlingfoot{%
+  \centering%
+  \rule{\tuinf@footwidth}{0.5pt}
+
+  \begin{minipage}[t][1cm][t]{\tuinf@footwidth}%
+    \sffamily%
+    \centering%
+    \thesistitlefontnormalsize%
+    %
+    Technische Universit\"{a}t Wien 
+    
+    A-1040 Wien \tuinf@squarebullet{} Karlsplatz 13 \tuinf@squarebullet{}
+    Tel. +43-1-58801-0 \tuinf@squarebullet{} www.tuwien.ac.at%
+  \end{minipage}%
+}
+\def\tuinf@titlinghead{%
+  \centering%
+  \begin{minipage}[t]{\tuinf@headwidth}%
+    \centering%
+    \tikz{%
+      \node at (0,0) {\includegraphics[width=17.9cm]{dokumentenkopf__klein}};
+      \node at (5.5,-0.7) {\includegraphics[scale=1]{INF_Logo_typo_grau}};
+    }%
+  \end{minipage}%
+}
+\newlength{\tuinf@baselineskip}
+\newlength{\tuinf@parindent}
+\makeevenhead{tuinftitlepage}{}{%
+  \setlength{\tuinf@baselineskip}{\baselineskip}%
+  \setlength{\baselineskip}{13.6pt}%
+  \setlength{\tuinf@parindent}{\parindent}%
+  \setlength{\parindent}{17pt}%
+  \tuinf@titlinghead%
+  \setlength{\baselineskip}{\tuinf@baselineskip}%
+  \setlength{\parindent}{\tuinf@parindent}%
+}{} 
+\makeoddhead{tuinftitlepage}{}{%
+  \setlength{\tuinf@baselineskip}{\baselineskip}%
+  \setlength{\baselineskip}{13.6pt}%
+  \setlength{\tuinf@parindent}{\parindent}%
+  \setlength{\parindent}{17pt}%
+  \tuinf@titlinghead%
+  \setlength{\baselineskip}{\tuinf@baselineskip}%
+  \setlength{\parindent}{\tuinf@parindent}%
+}{}
+\makeevenfoot{tuinftitlepage}{}{%
+  \setlength{\tuinf@baselineskip}{\baselineskip}%
+  \setlength{\baselineskip}{13.6pt}%
+  \setlength{\tuinf@parindent}{\parindent}%
+  \setlength{\parindent}{17pt}%
+  \tuinf@titlingfoot%
+  \setlength{\baselineskip}{\tuinf@baselineskip}%
+  \setlength{\parindent}{\tuinf@parindent}%
+}{} 
+\makeoddfoot{tuinftitlepage}{}{%
+  \setlength{\tuinf@baselineskip}{\baselineskip}%
+  \setlength{\baselineskip}{13.6pt}%
+  \setlength{\tuinf@parindent}{\parindent}%
+  \setlength{\parindent}{17pt}%
+  \tuinf@titlingfoot%
+  \setlength{\baselineskip}{\tuinf@baselineskip}%
+  \setlength{\parindent}{\tuinf@parindent}%
+}{}
+
+% TUINF defaults
+\gdef\tuinfthesistitle{Interactive Computer Generated Architecture}
+\gdef\tuinfthesissubtitle{}
+\gdef\tuinfthesisdate{\today}
+\gdef\tuinfthesistype{DISSERTATION}
+\gdef\tuinfthesisdegree{Doktor der technischen Wissenschaften}
+\gdef\tuinfthesiscurriculum{Informatik}
+\gdef\tuinfthesistypeen{DISSERTATION}
+\gdef\tuinfthesisdegreeen{Doktor der technischen Wissenschaften}
+\gdef\tuinfthesiscurriculumen{Informatics}
+\gdef\tuinfthesisverfassung{Verfasser/in}
+\gdef\tuinfthesisauthor{Martina Muster}
+\gdef\tuinfthesisauthoraddress{Musterplatz 1, 1111 Wien}
+\gdef\tuinfthesismatrikelno{0123456}
+\gdef\tuinfthesisbetreuung{Betreuung}
+\gdef\tuinfthesisbetreins{Titel~Dr.~Vorname Familienname}
+\gdef\tuinfthesisbetrzwei{Titel~Dr.~Vorname Familienname}
+\gdef\tuinfthesisbetrdrei{Titel~Dr.~Vorname Familienname}
+\gdef\tuinfthesisbegutachtung{Diese Dissertation haben begutachtet:}
+\gdef\tuinfthesisbegutachtungeins{Titel~Dr.~Vorname Familienname}
+\gdef\tuinfthesisbegutachtungzwei{Titel~Dr.~Vorname Familienname}
+
+\newcommand{\thesistitle}[1]{\xdef\tuinfthesistitle{#1}}
+\newcommand{\thesissubtitle}[1]{\xdef\tuinfthesissubtitle{#1}}
+\newcommand{\thesisdate}[1]{\xdef\tuinfthesisdate{#1}}
+\newcommand{\thesistype}[2]{\xdef\tuinfthesistype{#1} \xdef\tuinfthesistypeen{#2}}
+\newcommand{\thesisdegree}[2]{\xdef\tuinfthesisdegree{#1} \xdef\tuinfthesisdegreeen{#2}}
+\newcommand{\thesiscurriculum}[2]{\xdef\tuinfthesiscurriculum{#1} \xdef\tuinfthesiscurriculumen{#2}}
+\newcommand{\thesisverfassung}[1]{\xdef\tuinfthesisverfassung{#1}}
+\newcommand{\thesisauthor}[1]{\xdef\tuinfthesisauthor{#1}}
+\newcommand{\thesisauthoraddress}[1]{\xdef\tuinfthesisauthoraddress{#1}}
+\newcommand{\thesismatrikelno}[1]{\xdef\tuinfthesismatrikelno{#1}}
+
+\newcommand{\thesisbetreuung}[1]{\xdef\tuinfthesisbetreuung{#1}}
+\newcommand{\thesisbetreins}[1]{\xdef\tuinfthesisbetreins{#1}}
+\newcommand{\thesisbetrzwei}[1]{\xdef\tuinfthesisbetrzwei{#1}}
+\newcommand{\thesisbetrdrei}[1]{\xdef\tuinfthesisbetrdrei{#1}}
+\newcommand{\thesisbegutachtung}[1]{\xdef\tuinfthesisbegutachtung{#1}}
+\newcommand{\thesisbegutachtungeins}[1]{\xdef\tuinfthesisbegutachtungeins{#1}}
+\newcommand{\thesisbegutachtungzwei}[1]{\xdef\tuinfthesisbegutachtungzwei{#1}}
+
+\endinput
+
+%%% Local Variables:
+%%% mode: latex
+%%% End:

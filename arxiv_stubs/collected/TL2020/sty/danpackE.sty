@@ -1,0 +1,191 @@
+\ProvidesPackage{danpackE}
+
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[all]{xy}
+\usepackage{amssymb}
+\usepackage{verbatim}
+\usepackage{graphicx}
+%%\usepackage{enumerate}
+%\usepackage{mathtools}
+\usepackage{mathrsfs}
+\usepackage{relsize}
+\usepackage{etoolbox}
+%\usepackage{bbm}
+\usepackage[lofdepth, lotdepth]{subfig}
+\usepackage{stmaryrd}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+%\usepackage[normalem]{ulem}
+\usepackage{mathtools}
+\usepackage{mathabx}
+\usepackage[cal=boondox, calscaled=1.05]{mathalfa} % to have lowercase mathcal letters, eg \kay
+
+\newcommand{\floor}[1]{{\left\lfloor #1 \right\rfloor}}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mfrk}[1]{\mathfrak{#1}}
+\newcommand{\newprob}[1]{\vspace{.125in}\ \\ \noindent\textbf{#1}}
+
+% Boldfaced letters
+\newcommand{\bA}{\mathbb{A}}
+\newcommand{\bN}{\mathbb{N}}
+\newcommand{\bZ}{\mathbb{Z}}
+\newcommand{\bR}{\mathbb{R}}
+\newcommand{\bH}{\mathbb{H}}
+\newcommand{\bQ}{\mathbb{Q}}
+\newcommand{\bC}{\mathbb{C}}
+\newcommand{\bP}{\mathbb{P}}
+\newcommand{\bT}{\mathbb{T}}
+\newcommand{\bF}{\mathbb{F}}
+\newcommand{\bE}{\mathbb{E}}
+\newcommand{\bV}{\mathbb{V}}
+
+\newcommand{\charf}{\mathbbm{1}}
+
+% mathrm's
+\newcommand{\rep}{\mathrm{Re}_+}
+\newcommand{\ren}{\mathrm{Re}_-}
+\newcommand{\imp}{\mathrm{Im}_+}
+\newcommand{\imn}{\mathrm{Im}_-}
+\newcommand{\pr}{\mathrm{pr}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\cans}{\mathrm{can}}
+\newcommand{\nil}{\mathrm{Nil}}
+\newcommand{\Log}{\mathrm{Log}}
+\newcommand{\imag}{\mathrm{Im}\quad}
+\newcommand{\fun}{\mathrm{Fun}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\Mat}{\mathrm{Mat}}
+\newcommand{\mat}{\mathrm{Mat}}
+\newcommand{\egp}{\mathrm{End}}
+\newcommand{\aut}{\mathrm{Aut}}
+\newcommand{\homgp}{\mathrm{Hom}}
+\newcommand*{\sheafHom}{\mathscr{H}\kern -.5 pt om}
+\newcommand*{\sheafExt}{\mathscr{E}\kern -.5 pt xt}
+
+% Greek
+\newcommand{\vp}{\varphi}
+
+%Binary ops
+\newcommand{\tup}{\bigtriangleup}
+
+%Otres
+\newcommand{\cunion}[1]{\bigcup_{#1=1}^\infty}
+\newcommand{\scunion}[1]{\cup_{#1=1}^\infty}
+\newcommand{\sucht}{\textrm { s.t. }}
+\newcommand{\invrs}{^{-1}}
+\newcommand{\cinf}{C^\infty}
+\newcommand{\pwrt}[1]{\frac{\partial}{\partial {#1}}}
+\newcommand{\partials}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\drc}[1]{H^#1_{dR}}
+%\newcommand{\twotwo}[4]{\left[\begin{array}{cc}#1&#2\\ #3 & #4\end{array}\right]}
+\newcommand{\vect}[1]{\left[\begin{array}{c} #1 \end{array}\right]}
+\newcommand{\braket}[1]{\left\langle #1 \right\rangle}
+\providecommand{\half}{\frac{1}{2}}
+\newcommand{\thalf}{\tfrac{1}{2}}
+\newcommand{\pii}{\pi i}
+\newcommand{\dwrt}[1]{\frac{d}{d #1}}
+\newcommand{\freep}{\mathop{\huge \mathlarger{\mathlarger{*}}}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+%\newcommand{\pcwise}[1]{\left\{\begin{array}{ll} #1\end{array}\right.}
+\newcommand{\rotmat}[1]{\left[\begin{array}{cc}\cos #1 & -\sin #1\\ \sin #1 & \cos #1 \end{array} \right]}
+\newcommand{\probs}[1]{\bP\left\{#1\right\}}
+\newcommand{\subgnm}[1]{\left|\left| #1\right|\right|_{\psi_2}}
+\newcommand{\bigset}[2]{\left\{#1 \ifblank{#2}{}{\left| #2\right.} \right\}}
+\newcommand{\bignorm}[1]{\left|\left|#1\right|\right|}
+\newcommand{\bigabs}[1]{\left|#1\right|}
+\newcommand{\dmu}{\,d\mu}
+\newcommand{\surjection}{\twoheadrightarrow}
+\newcommand{\suchthat}{\;\ifnum\currentgrouptype=16 \middle\fi|\;}
+
+\renewcommand{\setminus}{\smallsetminus}
+
+\DeclareMathOperator{\image}{Im}
+\DeclareMathOperator{\range}{range}
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\res}{Res}
+\DeclareMathOperator{\ord}{Order}
+\DeclareMathOperator{\spn}{span}
+\DeclareMathOperator{\kernel}{Ker}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\nilrad}{NilRad}
+\DeclareMathOperator{\spec}{Spec}
+\DeclareMathOperator{\mspec}{MaxSpec}
+\DeclareMathOperator{\fracf}{frac}
+\DeclareMathOperator{\sgn}{sign}
+\DeclareMathOperator{\height}{ht}
+\DeclareMathOperator{\Indrep}{Ind}
+\DeclareMathOperator{\resrep}{res}
+\DeclareMathOperator{\glgrp}{GL}
+\DeclareMathOperator{\sym}{Sym}
+%\DeclareMathOperator{\alt}{Alt}
+\DeclareMathOperator{\extgp}{Ext}
+\DeclareMathOperator{\torgp}{Tor}
+\DeclareMathOperator{\ann}{Ann}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\adj}{adj}
+\DeclareMathOperator{\jac}{Jac}
+\DeclareMathOperator{\divisor}{div}
+\DeclareMathOperator{\rhom}{\mathbf{R}Hom}
+\DeclareMathOperator{\proj}{Proj}
+\DeclareMathOperator{\elocus}{Exc}
+\DeclareMathOperator{\charp}{char}
+\DeclareMathOperator{\volume}{vol}
+\DeclareMathOperator{\codim}{Codim}
+\DeclareMathOperator{\grade}{grade}
+\DeclareMathOperator{\depth}{depth}
+\DeclareMathOperator{\pd}{pd}
+
+
+
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem*{theorem*}{Theorem}
+
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem*{lemma*}{Lemma}
+%
+%\newtheorem{proposition}[theorem]{Proposition}
+%\newtheorem*{proposition*}{Proposition}
+%
+%\newtheorem{corollary}[theorem]{Corollary}
+%\newtheorem*{corollary*}{Corollary}
+%
+%\newtheorem{claim}[theorem]{Claim}
+%
+%\theoremstyle{definition}
+%\newtheorem{ramble}[theorem]{Ramble}
+%\newtheorem{definition}[theorem]{Definition}
+%\newtheorem{remark}[theorem]{Remark}
+%\newtheorem{notation}[theorem]{Notation}
+%\newtheorem{example}[theorem]{Example}
+%\newtheorem{conjecture}[theorem]{Conjecture}
+%\newtheorem{question}[theorem]{Question}
+%\newtheorem{setting}[theorem]{Setting}
+
+\renewcommand{\[}{\begin{equation}}
+\renewcommand{\]}{\end{equation}}
+
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+
+%%% Cartier algebras, Frobenius, etc
+\newcommand{\sheaf}[1]{\mathscr{#1}}
+\newcommand{\ssheaf}{\mathscr O}
+\newcommand{\cartalg}[1]{\mathscr{#1}}
+\newcommand{\multideal}{\mathscr J}
+\newcommand{\compSubAlg}{\, \scalebox{0.75}{\rotatebox[origin=c]{90}{$\circlearrowleft$} } }
+\newcommand{\idealsProd}{\underline{\mathfrak a}^t}
+\newcommand{\fullCA}[1]{\cartalg C^{#1}}
+\newcommand{\sD}[1]{\mathscr D^{(#1)}}
+\newcommand{\Frobp}[2]{{(#1)}^{1/p^{#2}}}
+\newcommand{\FrobP}[2]{{\left(#1\right)}^{1/p^{#2}}}
+\newcommand{\sqpower}[1]{^{[#1]}}
+\newcommand{\kay}{\mathcal{k}}
+
+\newcommand{\sC}{\cartalg{C}}

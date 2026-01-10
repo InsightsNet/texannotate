@@ -1,0 +1,381 @@
+% Author: Roman Garnett, romangarnett@gmail.com
+%
+% The style file will be kept up-to-date at the following GitHub repository:
+%
+% https://github.com/automl-conf/LatexTemplate
+%
+% Please file any issues you may have there.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{automl}[2024/02/08 AutoML submission/camera-ready style file]
+
+% change this every year for notice string
+\newcommand{\@utomlyear}{2024}
+
+% declare final option, which creates camera-ready copy
+\newif\if@submission\@submissiontrue
+\DeclareOption{final}{%
+  \@submissionfalse
+}
+
+% declare revealauthors option, which creates a non-anonymized submission
+\newif\if@revealauthors\@revealauthorsfalse
+\DeclareOption{revealauthors}{%
+  \@revealauthorstrue
+}
+
+% declare preprint option, which creates a version that can be uploaded to preprint repositories, e.g. arXiv.
+\newif\if@preprint\@preprintfalse
+\DeclareOption{preprint}{%
+  \@preprinttrue
+  \@submissionfalse
+}
+
+% declare workshop option, which creates a submission/camera-ready for the workshop track
+\newif\if@workshop\@workshopfalse
+\DeclareOption{workshop}{%
+  \@workshoptrue
+}
+
+% declare hidesupplement option, which hides supplemental material
+\newif\if@hidesupplement\@hidesupplementfalse
+\DeclareOption{hidesupplement}{%
+  \@hidesupplementtrue
+}
+\ProcessOptions\relax
+
+% handle tweaks for camera-ready copy vs. submission copy
+\if@submission
+  \newcommand{\c@nferencestring}{}
+
+  % line numbers for submission
+  \usepackage[right]{lineno}
+  \linenumbers
+
+  % fix incompatibilities between lineno and amsmath, if required, by
+  % transparently wrapping linenomath environments around amsmath
+  % environments
+  \AtBeginDocument{%
+    \@ifpackageloaded{amsmath}{%
+      \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+        \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+        \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+        \renewenvironment{#1}%
+                         {\linenomath\csname old#1\endcsname}%
+                         {\csname oldend#1\endcsname\endlinenomath}%
+      }%
+      \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+        \patchAmsMathEnvironmentForLineno{#1}%
+        \patchAmsMathEnvironmentForLineno{#1*}%
+      }%
+      \patchBothAmsMathEnvironmentsForLineno{equation}%
+      \patchBothAmsMathEnvironmentsForLineno{align}%
+      \patchBothAmsMathEnvironmentsForLineno{flalign}%
+      \patchBothAmsMathEnvironmentsForLineno{alignat}%
+      \patchBothAmsMathEnvironmentsForLineno{gather}%
+      \patchBothAmsMathEnvironmentsForLineno{multline}%
+      }{}
+  }
+\else
+  \newcommand{\c@nferencestring}{AutoML \@utomlyear}
+\fi
+
+\if@workshop
+  \let\@ldconferencestring\c@nferencestring
+  \renewcommand{\c@nferencestring}{\@ldconferencestring{} Workshop Track}
+\else
+  \if@preprint
+    \renewcommand{\c@nferencestring}{Preprint. Under review.}
+  \fi
+\fi
+
+% hide the supplement by redefining \appendix
+\if@hidesupplement
+  \let\appendix\enddocument
+\fi
+
+% set page geometry
+\ifx\DeclareHookRule\@undefined\else
+  \DeclareHookRule{begindocument}{geometry}{before}{.}
+\fi
+\usepackage[verbose=true,letterpaper]{geometry}
+\AtBeginDocument{
+  \usepackage{geometry}
+  \newgeometry{
+    textheight=9in,
+    textwidth=6in,
+    top=1in,
+    headheight=12\p@,
+    headsep=20\p@,
+    footskip=0.5in
+  }
+  \usepackage{fancyhdr}
+  \fancyhf{}
+  \fancyfoot[R]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}%
+  \fancypagestyle{plain}{%
+    \fancyfoot[L]{\small\c@nferencestring}
+    \fancyfoot[R]{\small\textcopyright\,\@utomlyear\ the authors, released under \href{https://creativecommons.org/licenses/by/4.0/}{CC BY 4.0}}
+  }
+  \pagestyle{fancy}
+  \@ifpackageloaded{fullpage}
+    {\PackageWarning{automl}{fullpage package not allowed! Overwriting formatting.}}
+    {}
+}
+
+% fonts
+\usepackage[nofontspec,semibold,lining]{libertine}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[varqu,varl,scaled=0.96]{zi4}
+\usepackage[libertine,vvarbb,upint]{newtxmath}
+\usepackage[cal=cm,bb=ams,scr=boondoxo]{mathalpha}
+
+% force font sizes/leading from corresponding to LaTeX article class with [11pt]
+% option
+\renewcommand*{\normalsize}{%
+   \@setfontsize\normalsize\@xipt{13}%
+   \abovedisplayskip 11\p@ \@plus3\p@ \@minus6\p@
+   \abovedisplayshortskip \z@ \@plus3\p@
+   \belowdisplayshortskip 6.5\p@ \@plus3.5\p@ \@minus3\p@
+   \belowdisplayskip \abovedisplayskip
+   \let\@listi\@listI}
+\normalsize
+\renewcommand*{\small}{%
+   \@setfontsize\small\@xpt\@xiipt
+   \abovedisplayskip 10\p@ \@plus2\p@ \@minus5\p@
+   \abovedisplayshortskip \z@ \@plus3\p@
+   \belowdisplayshortskip 6\p@ \@plus3\p@ \@minus3\p@
+   \def\@listi{\leftmargin\leftmargini
+               \topsep 6\p@ \@plus2\p@ \@minus2\p@
+               \parsep 3\p@ \@plus2\p@ \@minus\p@
+               \itemsep \parsep}%
+   \belowdisplayskip \abovedisplayskip
+}
+\renewcommand*{\footnotesize}{%
+   \@setfontsize\footnotesize\@ixpt{11}%
+   \abovedisplayskip 8\p@ \@plus2\p@ \@minus4\p@
+   \abovedisplayshortskip \z@ \@plus\p@
+   \belowdisplayshortskip 4\p@ \@plus2\p@ \@minus2\p@
+   \def\@listi{\leftmargin\leftmargini
+               \topsep 4\p@ \@plus2\p@ \@minus2\p@
+               \parsep 2\p@ \@plus\p@ \@minus\p@
+               \itemsep \parsep}%
+   \belowdisplayskip \abovedisplayskip
+}
+\renewcommand*{\tiny}{\@setfontsize\tiny\@vipt\@viipt}
+\renewcommand*{\scriptsize}{\@setfontsize\scriptsize\@viiipt{9.5}}
+\renewcommand*{\large}{\@setfontsize\large\@xiipt{14}}
+\renewcommand*{\Large}{\@setfontsize\Large\@xivpt{18}}
+\renewcommand*{\LARGE}{\@setfontsize\LARGE\@xviipt{22}}
+\renewcommand*{\huge}{\@setfontsize\huge\@xxpt{25}}
+\renewcommand*{\Huge}{\@setfontsize\Huge\@xxvpt{30}}
+
+\widowpenalty=10000
+\clubpenalty=10000
+\flushbottom
+\sloppy
+
+% float placement
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.4}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.7}
+
+% paragraph formatting
+\setlength{\parindent}{17\p@}
+\setlength{\parskip}{\z@}
+
+% create title
+\providecommand{\maketitle}{}
+\renewcommand{\maketitle}{%
+  \par
+  \begingroup
+    \@maketitle
+  \endgroup
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+  \global\let\@maketitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\afill\relax
+  \global\let\date\relax
+  \global\let\and\relax
+}
+
+% rules for title box
+\newcommand{\t@ptitlebar}{
+  \hrule height 1.5\p@
+  \vskip 0.15in
+}
+\newcommand{\middletitleb@r}{
+  \hrule height 0.5\p@
+  \vskip 0.1in
+}
+\newcommand{\b@ttomtitlebar}{
+  \hrule height 1.5\p@
+  \vskip 4ex \@minus 0.5ex
+}
+
+\usepackage[noblocks]{authblk}
+\renewcommand{\Authfont}{\normalfont\bfseries}
+\renewcommand{\Authsep}{\linebreak[0]\hspace{0.5em}}
+\renewcommand{\Authands}{\linebreak[0]\hspace{0.5em}}
+\renewcommand{\Authand}{\linebreak[0]\hspace{0.5em}}
+\setlength{\affilsep}{1.5ex}
+
+\usepackage[%
+  bookmarks,
+  colorlinks,
+  linkcolor=black,
+  citecolor=black,
+  filecolor=black,
+  urlcolor=black,
+  hyperfootnotes=false]{hyperref} % hyperlinks
+\hypersetup{pdflang=en}
+\newcommand{\nameemail}[2]{\mbox{\href{mailto:#2}{#1}}}
+\if@submission
+  \AtBeginDocument{\hypersetup{pdfauthor={Anonymous}}}
+\fi
+
+\providecommand{\@maketitle}{}
+\renewcommand{\@maketitle}{%
+  \t@ptitlebar
+  {\centering\LARGE\bfseries\vphantom{Ap}\@title\vphantom{Ap}\par}
+  \vskip 0.125in
+  \middletitleb@r
+  \thispagestyle{plain}
+  \if@submission
+    \if@revealauthors
+      % single blind
+    \else
+      \renewcommand{\AB@authlist}{\Authfont{Anonymous}\AB@authnote{1}}
+      \renewcommand{\AB@affillist}{\AB@affilnote{1}\Affilfont{Anonymous Institution}}
+    \fi
+  \fi
+  \frenchspacing%
+  \list{}{\leftmargin=1em\topsep=\z@}\item[]\raggedright\@author\endlist%
+  \vskip 0.1in
+  \nonfrenchspacing%
+}
+
+% ensure no floats on first page
+\AtBeginDocument{
+  \suppressfloats%
+}
+
+% abstract
+\renewenvironment{abstract}{%
+  \middletitleb@r
+  \list{}{\leftmargin=5em\rightmargin=1em\labelwidth=4em}\item[\textbf{Abstract}]\small%
+}
+{\endlist
+ \b@ttomtitlebar}
+
+% captions
+\usepackage[%
+  subrefformat=parens,
+  labelformat=parens
+]{subcaption}
+\usepackage{caption}
+\captionsetup{
+  font=small,
+  width=0.95\textwidth,
+  format=hang,
+  justification=justified
+}
+\captionsetup[sub]{
+  font=small,
+  width=0.95\textwidth,
+  justification=justified
+}
+
+% acknowledgments -- comment out at submission time
+\usepackage{verbatim}
+\newenvironment{acknowledgements}{%
+  \if@submission
+    \comment
+  \else
+    \paragraph{Acknowledgements}
+  \fi
+}
+{%
+  \if@submission
+    \endcomment
+  \fi
+}
+
+% headers
+\usepackage{titlesec}
+\titlespacing*{\section}%
+              {\z@}%
+              {12\p@ \@plus 5\p@ \@minus 3\p@}%
+              {6\p@ \@plus 3\p@ \@minus 2\p@}%
+\titleformat{\section}%
+            {\normalfont\bfseries\large}%
+            {\makebox[0pt][r]{\thesection\hspace{0.5em}}}%
+            {\z@}%
+            {}%
+\titlespacing*{\subsection}%
+              {\z@}%
+              {10\p@ \@plus 5\p@ \@minus 3\p@}%
+              {5\p@ \@plus 3\p@ \@minus 2\p@}%
+\titleformat{\subsection}%
+            {\normalfont\bfseries}%
+            {\makebox[0pt][r]{\thesubsection\hspace{0.5em}}}%
+            {\z@}%
+            {}%
+\titlespacing*{\subsubsection}%
+              {\z@}%
+              {8\p@ \@plus 4\p@ \@minus 2\p@}%
+              {4\p@ \@plus 2\p@ \@minus \p@}%
+\titleformat{\subsubsection}[runin]%
+            {\normalfont\bfseries}%
+            {\makebox[0pt][r]{\thesubsubsection\hspace{0.5em}}}%
+            {\z@}%
+            {}%
+            [.]%
+\titlespacing*{\paragraph}%
+              {\z@}%
+              {8\p@ \@plus 4\p@ \@minus 2\p@}%
+              {4\p@ \@plus 2\p@ \@minus \p@}%
+\titleformat{\paragraph}[runin]%
+            {\bfseries\normalsize}%
+            {}%
+            {0.5em}%
+            {}%
+            [.]%
+\setcounter{secnumdepth}{3}
+
+% lists
+\usepackage{enumitem}
+\setlist[enumerate]{%
+  leftmargin=*,%
+  topsep=0.5\baselineskip,%
+  itemsep=0.25\baselineskip}
+\setlist[itemize]{%
+  leftmargin=*,%
+  topsep=0.5\baselineskip,%
+  itemsep=0.25\baselineskip}
+
+% reproducibility checklist
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{todonotes}
+% https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11 Cynthia Brewer
+\definecolor{answerYesColor}{RGB}{31,120,180}
+\definecolor{answerNoColor}{RGB}{227,26,28}
+\definecolor{answerNAColor}{RGB}{32, 32, 32}
+\definecolor{answerTODOColor}{RGB}{255,127,0}
+
+\newcommand{\answerYes}[1]{{\textcolor{answerYesColor}{[Yes]}\xspace#1}}
+\newcommand{\answerNo}[1]{{\textcolor{answerNoColor}{[No]}\xspace#1}}
+\newcommand{\answerNA}[1]{{\textcolor{answerNAColor}{[N/A]}\xspace#1}}
+\newcommand{\answerTODO}{\textcolor{answerTODOColor}{\textbf{[TODO]}}}
+
+\endinput

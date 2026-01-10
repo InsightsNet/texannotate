@@ -1,0 +1,61 @@
+%% 2014 by VTEX UAB
+%% Support team: latex-support@vtex.lt
+%%
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesClass{nupha_ecrc}[2015/08/00 v1.0 Elsevier NUPHA addons]
+
+\RequirePackage{ecrc}
+
+\def\@@author[#1]#2{\g@addto@macro\elsauthors{%
+  \def\baselinestretch{1}%
+  \authorsep {\elsarticle@authorfont #2}\unskip\textsuperscript{%#1%
+    \@for\@@affmark:=#1\do{%
+     \edef\affnum{\@ifundefined{X@\@@affmark}{1}{\elsRef{\@@affmark}}}%
+   \unskip\sep\affnum\let\sep=,}%
+    \ifx\@fnmark\@empty\else\unskip\sep\@fnmark\let\sep=,\fi
+    \ifx\@corref\@empty\else\unskip\sep\@corref\let\sep=,\fi
+    }%
+  \def\authorsep{\unskip,\space}%
+  \global\let\sep\@empty\global\let\@corref\@empty
+  \global\let\@fnmark\@empty}%
+  \@eadauthor={#2}
+  }
+
+\def\@author#1{\g@addto@macro\elsauthors{%
+  \def\baselinestretch{1}%
+  \upshape \elsarticle@authorfont\authorsep #1\unskip\textsuperscript{%
+    \ifx\@fnmark\@empty\else\unskip\sep\@fnmark\let\sep=,\fi
+    \ifx\@corref\@empty\else\unskip\sep\@corref\let\sep=,\fi
+    }%
+  \def\authorsep{\unskip,\space}%
+  \global\let\@fnmark\@empty
+  \global\let\@corref\@empty
+  \global\let\sep\@empty}%
+  \@eadauthor={#1}
+  }
+
+\let\@oddfoot\@empty
+\let\@evenfoot\@empty
+
+\edef\saved@f@size{\f@size}
+\def\check@normalsize{%
+  \ifx\saved@f@size\f@size
+  \else
+    \@latex@error{You can't change normalsize of the document!}\@eha
+  \fi
+  }
+
+\edef\saved@textwidth{\the\textwidth}
+\def\check@textwidth{%
+  \ifdim\textwidth=\saved@textwidth
+  \else
+    \@latex@error{You can't change \string\textwidth\space of the document!}\@eha
+  \fi
+  }
+
+% reserved some space for copyright
+\g@addto@macro\frontmatter{\enlargethispage{-28\p@}}
+
+\AtBeginDocument{\check@normalsize\check@textwidth}
+\AtEndDocument{\check@normalsize\check@textwidth}
+\endinput

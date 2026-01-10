@@ -33,7 +33,9 @@
 \def\addcontentsline#1#2#3{}
 % gf: PRINT COPYRIGHT NOTICE
 \def\copyright@year{\number\year}
-\def\copyright@text{AAAI 2021 Workshop on Trustworthy AI for Healthcare.}
+\def\copyright@text{Copyright \copyright\space \copyright@year,
+Association for the Advancement of Artificial Intelligence (www.aaai.org).
+All rights reserved.}
 \def\copyright@on{T}
 %\def\nocopyright{\gdef\copyright@on{}} % Copyright notice is required for AAAI-21 papers.
 \def\copyrighttext#1{\gdef\copyright@on{T}\gdef\copyright@text{#1}}
@@ -58,7 +60,7 @@
 \def\@maketitle{%
     \newsavebox{\titlearea}
     \sbox{\titlearea}{
-        \let\footnote\thanks\relax
+      \let\footnote\relax\let\thanks\relax
         \vbox{
             \hsize\textwidth
 %%% AAAI changed: 03/05/2010
@@ -80,7 +82,22 @@
         \setlength{\titlebox}{\actualheight}
     \fi
     \setcounter{footnote}{0}
-    \vbox to \titlebox {\usebox{\titlearea}}
+    \vbox to \titlebox {\let\footnote\thanks\relax
+    \vbox{
+        \hsize\textwidth
+%%% AAAI changed: 03/05/2010
+%%\linewidth\hsize \vskip 0.625in minus 0.125in \centering
+\linewidth\hsize \vskip 0.625in minus 0.125in \centering
+%%% END changed
+{\LARGE\bf \@title \par} \vskip 0.2in plus 1fil minus 0.1in
+{
+\hbox to \linewidth\bgroup\normalsize \hfil\hfil
+\hbox to 0pt\bgroup\hss
+\begin{tabular}[t]{p{\textwidth}}\centering \Large{\textbf \@author}
+\vspace{3pt}  \normalsize  \affiliations_
+\end{tabular}\hss\egroup
+\hfil\hfil\egroup}
+\vskip 0.0in plus 2fil minus 0.1in}}
 }
 
 \renewenvironment{abstract}{\centerline{\bf

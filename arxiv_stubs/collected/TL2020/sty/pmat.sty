@@ -1,0 +1,180 @@
+%%
+%% pmat.sty, version 0.1
+%%
+%% Tom\'as Oliveira e Silva, January 1996
+%%
+%% Partitioned matrix code. Works under TeX and LaTeX (all versions)
+%% Unfortunately, the syntax of pmat is much closer to that of TeX
+%% than to that of LaTeX.
+%%
+%
+% Avoid loading this file more than once
+%
+\expandafter\ifx\csname pmat@iter\endcsname\relax\else\endinput\fi
+%
+% Make @ a letter
+%
+\expandafter\edef\csname pmat@catcode\endcsname
+  {\catcode`\string @=\the\catcode`\@}
+\catcode`\@=11
+%
+% How to select the dash shape
+%     cross (A): horizontal and vertical dash lines cross each other
+%   nocross (B): horizontal and vertical dash lines do not cross each other
+%
+\def\pmatcross{\def\pmat@hdash{\pmat@hdashA}\def\pmat@vdash{\pmat@vdashA}}
+\def\pmatnocross{\def\pmat@hdash{\pmat@hdashB}\def\pmat@vdash{\pmat@vdashB}}
+\pmatcross %The default
+%
+% Debug flag
+%
+\newif\ifpmat@debug\pmat@debugfalse
+%
+% Extra facilities are provided under LaTeX2e
+%
+\ifx\ProvidesPackage\undefined\else
+  \ProvidesPackage{pmat}[1996/01/01 v0.1]
+  \DeclareOption{debug}{\pmat@debugtrue}%Undocumented feature
+  \DeclareOption{cross}{\pmatcross}
+  \DeclareOption{nocross}{\pmatnocross}
+  \ProcessOptions 
+\fi
+%
+% Debug code. If enabled it draws a bounding box around each matrix entry.
+%
+\ifpmat@debug
+  \def\pmat@hidehrule#1#2{\kern-#1%
+    \hrule height#1 depth#2 \kern-#2}
+  \def\pmat@hidevrule#1#2{\kern-#1{\dimen0=#1%
+    \advance\dimen0 by#2\vrule width\dimen0}\kern-#2}
+  \def\pmat@makeblankbox#1#2{\hbox{\lower\dp0\vbox{\pmat@hidehrule{#1}{#2}%
+    \kern-#1 \hbox to \wd0{\pmat@hidevrule{#1}{#2}%
+    \raise\ht0\vbox to #1{}%
+    \lower\dp0\vtop to #1{}%
+    \hfil\pmat@hidevrule{#2}{#1}}%
+    \kern-#1\pmat@hidehrule{#2}{#1}}}}
+\fi
+%
+% All pmat internal parameters can be accessed/changed externaly through
+% the macros \pmatget and \pmatset (to hide the names of the parameters).
+% Currently there are 7 parameters defined:
+%
+%   0  pmat@dashwidth ------- length of one dash ``unit''
+%   1  pmat@dashheight ------ thickness of the dash lines
+%   2  pmat@minlinegap ------ the minimum gap between lines
+%   3  pmat@mincolumngap ---- the minimum gap between columns
+%   4  pmat@minentrywidth --- minimum width of each entry of the matrix
+%   5  pmat@minentryheight -- minimum height of each entry of the matrix
+%   6  pmat@minentrydepth --- minimum depth of each entry of the matrix
+%
+\newdimen\pmat@dashwidth\pmat@dashwidth=2.88pt
+\newdimen\pmat@dashheight\pmat@dashheight=.36pt
+\newdimen\pmat@minlinegap\pmat@minlinegap=2pt
+\newdimen\pmat@mincolumngap\pmat@mincolumngap=8pt
+\newdimen\pmat@minentrywidth\pmat@minentrywidth=0pt
+\newdimen\pmat@minentryheight\pmat@minentryheight=6pt
+\newdimen\pmat@minentrydepth\pmat@minentrydepth=1.5pt
+%% 2.88 and .36pt correspond to an integral number of pixels at
+%%     400dpi and 600 dpi.
+%% minentrydepth+0.5(minlinegap+dashheight) should be smaller than dashwidth
+\def\pmatget#1{\ifcase#1\pmat@dashwidth\or\pmat@dashheight\or
+  \pmat@minlinegap\or\pmat@mincolumngap\or\pmat@minentrywidth\or
+  \pmat@minentryheight\or\pmat@minentrydepth\fi}
+\def\pmatset#1#2{\ifcase#1\pmat@dashwidth=#2\or\pmat@dashheight=#2\or
+  \pmat@minlinegap=#2\or\pmat@mincolumngap=#2\or\pmat@minentrywidth=#2\or
+  \pmat@minentryheight=#2\or\pmat@minentrydepth=#2\fi}
+%
+% Some useful macros
+%
+\def\pmat@roundup#1{\advance\dimen#1 by \pmat@dashwidth
+  \advance\dimen#1 by -1sp
+  \divide\dimen#1 by \pmat@dashwidth
+  \multiply\dimen#1 by \pmat@dashwidth}
+\def\pmat@normalizebox#1{\setbox0=\hbox{#1}%
+  \ifdim\wd0>\pmat@minentrywidth
+    \dimen0=\wd0\else\dimen0=\pmat@minentrywidth\fi
+  \ifdim\ht0>\pmat@minentryheight
+    \dimen2=\ht0\else\dimen2=\pmat@minentryheight\fi
+  \ifdim\dp0>\pmat@minentrydepth
+    \dimen4=\dp0\else\dimen4=\pmat@minentrydepth\fi
+  \advance\dimen0 by.5\pmat@mincolumngap\advance\dimen0 by\pmat@dashheight
+  \advance\dimen2 by.5\pmat@minlinegap\advance\dimen2 by.5\pmat@dashheight
+  \advance\dimen4 by.5\pmat@minlinegap\advance\dimen4 by.5\pmat@dashheight
+  \pmat@roundup0\advance\dimen0 by-\wd0\pmat@roundup2\pmat@roundup4%
+  \hbox{\vrule width 0pt height\dimen2 depth\dimen4%
+  \kern.5\dimen0%
+  \ifpmat@debug
+    \copy0\kern-\wd0\pmat@makeblankbox{0pt}{0.1pt}%
+  \else
+    \box0%
+  \fi
+  \kern.5\dimen0}}
+\def\pmat@hdashA{\cleaders\hbox to \pmat@dashwidth{\hss\vrule
+  width .5\pmat@dashwidth height .5\pmat@dashheight depth .5\pmat@dashheight
+  \hss}\hfill}
+\def\pmat@hdashB{\cleaders\hbox to \pmat@dashwidth{\vrule
+  width .25\pmat@dashwidth height .5\pmat@dashheight depth .5\pmat@dashheight
+  \hss\vrule
+  width .25\pmat@dashwidth height .5\pmat@dashheight depth .5\pmat@dashheight
+  }\hfill}
+\def\pmat@vdashA{\cleaders\vbox to \pmat@dashwidth{\vss\hrule
+  width \pmat@dashheight height .5\pmat@dashwidth depth 0pt\vss}\vfill}
+\def\pmat@vdashB{\cleaders\vbox to \pmat@dashwidth{\hrule
+  width \pmat@dashheight height .25\pmat@dashwidth depth 0pt\vss\hrule
+  width \pmat@dashheight height .25\pmat@dashwidth depth 0pt}\vfill}
+\def\pmat@iter#1{\ifx#1\end\let\next=\relax\else
+  \let\next=\pmat@iter\edef\pmat@arg{#1\pmat@arg}%
+  \edef\pmat@omit{\omit\hfil&\pmat@omit}\fi\next}
+\def\pmat@build#1{\let\pmat@arg=\empty\def\pmat@omit{\omit\hfil\cr}%
+  \pmat@iter#1\end}
+\def\pmat@nextitem#1#2\end{\def\pmat@arg{#2}%\message{(#1)}
+  \global\setbox3=\hbox{\kern\wd0\if#1|\kern-.5\pmat@dashheight
+    \copy2\kern-.5\pmat@dashheight\fi\unhbox3}}
+%
+% The main pmat macros
+%
+\def\pmat#1#2#3{\def\pmat@delimL{#1}\pmat@build{#2}\def\pmat@delimR{#3}%
+  \setbox0=\hbox{$\left#1 TEST \right#3$}%To test delimiters
+  \setbox0=\vbox\bgroup\offinterlineskip\tabskip=0pt%
+  \everycr{}\def\-{\noalign{\penalty 1}}%
+  \halign\bgroup&\hfil\pmat@normalizebox{$##$}\hfil\cr}
+\def\endpmat{\pmat@omit
+  \egroup\egroup
+  \dimen0=\ht0\advance\dimen0 by\dp0%
+  \setbox2=\vbox to \dimen0{\kern.5\pmat@dashwidth
+    \pmat@vdash\kern.5\pmat@dashwidth}%
+  \ht2=\ht0\dp2=\dp0%
+  \setbox4=\hbox to \wd0{\kern.5\pmat@dashwidth
+    \pmat@hdash\kern.5\pmat@dashwidth}%
+  \ht4=0pt\dp4=0pt%
+  \setbox0=\vbox{\offinterlineskip\unvbox0%
+    \global\setbox1=\vbox{}%
+    \setbox0=\lastbox
+%% Unpack and process last hbox of alignment (generated by \pmat@omit)
+    \setbox0=\hbox{\unhbox0\unskip
+      \setbox0=\lastbox
+      \global\setbox3=\hbox{\kern\wd0}%
+      \loop
+        \unskip\setbox0=\lastbox
+      \ifhbox0\expandafter\pmat@nextitem\pmat@arg-\end\repeat}%
+%% Place dashed lines where requested between the lines of the alignment
+    \loop
+      \skip0=\lastskip\unskip
+      \ifnum\lastpenalty>0\unpenalty\global\setbox1=\vbox{\copy4\unvbox1}\fi
+      \setbox0=\lastbox
+      \ifhbox0\global\setbox1=\vbox{\box0\unvbox1}\repeat}%
+%  \delimmiterfactor=975
+%  \delimitershortfall=2pt
+  \left\pmat@delimL
+  \dimen0=\wd3\vcenter{\hbox{\kern-.4\pmat@dashwidth
+    \raise-\dp1\box3\kern-\dimen0\box1\kern-.4\pmat@dashwidth}}%
+  \right\pmat@delimR
+}
+%
+% restore catcode of @
+%
+\pmat@catcode
+%
+% That's all, folks!
+%
+\endinput

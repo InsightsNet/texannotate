@@ -1,0 +1,195 @@
+% packages
+\usepackage{fullpage}
+\usepackage{nicefrac}
+\usepackage{bm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{mathrsfs}
+\usepackage{alltt}
+\usepackage{comment}
+\usepackage{listings}
+\usepackage{amscd}
+\usepackage{upgreek}
+
+% general symbols 
+\def\Tr{\mathrm{Tr\,}}
+\def\dd{\mathrm{d}}
+\def\DD{\mathrm{D}}
+\def\bdd{\text{\boldmath $\mathrm{d}$}}
+\def\pd{\partial}
+\def\bpd{\text{\boldmath$\partial$}}
+\def\biota{\text{\boldmath$\iota$}}
+%\def\bxi{\text{\boldmath$\xi$}}
+\def\bxi{\boldsymbol{\xi}}
+\def\scri{\mathscr{I}}
+\def\hphi{\hat{\phi}}
+\def\bphi{\text{\boldmath$\phi$}}
+\def\eps{\varepsilon}
+\def\fii{\varphi}
+\def\const{\mathrm{const.}}
+\def\Lie{\pounds}
+\def\LL{\mathcal{L}}
+\def\CC{\mathcal{C}}
+\def\NN{\mathcal{N}}
+\def\JJ{\mathcal{J}}
+\def\FF{\mathcal{F}}
+\def\RR{\mathcal{R}}
+\def\ZZ{\mathsf{Z}}
+\def\ham{\mathcal{H}}
+\def\QQ{\mathcal{Q}}
+\def\zero{^{(0)}}
+\def\one{^{(1)}}
+\def\ii{\mathrm{i}}
+\def\om{\omega}
+\def\omZ{\omega^0}
+\def\omO{\omega^1}
+\def\Vol{\mathrm{Vol}}
+
+\DeclareMathOperator{\coker}{\mathrm{coker}}
+\DeclareMathOperator{\ind}{\mathrm{ind}}
+
+% optical scalars
+\def\expl{\Theta_{\vec{l}}}
+\def\shear{\mathfrak{S}}
+\def\surg{\varkappa_{(\ell)}}
+
+% equivalece relation and other
+\def\eqrel{\sim}
+\newcommand{\req}{\stackrel{!}{=}}
+
+% projectors
+\def\orP{\mathcal{P}}
+\def\ogP{\mathcal{P}^{\perp}\hspace{0mm}}
+\def\lgP{\mathcal{P}^{\|}\hspace{0mm}}
+\def\emb{\mathscr{E}}
+
+% operators
+\def\difop{\mathcal{D}}
+\newcommand{\Hodge}[1]{{}^{\star}\!{#1}}
+\def\Fstar{{}^\star\!F}
+
+% manifolds and IH
+\def\man{\mathcal{M}}
+\def\NH{\mathcal{H}}
+\def\kh{\mathcal{K}} % killing horizon
+\newcommand{\eqNH}{\stackrel{\NH}{=}}
+
+% symplectic space and others
+\def\psg{\mathscr{P}_G}
+\def\psp{\mathscr{P}_P}
+\def\spaceS{\mathcal{S}}
+\def\Mink{\mathbb{M}^4}
+\def\Euc{\mathbb{E}}
+\def\pinp{\pi_{_{\rm NP}}}
+\def\pinpb{\bar{\pi}_{_{\rm NP}}}
+
+
+% numbers
+\def\Int{\mathbb{Z}}  
+\def\Comp{\mathbb{C}}
+\def\Real{\mathbb{R}}
+\def\Nat{\mathbb{N}}
+\def\TT{\mathcal{T}}
+
+%commands
+\newcommand{\pdlr}[1]{\stackrel{\leftrightarrow}{\pd_{#1}}}
+\newcommand{\braketop}[3]{\left\langle #1 \mid #2 \mid #3 \right\rangle}
+\newcommand{\braket}[2]{\left\langle #1 \mid #2 \right\rangle}
+\newcommand{\ket}[1]{\left| #1 \right\rangle}
+\newcommand{\bra}[1]{\left\langle #1 \right|}
+\newcommand{\ruddd}[2]{R^{#1}_{\phantom{#1}#2}}
+\newcommand{\ord}[1]{\mathcal{O}\left(#1\right)}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\pullback}[1]{\underleftarrow{#1}}
+\renewcommand\pounds{\mathsterling}
+
+% complex conjungation
+\newcommand{\conj}[1]{\overline{#1}}
+
+\renewcommand{\Re}[1]{\mathrm{Re\,}\{#1\}}
+\renewcommand{\Im}[1]{\mathrm{Im\,}\{#1\}}
+
+% computer code formatting
+\lstset{
+language=Python, 
+keywordstyle=\color{blue},
+breaklines=true,
+commentstyle=\color{gray},
+basicstyle=\small
+}
+
+%formatting
+\def\negsplarge{\!\!\!\!}
+
+%commands
+\renewcommand{\hat}{\widehat}
+
+\usepackage{framed}
+\newenvironment{MyFigure}
+{
+\begin{figure}[tb]
+%\begin{framed}
+\begin{center}
+}
+{
+\end{center}
+%\end{framed}
+\end{figure}
+}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\def\qed{ $\blacksquare$ }
+\newenvironment{proof}{\par\medskip\noindent%
+   \textbf{Proof.} \footnotesize \rmfamily}{ \hfill \qed \bigskip}
+% pridané prostredia dm
+\newenvironment{note}{\par \medskip \noindent \textbf{Note:}}{\medskip}
+%\newenvironment{notes}{\par \medskip \noindent \textbf{Notes:} \begin{itemize} }{\end{itemize} \medskip}
+
+\newenvironment{notes}{\par \medskip \noindent \textbf{Notes:} }{\smallskip \\}
+
+\newcommand{\myitem}[1]{$\bullet$ #1 \\} 
+
+\newenvironment{example}{\par \medskip \noindent \textbf{Example:}}{\medskip}
+\newenvironment{examples}{\par \medskip \noindent \textbf{Examples:}}{\medskip}
+%
+
+\newenvironment{InlineFigure}
+{
+\begin{framed}
+\begin{center}
+}
+{
+\end{center}
+\end{framed}
+}
+
+\newcommand{\Yslm}[3]{{}_{#1}Y_{#2 #3}}
+
+
+\usepackage{mdframed}
+\newmdtheoremenv[%
+outerlinewidth = 2,%
+roundcorner= 10pt,%
+leftmargin = 40,%
+rightmargin = 40,%
+backgroundcolor = yellow!40,%
+outerlinecolor=blue!70!black,%
+innertopmargin = \topskip,%
+splittopskip = \topskip%
+%ntheorem = true,%
+]{mydef}{Definition}[section]
+
+
+%\newcommand{\mychapter}[1]{}
+
+
+\usepackage[T1]{fontenc}
+\usepackage{titlesec, blindtext, color}
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{20pt}}
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|
+}\hsp}{0pt}{\Huge\bfseries}

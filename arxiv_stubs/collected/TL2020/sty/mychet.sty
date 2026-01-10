@@ -1,0 +1,343 @@
+% chet.sty (version 2.2)
+% Copyright 2017 Andreas Stergiou
+%
+% This package is supposed to streamline latex typesetting and give the
+% look and feel of harvmac to a paper, with the use of LaTex2e.
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mychet}
+
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{%
+  family=Chet,
+  prefix=Chet@}
+
+\DeclareBoolOption{macrosonly}
+
+\ProcessKeyvalOptions*
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifChet@macrosonly
+
+\usepackage{xparse}
+\usepackage{xspace}
+
+% Numbered equation with optional label
+\NewDocumentCommand\eqn{om}{%
+  \IfNoValueTF{#1}
+     {\[ #2 \]}
+     {\begin{equation}\label{#1} #2  \end{equation} \expandafter\newcommand\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+
+
+
+% Numbered aligned equation with optional label in the vertical middle
+\NewDocumentCommand\eqna{om}{%
+  \IfNoValueTF{#1}
+    {\begin{align*} #2 \end{align*}}
+    {\begin{equation}\label{#1}\begin{split} #2  \end{split}\end{equation} \expandafter\def\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+
+% Numbered subequations
+% Two subequations
+\NewDocumentCommand\twoseqn{momoo}{%
+    \IfNoValueTF{#5}
+       {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4}  \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces}
+       {\begin{subequations}\label{#5}\begin{align} #1\label{#2} \\ #3 \label{#4}  \end{align}\end{subequations} \expandafter\def\csname #5\endcsname{\eqref{#5}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces}
+}
+% Three subequations
+\NewDocumentCommand\threeseqn{momomoo}{%
+   \IfNoValueTF{#7}
+     {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces}
+     {\begin{subequations}\label{#7}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \end{align}\end{subequations} \expandafter\def\csname #7\endcsname{\eqref{#7}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces}
+}
+
+% Four subequations
+\NewDocumentCommand\fourseqn{momomomoo}{%
+   \IfNoValueTF{#9}
+     {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \\ #7\label{#8} \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces \expandafter\def\csname #8\endcsname{\eqref{#8}\xspace}\ignorespaces}
+     {\begin{subequations}\label{#9}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \\ #7\label{#8} \end{align}\end{subequations} \expandafter\def\csname #9\endcsname{\eqref{#9}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces \expandafter\def\csname #8\endcsname{\eqref{#8}\xspace}\ignorespaces}
+}
+
+\newcommand{\rcite}{\cite}
+\newcommand{\draftmode}{\usepackage[notref,notcite]{showkeys}}
+\providecommand*\showkeyslabelformat[1]{\normalfont\sffamily\footnotesize#1}
+\newcommand{\foot}{\footnote}
+
+% Sections and subsections
+\NewDocumentCommand\newsec{om}{%
+  \IfNoValueTF{#1}
+     {\section{#2}}
+     {\section{#2}\label{#1} \expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+\NewDocumentCommand\subsec{om}{%
+  \IfNoValueTF{#1}
+     {\subsection{#2}}
+     {\subsection{#2}\label{#1}\expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+\NewDocumentCommand\subsubsec{om}{%
+  \IfNoValueTF{#1}
+     {\subsubsection{#2}}
+     {\subsubsection{#2}\label{#1}\expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}% 
+{-6ex \@plus -1ex \@minus -.2ex}% 
+{2.3ex \@plus.2ex}% 
+{\bfseries}}
+\makeatother
+\makeatletter
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\itshape}}
+\makeatother
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\itshape}}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\else
+
+\usepackage{xparse}
+\usepackage{xspace}
+\usepackage{datetime}
+\usepackage{amsmath}
+\usepackage[labelsep=colon,labelfont=bf]{caption}
+\usepackage{tocloft}
+\usepackage{cite}
+\usepackage[parsep]{collref}
+\usepackage{color}
+\usepackage{microtype}
+\usepackage[para]{manyfoot}
+\usepackage[bottom]{footmisc}
+%\usepackage{filecontents}
+\usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=3cm]{geometry}
+\usepackage[linktocpage]{hyperref}
+
+\numberwithin{equation}{section}
+
+\newcommand{\rcite}{\cite}
+\newcommand{\rcitedraft}[1]{\cite{#1}$^{\normalfont\text{\textsf{#1}}}$}
+\newcommand{\draftmode}{\usepackage[notref,notcite]{showkeys}\renewcommand{\rcite}{\rcitedraft}\overfullrule=8pt}
+\providecommand*\showkeyslabelformat[1]{\normalfont\sffamily\footnotesize#1}
+
+% Table of contents formatting
+\setcounter{tocdepth}{3}
+\renewcommand{\cfttoctitlefont}{\bfseries}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
+\renewcommand{\cftsubsubsecaftersnum}{.}
+\renewcommand{\cftdotsep}{8}
+\newcommand{\toc}{\tableofcontents}
+\renewcommand\contentsname{\centerline{Contents}}
+
+% Numbered equation with optional label
+\NewDocumentCommand\eqn{om}{%
+  \IfNoValueTF{#1}
+     {\[ #2 \]}
+     {\begin{equation}\label{#1} #2  \end{equation} \expandafter\newcommand\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+% Numbered aligned equation with optional label in the vertical middle
+\NewDocumentCommand\eqna{om}{%
+  \IfNoValueTF{#1}
+    {\begin{align*} #2 \end{align*}}
+    {\begin{equation}\label{#1}\begin{split} #2  \end{split}\end{equation} \expandafter\def\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+
+%%%%%%%%%%%%%%%%%%%
+
+% Numbered equation with optional label
+\NewDocumentCommand\eqnalt{om}{%
+  \IfNoValueTF{#1}
+     {\[ #2 \]}
+     {\begin{equation}\label{#1} #2 \end{equation} \expandafter\newcommand\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+% Numbered aligned equation with optional label in the vertical middle
+\NewDocumentCommand\eqnaalt{om}{%
+  \IfNoValueTF{#1}
+    {\begin{align*} #2 \end{align*}}
+    {\begin{equation}\label{#1}\begin{split} #2 \end{split}\end{equation} \expandafter\def\csname #1\endcsname{\eqref{#1}\xspace}\ignorespaces}
+}
+
+
+% Numbered subequations
+% Two subequations
+\NewDocumentCommand\twoseqn{momoo}{%
+    \IfNoValueTF{#5}
+       {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4}  \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces}
+       {\begin{subequations}\label{#5}\begin{align} #1\label{#2} \\ #3 \label{#4}  \end{align}\end{subequations} \expandafter\def\csname #5\endcsname{\eqref{#5}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces}
+}
+% Three subequations
+\NewDocumentCommand\threeseqn{momomoo}{%
+   \IfNoValueTF{#7}
+     {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces}
+     {\begin{subequations}\label{#7}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \end{align}\end{subequations} \expandafter\def\csname #7\endcsname{\eqref{#7}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces}
+}
+% Four subequations
+\NewDocumentCommand\fourseqn{momomomoo}{%
+   \IfNoValueTF{#9}
+     {\begin{subequations}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \\ #7\label{#8} \end{align}\end{subequations} \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces \expandafter\def\csname #8\endcsname{\eqref{#8}\xspace}\ignorespaces}
+     {\begin{subequations}\label{#9}\begin{align} #1\label{#2} \\ #3 \label{#4} \\ #5 \label{#6} \\ #7\label{#8} \end{align}\end{subequations} \expandafter\def\csname #9\endcsname{\eqref{#9}\xspace}\ignorespaces \expandafter\def\csname #2\endcsname{\eqref{#2}\xspace}\ignorespaces \expandafter\def\csname #4\endcsname{\eqref{#4}\xspace}\ignorespaces \expandafter\def\csname #6\endcsname{\eqref{#6}\xspace}\ignorespaces \expandafter\def\csname #8\endcsname{\eqref{#8}\xspace}\ignorespaces}
+}
+
+
+% Sections and subsections
+\NewDocumentCommand\newsec{om}{%
+  \IfNoValueTF{#1}
+     {\section{#2}}
+     {\section{#2}\label{#1} \expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+\NewDocumentCommand\subsec{om}{%
+  \IfNoValueTF{#1}
+     {\subsection{#2}}
+     {\subsection{#2}\label{#1}\expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+\NewDocumentCommand\subsubsec{om}{%
+  \IfNoValueTF{#1}
+     {\subsubsection{#2}}
+     {\subsubsection{#2}\label{#1}\expandafter\gdef\csname #1\endcsname{\ref{#1}\xspace}\ignorespaces}
+}
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+{-6ex \@plus -1ex \@minus -.2ex}%
+{2.3ex \@plus.2ex}%
+{\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\itshape}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\itshape}}
+% Dot after section number
+\def\@seccntformat#1{\csname the#1\endcsname.\hspace{4.6pt}}
+
+
+% Acknowledgments
+\newenvironment{acknowledgments}{\vspace{12pt}\begin{center}\textbf{Acknowledgments}\end{center}\vspace{-12pt}}{}
+\newcommand{\ack}[1]{\begin{samepage}\begin{acknowledgments} {#1} \end{acknowledgments}\end{samepage}}
+
+% References
+\renewcommand\refname{\bfseries\normalsize\centering References\\ \vspace{-0.4cm}
+\addcontentsline{toc}{section}{References}}
+\bibliographystyle{chetref}
+% Separator between references in single cite number
+\collectsep[.]{;\\}
+
+
+% Footnotes
+%\renewcommand{\footnotesize}{\normalsize}
+\newcommand{\foot}{\footnote}
+\setlength{\skip\footins}{0.5cm} % Vertical spacing between text body and footnotes
+\setlength{\footnotesep}{0.4cm} % Vertical separation of footnotes
+
+
+% Horizontal spacing between words
+\fontdimen2\font=1.2\fontdimen2\font
+
+
+% Vertical spacing between lines
+\linespread{1.25}
+
+
+% Vertical spacing in multiline equations (align, gather, ...)
+\setlength{\jot}{5pt}
+
+
+% Figure name
+\renewcommand{\figurename}{Fig.\!}
+
+
+% Format of date in bottom left of title page
+\newdateformat{mydate}{\monthname[\THEMONTH] \THEYEAR} %Needs package datetime
+\mydate{}
+
+
+% Appendices
+\newcommand\appendix@section[1]{%
+  \refstepcounter{section}%
+  \orig@section*{Appendix~\@Alph\c@section.~#1}%
+  \addcontentsline{toc}{section}{Appendix~\@Alph\c@section.~#1}}
+\let\orig@section\section
+\g@addto@macro\appendix{\let\section\appendix@section}
+\newcommand{\appendices}{\appendix}
+
+
+% Footnotes for emails in titlepage
+% Horizontal emails
+\SetFootnoteHook{\noindent\hspace{-5pt}}
+\DeclareNewFootnote[para]{E}[roman]
+\newcommand{\email}[1]{\footnoteE{\href{mailto:#1}{\texttt{#1}}}}
+% Vertical emails
+\SetFootnoteHook{\noindent\hspace{-10pt}}
+\DeclareNewFootnote{EE}[roman]
+\newcommand{\emailV}[1]{\footnoteEE{\href{mailto:#1}{\texttt{#1}}}}
+% All emails together
+\SetFootnoteHook{\noindent}
+\DeclareNewFootnote[para]{EEE}[roman]
+\newcommand{\emails}[1]{\footnotetextEEE{\texttt{#1}}}
+
+
+%Titlepage
+\renewcommand{\abstract}[1]{\def\@abstract {#1}}
+\newcommand{\affiliation}[1]{\def\@affiliation {#1}}
+\newcommand{\preprint}[1]{\def\@preprint {#1}}
+\abstract{}
+\affiliation{}
+\preprint{}
+
+
+% Title font (scaled cmr10)
+\DeclareFontShape{OT1}{cmr}{m}{n}%
+    {<->cmr10}{}
+\newcommand{\mytitlefont}{\fontseries{mx}\selectfont}
+% Command for use with math in title $\titlemath{...}$
+\DeclareMathAlphabet{\titlemath}{OT1}{cmr}{mx}{n}
+
+
+\def\maketitle{%
+    \begin{titlepage}
+        \begin{flushright}
+            \@preprint
+        \end{flushright}
+        \vspace{2cm}
+		\begin{center}
+            {\huge\mytitlefont\@title}
+
+            \bigskip\bigskip\bigskip
+            
+            \@author
+            
+            \bigskip
+			
+            {\emph\@affiliation}
+        \end{center}
+		\bigskip\bigskip
+        \noindent\@abstract
+		\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+		\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+		\noindent\@date
+    \end{titlepage}
+}
+\fi
+
+
+\endinput
+%

@@ -1,0 +1,124 @@
+%%
+%% This is file `smfhyperref.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% smfclass.dtx  (with options: `hyperref')
+%% 
+%%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  %% Classes, paquetages pour les publications de la SMF %%
+%%  %% (c) 1999-2014 Societe mathematique de France        %%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\ProvidesPackage{smfhyperref}[2012/09/29 v1.0
+  Adaptations pour faire cohabiter hyperref et les classes smf]
+\def\@@wrindex#1|#2|#3\\{%
+    \ifx\\#2\\%
+        \protected@write\@indexfile{}{%
+          \string\indexentry{#1}{\thepage}%
+        }%
+    \else
+        \def\Hy@temp@A{#2}%
+        \ifx\Hy@temp@A\HyInd@ParenLeft
+          \protected@write\@indexfile{}{%
+             \string\indexentry{#1|#2}{\thepage}%
+          }%
+        \else
+          \protected@write\@indexfile{}{%
+            \string\indexentry{#1|#2}{\thepage}%
+          }%
+        \fi
+      \fi
+      \endgroup
+      \@esphack
+    }%
+\ltx@IfUndefined{NAT@parse}{%
+  \def\@lbibitem[#1]#2{%
+    \@skiphyperreftrue
+    \H@item[%
+      \ifx\Hy@raisedlink\@empty
+        \hyper@anchorstart{cite.#2\@extra@b@citeb}%
+          \@BIBLABEL{#1}%
+        \hyper@anchorend
+      \else
+        \Hy@raisedlink{%
+          \hyper@anchorstart{cite.#2\@extra@b@citeb}\hyper@anchorend
+        }%
+        \@BIBLABEL{#1}%
+      \fi
+      \hfill
+    ]%
+    \settowidth\smf@tempwidthb{\@biblabel{#1}}%
+    \ifdim\smf@tempwidthb>\smf@tempwidtha
+          \global\smf@tempwidtha=\smf@tempwidthb
+    \fi
+    \@skiphyperreffalse
+    \if@filesw
+      \begingroup
+        \let\protect\noexpand
+        \immediate\write\@auxout{%
+          \string\bibcite{#2}{#1}%
+        }%
+      \endgroup
+    \fi
+    \ignorespaces
+  }%
+  \def\@bibitem#1{%
+    \@skiphyperreftrue\H@item\@skiphyperreffalse
+    \Hy@raisedlink{%
+      \hyper@anchorstart{cite.#1\@extra@b@citeb}\relax\hyper@anchorend
+    }%
+    \if@filesw
+      \begingroup
+        \let\protect\noexpand
+        \immediate\write\@auxout{%
+          \string\bibcite{#1}{\the\value{\@listctr}}%
+        }%
+     \endgroup
+    \fi
+    \settowidth\smf@tempwidthb{\@biblabel{\theenumiv}}%
+    \ifdim\smf@tempwidthb>\smf@tempwidtha
+           \global\smf@tempwidtha=\smf@tempwidthb
+    \fi
+    \ignorespaces
+  }%
+}{}
+\@ifpackageloaded{backref}{%
+\def\BR@@lbibitem[#1]#2#3\par{%
+  \smf@lbibitem[#1]{#2}#3
+  \newblock
+  \backref{\csname br@#2\endcsname}%
+  \par
+}%
+\def\BR@@bibitem#1#2\par{%
+  \smf@bibitem{#1}#2
+  \newblock
+  \backref{\csname br@#1\endcsname}%
+  \par
+}
+\def\thebibliography{%
+  % \@starttoc{brf}{}%
+  \BRorg@thebibliography
+}%
+}
+\endinput
+%%
+%% End of file `smfhyperref.sty'.

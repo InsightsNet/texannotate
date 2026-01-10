@@ -1,0 +1,168 @@
+%Article Title: Measuring Search Engines' Political Bias in Controversial Topics via Stance Bias
+%Journal Name: Information Retrieval Journal
+%Authors: Gizem Gezici, Aldo Lipani, Yucel Saygin, and Emine Yilmaz
+%Corresponding Author Information: Gizem Gezici, Sabanci University, gizemgezici@sabanciuniv.edu
+% Macros for the consistent setting of selected formulae.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{amsmath}    % Extended typesetting of mathematical expression.
+\RequirePackage{amssymb}    % Provides a multitude of mathematical symbols.
+\RequirePackage{amsthm}
+\RequirePackage{mathtools}
+
+\mathtoolsset{showonlyrefs}  
+
+\newcommand\EXCLUDE[1]{}
+
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+%\newtheorem{definition}{Definition}[section]
+\theoremstyle{definition}
+%\newtheorem{example}{Example}[section]
+
+\newcommand\set{\mathcal}
+\renewcommand\vec{\mathbf}
+\newcommand{\n}[1]{\overline{#1}}
+
+\DeclareMathOperator*{\E}{E}
+\DeclareMathOperator*{\AM}{AM}
+\DeclareMathOperator*{\GM}{GM}
+\DeclareMathOperator*{\GMP}{GM'}
+\DeclareMathOperator*{\sign}{sign}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\med}{\operatorname{Med}}
+\DeclareMathOperator*{\avg}{\operatorname{Avg}}
+\DeclareMathOperator*{\dev}{\operatorname{Dev}}
+\DeclareMathOperator*{\var}{\operatorname{Var}}
+
+% Functions
+\renewcommand{\top}[1]{\tau @#1}
+\newcommand{\rank}{\rho}
+\newcommand{\random}{\mu}
+\newcommand{\score}{\sigma}
+\newcommand{\nscore}{\overline{\sigma}}
+
+% Idioms
+\newcommand{\dinRp}{d \in \sD_r : r \in \sR_p}
+\newcommand{\rinRp}{r \in \sR_p : d \in \sD_r}
+\newcommand{\smallrandom}{\epsilon \cdot \random(0,1)}
+
+% Pooling Strategies
+\newcommand{\depth}[1]{\text{Depth@}#1}
+\renewcommand{\d}[1]{D^{#1}}
+\newcommand{\randomDepth}[1]{\text{RandomDepth@}#1}
+\newcommand{\rd}[1]{\mathrlap{r}{D}^{#1}}
+\newcommand{\ps}[1]{\mathrlap{p}{S}^{#1}}
+\newcommand{\take}[1]{\text{Take@}#1}
+\newcommand{\fair}[1]{\text{FairTake@}#1}
+\newcommand{\borda}[1]{\text{BordaTake@}#1}
+\newcommand{\condorcet}[1]{\text{CondorcetTake@}#1}
+\newcommand{\combmax}[1]{\text{CombMAXTake@}#1}
+\newcommand{\combmin}[1]{\text{CombMINTake@}#1}
+\newcommand{\combmed}[1]{\text{CombMEDTake@}#1}
+\newcommand{\combsum}[1]{\text{CombSUMTake@}#1}
+\newcommand{\combanz}[1]{\text{CombANZTake@}#1}
+\newcommand{\combmnz}[1]{\text{CombMNZTake@}#1}
+\newcommand{\dcg}[1]{\text{DCGTake@}#1}
+\newcommand{\rrf}[1]{\text{RRFTake@}#1}
+\newcommand{\ppb}[1]{\text{PPTake@}#1}
+\newcommand{\rbp}[1]{\text{RBPTake@}#1}
+
+% Adaptive
+\newcommand{\rbpanr}[1]{\text{RBPAdaptiveTake@}#1}
+\newcommand{\rbpa}[1]{\text{RBPAdaptive*Take@}#1}
+\newcommand{\hedge}[1]{\text{HedgeTake@}#1}
+\newcommand{\mtf}[1]{\text{MTFTake@}#1}
+\newcommand{\br}[1]{\text{MABRandomTake@}#1}
+\newcommand{\bg}[1]{\text{MABGreedyTake@}#1}
+\newcommand{\bucb}[1]{\text{MABUCBTake@}#1}
+\newcommand{\bb}[1]{\text{MABBetaTake@}#1}
+\newcommand{\mm}[1]{\text{MABMaxMeanTake@}#1}
+
+% Pool Bias Estimators
+% Simulation Based
+\newcommand{\BS}{BS}
+\newcommand{\GS}{GS}
+\newcommand{\kNS}{$\kbar$NS}
+\newcommand{\kLP}{$\kbar$LP}
+\newcommand{\lTkLP}{$\lambda$T$\kbar$LP}
+
+\newcommand\tfd{\mathit{tf_d}}
+\newcommand\tfq{\mathit{tf_q}}
+\newcommand\tfc{\textit{tf}_c}
+\newcommand\tf{\mathit{tf}}
+\newcommand{\idf}{\operatorname{idf}}
+%\newcommand\atf{\overline{\tf}} %mihai: conflicts with tf notation
+\newcommand\atf{\mathit{avgtf}}
+\newcommand\df{\mathit{df}}
+\newcommand\dfd{\mathit{df_t}}
+\newcommand\avgdmtf{\mathit{mavgtf}}
+\newcommand\avgtf{\mathit{avgtf}}
+\newcommand\avgdl{\mathit{avgdl}}
+\newcommand\nterms{\mathit{n-terms}}
+\newcommand\npterms{\mathit{(n+1)-terms}}
+
+\newcommand{\kbar}{\mathchar'26\mkern-9mu k}
+\newcommand{\Kbar}{\mathchar'26\mkern-10mu K}
+\newcommand{\uP}{\hat{P}}
+\renewcommand{\P}{P}
+\newcommand{\AntiP}{\overline{P}}
+\newcommand{\uR}{\hat{R}}
+\newcommand{\R}{R}
+\newcommand{\AntiR}{\overline{R}}
+
+\newcommand{\fg}{\textit{fg}}
+\newcommand{\ratio}[2]{\trmratio{#1}{#2}}
+\newcommand{\avgfreq}{\textmd{avgfreq}}
+
+\newcommand{\MAP}{$\text{MAP}$}
+\newcommand{\NDCG}{$\text{NDCG}$}
+\newcommand{\AP}{$\text{AP}$}
+\newcommand{\PX}{$\text{P@10}$}
+\newcommand{\MAPP}{$\text{MAP}'$}
+\newcommand{\APP}{$\text{AP}'$}
+\newcommand{\PXP}{$\text{P@10}'$}
+\newcommand{\Pn}{$\text{P@n}$}
+\newcommand{\Rn}{$\text{R@n}$}
+
+\newcommand{\ret}{\text{ret}}
+\newcommand{\MAE}{\text{MAE}}
+\newcommand{\SRE}{\text{SRE}}
+\newcommand{\SRES}{\text{SRE}^*}
+%\newcommand{\RSRE}{\text{RSRE}}
+
+\newcommand{\RSV}[1]{\text{RSV}_{\text{#1}}}
+\newcommand{\RSR}{\text{RSR}}
+\newcommand{\DQI}{\operatorname{DQI}}
+\newcommand{\TF}{\operatorname{TF}}
+\newcommand{\IDF}{\operatorname{IDF}}
+\newcommand{\TFIDF}{\operatorname{TF-IDF}}
+\newcommand{\TFC}{$\text{TF}_{\text{constant}}$}
+\newcommand{\TFL}{$\text{TF}_{\text{log}}$}
+\newcommand{\TFB}{$\text{TF}_{\text{BM25}}$}
+\newcommand{\TFT}{$\text{TF}_{\text{total}}$}
+\newcommand{\lbar}{\mathchar'26\mkern-9mu l}
+
+\newcommand{\pivdv}{\textmd{pivdv}} % pivoted document verbosity
+\newcommand{\pivqv}{\textmd{pivqv}}
+\newcommand{\pivtl}{\textmd{pivtl}}
+\newcommand{\pivtb}{\textmd{pivtb}}
+\newcommand{\pivdl}{\textmd{pivdl}}
+\newcommand{\pivql}{\textmd{pivql}}
+
+\renewcommand{\l}{\left}
+\renewcommand{\r}{\right}
+
+\newcommand{\sS}{\set{S}} % for search engines
+\newcommand{\sR}{\set{R}} % for runs
+\newcommand{\sQ}{\set{Q}} % for topics
+\newcommand{\sO}{\set{O}} % for organizations
+\newcommand{\sC}{\set{C}} % for collections or features
+\newcommand{\sD}{\set{D}} % for documents
+\newcommand{\sU}{\set{U}} % for users
+\newcommand{\sT}{\set{T}} % for terms
+\newcommand{\sJ}{\set{J}} % for judgments
+
+\newcommand{\powerset}{\raisebox{.15\baselineskip}{\Large\ensuremath{\wp}}}
+

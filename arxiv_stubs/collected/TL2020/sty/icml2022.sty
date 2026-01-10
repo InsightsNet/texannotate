@@ -85,8 +85,8 @@
 % Use fancyhdr package
 \RequirePackage{fancyhdr}
 \RequirePackage{xcolor} % changed from color to xcolor (2021/11/24)
-\RequirePackage{algorithm}
-\RequirePackage{algorithmic}
+% \RequirePackage{algorithm}
+% \RequirePackage{algorithmic}
 \RequirePackage{natbib}
 \RequirePackage{eso-pic} % used by \AddToShipoutPicture
 \RequirePackage{forloop}
@@ -128,16 +128,20 @@
 % final/accepted version of the ``appearing in'' note.  Modify it to
 % change that text.
 %%%%%%%%%%%%%%%%%%%%
-\newcommand{\ICML@appearing}{}
-
+\newcommand{\ICML@appearing}{This work is currently under review. 
+Do not distribute.}%\textit{Proceedings of the
+% $\mathit{39}^{th}$ International Conference on Machine Learning},
+% Baltimore, Maryland, USA, PMLR 162, 2022.
+% Copyright 2022 by the author(s).}
 
 %%%%%%%%%%%%%%%%%%%%
 % This string is printed at the bottom of the page for the draft/under
 % review version of the ``appearing in'' note.  Modify it to change
 % that text.
 %%%%%%%%%%%%%%%%%%%%
-\newcommand{\Notice@String}{Preliminary work.  Under review by the
-International Conference on Machine Learning (ICML)\@.  Do not distribute.}
+\newcommand{\Notice@String}{This work is currently under review. %Preliminary work.  Under review by the
+%International Conference on Machine Learning (ICML)\@.  
+Do not distribute.}
 
 % Cause the declared options to actually be parsed and activated
 \ProcessOptions\relax

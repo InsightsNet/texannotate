@@ -1,0 +1,513 @@
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{amsmath}
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}{Lemma}
+% \newtheorem{proof}{Proof}[section]
+
+\usetikzlibrary{intersections,chains,scopes,fit,trees,quotes,calc,fadings,positioning,calc, patterns}
+
+\tikzset{
+every path/.style = {
+> = stealth,
+very thick,
+rounded corners}
+}
+
+% python code environment
+\usepackage[utf8]{inputenc}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+		language=Python,
+		basicstyle=\ttfamily,
+		otherkeywords={self},             % Add keywords here
+		keywordstyle=\ttb\color{deepblue},
+		emph={MyClass,__init__},          % Custom highlighting
+		emphstyle=\ttb\color{deepred},    % Custom highlighting style
+		stringstyle=\color{deepgreen},
+		frame=tb,                         % Any extra options here
+		showstringspaces=false            % 
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+	\pythonstyle
+	\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+		\pythonstyle
+		\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+%\usepackage{amssymb,amsmath,amsthm}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}{Lemma}
+
+% \setbeamertemplate{itemize items}[square]
+
+\newcommand{\frm}[2]
+{
+	\begin{frame}
+	\frametitle{#1}
+	#2
+	\end{frame}
+    
+    %\begin{frame}
+    	
+    %\end{frame}
+}
+
+\newcommand{\frmi}[2]
+{
+	\begin{frame}
+	\frametitle{#1}
+	\begin{itemize}
+		#2 
+	\end{itemize}
+   \end{frame}
+
+  %\begin{frame}
+	
+  %\end{frame}
+}
+
+\newcommand{\frme}[2]
+{
+	\begin{frame}
+	\frametitle{#1}
+	\begin{enumerate}
+		#2 
+	\end{enumerate}
+\end{frame}
+}
+
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\eqn}[2]
+{
+	\begin{equation}#1
+	#2
+	\end{equation}
+}
+
+\newcommand{\eqnn}[1]
+{
+	\begin{displaymath}
+	#1
+	\end{displaymath}
+}
+
+
+\newcommand{\eqna}[1]
+{
+	\begin{eqnarray}
+	#1
+	\end{eqnarray}
+}
+
+\newcommand{\mtx}[1]
+{
+	\begin{matrix} 
+		#1
+	\end{matrix}
+}
+
+\newcommand{\pmtx}[1]
+{
+\begin{pmatrix} 
+	#1
+\end{pmatrix}
+}
+
+\newcommand{\bmtx}[1]
+{
+	\begin{bmatrix} 
+		#1
+	\end{bmatrix}
+}
+
+\newcommand{\vmtx}[1]
+{
+	\begin{vmatrix} 
+		#1
+	\end{vmatrix}
+}
+
+\newcommand{\wh}
+{
+	\WHILE
+}
+\newcommand{\ewh}
+{\ENDWHILE}
+
+\newcommand{\fr}
+{ \FOR}
+
+\newcommand{\efr}
+{ \ENDFOR}
+
+\newcommand{\st}
+{\STATE}
+
+\newcommand{\rp}
+{\REPEAT}
+
+\newcommand{\rt}
+{\RETURN}
+
+\newcommand{\ut}
+{\UNTIL}
+
+\newcommand{\es}
+{\ELSE}
+
+\newcommand{\of}
+{\IF}
+
+\newcommand{\eif}
+{\ENDIF}
+
+
+\newcommand{\thm}[1]
+{
+	\begin{theorem}
+		#1
+	\end{theorem}
+}
+
+\newcommand{\lem}[1]
+{
+	\begin{lemma}
+		#1
+	\end{lemma}
+}
+
+\newcommand{\dfn}[1]
+{
+	\begin{definition}
+		#1
+	\end{definition}
+}
+
+\newcommand{\emp}[1]
+{
+	\begin{example}
+		#1
+	\end{example}
+}
+
+\newcommand{\prf}[1]
+{ \begin{proof}
+		#1
+\end{proof}}
+
+
+\newcommand{\tbl}[4]
+{
+	\begin{table}[htbp]
+		\centering
+		\caption{#2}
+		#1
+		\begin{tabular}{#3}
+			#4
+		\end{tabular}
+	\end{table}
+}
+
+\newcommand{\fgr}[4]
+{
+	\begin{figure}[!htp]
+		\centering
+		\includegraphics[angle=0, width=#3\textwidth]{#4}
+		\caption{#2}#1
+	\end{figure}
+}
+
+\newcommand{\fg}[2]
+{
+	\begin{figure}[!htp]
+		\centering
+		\includegraphics[angle=0, width=#1\textwidth]{#2}
+	\end{figure}
+}
+
+\newcommand{\twocols}[4]
+{
+	\begin{columns}
+		\column{#1\textwidth}
+		#2
+		\column{#3\textwidth}
+		#4
+	\end{columns}
+}
+
+
+\newcommand{\sfgr}[4]
+{
+	\begin{figure}[!htp]
+		\centering
+		\subfloat[]{%
+			\includegraphics[width=0.6\textwidth]{#3}%
+		}
+		\hfill
+		\subfloat[]{%
+			\includegraphics[width=0.6\textwidth]{#4}%
+		}
+		\caption{#2}
+		#1
+	\end{figure}
+}
+
+\newcommand{\tzd}[1]
+{
+	\hspace*{1cm}\tikz \node
+	[
+	shape		= rectangle,
+	fill = gray!15,
+	text		= black,				% colour of the fonts
+	draw		= black,			% colour of the border
+	thick,								% thickness of the border
+	]
+	{$#1$};
+}
+
+\newcommand{\cs}[1]{
+	\begin{cases}
+		#1 
+	\end{cases}
+}
+
+
+\newcommand{\tzf}[4]
+{
+	\begin{figure}[!htp]
+		\centering
+		\begin{tikzpicture}[scale=#3, transform shape]
+		#4
+		\end{tikzpicture}
+		\caption{#2}#1
+	\end{figure}
+}
+
+\newcommand{\tz}[1]
+{
+	\begin{tikzpicture}
+	#1
+	\end{tikzpicture}
+}
+
+\newcommand{\red}[1]
+{
+	\color{red}{#1}
+}
+
+
+\newcommand{\ch}[1]
+{
+	\chapter{#1}
+}
+
+\newcommand{\sn}[1]
+{
+	\section{#1}
+}
+
+\newcommand{\ssn}[1]
+{
+	\subsection{#1}
+}
+
+\newcommand{\sssn}[1]
+{
+	\subsubsection{#1}
+}
+
+\newcommand{\im}[1]
+{
+	\begin{itemize}
+		#1
+	\end{itemize}
+}
+
+\newcommand{\ee}[1]
+{
+	\begin{enumerate}
+		#1
+	\end{enumerate}
+}
+
+\newcommand{\tfi}[1]
+{
+	\textbf{#1}\index{#1}
+}
+
+\newcommand{\tf}[1]
+{
+	\textbf{#1}
+}
+
+\newcommand{\mf}[1]
+{
+	\mathbf{#1}
+}
+
+\newcommand{\ol}[1]
+{
+	\overline{#1}
+}
+
+\newcommand{\mk}[1]
+{
+	\mathfrak{#1}
+}
+
+\newcommand{\mr}[1]
+{
+	\mathscr{#1}
+}
+
+\newcommand{\mc}[1]
+{
+	\mathcal{#1}
+}
+
+\newcommand{\mb}[1]
+{
+	\mathbb{#1}
+}
+
+\newcommand{\ul}[1]
+{
+	\underline{#1}
+}
+
+\newcommand{\hs}
+{
+	\hspace{15pt}
+}
+
+\newcommand{\tm}[1]
+{
+	\textrm{#1}
+}
+
+
+\newcommand{\tc}[2]
+{
+	\textcolor{#1}{#2}
+}
+
+
+\newcommand{\alg}[4]
+{
+	\begin{algorithm}[h]
+		\caption{#2}#1
+		\begin{algorithmic}[1]
+			#3
+		\end{algorithmic}
+		#4
+	\end{algorithm}
+}
+
+
+\newcommand{\td}
+{
+	\textrm{d}
+}
+
+\newcommand{\nn}
+{
+	\nonumber
+}
+
+\newcommand{\Ra}
+{
+	\Rightarrow
+}
+
+
+\newcommand{\ra}
+{
+	\rightarrow
+}
+
+
+
+\newcommand{\Lra}
+{
+	\Leftrightarrow
+}
+
+\newcommand{\La}
+{
+	\Leftarrow
+}
+
+\newcommand{\la}
+{
+	\leftarrow
+}
+
+\newcommand{\pt}
+{
+	\propto
+}
+
+\newcommand{\logand}
+{
+	\wedge
+}
+
+\newcommand{\logor}
+{
+	\vee
+}
+
+\newcommand{\vs}
+{
+	\vspace*{0.5cm}
+}
+
+\newcommand{\items}{
+	\vspace*{0.5cm}
+	\item
+}
+
+
+\newcommand{\eqv}
+{
+	\Leftrightarrow
+}
+
+\newcommand{\spc}
+{
+	\hspace{0.8cm}
+}

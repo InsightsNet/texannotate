@@ -139,7 +139,7 @@
 
 %% -- USEFUL PACKAGES --
 \RequirePackage{xcolor}
-\RequirePackage{graphicx,subcaption}
+\RequirePackage{graphicx,subfigure}
 \RequirePackage{xspace}
 \RequirePackage{eso-pic}
 \ifbmv@extabs

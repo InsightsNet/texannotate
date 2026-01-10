@@ -1,0 +1,551 @@
+%% pos.sty
+%% Copyright 2021 SISSA Medialab
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `author-maintained'.
+%
+% The Current Maintainer of this work is
+% SISSA Medialab <info@medialab.sissa.it>
+%
+% This work consists of the files pos.sty, PoSlogo.pdf and PoSlogo.ps.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pos} [2021/09/21 v2.2]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+
+\newif\ifnatbibsort\natbibsorttrue\DeclareOption{no-natbib-sort}{\natbibsortfalse}
+\ProcessOptions\relax
+
+\RequirePackage{newtxtext}
+\RequirePackage{amsthm} % before newtxmath because of macro "\openbox" defined in both packages
+\RequirePackage{newtxmath}
+\def\mathsterling{\mbox{\textsterling}}
+\def\pounds{\mbox{\textsterling}} % while waiting for new release of newtxmath from Michael Sharpe (2015/07)
+\DeclareMathAlphabet{\mathfrak}{U}{euf}{m}{n}
+\SetMathAlphabet{\mathfrak}{bold}{U}{euf}{b}{n}
+\RequirePackage[zerostyle=e]{newtxtt}
+\RequirePackage{amsmath}
+\RequirePackage{graphicx}
+\ifnatbibsort\RequirePackage[numbers,sort&compress]{natbib}\else\RequirePackage[numbers,compress]{natbib}\fi
+\RequirePackage[font=small,labelfont=bf]{caption}
+\RequirePackage{xcolor}
+\definecolor{posurl}{cmyk}{.9 .9 0 0}
+\RequirePackage[colorlinks=true
+,urlcolor=posurl
+,anchorcolor=posurl
+,citecolor=posurl
+,filecolor=posurl
+,linkcolor=posurl
+,menucolor=posurl
+,linktocpage=true
+,pdfa=true
+]{hyperref}
+
+\newif\ifdotoc\dotocfalse
+\newif\ifemailadd\emailaddfalse
+\newif\iftoccontinuous\toccontinuousfalse
+\newif\ifshorttitle\shorttitlefalse
+\newif\if@PoSspecialurl\@PoSspecialurlfalse
+
+\let\oldthefootnote\thefootnote
+
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+
+\ExplSyntaxOn
+%% a sequence of "authors" for the running headers
+\seq_new:N \l_authors_for_head_s
+
+%% a sequence of "superscripts"
+%% (in the same order as the authors)
+\seq_new:N \l_super_s
+
+%% a sequence of "authors"
+%% (in the same order as the superscripts)
+\seq_new:N \l_authors_s
+
+%% a boolean to indicate if the footnote for the speaker should be output
+\bool_new:N\l_do_speaker_note_bool\bool_set_false:N\l_do_speaker_note_bool
+
+%% a boolean to indicate authors should be manually separated by the
+%% operator or automatically by "," and "and"
+\bool_new:N\l_manually_separate_authors_bool\bool_set_false:N\l_manually_separate_authors_bool
+\newcommand{\manuallySeparateAuthors}{\bool_set_true:N\l_manually_separate_authors_bool}
+
+\newcommand{\speakerFlag}{\ast}
+
+
+%% accumulate authors
+\RenewDocumentCommand\author{som}{%
+  \seq_put_right:Nn \l_authors_s {#3}
+  \IfNoValueTF{#2} % test the optional argument
+  { % no optional argument used
+
+    \IfBooleanTF#1 % test if we have the "star"
+    {%
+      % starred form (author*) means "speaker"
+      % add this author to those for the running headers
+      \seq_put_right:Nn \l_authors_for_head_s {#3}
+
+      % save the superscripts with the same order as the authors
+      \seq_put_right:Nn \l_super_s {\speakerFlag}
+
+      \bool_set_true:N\l_do_speaker_note_bool
+    }
+    {
+      % save the superscripts with the same order as the authors
+      \seq_put_right:Nn \l_super_s {{}}
+    }
+  }
+
+  { % there is an optional argument
+    \IfBooleanTF#1 % test if we have the "star"
+    {%
+      % starred form (author*) means "speaker"
+      % add this author to those for the running headers
+      \seq_put_right:Nn \l_authors_for_head_s {#3}
+
+      % save the superscripts with the same order as the authors
+      \seq_put_right:Nn \l_super_s {#2,\speakerFlag}
+
+      \bool_set_true:N\l_do_speaker_note_bool
+    }
+    {
+      % save the superscripts with the same order as the authors
+      \seq_put_right:Nn \l_super_s {#2}
+    }
+  }
+}
+
+\tl_new:N\l_author_tl
+\tl_new:N\l_superscript_tl
+\int_new:N\l_num_authors_int
+\str_new:N\l_au_separator_pre_str
+\str_new:N\l_au_separator_post_str
+\msg_new:nnn {PoS} {empty-head-authors} {No~speaker.~Please~add~a~"*"~to~the~macro~\author}
+%% output
+\newcommand{\printAuthors}{%
+
+  \int_zero_new:N\l_count_authors_int
+  \str_set:Nn\l_au_separator_pre_str{,}
+  \str_set:Nn\l_au_separator_post_str{~}
+
+  % the number of authors
+  \int_set:Nn\l_num_authors_int{\seq_count:N\l_authors_s}
+
+  \int_compare:nNnTF             % If
+      {\l_num_authors_int}       % the length of the authors
+      =                          % is equal
+      {1}                        % to 1
+      {                          % then output the author:
+        % get the author name and superscripts
+        \seq_pop_left:NN\l_authors_s\l_author_tl
+        \seq_pop_left:NN\l_super_s\l_superscript_tl
+
+        \tl_use:N\l_author_tl$^{\tl_use:N\l_superscript_tl}$
+
+        % It would be nice to also set the running header if necessary
+        % but I was not able to do it.
+        % I think it is because the headers are set before \printAuthors is called,
+        % so that \l_author_tl is empty when the headers are set
+        %
+        %% \seq_if_empty:NT\l_authors_for_head_s{
+        %%   \seq_gput_right:Nn \l_authors_for_head_s {\tl_use:N\l_author_tl}
+        %% }
+
+      }
+      {                          % otherwise output all
+        % if the operator included the separations (",", "and")
+        % simpy output the names
+        \bool_if:NTF\l_manually_separate_authors_bool
+        {
+          \bool_do_until:nn
+               {\seq_if_empty_p:N\l_authors_s}
+               {
+                 % get the author name and superscripts
+                 \seq_pop_left:NN\l_authors_s\l_author_tl
+                 \seq_pop_left:NN\l_super_s\l_superscript_tl
+                 \tl_use:N\l_author_tl
+                 $^{\tl_use:N\l_superscript_tl}$
+               }
+        }
+
+        % otherwise separate automatically
+        {
+          \bool_do_until:nn
+               {\seq_if_empty_p:N\l_authors_s}
+               {
+                 % get the author name and superscripts
+                 \seq_pop_left:NN\l_authors_s\l_author_tl
+                 \seq_pop_left:NN\l_super_s\l_superscript_tl
+
+                 % step the counter
+                 \int_incr:N\l_count_authors_int
+
+                 % if we are looking at the next-to-last author,
+                 % then change the separator
+                 \int_compare:nNnT
+                     {\l_count_authors_int}
+                     =
+                     {\int_eval:n{\l_num_authors_int - 1}}
+                     {
+                       \str_set:Nn\l_au_separator_pre_str{}
+                       \str_set:Nn\l_au_separator_post_str{~and~}
+                       % TODO: use {~and\nobreakspace}
+                     }
+                 % if we are looking at the last author,
+                 % do not add anything at the end
+                 \int_compare:nNnT
+                     {\l_count_authors_int}
+                     =
+                     {\l_num_authors_int}
+                     {
+                       \str_set:Nn\l_au_separator_pre_str{}
+                       \str_set:Nn\l_au_separator_post_str{}
+                     }
+                 \tl_use:N\l_author_tl
+                 \str_use:N\l_au_separator_pre_str
+                 $^{\tl_use:N\l_superscript_tl}$
+                 \str_use:N\l_au_separator_post_str
+               }
+        }
+      }
+
+      % display the speaker's foonote text if needed
+      \bool_if:NTF\l_do_speaker_note_bool
+           {
+             \begin{NoHyper}
+               \renewcommand\thefootnote{$\speakerFlag$}%
+               \footnotetext{Speaker}%
+               \stepcounter{footnote}%
+               \let\thefootnote\oldthefootnote%
+             \end{NoHyper}
+           }
+           {
+             \seq_if_empty:NT\l_authors_for_head_s{\msg_warning:nn {PoS}{empty-head-authors}}
+           }
+}
+
+\newcommand{\printHeadAuthors}{%
+  \seq_use:Nnnn \l_authors_for_head_s { ~and~} { ,~ } { ~and\nobreakspace }
+}
+
+\ExplSyntaxOff
+
+
+\renewcommand{\baselinestretch}{1.1}\normalsize
+\setlength\lineskip{1\p@}
+\setlength\parindent{1.2\parindent}
+\setlength\normallineskip{1\p@}
+\setlength\parskip{0\p@ \@plus \p@}
+\@lowpenalty   51
+\@medpenalty  151
+\@highpenalty 301
+\widowpenalty 1000
+\clubpenalty 1000
+\setcounter{topnumber}{8}
+\renewcommand\topfraction{.85} % default .7
+\setcounter{bottomnumber}{5}
+\renewcommand\bottomfraction{.6} %.2
+\setcounter{totalnumber}{8}
+\renewcommand\textfraction{.15}
+\renewcommand\floatpagefraction{.8}
+\setcounter{dbltopnumber}{3}
+\renewcommand\dbltopfraction{.85}
+\renewcommand\dblfloatpagefraction{.8}
+\setlength{\floatsep}{12pt plus 2pt minus 4pt}
+\setlength{\textfloatsep}{20pt plus 3pt minus 8pt}
+\setlength{\intextsep}{12pt plus 2pt minus 4pt}
+\textwidth  .72\paperwidth	% WIDTH OF TEXT, REMAINS .28% FOR MARGINS
+\setlength\@tempdima{.76\paperheight}	% HEIGHT OF TEXT WITH FOOTNOTES
+\divide\@tempdima\baselineskip		% EXCLUDING HEAD (AND FOOT)
+\@tempcnta=\@tempdima			% rounded to integer (#lines-1)
+\setlength\textheight{\@tempcnta\baselineskip}
+\addtolength\textheight{\topskip}
+\voffset -1in
+\topmargin   .06\paperheight	% FROM TOP OF PAGE TO TOP OF HEADING (0=1inch)
+\headheight  .02\paperheight	% HEIGHT OF HEADING BOX.
+\headsep     .03\paperheight	% VERT. SPACE BETWEEN HEAD AND TEXT.
+\footskip    .04\paperheight	% FROM END OF TEX TO BASE OF FOOTER. (40pt)
+\marginparsep 9\p@		% HOR. SPACE BETWEEN TEXT AND MARGINAL NOTE
+\marginparpush 6\p@		% MIN. VERT. SPACE BETWEEN MARGINAL NOTES
+\hoffset -1in				% TO ADJUST WITH PAPER:
+\oddsidemargin .14\paperwidth	% LEFT MARGIN FOR ODD PAGES (20)
+\evensidemargin .14\paperwidth	% LEFT MARGIN FOR EVEN PAGES (20)
+\marginparwidth .11\paperwidth	% TEXTWIDTH OF MARGINALNOTES
+
+
+
+% Header and footer
+\def\ps@PoS{%
+  \def\@oddfoot{%
+    \ifnum\value{page}=1
+    % copyright and link on front page footer
+	\PoScopyright@box\hfill%
+	\tiny\posurl%
+	\else%
+    % page numbers on all other pages footers
+    \reset@font\hfil\thepage\hfil%
+    \fi}%
+  \def\@oddhead{%
+    \ifnum\value{page}=1
+    % logo on first page header
+    \smash{\makebox[0cm][l]{\logo}}\hfill%
+    \else%
+    % running headers on all other pages
+    \smash{\vbox{\hsize=\textwidth\noindent
+	    \ifshorttitle{\small\it\@shorttitle}\else{\small\it\@title}\fi\hfill
+	    \printHeadAuthors\vskip.17em \hrule }}%
+    \fi}%
+  \let\@mkboth\@gobbletwo  %%%%
+  \let\sectionmark\@gobble
+  \let\subsectionmark\@gobble
+}
+
+
+% Define all our variables as empty
+\def\@subheader{\@empty}
+\def\@abstract{\@empty}
+\def\@xtum{\@empty}
+\def\@accepted{\@empty}
+\def\@received{\@empty}
+\def\@revised{\@empty}
+\def\@published{\@empty}
+\def\doi@url{\@empty}
+\def\doi@anchor{\@empty}
+\def\@dedicated{\@empty}
+\def\@shorttitle{\@empty}
+\def\@afterAbstractEmitNotes{\@empty}
+
+\def\logo{\raisebox{-5mm}{\hbox{\noindent\includegraphics{PoSlogo}}}}
+
+% Populate variables
+\newcommand{\subheader}[1]{\gdef\@subheader{#1}}
+\renewcommand{\abstract}[1]{\gdef\@abstract{#1}}
+\newcommand{\notes}[1]{\gdef\@afterAbstractEmitNotes{#1}}
+
+\newcommand\dedicated[1]{\gdef\@dedicated{\vskip .5\titlesk@c
+                               \vbox{\small\it\raggedleft #1}}}
+
+\newcommand{\ShortTitle}[1]{\gdef\@shorttitle{#1}\shorttitletrue}
+
+\gdef\FullConference@box{\relax}
+\newif\ifMissingFullConference\MissingFullConferencetrue
+\newcommand\FullConference[1]{\gdef\FullConference@box{
+			 \vbox{\small\raggedright
+			   \it #1}}%
+\MissingFullConferencefalse}
+
+% wrap table of content with two lines
+% also make it just after the title page
+\let\oldTableofcontents\tableofcontents
+\renewcommand\tableofcontents{\dotoctrue}
+
+%comodity (just to have always the same spelling and layout)
+\newcommand\acknowledgments{\section*{Acknowledgments}}
+\newcommand\posurl{\url{https://pos.sissa.it/}}
+
+%% add some footnotetext without the footnotemark
+%% (change the mark and step the counter depending on optional argument)
+\newcommand\note[2][?]{%
+  \begin{NoHyper}
+    %% with empty optional argument, add a footnote text without any footnotemark
+    \if!#1!%
+      \let\thefootnote\relax\footnotetext{#2}%
+    \else
+      %% in any other case, step the footnote counter
+      \stepcounter{footnote}%
+      %% if an optional argument was NOT given, add a default footnotetext
+      \if?#1%
+      \footnotetext{#2}%
+      \else%
+      %% if an optional argument WAS given, add a footnotetext using the argument as mark
+      \renewcommand{\thefootnote}{#1}\footnotetext{#2}%
+      \fi%
+    \fi%
+    \let\thefootnote\oldthefootnote%
+  \end{NoHyper}
+}
+
+
+% Copyright
+\gdef\PoScopyright@box{\parbox[b]{.7\textwidth}{\tiny $\copyright$ Copyright owned by the
+author(s) under the terms of the Creative Commons\\
+Attribution-NonCommercial-NoDerivatives 4.0 International
+License (CC BY-NC-ND 4.0).}}
+
+
+% Affiliations
+\newtoks\affil@toks\newif\ifaffil\affilfalse
+\newcommand{\affiliation}[2][]{%
+\affiltrue
+  \if!#1!%
+    \affil@toks=\expandafter{\the\affil@toks{\item[]#2}}%
+  \else
+    \affil@toks=\expandafter{\the\affil@toks{\item[$^{#1}$]#2}}%
+  \fi
+}
+
+% E-mails
+% (automatically add a comma between emails)
+\newtoks\email@toks\newcounter{email@counter}%
+\setcounter{email@counter}{0}%
+\newcommand{\emailAdd}[1]{%
+\emailaddtrue%
+\ifnum\theemail@counter>0\email@toks=\expandafter{\the\email@toks, \@email{#1}}%
+\else\email@toks=\expandafter{\the\email@toks\@email{#1}}%
+\fi\stepcounter{email@counter}}
+\newcommand{\@email}[1]{\href{mailto:#1}{#1}}
+
+
+\renewcommand{\@dotsep}{10000}
+
+% Hooks after various pieces of the title page
+% (these hooks also define the spacing between the pieces)
+\newlength{\affiliationsSep}\setlength{\affiliationsSep}{-3pt}
+\newcommand{\hookBeforeTitle}{\vskip2em   plus .4fill  minus 1em}
+\newcommand{\hookAfterTitle}{\vskip1.7em plus .1fill  minus 1em}
+\newcommand{\hookAfterRule}{\vskip1.7em plus .1fill  minus 1em}
+\newcommand{\hookAfterAuthor}{\relax}
+\newcommand{\hookAfterAffiliation}{\relax}
+\newcommand{\hookAfterEmail}{\vskip16pt plus0.2fill minus10pt\filbreak}
+\newcommand{\hookAfterAbstract}{\vskip1.5em plus .05fill minus 1em}
+\newcommand{\hookAfterToc}{\vskip 2em \@plus 3ex \@minus 3ex}
+\newcommand{\hookAfterTocRule}{\vskip 2em \@plus 3ex \@minus 3ex}
+
+\newcommand{\PoSTOCrule}{\noindent\rule\textwidth{.1pt}}
+
+\renewcommand\maketitle{\pagestyle{PoS}%
+  \begingroup%
+  \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
+  \begin{flushleft}%				% PAY ATTENTION TO \par'S
+    \null
+    %
+    \hookBeforeTitle
+    %
+    {\LARGE\sffamily              % TITLE
+      \bfseries\boldmath
+      \@title\par}%
+    %
+    \hookAfterTitle
+    %
+    \hrule height 1\p@%            % RULE  1pt.
+    %
+    \hookAfterRule
+    %
+           {%
+             \raggedright%
+             \renewcommand\baselinestretch{1.2}%
+             \bfseries%
+             \sffamily%
+             \large%
+             \printAuthors%
+             \par
+           }
+    %
+    \hookAfterAuthor
+    % Affiliations
+    \ifaffil\begin{list}{}{%
+      \setlength{\leftmargin}{0.28cm}%
+      \setlength{\labelsep}{0pt}%
+      \setlength{\labelwidth}{1em}%
+      \setlength{\itemsep}{\affiliationsSep}%
+      \setlength{\topsep}{-\parskip}}
+    \itshape\small%
+    \the\affil@toks
+    \end{list}\fi
+    %
+    \hookAfterAffiliation
+    %
+    \ifemailadd %% if emailadd is true
+    \noindent\hspace{0.28cm}\begin{minipage}[l]{.9\textwidth}
+      \begin{flushleft}
+        \textit{E-mail:} {\ttfamily\small\the\email@toks}
+      \end{flushleft}
+    \end{minipage}\fi
+    %
+    \hookAfterEmail
+    %
+    % abstract (narrower)
+    \if!\@abstract!\else%
+    \noindent\hspace{0.28cm}% same indent as affiliations and email (TODO: parametrize indent)
+    \parbox{.9\textwidth}{\small\ignorespaces\@abstract\normalsize}%
+    \fi%
+    \@afterAbstractEmitNotes%
+    %
+    \@dedicated                     % DEDICATION (if present) with its space
+    %
+    \hookAfterAbstract
+    \vfill
+    \FullConference@box            % FULL CONFERENCE INFO
+  \end{flushleft}%
+  %
+  \newpage				% END OF PAGE
+  \endgroup
+  \flushbottom
+  \setcounter{footnote}{0}%
+  \ifdotoc%
+      \PoSTOCrule
+      \hookAfterTocRule
+      \oldTableofcontents
+      \hookAfterToc
+      \PoSTOCrule
+      \hookAfterTocRule
+  \fi%
+  \ifMissingFullConference%
+  \PackageWarningNoLine{pos}{No conference info. Please use the macro \protect\FullConference}%
+  \fi%
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%% ACTUAL TITLEPAGE %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\setcounter{secnumdepth}{3}
+
+\newcommand\secstyle{\bfseries\raggedright}
+
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+                                   {3.5ex \@plus 1.3ex \@minus .7ex}%
+                                   {2.3ex \@plus.4ex \@minus .4ex}%
+                                   {\normalfont\large\secstyle}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                   {2.3ex\@plus 1ex \@minus .5ex}%
+                                   {1.2ex \@plus .3ex \@minus .3ex}%
+                                   {\normalfont\normalsize\secstyle}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                   {2.3ex\@plus 1ex \@minus .5ex}%
+                                   {1ex \@plus .2ex \@minus .2ex}%
+                                   {\normalfont\normalsize\secstyle}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                   {1.75ex \@plus1ex \@minus.2ex}%
+                                   {-1em}%
+                                   {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                   {1.75ex \@plus1ex \@minus .2ex}%
+                                   {-1em}%
+                                   {\normalfont\normalsize\bfseries}}
+
+%% append a dot after the section number
+%% (only for sections, not for sub-sections etc.)
+%% https://texfaq.org/FAQ-seccntfmt
+%% https://tex.stackexchange.com/a/24444/56076
+\newcommand*{\adddot@section}{.}
+\renewcommand*{\@seccntformat}[1]{%
+  \csname the#1\endcsname
+  \csname adddot@#1\endcsname\hspace{1ex}
+}
+
+%Local commands by Amanda
+\newcommand{\apone}{AstroPix\_v1}
+\newcommand{\aptwo}{AstroPix\_v2}
+\newcommand{\apthree}{AstroPix\_v3}
+\newcommand{\amx}{AMEGO-X}
+\newcommand{\um}{$\mu$m}
+\newcommand{\ohmcm}{$\Omega\cdot$cm}

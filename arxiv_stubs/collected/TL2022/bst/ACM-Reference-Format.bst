@@ -3,6 +3,7 @@
 %%%  @BibTeX-style-file{
 %%%     author          = "Nelson H. F. Beebe, Boris Veytsman and Gerald Murray",
 %%%     version         = "2.1",
+%%%     acmart-version  = "1.79",
 %%%     date            = "14 June 2017",
 %%%     filename        = "ACM-Reference-Format.bst",
 %%%     email           = "borisv@lk.net, boris@varphi.com",
@@ -34,6 +35,7 @@ ENTRY
     institution
     journal
     key
+    location
     month
     note
     number
@@ -62,6 +64,7 @@ ENTRY
         isbn-13       % UTAH
         issn          % UTAH
         lccn          % UTAH
+	distinctURL   % whether to print url if doi is present
   }
   {}
   { label.year extra.label sort.year sort.label basic.label.year}
@@ -147,6 +150,16 @@ FUNCTION { empty.or.unknown }
     { #1 #2 substring$ "??" = }
   if$
 }
+
+FUNCTION { empty.or.zero }
+{ 
+  %% Examine the top entry and push 1 if it is empty, or is zero
+  duplicate$ empty$
+    { pop$ #1 }
+    { "0" = }
+  if$
+}
+
 
 FUNCTION { writeln }
 {
@@ -425,6 +438,44 @@ FUNCTION { output.coden }       % UTAH
   if$
 }
 
+%
+% Sometimes articleno starts with the word 'Article' or 'Paper.
+% (this is a bug of acmdl, sigh)
+% We strip them.  We assume eid or articleno is already on stack
+%
+
+FUNCTION { strip.articleno.or.eid }
+{
+  't :=
+  t #1 #7 substring$ "Article" = 
+    {t #8 t text.length$ substring$ 't :=}
+    { }
+  if$
+  t #1 #7 substring$ "article" = 
+    {t #8 t text.length$ substring$ 't :=}
+    { }
+  if$
+  t #1 #5 substring$ "Paper" = 
+    {t #6 t text.length$ substring$ 't :=}
+    { }
+  if$
+  t #1 #5 substring$ "paper" = 
+    {t #6 t text.length$ substring$ 't :=}
+    { }
+  if$
+  % Strip any left trailing space or ~
+  t #1 #1 substring$ " " =
+    {t #2 t text.length$ substring$ 't :=}
+    { }
+  if$ 
+  t #1 #1 substring$ "~" =
+    {t #2 t text.length$ substring$ 't :=}
+    { }
+  if$
+  t 
+}
+
+
 FUNCTION { format.articleno }
 {
   articleno empty.or.unknown not eid empty.or.unknown not and
@@ -440,20 +491,20 @@ FUNCTION { format.articleno }
           { }
         if$
         eid empty.or.unknown
-          { "Article \bibinfo{articleno}{" articleno * "}" * }
-          { "Article \bibinfo{articleno}{" eid * "}" * }
+          { "Article \bibinfo{articleno}{" articleno strip.articleno.or.eid * "}" * }
+          { "Article \bibinfo{articleno}{" eid strip.articleno.or.eid * "}" * }
         if$
      }
   if$
 }
 
 FUNCTION { format.year }
-{ % push year string or "[n. d.]" onto output stack
+{ % push year string or "[n.\,d.]" onto output stack
   %% Because year is a mandatory field, we always force SOMETHING
   %% to be output
   "\bibinfo{year}{"
   year empty.or.unknown
-    { "[n. d.]" }
+    { "[n.\,d.]" }
     { year }
   if$
   *  "}" *
@@ -506,15 +557,14 @@ FUNCTION { strip.doi } % UTAH
   % result on the output stack, as recommended by CrossRef DOI
   % documentation.
   % For example, reduce "http://doi.acm.org/10.1145/1534530.1534545" to
-  % "10.1145/1534530.1534545".  That is later typeset and displayed as
-  % doi:10.1145/1534530.1534545 as the LAST item in the reference list
-  % entry.  Publisher Web sites wrap this with a suitable link to a real
-  % URL to resolve the DOI, and the master https://doi.org/ address is
-  % preferred, since publisher-specific URLs can disappear in response
-  % to economic events.  All journals are encouraged by the DOI
-  % authorities to use that typeset format and link procedures for
-  % uniformity across all publications that include DOIs in reference
-  % lists.
+  % "10.1145/1534530.1534545".  A suitable URL is later typeset and
+  % displayed as the LAST item in the reference list entry.  Publisher Web
+  % sites wrap this with a suitable link to a real URL to resolve the DOI,
+  % and the master https://doi.org/ address is preferred, since publisher-
+  % specific URLs can disappear in response to economic events.  All
+  % journals are encouraged by the DOI authorities to use that typeset
+  % format and link procedures for uniformity across all publications that
+  % include DOIs in reference lists.
   % The numeric prefix is guaranteed to start with "10.", so we use
   % that as a test.
   % 2017-02-04 Added stripping of https:// (Boris)
@@ -654,7 +704,7 @@ FUNCTION { output.note } % UTAH
 { % return with stack empty
   note empty.or.unknown
     { }
-    { "\shownote{" note add.period$ * "}" * writeln }
+    { "\shownote{" note * "}" add.period$ * writeln }
   if$
 }
 
@@ -662,7 +712,7 @@ FUNCTION { output.note.check } % UTAH
 { % return with stack empty
   note empty.or.unknown
     { "empty note in " cite$ * warning$ }
-    { "\shownote{" note add.period$ * "}" * writeln }
+    { "\shownote{" note * "}" add.period$ * writeln }
   if$
 }
 
@@ -679,16 +729,15 @@ FUNCTION { output.eprint } %
            }
            { "[" archiveprefix "l" change.case$ "]" * * * }
          if$
-         "{" *
+	 "{" eprint "}" * * *
          primaryclass empty.or.unknown
            { eprintclass empty.or.unknown
              { }
-             { eprintclass "/" * * }
+             { "~[" eprintclass "]" * * * }
              if$
            }
-           { primaryclass "/" * * }
+           { "~[" primaryclass "]" * * * }
          if$
-         eprint "}" * *
          writeln
     }
   if$
@@ -699,10 +748,14 @@ FUNCTION { output.eprint } %
 % Changes by BV 2011/04/15.  Do not output
 % url if doi is defined
 %
+%
+% Changes by BV 2021/11/26.  Output url even if doi is defined
+% if distinctURL is not zero.
+%
 FUNCTION { output.url } % UTAH
 { % return with stack untouched
   % output URL and associated lastaccessed fields
-  doi empty.or.unknown
+  doi empty.or.unknown distinctURL empty.or.zero not or
   {
     url empty.or.unknown
       { }
@@ -733,7 +786,7 @@ FUNCTION { output.year.check }
   year empty.or.unknown
      { "empty year in " cite$ * warning$
        write$
-       " \bibinfo{year}{[n. d.]}"
+       " \bibinfo{year}{[n.\,d.]}"
        "\natexlab{" extra.label * "}" * *
        mid.sentence 'output.state :=
      }
@@ -1233,6 +1286,8 @@ FUNCTION { format.btitle }
 FUNCTION { format.emphasize.booktitle }
 { booktitle format.a.title.with.edition }
 
+
+
 FUNCTION { format.city }
 {
   % jtb: if the preceding string (the title of the conference) is non-empty,
@@ -1242,7 +1297,7 @@ FUNCTION { format.city }
   duplicate$ empty.or.unknown
     { }
     {
-      city empty.or.unknown
+      city empty.or.unknown location empty.or.unknown and
         {
           date empty.or.unknown
             { }
@@ -1250,9 +1305,19 @@ FUNCTION { format.city }
           if$
         }
         {
-          date empty.or.unknown
-            { " (" * city * ")" * }
-            { " (" * city * ", " * date * ")" * }
+          location empty.or.unknown
+            {
+              date empty.or.unknown
+                { " (" * city * ")" * }
+                { " (" * city * ", " * date * ")" * }
+              if$
+            }
+            {
+              date empty.or.unknown
+                { " (" * location * ")" * }
+                { " (" * location * ", " * date * ")" * }
+              if$
+            }
           if$
         }
       if$
@@ -1309,7 +1374,19 @@ FUNCTION { format.series }
 {
   series empty.or.unknown
     {""}
-    {" \emph{(\bibinfo{series}{" * series "})}" *}
+    {" \emph{(\bibinfo{series}{" * series "}" *
+     volume empty.or.unknown
+       {
+         number empty.or.unknown
+            {")}" *}
+            {", \bibinfo{number}{" number "})}" * * *}
+          if$
+       }
+       {", Vol.~\bibinfo{volume}{" volume "})}" * * *
+        "volume and number" number either.or.check
+       }
+     if$
+    }
   if$
 }
 
@@ -1393,7 +1470,12 @@ FUNCTION { format.pages.check.without.articleno }
   articleno empty.or.unknown eid empty.or.unknown and
     {
       pages missing$
-        { numpages }
+        {
+	   numpages empty.or.unknown
+	     {""}
+             { "\bibinfo{numpages}{" numpages * "}~pages" * }
+	  if$
+	}
         { format.pages }
       if$
     }
@@ -1923,7 +2005,7 @@ FUNCTION { calc.basic.label }
   if$
   duplicate$
   year empty.or.unknown
-    { "[n. d.]" }
+    { "[n.\,d.]" }
     { year field.or.null purify$ #-1 #4 substring$}
   if$
   *
@@ -1971,7 +2053,7 @@ FUNCTION { calc.label }
   % save the year for sort processing afterwards (adding a, b, c, etc.)
   %
   year empty.or.unknown
-    { "[n. d.]" }
+    { "[n.\,d.]" }
     { year field.or.null purify$ #-1 #4 substring$}
   if$
   'label.year :=
@@ -1981,10 +2063,12 @@ FUNCTION { calc.label }
 FUNCTION { output.bibitem }
 {
   newline$
-  "\bibitem[\protect\citeauthoryear{" write$
-  calc.label write$
+  "\bibitem[" write$
+  calc.basic.label write$
+  "(" write$
   sort.year write$
-  "}]%" writeln
+  ")" write$
+  "]%" writeln
   "        {" write$
   cite$ write$
   "}" writeln
@@ -2241,7 +2325,10 @@ FUNCTION { inproceedings }
         { format.in.emphasize.booktitle format.city "booktitle"  output.check.dot.space
           format.series output.removenospace
           format.editors.fml output % BV 2011/09/27 Moved dot to comma
-          format.bvolume.noseries output
+          series empty.or.unknown
+              { format.bvolume.noseries output }
+              {}
+          if$
           new.sentence
           organization output
           publisher "publisher" bibinfo.output.check % jtb: require publisher (?)
@@ -2339,10 +2426,17 @@ FUNCTION { misc }
   fin.entry
 }
 
-FUNCTION { online } { misc }
+FUNCTION { online } { manual }
 
-FUNCTION { game } { misc }
+FUNCTION { game } { manual }
 
+FUNCTION { artifactsoftware } { manual }
+
+FUNCTION { artifactdataset } { manual }
+
+FUNCTION { software } { manual }
+
+FUNCTION { dataset } { manual }
 
 FUNCTION { phdthesis }
 {
@@ -2353,7 +2447,7 @@ FUNCTION { phdthesis }
   new.block
   format.title emphasize "title" output.check  % NB: ACM style requires emphasized thesis title
   new.block
-  "\bibinfo{thesistype}{Ph.D. Dissertation}" format.thesis.type output
+  "\bibinfo{thesistype}{Ph.\,D. Dissertation}" format.thesis.type output
   new.sentence
   school "school" bibinfo.output.check
   address empty.or.unknown
@@ -2535,6 +2629,99 @@ MACRO {oct}             {"Oct."}
 MACRO {nov}             {"Nov."}
 
 MACRO {dec}             {"Dec."}
+
+%%% ACM journal names
+
+MACRO {cie}  {"ACM Computers in Entertainment"}
+MACRO {csur}  {"ACM Computing Surveys"}
+MACRO {dgov}  {"Digital Government: Research and Practice"}
+MACRO {dtrap}  {"Digital Threats: Research and Practice"}
+MACRO {health}  {"ACM Transactions on Computing for Healthcare"}
+MACRO {imwut}  {"PACM on Interactive, Mobile, Wearable and Ubiquitous Technologies"}
+MACRO {jacm}  {"Journal of the ACM"}
+MACRO {jdiq}  {"ACM Journal of Data and Information Quality"}
+MACRO {jea}  {"ACM Journal of Experimental Algorithmics"}
+MACRO {jeric}  {"ACM Journal of Educational Resources in Computing"}
+MACRO {jetc}  {"ACM Journal on Emerging Technologies in Computing Systems"}
+MACRO {jocch}  {"ACM Journal on Computing and Cultural Heritage"}
+MACRO {pacmcgit}  {"Proceedings of the ACM on Computer Graphics and Interactive Techniques"}
+MACRO {pacmhci}  {"PACM on Human-Computer Interaction"}
+MACRO {pacmpl}  {"PACM on Programming Languages"}
+MACRO {pomacs}  {"PACM on Measurement and Analysis of Computing Systems"}
+MACRO {taas}  {"ACM Transactions on Autonomous and Adaptive Systems"}
+MACRO {taccess}  {"ACM Transactions on Accessible Computing"}
+MACRO {taco}  {"ACM Transactions on Architecture and Code Optimization"}
+MACRO {talg}  {"ACM Transactions on Algorithms"}
+MACRO {tallip}  {"ACM Transactions on Asian and Low-Resource Language Information Processing"}
+MACRO {tap}  {"ACM Transactions on Applied Perception"}
+MACRO {tcps}  {"ACM Transactions on Cyber-Physical Systems"}
+MACRO {tds}  {"ACM/IMS Transactions on Data Science"}
+MACRO {teac}  {"ACM Transactions on Economics and Computation"}
+MACRO {tecs}  {"ACM Transactions on Embedded Computing Systems"}
+MACRO {telo}  {"ACM Transactions on Evolutionary Learning"}
+MACRO {thri}  {"ACM Transactions on Human-Robot Interaction"}
+MACRO {tiis}  {"ACM Transactions on Interactive Intelligent Systems"}
+MACRO {tiot}  {"ACM Transactions on Internet of Things"}
+MACRO {tissec}  {"ACM Transactions on Information and System Security"}
+MACRO {tist}  {"ACM Transactions on Intelligent Systems and Technology"}
+MACRO {tkdd}  {"ACM Transactions on Knowledge Discovery from Data"}
+MACRO {tmis}  {"ACM Transactions on Management Information Systems"}
+MACRO {toce}  {"ACM Transactions on Computing Education"}
+MACRO {tochi}  {"ACM Transactions on Computer-Human Interaction"}
+MACRO {tocl}  {"ACM Transactions on Computational Logic"}
+MACRO {tocs}  {"ACM Transactions on Computer Systems"}
+MACRO {toct}  {"ACM Transactions on Computation Theory"}
+MACRO {todaes}  {"ACM Transactions on Design Automation of Electronic Systems"}
+MACRO {tods}  {"ACM Transactions on Database Systems"}
+MACRO {tog}  {"ACM Transactions on Graphics"}
+MACRO {tois}  {"ACM Transactions on Information Systems"}
+MACRO {toit}  {"ACM Transactions on Internet Technology"}
+MACRO {tomacs}  {"ACM Transactions on Modeling and Computer Simulation"}
+MACRO {tomm}   {"ACM Transactions on Multimedia Computing, Communications and Applications"}
+MACRO {tompecs}  {"ACM Transactions on Modeling and Performance Evaluation of Computing Systems"}
+MACRO {toms}  {"ACM Transactions on Mathematical Software"}
+MACRO {topc}  {"ACM Transactions on Parallel Computing"}
+MACRO {toplas}  {"ACM Transactions on Programming Languages and Systems"}
+MACRO {tops}  {"ACM Transactions on Privacy and Security"}
+MACRO {tos}  {"ACM Transactions on Storage"}
+MACRO {tosem}  {"ACM Transactions on Software Engineering and Methodology"}
+MACRO {tosn}  {"ACM Transactions on Sensor Networks"}
+MACRO {tqc}  {"ACM Transactions on Quantum Computing"}
+MACRO {trets}  {"ACM Transactions on Reconfigurable Technology and Systems"}
+MACRO {tsas}  {"ACM Transactions on Spatial Algorithms and Systems"}
+MACRO {tsc}  {"ACM Transactions on Social Computing"}
+MACRO {tslp}  {"ACM Transactions on Speech and Language Processing"}
+MACRO {tweb}  {"ACM Transactions on the Web"}
+
+%%% Some traditional macros
+MACRO {acmcs} {"ACM Computing Surveys"}
+
+MACRO {acta} {"Acta Informatica"}
+
+MACRO {cacm} {"Communications of the ACM"}
+
+MACRO {ibmjrd} {"IBM Journal of Research and Development"}
+
+MACRO {ibmsj} {"IBM Systems Journal"}
+
+MACRO {ieeese} {"IEEE Transactions on Software Engineering"}
+
+MACRO {ieeetc} {"IEEE Transactions on Computers"}
+
+MACRO {ieeetcad}
+ {"IEEE Transactions on Computer-Aided Design of Integrated Circuits"}
+
+MACRO {ipl} {"Information Processing Letters"}
+
+MACRO {jcss} {"Journal of Computer and System Sciences"}
+
+MACRO {scp} {"Science of Computer Programming"}
+
+MACRO {sicomp} {"SIAM Journal on Computing"}
+
+MACRO {toois} {"ACM Transactions on Office Information Systems"}
+
+MACRO {tcs} {"Theoretical Computer Science"}
 
 
 

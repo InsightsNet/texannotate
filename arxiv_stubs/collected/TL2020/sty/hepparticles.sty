@@ -1,0 +1,468 @@
+%% hepparticles --- flexible elementary particle symbols
+%% Author: Andy Buckley <andy@insectnation.org>
+%%
+%% This material is subject to the LaTeX Project Public License.
+%% See http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html
+%% for the details of that license.
+%%
+%%
+%% The macros provided are:
+%%
+%% For generic particle names e.g. all positively charged leptons:
+%%   \HepGenParticle{main}{subscript}{superscript}
+%%   \HepGenAntiParticle{main}{subscript}{superscript}
+%%
+%% For concrete particle names:
+%%   \HepParticle{main}{subscript}{superscript}
+%%   \HepAntiParticle{main}{subscript}{superscript}
+%%
+%% For supersymmetric "sparticles":
+%%   \HepSusyParticle{main}{subscript}{superscript}
+%%   \HepGenSusyParticle{main}{subscript}{superscript}
+%%   \HepSusyAntiParticle{main}{subscript}{superscript}
+%%   \HepGenSusyAntiParticle{main}{subscript}{superscript}
+%%
+%% For resonance specifiers (just the extra terms):
+%%   \HepResonanceMassTerm{mainTermInParenths}{subscript}{superscript}
+%%   \HepResonanceSpecTerm{mainSpecTerm}{subscript}{superscript}
+%%
+%% For the total particle name and resonance specifications: the
+%% ``formal'' definitions include the spectroscopic term and the
+%% ``full'' versions pf each require the main particle name to be
+%% explicitly specified rather than just pass a \HepParticle as the first arg:
+%%   \HepParticleResonance{name}{mass}{massSub}{massSup}
+%%   \HepParticleResonanceFormal{name}{mass}{massSub}\
+%%                              {massSup}{spec}{specSub}{specSup}
+%%   \HepParticleResonanceFull{name}{sub}{sup}{mass}{massSub}{massSup}
+%%   \HepParticleResonanceFormalFull{name}{sub}{sup}\
+%%                                  {mass}{massSub}{massSup}\
+%%                                  {spec}{specSub}{specSup}
+%%
+%% And finally, for containing processes describing the evolution
+%% of these particles:
+%%   \HepProcess{iParticles \to fParticles}
+%% where \to is re-defined to have a bit of extra space.
+%%
+%% There are probably some missing cases but they can be handled
+%% as explicit exceptions. You might also be interested in the
+%% ``hepnames'' package, which updates the "pennames" set of
+%% typeset concrete particle names to use this more flexible scheme.
+
+%% TODO:
+%%
+%%  * Make the bold math only occur within particle macros
+%%
+%%  * Distinction between italic main symbol and italic main+scripts
+%%
+%%  * Optionally include Greek letters (lower and upper) in upright/italic
+%%    forcing (and sans/bold context sensitivity)
+%%
+%%  * Use maybemath again? (A new version, using NFSS properly)
+
+%% Admin
+\def\fileversion{2.1}
+\def\filedate{2020/02/13}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{hepparticles}[\filedate\space HEP particle typesetting (v\fileversion)]
+
+% \RequirePackage{xspace}
+% \RequirePackage{etoolbox}
+
+%% Package options
+\def\@italicNames{}%
+
+%% Use italic particle symbols
+\DeclareOption{italic}{%
+  \def\@italicNames{yes}%
+}
+
+% TODO: Add options to force upright Greek lower-case / italic Greek upper-case?
+
+\ProcessOptions
+
+%% Force all sub/superscripts to the same height
+\RequirePackage{subdepth}
+\RequirePackage{amsmath}
+
+%% Automatically bolden math mode symbols in a bold text context
+% TODO: only apply to particles? Redefine \bfseries inside hepparticles macros and restore at end? Or is there a simpler scoping?
+\g@addto@macro\bfseries{\boldmath}
+
+\DeclareMathAlphabet{\mathup}{OT1}{\familydefault}{m}{n}
+\SetMathAlphabet{\mathup}{bold}{\encodingdefault}{\familydefault}{bx}{n}
+
+\DeclareMathAlphabet{\mathsfup}{OT1}{\sfdefault}{m}{n}
+\SetMathAlphabet{\mathsfup}{bold}{\encodingdefault}{\sfdefault}{bx}{n}
+
+\DeclareMathAlphabet{\mathsfit}{\encodingdefault}{\sfdefault}{m}{sl}
+\SetMathAlphabet{\mathsfit}{bold}{\encodingdefault}{\sfdefault}{bx}{sl}
+
+
+% TODO: Use fixmath to force italic/upright upper/lower Greek characters -- only in particles
+
+
+%% -----------------------------------------------------------------------
+%% Styling commands
+%% -----------------------------------------------------------------------
+
+%% Generic particle style (normal style with optional forced italics)
+\DeclareRobustCommand{\@HepGenStyle}[1]{%
+  \ensuremath{%
+    \edef\@itcode{\itdefault}%
+    \edef\@slcode{\sldefault}%
+    \edef\@sfcode{\sfdefault}%
+    \edef\@upcode{\updefault}%
+    \edef\@bfcode{\bfdefault}%
+    %
+    \ifx\f@family\@sfcode%
+      \mathsfit{#1}%
+    \else%
+      \mathit{#1}%
+    \fi%
+  }%
+}
+
+
+%% Concrete particle style (normal style with upright and forced italic handling)
+\DeclareRobustCommand{\@HepConStyle}[1]{%
+  \ensuremath{%
+    \edef\@itcode{\itdefault}%
+    \edef\@slcode{\sldefault}%
+    \edef\@sfcode{\sfdefault}%
+    \edef\@upcode{\updefault}%
+    %
+    \ifx\f@family\@sfcode%
+      \ifx\f@shape\@itcode%
+        \mathsfit{#1}%
+      \else%
+        \ifx\f@shape\@slcode%
+          \mathsfit{#1}%
+        \else%
+          \ifx\f@shape\@upcode%
+            \mathsfup{#1}% <--- difference from gen style
+          \else%
+            \mathsfup{#1}% <--- default
+          \fi%
+        \fi%
+      \fi%
+    \else%
+      \ifx\f@shape\@itcode%
+        \mathit{#1}%
+      \else%
+        \ifx\f@shape\@slcode%
+          \mathit{#1}%
+        \else%
+          \ifx\f@shape\f@shape%
+            \mathup{#1}% <--- difference from gen style
+          \else%
+            \mathup{#1}% <--- default if none matched
+          \fi%
+        \fi%
+      \fi%
+    \fi%
+  }%
+}
+
+
+%% -----------------------------------------------------------------------
+%% Conditional horizontal shifting and kerning for sub/superscripts
+%% -----------------------------------------------------------------------
+
+\DeclareRobustCommand{\@itmkern}[1]{%
+  \ensuremath{%
+    \edef\@itcode{\itdefault}%
+    \edef\@slcode{\sldefault}%
+    %
+    \ifx\f@shape\@itcode%
+      \mkern#1%
+    \fi%
+    \ifx\f@shape\@slcode%
+      \mkern#1%
+    \fi%
+  }%
+}
+
+\DeclareRobustCommand{\@itsfshift}[2]{%
+  \ensuremath{%
+    \edef\@itcode{\itdefault}%
+    \edef\@slcode{\sldefault}%
+    \edef\@sfcode{\sfdefault}%
+    \edef\@upcode{\updefault}%
+    \edef\@bfcode{\bfdefault}%
+    %
+    \ifx\f@family\@sfcode%
+      \ifx\f@shape\@itcode%
+        \mspace{#2}
+      \fi%
+      \ifx\f@shape\@slcode%
+        \mspace{#2}%
+      \fi%
+      \ifx\f@shape\@upcode%
+        \relax%
+      \fi%
+    \else%
+      \ifx\f@shape\@itcode%
+        \mspace{#1}
+      \fi%
+      \ifx\f@shape\@slcode%
+        \mspace{#1}
+      \fi%
+      \ifx\f@shape\@upcode%
+        \relax%
+      \fi%
+    \fi%
+  }%
+}
+
+\DeclareRobustCommand{\@sfshift}[2]{%
+  \ensuremath{%
+    \edef\@sfcode{\sfdefault}%
+    %
+    \ifx\f@family\@sfcode%
+      \mspace{#2}
+    \else%
+      \mspace{#1}
+    \fi%
+  }%
+}
+
+
+%% -----------------------------------------------------------------------
+%% Public commands for particle typesetting
+%% -----------------------------------------------------------------------
+
+%% For generic particles like "lepton", "quark" etc (no upright font)
+\def\@shiftlen@norm@gen@rmsub{-3mu}
+\def\@shiftlen@norm@gen@sfsub{-2mu}
+\def\@shiftlen@norm@gen@rmsup{-1mu}
+\def\@shiftlen@norm@gen@sfsup{0mu}
+%
+\DeclareRobustCommand{\HepGenParticle}[3]{%
+  \@HepGenStyle{{#1}{}%
+    _{\@sfshift{\@shiftlen@norm@gen@rmsub}{\@shiftlen@norm@gen@sfsub}\scriptstyle{#2}}%
+    ^{\@sfshift{\@shiftlen@norm@gen@rmsup}{\@shiftlen@norm@gen@sfsup}\scriptstyle{#3}}}%
+}
+
+%% For generic antiparticles
+\def\@shiftlen@anti@gen@bar{4mu}
+\def\@shiftlen@anti@gen@rmsub{-2mu}
+\def\@shiftlen@anti@gen@sfsub{-1mu}
+\def\@shiftlen@anti@gen@rmsup{0mu}
+\def\@shiftlen@anti@gen@sfsup{1mu}
+%
+\DeclareRobustCommand{\HepGenAntiParticle}[3]{%
+  \@HepGenStyle{{\mkern\@shiftlen@anti@gen@bar\overline{\mkern-\@shiftlen@anti@gen@bar{#1}}}{}%
+    _{\@sfshift{\@shiftlen@anti@gen@rmsub}{\@shiftlen@anti@gen@sfsub}\scriptstyle{#2}}%
+    ^{\@sfshift{\@shiftlen@anti@gen@rmsup}{\@shiftlen@anti@gen@sfsup}\scriptstyle{#3}}}%
+}
+
+%% For generic SUSY particles e.g. slepton, squark
+% cm/lmodern
+\def\@shiftlen@susy@gen@til{2mu}
+\def\@shiftlen@susy@gen@rmsub{-2.5mu}
+\def\@shiftlen@susy@gen@sfsub{-2mu}
+\def\@shiftlen@susy@gen@rmsup{-0.5mu}
+\def\@shiftlen@susy@gen@sfsup{0mu}
+% mathpazo
+% \def\@shiftlen@susy@gen@til{2mu}
+% \def\@shiftlen@susy@gen@rmsub{-1.5mu}
+% \def\@shiftlen@susy@gen@sfsub{-2mu}
+% \def\@shiftlen@susy@gen@rmsup{0.5mu}
+% \def\@shiftlen@susy@gen@sfsup{0mu}
+%
+\DeclareRobustCommand{\HepGenSusyParticle}[3]{%
+  \@HepGenStyle{{\mkern\@shiftlen@susy@gen@til\widetilde{\mkern-\@shiftlen@susy@gen@til{#1}}}{}%
+    _{\@sfshift{\@shiftlen@susy@gen@rmsub}{\@shiftlen@susy@gen@sfsub}\scriptstyle{#2}}%
+    ^{\@sfshift{\@shiftlen@susy@gen@rmsup}{\@shiftlen@susy@gen@sfsup}\scriptstyle{#3}}}%
+}
+
+%% For generic SUSY anti-particles e.g. slepton, squark
+% cm/lmodern
+\def\@shiftlen@antisusy@gen@bar{3.5mu}
+\def\@shiftlen@antisusy@gen@til{2mu}
+\def\@shiftlen@antisusy@gen@rmsub{-4mu}
+\def\@shiftlen@antisusy@gen@sfsub{-3mu}
+\def\@shiftlen@antisusy@gen@rmsup{-2mu}
+\def\@shiftlen@antisusy@gen@sfsup{0mu}
+% mathpazo
+% \def\@shiftlen@antisusy@gen@bar{3.5mu}
+% \def\@shiftlen@antisusy@gen@til{2mu}
+% \def\@shiftlen@antisusy@gen@rmsub{-2mu}
+% \def\@shiftlen@antisusy@gen@sfsub{-3mu}
+% \def\@shiftlen@antisusy@gen@rmsup{0.7mu}
+% \def\@shiftlen@antisusy@gen@sfsup{0mu}
+%
+\DeclareRobustCommand{\HepGenSusyAntiParticle}[3]{%
+  %\@HepGenStyle{{\mkern3.5mu\overline{\mkern-1.5mu\widetilde{\mkern-2mu{#1}}}}{}%
+  \@HepGenStyle{{\mkern\@shiftlen@antisusy@gen@bar\overline{\mkern-\@shiftlen@antisusy@gen@bar\mkern\@shiftlen@antisusy@gen@til\widetilde{\mkern-\@shiftlen@antisusy@gen@til{#1}}}}{}%
+    _{\@sfshift{\@shiftlen@antisusy@gen@rmsub}{\@shiftlen@antisusy@gen@sfsub}\scriptstyle{#2}}%
+    ^{\@sfshift{\@shiftlen@antisusy@gen@rmsup}{\@shiftlen@antisusy@gen@sfsup}\scriptstyle{#3}}}%
+}
+
+
+
+%% For concrete HEP particle names like "B", "J/psi" etc
+% cm/lmodern
+\def\@shiftlen@norm@con@rmsub{-2mu}
+\def\@shiftlen@norm@con@sfsub{-1.5mu}
+\def\@shiftlen@norm@con@rmsup{0mu}
+\def\@shiftlen@norm@con@sfsup{0mu}
+% mathpazo
+% \def\@shiftlen@norm@con@rmsub{-3mu}
+% \def\@shiftlen@norm@con@sfsub{-2mu}
+% \def\@shiftlen@norm@con@rmsup{-1mu}
+% \def\@shiftlen@norm@con@sfsup{0mu}
+%
+\DeclareRobustCommand{\HepParticle}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{{#1}}{}%
+      _{\@itsfshift{\@shiftlen@norm@con@rmsub}{\@shiftlen@norm@con@sfsub}\scriptstyle{#2}}%
+      ^{\@itsfshift{\@shiftlen@norm@con@rmsup}{\@shiftlen@norm@con@sfsup}\scriptstyle{#3}}}%
+  \else%
+    \HepGenParticle{#1}{#2}{#3}%
+  \fi%
+}
+
+%% For concrete antiparticles
+\def\@shiftlen@anti@con@bar{3.5mu}
+\def\@shiftlen@anti@con@rmsub{-3mu}
+\def\@shiftlen@anti@con@sfsub{-3mu}
+\def\@shiftlen@anti@con@rmsup{1mu}
+\def\@shiftlen@anti@con@sfsup{1mu}
+%
+\DeclareRobustCommand{\HepAntiParticle}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{\@itmkern{\@shiftlen@anti@con@bar}\overline{\@itmkern{-\@shiftlen@anti@con@bar}{#1}}}{}%
+      _{\@itsfshift{\@shiftlen@anti@con@rmsub}{\@shiftlen@anti@con@sfsub}\scriptstyle{#2}}%
+      ^{\@itsfshift{\@shiftlen@anti@con@rmsup}{\@shiftlen@anti@con@sfsup}\scriptstyle{#3}}}%
+  \else%
+    \HepGenAntiParticle{#1}{#2}{#3}%
+  \fi%
+}
+
+%% For SUSY particles
+% cm/lmodern
+\def\@shiftlen@susy@con@til{2mu}
+\def\@shiftlen@susy@con@rmsub{-3mu}
+\def\@shiftlen@susy@con@sfsub{-3mu}
+\def\@shiftlen@susy@con@rmsup{0mu}
+\def\@shiftlen@susy@con@sfsup{0mu}
+% mathpazo
+% \def\@shiftlen@susy@con@til{2mu}
+% \def\@shiftlen@susy@con@rmsub{-1mu}
+% \def\@shiftlen@susy@con@sfsub{-2mu}
+% \def\@shiftlen@susy@con@rmsup{1mu}
+% \def\@shiftlen@susy@con@sfsup{0.5mu}
+%
+\DeclareRobustCommand{\HepSusyParticle}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{\@itmkern{\@shiftlen@susy@con@til}\widetilde{\@itmkern{-\@shiftlen@susy@con@til}{#1}}}{}%
+      _{\@itsfshift{\@shiftlen@susy@con@rmsub}{\@shiftlen@susy@con@sfsub}\scriptstyle{#2}}%
+      ^{\@itsfshift{\@shiftlen@susy@con@rmsup}{\@shiftlen@susy@con@sfsup}\scriptstyle{#3}}}%
+  \else%
+    \HepGenSusyParticle{#1}{#2}{#3}%
+  \fi%
+}
+
+%% For SUSY anti-particles
+% cm/lmodern
+\def\@shiftlen@antisusy@con@bar{3.5mu}
+\def\@shiftlen@antisusy@con@til{2mu}
+\def\@shiftlen@antisusy@con@rmsub{-2.5mu}
+\def\@shiftlen@antisusy@con@sfsub{-2mu}
+\def\@shiftlen@antisusy@con@rmsup{0mu}
+\def\@shiftlen@antisusy@con@sfsup{0mu}
+% mathpazo
+% \def\@shiftlen@antisusy@con@bar{3.5mu}
+% \def\@shiftlen@antisusy@con@til{2mu}
+% \def\@shiftlen@antisusy@con@rmsub{-2.5mu}
+% \def\@shiftlen@antisusy@con@sfsub{-3mu}
+% \def\@shiftlen@antisusy@con@rmsup{0mu}
+% \def\@shiftlen@antisusy@con@sfsup{0mu}
+%
+\DeclareRobustCommand{\HepSusyAntiParticle}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{\@itmkern{\@shiftlen@antisusy@con@bar}\overline{\@itmkern{-\@shiftlen@antisusy@con@bar}%
+                   \@itmkern{\@shiftlen@antisusy@con@til}\widetilde{\@itmkern{-\@shiftlen@antisusy@con@til}{#1}}}}{}%
+      _{\@itsfshift{\@shiftlen@antisusy@con@rmsub}{\@shiftlen@antisusy@con@sfsub}\scriptstyle{#2}}%
+      ^{\@itsfshift{\@shiftlen@antisusy@con@rmsup}{\@shiftlen@antisusy@con@sfsup}\scriptstyle{#3}}}%
+  \else%
+    \HepGenSusyAntiParticle{#1}{#2}{#3}%
+  \fi%
+}
+
+
+%% Resonances and other such structures. These are actually pretty
+%% complicated since the most general structure has a main particle
+%% term, a mass term and a spectroscopic term: in total 9 possible arguments
+%% if we let each main term have optional following sub- and super-scripts!
+%% The mass and spectroscopic terms seem to be mixed up quite often... *sigh*
+%%
+%% Apologies for the interface changing yet again as I learn how general
+%% these terms can be! Hopefully stable now (touch wood)...
+
+%% For resonance mass specifications like the bracket in "J/psi(1S)"
+\DeclareRobustCommand{\HepResonanceMassTerm}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{\left({#1}\right)}{}_{#2}^{\scriptstyle{#3}}}%
+  \else%
+    \@HepGenStyle{{\left({#1}\right)}{}_{#2}^{\scriptstyle{#3}}}%
+  \fi%
+}
+
+%% For resonance spectroscopic specifications like the P_11 in "N(1440)P_11"
+\DeclareRobustCommand{\HepResonanceSpecTerm}[3]{%
+  \ifx\@italicNames\@empty%
+    \@HepConStyle{{#1}{}_{#2}^{#3}}%
+  \else%
+    \@HepGenStyle{{#1}{}_{#2}^{#3}}%
+  \fi%
+}
+
+%% For resonances like "J/psi(1S)" (first arg is a whole \HepParticle)
+\DeclareRobustCommand{\HepParticleResonance}[4]{%
+  \ensuremath{%
+    {#1}{\HepResonanceMassTerm{#2}{#3}{#4}}%
+  }%
+}
+
+%% For resonances like "N(1440)P_11" (first arg is a whole \HepParticle)
+\DeclareRobustCommand{\HepParticleResonanceFormal}[7]{%
+  \ensuremath{%
+    {\HepParticleResonance{#1}{#2}{#3}{#4}}\,{\HepResonanceSpecTerm{#5}{#6}{#7}}%
+  }%
+}
+
+%% For resonances like "J/psi(1S)" (all arguments ``spelled out'')
+\DeclareRobustCommand{\HepParticleResonanceFull}[6]{%
+  \HepParticleResonance{\HepParticle{#1}{#2}{#3}}{#4}{#5}{#6}%
+}
+
+%% For resonances like "N(1440)P_11" (all arguments ``spelled out'')
+\DeclareRobustCommand{\HepParticleResonanceFormalFull}[9]{%
+  \HepParticleResonanceFormal{\HepParticle{#1}{#2}{#3}}{#4}{#5}{#6}{#7}{#8}{#9}%
+}
+
+
+%% For typesetting HEP processes with these particle names.
+%% TODO: Help on how to widen the math spacing would be nice: I always
+%% find myself putting \, between particle names to make it look good.
+\let\@HepOldto\to
+\DeclareRobustCommand{\HepProcess}[1]{%
+  \begingroup%
+  \renewcommand{\to}{\mspace{1mu}\@HepOldto\mspace{1mu}}%
+  \ensuremath{#1}%
+  \renewcommand{\to}{\@HepOldto}%
+  \endgroup%
+}
+
+
+%% Typesetting tweaks (-> becomes "to", remove mspace) from hyperref labels in PDFTeX
+%% Thanks to Heiko Oberdiek and Donald Arseneau for assistance via comp.text.tex
+\@ifpackageloaded{hyperref}{
+  \pdfstringdefDisableCommands{%
+      \DeclareRobustCommand{\HepProcess}[1]{#1}
+      \let\mspace\@gobble
+      \def\to{to }%
+  }%
+}{}

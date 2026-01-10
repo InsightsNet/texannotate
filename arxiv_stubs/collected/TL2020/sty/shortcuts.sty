@@ -1,0 +1,138 @@
+% Author comments
+\newcommand{\authnote}[2]{\textcolor{red}{#1: }\textcolor{blue}{#2}}
+% \newcommand{\authnote}[2]{}
+
+% \newcommand{\juan}[1]{\authnote{Juan}{#1}}
+% \newcommand{\silvia}[1]{\authnote{Silvia}{#1}}
+% \newcommand{\arturo}[1]{\authnote{Arturo}{#1}}
+% \newcommand{\gibran}[1]{\authnote{Gibran}{#1}}
+% \newcommand{\srdjan}[1]{\authnote{Srj}{#1}}
+\newcommand{\CR}[1]{\noindent{\color{brown!30!red}{\bf \fbox{CR:}} {\it#1}} }
+%
+\newcommand{\juan}[1]{}
+\newcommand{\silvia}[1]{}
+\newcommand{\arturo}[1]{}
+\newcommand{\gibran}[1]{}
+\newcommand{\srdjan}[1]{}
+
+
+% TODO 
+\newcommand{\todo}[1]{\textbf{[TODO: #1]}}
+
+% Ignore stuff
+\newcommand{\ignore}[1]{}
+
+% Review
+\newcommand{\review}[1]{{\leavevmode\textsc{\color{blue}{#1}}}}
+%\newcommand{\review}[1]{#1}
+
+% Updates
+% \newcommand{\updated}[1]{{\leavevmode\color{red}{#1}}}
+\newcommand{\updated}[1]{#1}
+
+% Rotate columns
+\newcommand\featuretexta[1]{\rotatebox{90}{\textbf{#1}}}
+%\ignore{
+\newcommand\featuretext[1]{%
+%  \llap{\vrule width2.5pt height2pt depth2.5pt\kern4pt}%
+  \rlap{\rotatebox{35}{#1}}%
+}
+
+% Tickmark and Crossmark
+\usepackage{amsfonts}
+\newcommand{\Y}{\checkmark}
+\usepackage{pifont}
+\newcommand{\N}{\hspace{1pt}\ding{55}}
+
+% Filled, semi-filled, empty circles
+\usepackage{wasysym}
+\newcommand{\CC}{$\CIRCLE$}
+\newcommand{\cc}{$\Circle$}
+\newcommand{\lc}{$\LEFTcircle$}
+\newcommand{\rc}{$\RIGHTcircle$}
+
+% Rotate text
+\usepackage{rotating}
+\newcommand{\crotate}[1]{\rotatebox{90}{{\bf #1}}}
+
+% General macros
+\newcommand{\Tool}{GoodFATR\xspace}
+\newcommand{\tool}{GoodFATR\xspace}
+\newcommand{\ioc}[1]{\emph{#1}\xspace}
+\newcommand{\regexp}{regular expression\xspace}
+\newcommand{\Regexp}{Regular expression\xspace}
+\newcommand{\regexps}{regular expressions\xspace}
+\newcommand{\Regexps}{Regular expressions\xspace}
+\newcommand{\ie}{\textit{i.e.,~}}
+\newcommand{\eg}{\textit{e.g.,~}}
+
+\newcommand{\downloader}{Downloader\xspace}
+
+\newcommand{\origin}{origin\xspace}
+\newcommand{\origins}{origins\xspace}
+\newcommand{\entry}{entry\xspace}
+\newcommand{\entries}{entries\xspace}
+\newcommand{\doc}{document\xspace}
+\newcommand{\docs}{documents\xspace}
+
+% Indicator extraction tools
+\newcommand{\iocparser}{\textsc{ioc\_parser}\xspace}
+\newcommand{\iocextract}{\textsc{iocextract}\xspace}
+\newcommand{\iocextractor}{\textsc{ioc-extractor}\xspace}
+\newcommand{\iocfinder}{\textsc{ioc-finder}\xspace}
+\newcommand{\cacador}{\textsc{cacador}\xspace}
+\newcommand{\jager}{\textsc{jager}\xspace}
+\newcommand{\cyobstract}{\textsc{cyobstract}\xspace}
+\newcommand{\Iocparser}{\textsc{Ioc\_parser}\xspace}
+\newcommand{\Iocextract}{\textsc{Iocextract}\xspace}
+\newcommand{\Iocextractor}{\textsc{Ioc-extractor}\xspace}
+\newcommand{\Iocfinder}{\textsc{ioc-finder}\xspace}
+\newcommand{\Cacador}{\textsc{Cacador}\xspace}
+\newcommand{\Jager}{\textsc{Jager}\xspace}
+\newcommand{\Cyobstract}{\textsc{Cyobstract}\xspace}
+\newcommand{\searcher}{\textsc{iocsearcher}\xspace}
+\newcommand{\Searcher}{\searcher}
+
+% Sources
+\newcommand{\aptnotes}{APTnotes\xspace}
+\newcommand{\chainsmith}{ChainSmith\xspace}
+\newcommand{\malpedia}{Malpedia\xspace}
+\newcommand{\rss}{RSS\xspace}
+\newcommand{\telegram}{Telegram\xspace}
+\newcommand{\twitter}{Twitter\xspace}
+
+% Origins
+\newcommand{\rssOrigins}{300\xspace}
+\newcommand{\twitterOrigins}{383\xspace}
+\newcommand{\telegramOrigins}{9\xspace}
+\newcommand{\malpediaOrigins}{2,368\xspace}
+\newcommand{\chainsmithOrigins}{11\xspace}
+\newcommand{\aptnotesOrigins}{155\xspace}
+
+% Evaluation: tool comparison
+\newcommand{\numtools}{8\xspace}
+\newcommand{\numavailabletools}{7\xspace}
+\newcommand{\numpytools}{5\xspace}
+
+% Evaluation: reports in comparison
+\newcommand{\numaptreports}{632\xspace}
+\newcommand{\numaptreportsextr}{629\xspace}
+\newcommand{\numcomparisonreports}{4,420\xspace}
+
+% Evaluation: total collection
+\newcommand{\numorigins}{3,226\xspace}
+\newcommand{\numentries}{472,891\xspace} % 472,891
+\newcommand{\numextractedindicators}{978,151\xspace} % 978,151
+\newcommand{\numextractediocs}{618,217\xspace} % 618,217
+
+% Evaluation macros
+\newcommand{\numiocs}{41\xspace}
+% There are 44 in /data/reports/downloads/rss_all/20220427_rss.iocrank
+% cut -f1 20220427_rss.iocrank | cut -d' ' -f2 | sort -u | wc -l
+% 44
+
+%Exceptions
+\newcommand{\numexcyobstract}{41\xspace}
+\newcommand{\numexjager}{20\xspace}
+\newcommand{\numexiocextractor}{2\xspace}
+\newcommand{\numgt}{106\xspace}

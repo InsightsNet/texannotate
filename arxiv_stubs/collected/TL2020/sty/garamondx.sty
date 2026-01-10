@@ -1,0 +1,201 @@
+\NeedsTeXFormat{LaTeX2e}
+\def\fileversion{1.12}
+\def\filedate{2017/03/11}
+
+\ProvidesPackage{garamondx}[\filedate\space v\fileversion]
+\message{`garamondx' v\fileversion. \filedate\space GaramondNo8 with expert features (Michael Sharpe)}
+\RequirePackage{graphicx}
+\RequirePackage{keyval}
+\usepackage[LY1,T1]{fontenc}
+\RequirePackage{fontaxes}% so we can have [bold] italic small caps
+\RequirePackage{textcomp}
+\RequirePackage{etoolbox}
+\let\orig@footnote=\thefootnote
+\let\orig@makefnmark=\@makefnmark
+
+
+\DeclareTextCommand{\textcircled}{TS1}[1]{\hmode@bgroup
+   \ooalign{%
+      \hfil \raise .4ex\hbox {{\fontencoding{T1}\fontshape{sc}\fontsize{8.2}{9}\selectfont \lowercase{#1}}}\hfil \crcr
+      \textbigcircle   % bigcircle
+   }%
+ \egroup}
+\newif\ifzgm@osf
+\newif\ifzgm@osfI
+\newif\ifzgm@swq
+\newif\ifzgm@sups
+%\newif\ifzgm@babel
+%\ifdefined\bbl@tempa \zgm@babeltrue\fi
+\define@key{Zgm}{babel}[true]{\relax}% retain for backward compatibility
+%\csname zgm@babel#1\endcsname}
+\define@key{Zgm}{sups}[true]{%
+\csname zgm@sups#1\endcsname}
+\define@key{Zgm}{swashQ}[true]{%
+  \def\zgm@swqval{#1}\csname zgm@swq#1\endcsname}
+\define@key{Zgm}{scaled}[0.95]{%
+  \def\zgm@Scale{#1}}
+\define@key{Zgm}{osf}[true]{%
+  \csname zgm@osf#1\endcsname  \def\zgm@osfIval{false}}
+\define@key{Zgm}{osfI}[true]{%
+  \csname zgm@osf#1\endcsname \csname zgm@osfI#1\endcsname%
+  \def\zgm@osfIval{#1}}
+\def\ProcessOptionsWithKV#1{%
+  \let\@tempc\relax
+  \let\Zgm@tempa\@empty
+  \@for\CurrentOption:=\@classoptionslist\do{%
+    \@ifundefined{KV@#1@\CurrentOption}%
+    {}%
+    {%
+      \edef\Zgm@tempa{\Zgm@tempa,\CurrentOption,}%
+      \@expandtwoargs\@removeelement\CurrentOption
+        \@unusedoptionlist\@unusedoptionlist
+    }%
+  }%
+  \edef\Zgm@tempa{%
+    \noexpand\setkeys{#1}{%
+      \Zgm@tempa\@ptionlist{\@currname.\@currext}%
+    }%
+  }%
+  \Zgm@tempa
+  \let\CurrentOption\@empty
+}
+\ProcessOptionsWithKV{Zgm}
+\AtEndOfPackage{%
+  \let\@unprocessedoptions\relax
+}
+\renewcommand*{\rmdefault}{zgmx}
+%\ifzgm@babel%
+%	\def\useosf{\renewcommand*{\rmdefault}{zgmj}\def\zgm@osfIval{false}}
+%	\def\useosfI{\renewcommand*{\rmdefault}{zgmj}\def\zgm@osfIval{true}}
+%\else
+	\def\useosf{\zgm@osftrue \def\zgm@osfIval{false}}
+	\def\useosfI{\zgm@osftrue \def\zgm@osfIval{true}}
+%\fi
+\@onlypreamble\useosf\@onlypreamble\useosfI
+ 
+% need lining figures for math
+  
+\newcommand{\textlf}[1]{{\fontfamily{zgmx}\selectfont #1}}% to get zgm lf
+\newcommand{\textosf}[1]{\oldstylenums{#1}}% to get zgm osf
+\newcommand{\textosfI}[1]{{\fontfamily{zgmI}\selectfont #1}}% to get zgm osfI
+\renewcommand*{\bfdefault}{b}
+\renewcommand*{\scdefault}{sc}% for better compatibility with mathdesign
+% set NewG8-sups as footnote markers---may also use superiors for more options
+%\DeclareFontFamily{T1}{zgm1}{}%
+%  \DeclareFontShape{T1}{zgm1}{m}{n}{%
+%    <-> NewG8-sups}{}
+\DeclareRobustCommand{\sustyle}{%
+  \not@math@alphabet\sustyle\relax
+  \usefont{T1}{zgm1}{m}{n}}
+
+\def\textsu#1{\hbox{{\sustyle#1}}}
+\ifzgm@sups %
+  \def\f@@tn@te{footnote}
+  \def\@makefnmark{%
+    \ifx\@mpfn\f@@tn@te%
+      \ifx\thefootnote\orig@footnote%
+        \hbox{\sustyle\hspace*{.04em}\@thefnmark\hspace*{.03em}}%
+      \else%
+        \orig@makefnmark%
+      \fi
+    \else%
+      \orig@makefnmark%
+    \fi}
+\fi
+
+% The following are provided so that we may access swash Q and osfI in any mode
+\expandafter\ifx\csname zgm@Scale\endcsname\relax
+ \let\zgm@@@Scale\@empty
+\else
+ \edef\zgm@@@Scale{s*[\csname zgm@Scale\endcsname]}%
+\fi
+\DeclareFontFamily{T1}{zgmI}{}
+
+\DeclareFontShape{T1}{zgmI}{m}{n}{
+   <-> \zgm@@@Scale  T1-zgm-r-osfI
+}{}
+\DeclareFontShape{T1}{zgmI}{m}{it}{
+   <-> \zgm@@@Scale  T1-zgm-ri-osfI
+}{}
+\DeclareFontShape{T1}{zgmI}{b}{n}{
+   <-> \zgm@@@Scale  T1-zgm-b-osfI
+}{}
+\DeclareFontShape{T1}{zgmI}{b}{it}{
+   <-> \zgm@@@Scale  T1-zgm-bi-osfI
+}{}
+
+\DeclareFontFamily{T1}{zgmq}{}
+
+\DeclareFontShape{T1}{zgmq}{m}{n}{
+   <-> \zgm@@@Scale  T1-zgm-r-lf-swq
+}{}
+\DeclareFontShape{T1}{zgmq}{m}{it}{
+   <-> \zgm@@@Scale  T1-zgm-ri-lf-swq
+}{}
+\DeclareFontShape{T1}{zgmq}{b}{n}{
+   <-> \zgm@@@Scale  T1-zgm-b-lf-swq
+}{}
+\DeclareFontShape{T1}{zgmq}{b}{it}{
+   <-> \zgm@@@Scale  T1-zgm-bi-lf-swq
+}{}
+
+\DeclareFontFamily{LY1}{zgmI}{}
+
+\DeclareFontShape{LY1}{zgmI}{m}{n}{
+   <-> \zgm@@@Scale  LY1-zgm-r-osfI
+}{}
+\DeclareFontShape{LY1}{zgmI}{m}{it}{
+   <-> \zgm@@@Scale  LY1-zgm-ri-osfI
+}{}
+\DeclareFontShape{LY1}{zgmI}{b}{n}{
+   <-> \zgm@@@Scale  LY1-zgm-b-osfI
+}{}
+\DeclareFontShape{LY1}{zgmI}{b}{it}{
+   <-> \zgm@@@Scale  LY1-zgm-bi-osfI
+}{}
+
+\DeclareFontFamily{LY1}{zgmq}{}
+
+\DeclareFontShape{LY1}{zgmq}{m}{n}{
+   <-> \zgm@@@Scale  LY1-zgm-r-lf-swq
+}{}
+\DeclareFontShape{LY1}{zgmq}{m}{it}{
+   <-> \zgm@@@Scale  LY1-zgm-ri-lf-swq
+}{}
+\DeclareFontShape{LY1}{zgmq}{b}{n}{
+   <-> \zgm@@@Scale  LY1-zgm-b-lf-swq
+}{}
+\DeclareFontShape{LY1}{zgmq}{b}{it}{
+   <-> \zgm@@@Scale  LY1-zgm-bi-lf-swq
+}{}
+\newcommand{\swashQ}{{\fontfamily{zgmq}\selectfont Q}}
+
+% It appears that \AtEndPreamble is incompatible with babel calls
+% which involve a change of encoding. Changed as of v. 1.093
+    \AtEndPreamble{%
+    \ifzgm@osf
+      \renewcommand*{\rmdefault}{zgmj}
+    \else
+      \renewcommand*{\rmdefault}{zgmx}
+    \fi  
+    \normalfont}
+
+%\ifzgm@babel
+%    \ifzgm@osf
+%      \renewcommand*{\rmdefault}{zgmj}
+%    \else
+%      \renewcommand*{\rmdefault}{zgmx}
+%    \fi  
+%    \normalfont
+%\else
+%    \AtEndPreamble{%
+%    \ifzgm@osf
+%      \renewcommand*{\rmdefault}{zgmj}
+%    \else
+%      \renewcommand*{\rmdefault}{zgmx}
+%    \fi  
+%    \normalfont}
+%\fi
+\endinput
+%%
+%% End of file `garamondx.sty'.

@@ -1,0 +1,560 @@
+%%
+%% This is file `ecrc.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% elsarticle.dtx  (with options: `class')
+%% 
+%% Copyright 2009, 2010, 2011 Elsevier Ltd
+%% 
+%% This file is part of the 'Elsarticle Bundle'.
+%% -------------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%%
+\NeedsTeXFormat{LaTeX2e}%
+
+\ProvidesPackage{ecrc}[2011/05/07 v1.2a ecrc]
+
+\DeclareOption{procedia}{\global\elsarticle@nsmodeltrue}
+\newif\ifelsarticle@nsmodel\elsarticle@nsmodelfalse
+%\DeclareOption{round}{%
+%      \renewcommand\NAT@open{} \renewcommand\NAT@close{}}
+%\DeclareOption{authoryear}{\NAT@numbersfalse
+%        \ExecuteOptions{semicolon,nobibstyle}
+%   }
+%  \renewcommand\NAT@open{} \renewcommand\NAT@close{}
+\ProcessOptions
+
+
+
+\RequirePackage{geometry}
+\ifnum\jtype=1
+ \geometry{twoside,
+  paperwidth=210mm,
+  paperheight=297mm,
+  textheight=562pt,
+  textwidth=384pt,
+  centering,
+  headheight=10pt,
+  headsep=12pt,
+  footskip=12pt,
+  footnotesep=24pt plus 2pt minus 12pt,
+}
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \if@twocolumn\global\@twocolumnfalse\fi
+ \else
+\ifnum\jtype=3
+  \ifelsarticle@nsmodel
+   \AtBeginDocument{\@twosidetrue\@mparswitchfalse}
+   \def\@evenfoot{}
+   \def\@oddfoot{}
+   \geometry{twoside,
+    paperwidth=192mm,
+    paperheight=262mm,
+    textheight=51.7pc,
+    textwidth=39pc,
+    lmargin=13mm,
+    tmargin=68.18pt,
+    headheight=10pt,
+    headsep=10pt,
+    footskip=0pt, %12pt
+    footnotesep=24pt,
+    columnsep=2pc
+}
+  \else
+    \geometry{twoside,
+     paperwidth=210mm,
+     paperheight=297mm,
+     textheight=622pt,
+     textwidth=468pt,
+     centering,
+     headheight=10pt,
+     headsep=12pt,
+     footskip=12pt,
+     footnotesep=24pt plus 2pt minus 12pt,
+     columnsep=2pc
+}
+\fi
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \if@twocolumn\input{fleqn.clo}\fi
+\else\ifnum\jtype=5
+ \RequirePackage{geometry}
+ \geometry{twoside,
+  paperwidth=210mm,
+  paperheight=297mm,
+  textheight=682pt,
+  textwidth=522pt,
+  centering,
+  headheight=10pt,
+  headsep=12pt,
+  footskip=12pt,
+  footnotesep=24pt plus 2pt minus 12pt,
+  columnsep=18pt
+ }%
+ \global\let\bibfont=\footnotesize
+ \global\bibsep=0pt
+ \input{fleqn.clo}
+ \global\@twocolumntrue
+%%
+%% End of option '5p'
+%%
+\fi\fi\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtEndDocument{\label{lastpage}}
+
+\let\@journalname\@empty
+\def\journalname#1{\gdef\@journalname{#1}}
+
+\let\@jid\@empty
+\def\jid#1{\gdef\@jid{#1}}
+
+\def\reprintline{%
+    \parbox[t]{\@tempdima}{\centering%
+    \raisebox{20pt}{\sf\LARGE Manufacturing Letters}\\[-12pt]
+%%  \raisebox{20pt}{\includegraphics{SDlogo-\jtype p}}\\[-12pt]
+    \mbox{\footnotesize\@journalname~xx~(xxxx)~xxx-xxx}%
+    }}
+
+\def\volume#1{\gdef\@vol{#1}}
+\def\firstpage#1{\gdef\@firstpage{#1}%
+                  \setcounter{page}{#1}}
+                  
+\def\lastpage{\pageref{lastpage}}
+
+\def\jnltitlelogo#1{\gdef\@jnltitlelogo{#1}}
+
+\newdimen\dummylogowidth
+\dummylogowidth=87pt
+
+\jnltitlelogo{Journal Logo}
+
+\def\TopRule{\rule{\dummylogowidth}{1.85pt}\\[-9.6pt]
+             \rule{\dummylogowidth}{1pt}}
+
+\def\BottomRule{\rule{\dummylogowidth}{1pt}\\[-9pt]        
+                \rule{\dummylogowidth}{1.85pt}}  
+
+
+\def\jnltitlebox{\parbox[c][42pt]{84.37pt}%%
+                {\fontsize{18pt}{20pt}\sffamily\selectfont
+                \centering\@jnltitlelogo}}
+
+%\def\dummyjnllogo{%
+%      \parbox[c][61pt][c]{\dummylogowidth}%
+%      {\TopRule%
+%       \vfill%
+%        \jnltitlebox%
+%       \vfill%
+%       \BottomRule%
+%}}
+
+\def\dummyjnllogo{%
+      \parbox[c][61pt][t]{\dummylogowidth}%
+{\hspace*{25.5pt}\includegraphics[]{MFGLET-CRC}}
+}
+
+\def\elslogo{\includegraphics{elsevier-logo-\jtype p}}
+\def\sdlogo{\vbox{{\fontsize{9pt}{11pt}\sffamily\selectfont{Available online at www.sciencedirect.com\par}}\vspace*{3.3mm}
+ {\fontsize{16pt}{18pt}\sffamily\selectfont{Manufacturing Letters\par}%
+}}}
+%%\includegraphics{SDlogo-\jtype p}}}
+\def\jnllogo{\IfFileExists{\@jid logo}%
+   {\includegraphics{\@jid logo}}%
+   {\dummyjnllogo}%
+   }
+
+\def\elsarticle@titlefont{\fontsize{17pt}{20.4}\selectfont}
+\def\elsarticle@authorfont{\fontsize{13pt}{15.6}\selectfont}
+\def\elsarticle@absfont{\fontsize{9pt}{10.8}\selectfont}
+\def\elsarticle@keyfont{\fontsize{8pt}{10}\selectfont}
+
+\def\runauth#1{\gdef\@runauth{#1}}
+\runauth{Author}
+
+\let\@dochead\@gobble
+\def\dochead#1{\gdef\@dochead{\centering{\large#1}}}
+
+\def\issn#1{\gdef\@issn{#1}}\issn{2213-8463}
+
+\def\ps@pprintTitle{%
+\vspace*{1.6mm}
+    \def\@evenhead{%% Even head
+      \setbox1=\hbox{\elslogo}%
+      \setbox2=\hbox{\sdlogo}%
+      \setbox3=\hbox{\jnllogo}%
+%      \@tempdima=\textwidth\relax%
+%      \advance \@tempdima - \wd1%
+%      \advance \@tempdima - \wd3%
+%      \advance \@tempdima - 72pt%
+%      \showthe\wd1
+%      \showthe\wd2
+      \vspace*{2pc}
+      \parbox[t]{\wd1}{\hspace*{-2.6pt}\raisebox{3pt}{\elslogo}}
+       \hfil\parbox[t]{19pc}{\centering%
+       \raisebox{27.6pt}{\sdlogo}\\[-15pt]
+%%     \raisebox{33.6pt}{\sdlogo}\\[-15pt]
+       \mbox{\footnotesize\@journalname~00~(2026)%
+         ~000--000}}\hfil%
+        \raisebox{24.8pt}{\parbox[c]{\wd3}{\jnllogo\\[2pt]
+        \ifelsarticle@nsmodel%
+         \hspace*{-2pc}{\footnotesize \@ }%
+%%         \hspace*{-2pc}{\footnotesize {www.elsevier.com/locate/procedia}}%
+        \fi
+    }}}
+      \let\@oddhead\@evenhead%
+      \def\@oddfoot{\smash{\lower-19.3pt\vbox to 0pt{\fontsize{8}{10}\selectfont\hsize\textwidth{\@issn~\@CopyrightLineBottom.\endgraf\hfill}}}}
+      \def\@evenfoot{}
+}        
+
+\def\Date#1{\gdef\@Date{#1}}\Date{}
+
+\long\def\MaketitleBox{%
+  \resetTitleCounters
+  \def\baselinestretch{1}%
+  \begin{center}%
+  \ifx\@dochead\@empty\relax%
+     \vspace*{3pc}%
+  \else%
+     \vspace*{8pc}%
+%%   \vspace*{5pc}%
+   \@dochead%
+     \par%
+     \vspace*{.55pc}%
+      \vspace*{-2.3pt}
+   \fi%
+   \def\baselinestretch{1}%
+    {\strut\elsarticle@titlefont\@title\strut\par}\vskip6.8pt
+%    \normalsize\elsauthors\par\vskip10pt
+    {\elsarticle@authorfont\elsauthors}\par\vskip6pt
+    {\footnotesize\itshape\elsaddress\par}
+    \ifx\@Date\@empty\else\vskip-2pt\footnotesize \@Date\fi\vskip20.5pt
+    \hrule\vskip12pt
+    \ifvoid\absbox\else\unvbox\absbox\par\vskip10pt\fi
+    \ifvoid\keybox\else\unvbox\keybox\par\vskip10pt\fi
+    \hrule\vskip12pt
+    \end{center}%
+   \ifcase\jtype\or
+    \vspace*{-20pt}%
+   \or 
+   \or 
+    \vspace*{-20pt}%
+   \fi 
+}
+
+\def\ps@headings{%
+    \def\@oddhead{{\itshape\fontsize{8}{8}\selectfont%
+         \hfil\@runauth~/~\@journalname~00~(2026)~%
+         000--000\hfil}{\fontsize{8}{8}\selectfont\thepage}}
+    \def\@evenhead{{\fontsize{8}{8}\selectfont\thepage}{\hfil{\itshape\fontsize{8}{8}\selectfont%
+         \@runauth~/~\@journalname~00~(2026)~%
+         000--000}}\hfil}%
+    \let\@evenfoot\@empty%
+	\let\@oddfoot\@empty
+    %\let\@evenfoot\@oddfoot
+	}
+
+\pagestyle{headings}
+
+
+\def\footnoterule{\kern-3\p@%
+  \hrule width 3pc height .25pt
+  \kern3\p@}
+
+\newif\if@copyrightline\@copyrightlinefalse
+\let\@copyrightyear\@empty
+\def\copyrightyear#1{\gdef\@copyrightyear{#1}}
+\let\@copyrightowner\@empty
+\def\copyrightowner#1{\gdef\@copyrightowner{#1}}
+
+\def\CopyrightLine{\@ifnextchar[{\@CopyrightLine}{\@CopyrightLine[]}}
+\def\@CopyrightLine[#1]#2#3{\@copyrightlinetrue%
+                       \gdef\@copyrightprefix{#1}%
+                       \gdef\@copyrightyear{#2}%
+                       \gdef\@copyrighttext{#3}% 
+                       \gdef\@CopyrightLine{\par\vskip1pc%
+                       \noindent\ifx\@copyrightprefix\@empty\relax%
+                       \else\@copyrightprefix~\fi%
+                       \textcopyright~\@copyrightyear~%
+                       \@copyrighttext~}
+               \gdef\@CopyrightLineBottom{%
+               \noindent\ifx\@copyrightprefix\@empty\relax%
+                       \else\@copyrightprefix~\fi%
+                       \textcopyright~\@copyrightyear~%
+                       \@copyrighttext}}
+%% Provide the copyright line to appear in the abstract
+%% Usage:
+%   \CopyrightLine[<text-before-year>]{<year>}{<restt-of-the-copyright-text>}
+%   \CopyrightLine[Crown copyright]{2011}{Published by Elsevier Ltd.}
+%   \CopyrightLine{2011}{Elsevier Ltd. All rights reserved}
+\CopyrightLine{2026}{The Authors. Published by Elsevier Ltd. \\This is an open access article under the CC BY-NC-ND license\newline
+ (\href{http://creativecommons.org/licenses/by-nc-nd/4.0/}{http://creativecommons.org/licenses/by-nc-nd/4.0/})\newline
+Peer-review under responsibility of the scientific committee of the NAMRI/SME}%
+
+
+\renewenvironment{abstract}{\global\setbox\absbox=\vbox\bgroup
+  \hsize=\textwidth%
+\vskip-1.5pt\parindent9pt
+  \noindent\unskip{\fontsize{9}{11}\selectfont\bfseries Abstract\par}\vspace*{6.8pt}%
+  \elsarticle@absfont\par\unskip\noindent\ignorespaces}
+ {\if@copyrightline\@CopyrightLine\unskip.\fi\egroup}
+
+\def\keyword{%
+\vskip0.5pt
+  \def\sep{\unskip; }%
+ \def\MSC{\@ifnextchar[{\@MSC}{\@MSC[2000]}}
+  \def\@MSC[##1]{\par\leavevmode\hbox {\it ##1~MSC:\space}}%
+  \def\PACS{\par\leavevmode\hbox {\it PACS:\space}}%
+  \def\JEL{\par\leavevmode\hbox {\it JEL:\space}}%
+  \global\setbox\keybox=\vbox\bgroup\hsize=\textwidth
+  \normalsize\normalfont\def\baselinestretch{1}
+  \parskip\z@
+  \elsarticle@keyfont\noindent{\fontsize{9}{11}\selectfont\itshape Keywords: }
+  \raggedright                         % Keywords are not justified.
+  \ignorespaces}
+\def\endkeyword{\par \egroup}
+
+\ifelsarticle@nsmodel
+\def\figurename{Fig.}
+\def\FigName{figure}
+\long\def\@makecaption#1#2{%
+\vspace*{-3.7pt}
+  \vskip\abovecaptionskip\footnotesize
+  \sbox\@tempboxa{#1. #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1. #2\par
+  \else
+    \global \@minipagefalse
+    \ifx\FigName\@captype%
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+    \else
+    \hb@xt@\hsize{\box\@tempboxa}%
+    \fi
+  \fi
+  \vskip\belowcaptionskip}
+\else
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \footnotesize
+  \sbox\@tempboxa{#1. #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1. #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\fi
+
+\@namedef{tabular*}#1{\footnotesize%
+ \setlength\dimen@{#1}%
+   \edef\@halignto{to\the\dimen@}\@tabular}
+
+\setlength\parindent{12pt}
+\def\toprule{\\[-6.5pt]\Hline\\[-6.45pt]}
+\def\colrule{\\[-6.5pt]\Hline\\[-6.55pt]}
+\def\botrule{\\[-6.6pt]\Hline\\[-5.2pt]}
+%\def\crule#1{\\[-9pt]\cline{#1}\\[-6.5pt]}
+\def\Hline{%
+  \noalign{\ifnum0=`}\fi\hrule \@height .43pt \futurelet%\@height \arrayrulewidth
+   \@tempa\@xhline}
+
+\def\Itemize{\@ifnextchar[{\@IItemize}{\@IItemize[]}}
+
+\def\@IItemize[#1]{\def\next{#1}%
+  \ifnum \@itemdepth >\thr@@\@toodeep\else
+    \setlength{\itemsep}{0pt}
+    \setlength{\parsep}{0pt}
+   \advance\@itemdepth\@ne
+  \ifx\next\@empty\else\expandafter\def\csname
+   labelitem\romannumeral\the\@itemdepth\endcsname{#1}\fi%
+  \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \expandafter\list\csname\@itemitem\endcsname
+  {%
+  \topsep\csname abovelistskip\romannumeral\the\@itemdepth\endcsname%\fi
+  \def\makelabel##1{\hss\lower-.7pt\llap{##1}}}%
+ \fi\itemsep0pt\parsep0pt\parskip0pt}
+
+\def\enditemize{%
+\@topsepadd\csname belowlistskip\romannumeral\the\@itemdepth\endcsname%\fi
+\endlist}
+
+\def\endItemize{%
+\@topsepadd\csname belowlistskip\romannumeral\the\@itemdepth\endcsname%\fi
+\endlist}
+
+
+\newdimen\tempdimen
+\newdimen\bibindent
+\setlength\bibindent{.5em}
+\def\bibliofont{\fontsize{8}{10}\selectfont}
+\renewenvironment{thebibliography}[1]
+     {\section*{\refname}%
+     \bibliofont
+      \@mkboth{\MakeUppercase\refname}{\MakeUppercase\refname}%
+      \list{}%
+           {%\settowidth\labelwidth{}%
+          %% \leftmargin12pt
+          %% \itemindent-12pt
+          \leftmargin14pt
+          \itemindent0pt
+            \parskip0pt
+            \itemsep0pt
+            \@openbib@code
+          %% \setbox\tempbox\hbox{[\@tempa]}
+          %%   \def\@biblabel##1{\hbox to \tempdimen{\hfill[##1]}}%
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+%          \leftmargin12pt
+%          \itemindent-1pt
+           \parskip0pt
+           \itemsep0pt
+      \sloppy
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+\renewcommand\newblock{\hskip .11em\@plus.33em\@minus.07em}
+\let\@openbib@code\@empty
+
+
+
+
+
+\usepackage{fleqn}
+\mathindent24pt
+\setlength\topmargin{-10.8mm}%  
+\setlength\parindent{12pt}
+\parskip0pt
+\arraycolsep1.5pt
+
+\setcounter{topnumber}{5}
+\def\topfraction{0.99}
+\def\textfraction{0.05}
+\def\floatpagefraction{0.9}
+\setcounter{bottomnumber}{5}
+\def\bottomfraction{0.99}
+\setcounter{totalnumber}{10}
+\def\dbltopfraction{0.99}
+\def\dblfloatpagefraction{0.99}
+\setcounter{dbltopnumber}{5}
+\widowpenalty10000\clubpenalty=10000
+
+
+%\def\@xfootnote[#1]{%
+%   \begingroup%
+%%     \csname c@\@mpfn\endcsname #1\relax
+%%$^{#1}$\refstepcounter{footnote}%
+%    \unrestored@protected@xdef\@thefnmark{\thempfn}%
+%   \endgroup%
+%%   \@footnotemark
+%\@footnotetext}
+%%
+%
+%\long\def\footnote[#1]#2{%
+%\insert\footins{%
+%    \setbox\tempbox\hbox{#1}%
+%    \reset@font\footnotesize%
+%    \interlinepenalty\interfootnotelinepenalty
+%    \splittopskip\footnotesep%
+%    \splitmaxdepth \dp\strutbox \floatingpenalty \@MM%
+%    \hsize\columnwidth \@parboxrestore%
+%    \noindent\hbox to 12pt{\hfill\llap{$^{\rm{#1}}$}\hskip3pt}%
+%        \color@begingroup%
+%        {%
+%        \rule\z@\footnotesep\ignorespaces#2\@finalstrut\strutbox}%
+%    \color@endgroup}}
+
+
+\long\def\@footnotetext#1{\insert\footins{%
+    \reset@font\footnotesize
+    \interlinepenalty\interfootnotelinepenalty
+    \splittopskip\footnotesep
+    \splitmaxdepth \dp\strutbox \floatingpenalty \@MM
+    \hsize\columnwidth \@parboxrestore
+    \protected@edef\@currentlabel{%
+       \csname p@footnote\endcsname\@thefnmark
+    }%
+    \leavevmode\hbox to 12pt{\hfill\@textsuperscript{\normalfont\@thefnmark\hskip3pt}}
+    \color@begingroup
+      %\@makefntext
+      {%
+      %\let\@makefnmark\@FNmakefnmark
+        \rule\z@\footnotesep\ignorespaces\hspace*{-2pt}#1\@finalstrut\strutbox}%
+    \color@endgroup}}%
+
+\def\footnote{\@ifnextchar[\@xfootnote{\stepcounter\@mpfn
+     \protected@xdef\@thefnmark{\thempfn}%
+     \@footnotemark\@footnotetext}}
+
+\def\@footnotemark{%
+  \leavevmode
+  \ifhmode\edef\@x@sf{\the\spacefactor}\nobreak\fi
+  \@makefnmark
+  \ifhmode\spacefactor\@x@sf\fi
+  \relax}
+
+\parskip0pt
+\arraycolsep1.5pt
+\setlength{\parskip}{0pt}
+\sloppy
+\frenchspacing
+\flushbottom
+\vbadness\hbadness
+
+\makeatother
+
+%% Change log
+
+%% 27 Feb 2010:  Fontsize of dochead changed to \large from \Large
+%%               as per Martin Ruck's mail on 26 Feb 2010.
+%%
+%%--------
+%%
+%% 7 May 2011:   As pe Martin Ruck's request on May 5, to make the
+%%               output same as that of Word template, following changes
+%%               are made:
+%
+%%               1. New option `procedia' defined. If this option is
+%%                  used along with the 5p option, the output will be
+%%                  same as that of the Word template.
+%
+%%               2. \CopyrightLine[<text-before-year>]{<year>}{<restt-of-the-copyright-text>}
+%%                  defined.
+%%                  eg: \CopyrightLine[Crown copyright]{2011}{Published by Elsevier Ltd.}
+%%                      \CopyrightLine{2011}{Elsevier Ltd. All rights reserved}
+%
+%%               3. Fontsize of the following parts updated:
+%%                  Title, Author, Abstract, Keywords
+%
+%%               4. Header and footer corrected. Earlier for both the
+%%                  odd and even pages, the header was same. But now
+%%                  this is changed.
+%
+%%               5. `Figure' changed to `Fig.' in caption.
+%
+%%               6. Textwidth changed to 428.pt for the option `nsmodel'.
+%
+%%               7. EPS version of logos created so that authors can
+%%                  can use latex too in addition to pdflatex.
+%
+%% 2 June 2011:  1. A small typo corrected. (Proceedia changed to
+%%                  Procedia).
+%
+%%               2. The journal url will appear only if the option
+%%                  `procedia' is given.
