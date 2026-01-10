@@ -20,7 +20,7 @@ If you need a version that works today, use the **`v1` branch** (the previous im
 - **Math capture**
   - **PDFLaTeX**: captures display math environments as `Formula` (e.g. `equation`, `align`).
   - **LuaLaTeX extension** (`lpsb-luamath`): captures *all* math including `$...$` and can emit **MathML** via `luamml`.
-  - **LaTeXML stage (experimental)**: can emit MathML without LuaTeX; alignment is best-effort and positions remain from PDFLaTeX (gold).
+  - **LaTeXML stage (default)**: emits MathML without LuaTeX; alignment is best-effort and positions remain from PDFLaTeX (gold).
 - **Robust logs**: `solver.py` includes fault-tolerant parsing for “dirty” JSON emitted by TeX.
 - **Batchable via Docker**: scripts run against arXiv source tarballs, producing reproducible output directories.
 
@@ -99,7 +99,6 @@ Output: `main.lpsb.json` (Structure only)
 
 - `LPSB_STAGE_B_ENGINE=latexml` (default): LaTeXML MathML/table extraction (no coordinates)
 - `LPSB_STAGE_B_ENGINE=lua`: LuaLaTeX MathML/table passes
-- `LPSB_STAGE_B_ENGINE=latexml`: LaTeXML MathML/table extraction (no coordinates)
 - `LPSB_STAGE_B_ENGINE=none`: disable Stage B
 
 For `LPSB_STAGE_B_ENGINE=latexml`, the compiler can persist LaTeXML caches (notably expl3) across runs:
@@ -135,12 +134,36 @@ If you want TR/TD from a LuaLaTeX pass (similar to the MathML pipeline), see:
 Put `*.tar.gz` into `data/download/`, then run:
 
 ```bash
-# Recommended: one-shot gold pipeline
+# Recommended: Python batch compiler (with Docker container reuse)
+python3 script/lpsb_compiler.py --batch data/download --output compile_results --workers 8
+```
+
+Or use the shell script:
+
+```bash
 # - Stage A (gold): pdflatex -> PDF + *.lpsb.json
 # - Stage B (enrich): lualatex -> *.lpsb-math.json (MathML) + *.lpsb-table.json
 # - Merge: *.lpsb.merged.json
 bash script/batch_compile_all.sh
 ```
+
+#### Docker Container Reuse (Performance)
+
+The Python compiler (`lpsb_compiler.py`) supports Docker container reuse to eliminate container startup overhead (~0.5-1s per command):
+
+```bash
+# Container reuse is ENABLED by default
+python3 script/lpsb_compiler.py --batch data/download -o compile_results --workers 8
+
+# Disable container reuse if needed
+python3 script/lpsb_compiler.py --batch data/download -o compile_results --no-reuse-containers
+```
+
+**Features:**
+- Pre-scans papers to detect required TeX Live versions
+- Starts one container per TeX Live version (e.g., TL2023, TL2025)
+- Uses `docker exec` instead of `docker run` for subsequent commands
+- Automatically cleans up containers after batch completes
 
 Outputs:
 
@@ -311,6 +334,13 @@ The LuaLaTeX enrichment pass (Stage B) now includes several compatibility fixes 
 - **Reuse (on-demand)**: When compiling subsequent papers, the compiler copies **only the specific missing files** into the build dir (based on `*.log` “File ... not found”), rather than bulk-copying a stub bundle.
 - **Safety**: Core/fragile packages (notably `biblatex*`, `blx-*`, `expl3/xparse`, LaTeX kernel-ish files) are never injected from stubs; they must come from the selected TeX Live image.
 
+#### LaTeXML expl3 Performance (`docker/install_latexml_github.sh`)
+
+- **Background**: LaTeXML's processing of `expl3` (L3 kernel) used to take 20+ minutes due to complex Unicode/codepoint initialization.
+- **Solution**: Docker images now run `make formats` during build to precompile the L3 kernel.
+- **Impact**: Packages using expl3 (e.g., `siunitx`, `tcolorbox`) now load in ~3 seconds instead of 20+ minutes.
+- **Reference**: [LaTeXML issue #2064](https://github.com/brucemiller/LaTeXML/issues/2064)
+
 ---
 
 ## Repo Layout / Tools
@@ -324,11 +354,12 @@ The LuaLaTeX enrichment pass (Stage B) now includes several compatibility fixes 
   - `script/merge_lpsb.py`: merge structure + math/table by IDs
   - `hybrid_merge.sh`: batch merge `test_output/` + `test_output_lua/`
 - **Scripts**
-  - `script/test_batch.sh`: PDFLaTeX batch pass
+  - `script/lpsb_compiler.py`: **main batch compiler** (Python, Docker container reuse)
+  - `script/test_batch.sh`: PDFLaTeX batch pass (legacy shell script)
   - `script/test_lua_batch.sh`: LuaLaTeX batch pass (uses `lpsb-texlive:latest` if present)
   - `script/test_lua_math.sh`: small smoke test
 - **Docker**
-  - `docker/Dockerfile.latest`: recommended image (`lpsb-texlive:latest`) with `luamml`
+  - `docker/Dockerfile.latest`: recommended image (`lpsb-texlive:latest`) with `luamml` and LaTeXML
 
 ---
 

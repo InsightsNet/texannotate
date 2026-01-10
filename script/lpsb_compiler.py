@@ -190,9 +190,119 @@ class DockerContainerPool:
 # Register cleanup handler
 atexit.register(DockerContainerPool.cleanup_all)
 
+
+class MultiVersionContainerPool:
+    """Manages container pools for multiple TeX Live versions.
+    
+    Pre-scans papers to detect required TeX Live versions, then starts
+    one container per version. Each paper is assigned to the matching container.
+    """
+    
+    def __init__(self, shared_volume: Path, default_image: str = LPSB_IMAGE):
+        self.shared_volume = Path(shared_volume).resolve()
+        self.default_image = default_image
+        self.pools = {}  # version -> DockerContainerPool
+        self.version_containers = {}  # version -> container_name
+        self._started = False
+    
+    def start_for_versions(self, versions: set) -> None:
+        """Start one container per TeX Live version."""
+        if self._started:
+            return
+        
+        for ver in sorted(versions):
+            image = _select_docker_image_from_year(ver)
+            pool = DockerContainerPool(image, self.shared_volume, pool_size=1)
+            try:
+                pool.start()
+                self.pools[ver] = pool
+                self.version_containers[ver] = pool.containers[0]
+            except Exception as e:
+                # Clean up on failure
+                self.stop()
+                raise RuntimeError(f"Failed to start container for TL{ver}: {e}")
+        
+        self._started = True
+    
+    def get_container_for_version(self, version: str) -> str:
+        """Get container name for a specific TeX Live version."""
+        if version in self.version_containers:
+            return self.version_containers[version]
+        # Fallback to default (latest)
+        if ARXIV_TEXLIVE_DEFAULT in self.version_containers:
+            return self.version_containers[ARXIV_TEXLIVE_DEFAULT]
+        # Return any available container
+        if self.version_containers:
+            return next(iter(self.version_containers.values()))
+        raise RuntimeError("No containers started")
+    
+    def stop(self) -> None:
+        """Stop all container pools."""
+        for pool in self.pools.values():
+            try:
+                pool.stop()
+            except Exception:
+                pass
+        self.pools.clear()
+        self.version_containers.clear()
+        self._started = False
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, *args):
+        self.stop()
+
+
+def prescan_paper_version(src_path: Path, temp_dir: Path = None) -> str:
+    """Quickly detect TeX Live version requirement for a paper.
+    
+    This is a lightweight version of _select_docker_image() that works
+    on the source before extraction into work_dir.
+    
+    Returns:
+        TeX Live year (e.g., "2023") or ARXIV_TEXLIVE_DEFAULT
+    """
+    src_path = Path(src_path)
+    paper_id = _paper_id_from_src(src_path)
+    
+    tl_min = os.environ.get("LPSB_TEXLIVE_MIN", TEXLIVE_MIN_DEFAULT).strip()
+    if not re.fullmatch(r"\d{4}", tl_min):
+        tl_min = TEXLIVE_MIN_DEFAULT
+    
+    def clamp(y: str) -> str:
+        if int(y) < int(tl_min):
+            return tl_min
+        return y
+    
+    # For directories, check 00README.json and .bbl files directly
+    if src_path.is_dir():
+        tl = _read_00readme_texlive_version(src_path)
+        if tl and re.fullmatch(r"\d{4}", tl):
+            return clamp(tl)
+        
+        # Check for .bbl files
+        for bbl in src_path.glob("*.bbl"):
+            fmt = _detect_biblatex_bbl_format_version(bbl)
+            if fmt:
+                year = _map_bbl_format_to_texlive_year(fmt)
+                if year:
+                    return clamp(year)
+            break  # Only check first .bbl
+    
+    # For archives, we can't easily peek inside without extraction
+    # Fall back to arXiv ID-based detection
+    year = _texlive_year_from_arxiv_id(paper_id)
+    if year:
+        return clamp(year)
+    
+    return clamp(ARXIV_TEXLIVE_DEFAULT)
+
+
 # -----------------------------------------------------------------------------
 # Log helpers
 # -----------------------------------------------------------------------------
+
 
 
 def _scan_log_for_missing_tex_inputs(log_path: Path) -> set:
@@ -1547,24 +1657,22 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                     # Container reuse mode: use docker exec
                     if container_name is not None:
                         # Compute the working directory relative to the shared /workdir mount
-                        # In reuse mode, stage_dir should be under out_dir/build/paper_id
-                        # which maps to /workdir/build/paper_id inside the container
+                        # In reuse mode, out_dir is mounted as /workdir.
+                        # stage_dir is typically out_dir/build/paper_id/_pdflatex
+                        # which maps to /workdir/build/paper_id/_pdflatex inside the container
                         try:
                             rel_stage = stage_dir.relative_to(out_dir)
                             exec_wd = f"/workdir/{rel_stage}"
-                            if container_wd != "/workdir":
-                                # Append any sub-path from container_wd
-                                subpath = container_wd.replace("/workdir", "", 1).lstrip("/")
-                                if subpath:
-                                    exec_wd = f"{exec_wd}/{subpath}"
                         except ValueError:
-                            # stage_dir not under out_dir, use container_wd as-is
-                            exec_wd = container_wd
+                            # stage_dir not under out_dir - this shouldn't happen in reuse mode
+                            exec_wd = "/workdir"
                         
+
                         exec_cmd = ["docker", "exec", "-w", exec_wd, container_name] + cmd
                         r = subprocess.run(exec_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
                         log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
                         return r.returncode
+
                     
                     # Fresh container mode: use docker run
                     tmp_container_name = f"lpsb_{paper_id}_{container_counter[0]}_{os.getpid()}"
@@ -2048,9 +2156,12 @@ def main():
     parser.add_argument('--no-ramdisk', action='store_true', help="Disable RAM disk workspace (default: enabled if /dev/shm exists)")
     parser.add_argument('--workers', type=int, default=16, help="Number of parallel workers")
     parser.add_argument('--limit', type=int, default=0, help="Limit number of items processed in batch mode (0 = no limit)")
-    parser.add_argument('--reuse-containers', action='store_true',
-                        help="Reuse Docker containers across papers (faster, requires --no-ramdisk)")
+    parser.add_argument('--reuse-containers', action='store_true', default=True,
+                        help="Reuse Docker containers across papers (default: enabled)")
+    parser.add_argument('--no-reuse-containers', action='store_false', dest='reuse_containers',
+                        help="Disable container reuse (start new container per command)")
     
+
     args = parser.parse_args()
     
     # Determine LPSB root (parent of script dir)
@@ -2092,8 +2203,8 @@ def main():
             print("Using RAM disk for workspace (default)")
         
         # Container reuse mode
-        container_pool = None
-        container_names = []
+        multi_version_pool = None
+        paper_versions = {}  # paper_path -> version
         use_container_reuse = args.reuse_containers
         
         if use_container_reuse:
@@ -2104,28 +2215,37 @@ def main():
             out_path = Path(args.output).resolve()
             out_path.mkdir(parents=True, exist_ok=True)
             
-            # Start container pool (one container per worker)
-            print(f"Starting {args.workers} Docker containers for reuse...")
-            container_pool = DockerContainerPool(
-                image=LPSB_IMAGE,
-                shared_volume=out_path,
-                pool_size=args.workers
-            )
+            # Pre-scan papers to detect TeX Live versions
+            print("Pre-scanning papers to detect TeX Live versions...")
+            versions_needed = set()
+            for p in papers:
+                ver = prescan_paper_version(p)
+                paper_versions[str(p)] = ver
+                versions_needed.add(ver)
+            
+            print(f"Detected versions: {', '.join(f'TL{v}' for v in sorted(versions_needed))}")
+            
+            # Start multi-version container pool
+            multi_version_pool = MultiVersionContainerPool(shared_volume=out_path)
             try:
-                container_pool.start()
-                container_names = container_pool.containers[:]
-                print(f"Started containers: {', '.join(container_names)}")
+                multi_version_pool.start_for_versions(versions_needed)
+                print(f"Started containers: {list(multi_version_pool.version_containers.keys())}")
             except Exception as e:
                 print(f"Failed to start container pool: {e}")
                 print("Falling back to non-reuse mode")
                 use_container_reuse = False
-                container_names = []
+                multi_version_pool = None
         
         tasks = []
         for i, p in enumerate(papers):
-            # Assign container to task based on index (round-robin across workers)
-            cname = container_names[i % len(container_names)] if container_names else None
+            # Assign container based on detected version
+            if use_container_reuse and multi_version_pool:
+                ver = paper_versions.get(str(p), ARXIV_TEXLIVE_DEFAULT)
+                cname = multi_version_pool.get_container_for_version(ver)
+            else:
+                cname = None
             tasks.append((p, args.output, lpsb_root, not args.no_ramdisk, False, cname))
+
             
         results = {'SUCCESS': 0, 'FAIL': 0, 'TIMEOUT': 0, 'ERROR': 0, 'NO_MAIN': 0}
         
@@ -2166,11 +2286,12 @@ def main():
         print(results)
         
         # Clean up container pool
-        if container_pool is not None:
+        if multi_version_pool is not None:
             print("Stopping Docker containers...")
-            container_pool.stop()
+            multi_version_pool.stop()
             print("Containers stopped.")
         
+
 
     else:
         parser.print_help()

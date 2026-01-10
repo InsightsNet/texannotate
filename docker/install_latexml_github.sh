@@ -53,7 +53,11 @@ cd /tmp/latexml-src
 cpanm --notest --installdeps .
 perl Makefile.PL
 make -j"$(nproc)"
+# Precompile L3 kernel (expl3) for faster runtime performance.
+# This takes ~10 minutes but significantly speeds up packages using expl3.
+make formats
 make install
+
 
 cd /
 rm -rf /tmp/latexml-src
