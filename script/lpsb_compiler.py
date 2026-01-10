@@ -50,7 +50,14 @@ class DockerContainerPool:
     _instances = {}  # class-level registry for cleanup
     _lock = threading.Lock()
     
-    def __init__(self, image: str, shared_volume: Path, pool_size: int = 1):
+    def __init__(
+        self,
+        image: str,
+        shared_volume: Path,
+        pool_size: int = 1,
+        extra_mounts: list = None,
+        extra_env: dict = None,
+    ):
         """
         Args:
             image: Docker image name
@@ -60,6 +67,8 @@ class DockerContainerPool:
         self.image = image
         self.shared_volume = Path(shared_volume).resolve()
         self.pool_size = pool_size
+        self.extra_mounts = list(extra_mounts) if extra_mounts else []
+        self.extra_env = dict(extra_env) if extra_env else {}
         self.containers = []  # List of container names
         self._started = False
     
@@ -76,16 +85,19 @@ class DockerContainerPool:
                     ["docker", "rm", "-f", name],
                     capture_output=True, check=False
                 )
-                # Start container with shared volume
+                # Start container with shared volume (+ optional extra mounts/env)
                 r = subprocess.run(
-                    [
-                        "docker", "run", "-d",
-                        "--name", name,
-                        "--net", "none",
-                        "-v", f"{self.shared_volume}:/workdir",
-                        self.image,
-                        "sleep", "infinity"
-                    ],
+                    (
+                        [
+                            "docker", "run", "-d",
+                            "--name", name,
+                            "--net", "none",
+                            "-v", f"{self.shared_volume}:/workdir",
+                        ]
+                        + sum([["-v", f"{hp}:{cp}"] for (hp, cp) in self.extra_mounts if hp and cp], [])
+                        + sum([["-e", f"{k}={v}"] for (k, v) in self.extra_env.items() if k and v is not None], [])
+                        + [self.image, "sleep", "infinity"]
+                    ),
                     capture_output=True, check=True, text=True
                 )
                 self.containers.append(name)
@@ -210,9 +222,38 @@ class MultiVersionContainerPool:
         if self._started:
             return
         
+        # LaTeXML cache mount: make it work under docker-exec reuse.
+        latexml_cache_flag = os.environ.get("LPSB_LATEXML_CACHE", "1").strip().lower()
+        cache_enabled = latexml_cache_flag not in ("", "0", "false", "no")
+        cache_base_env = os.environ.get("LPSB_LATEXML_CACHE_ROOT", "").strip()
+        script_dir = Path(__file__).parent.resolve()
+        repo_root = script_dir.parent
+        cache_base = Path(cache_base_env) if cache_base_env else (repo_root / "latexml_cache")
+
         for ver in sorted(versions):
             image = _select_docker_image_from_year(ver)
-            pool = DockerContainerPool(image, self.shared_volume, pool_size=1)
+            extra_mounts = []
+            extra_env = {}
+            if cache_enabled:
+                try:
+                    cache_dir = (cache_base / f"TL{ver}").resolve()
+                    (cache_dir / "home").mkdir(parents=True, exist_ok=True)
+                    (cache_dir / "xdg-cache").mkdir(parents=True, exist_ok=True)
+                    extra_mounts.append((str(cache_dir), "/lpsb_latexml_cache"))
+                    extra_env["HOME"] = "/lpsb_latexml_cache/home"
+                    extra_env["XDG_CACHE_HOME"] = "/lpsb_latexml_cache/xdg-cache"
+                except Exception:
+                    # If cache init fails, continue without cache for this container.
+                    extra_mounts = []
+                    extra_env = {}
+
+            pool = DockerContainerPool(
+                image,
+                self.shared_volume,
+                pool_size=1,
+                extra_mounts=extra_mounts,
+                extra_env=extra_env,
+            )
             try:
                 pool.start()
                 self.pools[ver] = pool
@@ -1668,7 +1709,14 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                             exec_wd = "/workdir"
                         
 
-                        exec_cmd = ["docker", "exec", "-w", exec_wd, container_name] + cmd
+                        exec_cmd = ["docker", "exec", "-w", exec_wd]
+                        # In exec mode we cannot add mounts; those must be configured when the
+                        # long-running container is started. We *can* pass env vars per exec.
+                        if extra_env:
+                            for k, v in extra_env.items():
+                                if k and v is not None:
+                                    exec_cmd += ["-e", f"{k}={v}"]
+                        exec_cmd += [container_name] + cmd
                         r = subprocess.run(exec_cmd, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
                         log.write(f"=== EXIT: {cmd[0]} rc={r.returncode} ===\n")
                         return r.returncode
@@ -2012,6 +2060,23 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                         math_json = out_math
                     if out_table.exists():
                         table_json = out_table
+                        
+                        # Enrich table JSON with cell bboxes from gold PDF
+                        enrich_table_script = lpsb_root / "script" / "enrich_table_bboxes.py"
+                        if enrich_table_script.exists() and pdf_file.exists():
+                            enriched_table = latexml_tex_dir / f"{main_base}.lpsb-table.enriched.json"
+                            cmd_enrich = [
+                                sys.executable,
+                                str(enrich_table_script),
+                                str(out_table),
+                                str(pdf_file),
+                                "-o", str(enriched_table),
+                            ]
+                            with open(log_file, "a") as log:
+                                log.write("\n=== Enrich Table Bboxes ===\n")
+                                subprocess.run(cmd_enrich, stdout=log, stderr=subprocess.STDOUT, check=False)
+                            if enriched_table.exists():
+                                table_json = enriched_table
                 else:
                     with open(log_file, "a") as log:
                         log.write("\nWarning: latexml_to_lpsb.py not found, skipping LaTeXML conversion\n")
@@ -2208,12 +2273,18 @@ def main():
         use_container_reuse = args.reuse_containers
         
         if use_container_reuse:
-            if not args.no_ramdisk:
-                print("Warning: --reuse-containers requires --no-ramdisk, enabling --no-ramdisk")
-                args.no_ramdisk = True
-            
             out_path = Path(args.output).resolve()
             out_path.mkdir(parents=True, exist_ok=True)
+            
+            # Determine shared volume - use RAMdisk if available and enabled
+            if not args.no_ramdisk and Path("/dev/shm").exists():
+                shared_vol = Path("/dev/shm/lpsb_workdir")
+                shared_vol.mkdir(parents=True, exist_ok=True)
+                print("Using RAM disk shared volume for container reuse: /dev/shm/lpsb_workdir")
+            else:
+                shared_vol = out_path
+                if not args.no_ramdisk:
+                    print("Warning: RAMdisk requested but /dev/shm not available, using output directory")
             
             # Pre-scan papers to detect TeX Live versions
             print("Pre-scanning papers to detect TeX Live versions...")
@@ -2226,7 +2297,7 @@ def main():
             print(f"Detected versions: {', '.join(f'TL{v}' for v in sorted(versions_needed))}")
             
             # Start multi-version container pool
-            multi_version_pool = MultiVersionContainerPool(shared_volume=out_path)
+            multi_version_pool = MultiVersionContainerPool(shared_volume=shared_vol)
             try:
                 multi_version_pool.start_for_versions(versions_needed)
                 print(f"Started containers: {list(multi_version_pool.version_containers.keys())}")

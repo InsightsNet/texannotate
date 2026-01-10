@@ -87,3 +87,4 @@ compile_test*
 script/cluster/
 archive/
 results*/
+output/

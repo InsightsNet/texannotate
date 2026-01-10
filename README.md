@@ -165,6 +165,12 @@ python3 script/lpsb_compiler.py --batch data/download -o compile_results --no-re
 - Uses `docker exec` instead of `docker run` for subsequent commands
 - Automatically cleans up containers after batch completes
 
+**LaTeXML cache in reuse mode:**
+- When `LPSB_LATEXML_CACHE=1` (default), the compiler mounts a persistent host cache directory into each reused container:
+  - Default cache root: `latexml_cache/TL<year>/`
+  - Override with `LPSB_LATEXML_CACHE_ROOT=/path/to/cache_root`
+- This makes LaTeXML's caches (notably expl3/L3) persist across runs even when using `docker exec`.
+
 Outputs:
 
 - `compile_results/<paper>/`: per-paper outputs (gold + enrich + logs)
