@@ -11,6 +11,7 @@
 % - adds foot line to first page identifying the conference
 % - adds preprint option for submission to e.g. arXiv
 % - conference acronym modified
+% - update foot line to display the track name
 %
 % Roman Garnett (garnett@wustl.edu) and the many authors of
 % nips15submit_e.sty, including MK and drstrip@sandia
@@ -18,12 +19,13 @@
 % last revision: April 2025
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{neurips_2025}[2025/04/02 NeurIPS 2025 submission/camera-ready style file]
+\ProvidesPackage{neurips_2025}[2025/05/01 NeurIPS 2025 submission/camera-ready style file]
 
 % declare final option, which creates camera-ready copy
 \newif\if@neuripsfinal\@neuripsfinalfalse
 \DeclareOption{final}{
   \@neuripsfinaltrue
+  \@anonymousfalse
 }
 
 % declare nonatbib option, which does not load natbib in case of
@@ -39,14 +41,52 @@
 \newif\if@preprint\@preprintfalse
 \DeclareOption{preprint}{
   \@preprinttrue
+  \@anonymousfalse
+}
+
+% determine the track of the paper in camera-ready mode
+\newif\if@main\@maintrue
+\DeclareOption{main}{
+  \@maintrue
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear).}
+}
+\newif\if@position\@positionfalse
+\DeclareOption{position}{
+  \@positiontrue
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Position Paper Track.}
+}
+\newif\if@dandb\@dandbfalse
+\DeclareOption{dandb}{
+  \@dandbtrue
+  \@anonymousfalse
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Track on Datasets and Benchmarks.}
+}
+\newif\if@creativeai\@creativeaifalse
+\DeclareOption{creativeai}{
+  \@creativeaitrue
+  \@anonymousfalse
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Creative AI Track.}
+}
+
+% For anonymous or non-anonymous
+\newif\if@anonymous\@anonymoustrue
+
+% For workshop papers
+\newcommand{\@workshoptitle}{}
+\newcommand{\workshoptitle}[1]{\renewcommand{\@workshoptitle}{#1}}
+
+\newif\if@workshop\@workshopfalse
+\DeclareOption{sglblindworkshop}{
+  \@workshoptrue
+  \@anonymousfalse
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Workshop: \@workshoptitle.}
+}
+\DeclareOption{dblblindworkshop}{
+  \@workshoptrue
+  \newcommand{\@trackname}{\@neuripsordinal\ Conference on Neural Information Processing Systems (NeurIPS \@neuripsyear) Workshop: \@workshoptitle.}
 }
 
 \ProcessOptions\relax
-
-% determine whether this is an anonymized submission
-\newif\if@submission\@submissiontrue
-\if@neuripsfinal\@submissionfalse\fi
-\if@preprint\@submissionfalse\fi
 
 % fonts
 \renewcommand{\rmdefault}{ptm}
@@ -270,7 +310,7 @@
     \centering
     {\LARGE\bf \@title\par}
     \@bottomtitlebar
-    \if@submission
+    \if@anonymous
       \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}
         Anonymous Author(s) \\
         Affiliation \\
@@ -327,19 +367,24 @@
 % handle tweaks for camera-ready copy vs. submission copy
 \if@preprint
   \newcommand{\@noticestring}{%
-    Preprint. Under review.%
+    Preprint.%
   }
 \else
   \if@neuripsfinal
-    \newcommand{\@noticestring}{%
-      \@neuripsordinal\/ Conference on Neural Information Processing Systems
-      (NeurIPS \@neuripsyear).%, \@neuripslocation.%
+    \newcommand{\@noticestring}{
+      \@trackname
     }
   \else
-    \newcommand{\@noticestring}{%
-      Submitted to \@neuripsordinal\/ Conference on Neural Information
-      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
-    }
+    \if@workshop
+      \newcommand{\@noticestring}{%
+        Submitted to NeurIPS \@neuripsyear\/ Workshop: \@workshoptitle. Do not distribute.%
+      }
+    \else
+      \newcommand{\@noticestring}{%
+        Submitted to \@neuripsordinal\/ Conference on Neural Information
+        Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+      }
+    \fi
 
     % hide the acknowledgements
     \NewEnviron{hide}{}

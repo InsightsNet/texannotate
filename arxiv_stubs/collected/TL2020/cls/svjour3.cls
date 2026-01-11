@@ -306,7 +306,7 @@ Springer class SVJour!}
 }\noindent\keywordname\enspace\ignorespaces#1\par}}
 %
 \def\subclassname{{\bfseries Mathematics Subject Classification
-(2020)}\enspace}
+(2000)}\enspace}
 \def\subclass#1{\par\addvspace\medskipamount{\rightskip=0pt plus1cm
 \def\and{\ifhmode\unskip\nobreak\fi\ $\cdot$
 }\noindent\subclassname\ignorespaces#1\par}}
@@ -533,8 +533,8 @@ later}
 \def\makeheadbox{{%
 \hbox to0pt{\vbox{\baselineskip=10dd\hrule\hbox
 to\hsize{\vrule\kern3pt\vbox{\kern3pt
-\hbox{\bfseries\@journalname\ manuscript No.}
-\hbox{(will be inserted by the editor)}
+\hbox{This is a post-peer-review, pre-copyedit version of an article published in Autonomous Robots.}
+\hbox{The final authenticated version is available online at: http://dx.doi.org/10.1007/s10514-017-9682-5}
 \kern3pt}\hfil\kern3pt\vrule}\hrule}%
 \hss}}}
 %

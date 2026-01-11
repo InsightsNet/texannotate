@@ -3944,8 +3944,8 @@ which is provided to fool Hyperref.}}
 \def\QEDopen{{\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.2pt}\fbox{\rule[0pt]{0pt}{1.3ex}\rule[0pt]{1.3ex}{0pt}}}}
 \def\QED{\QEDclosed} % default to closed
 
-% \def\proof{\noindent\hspace{2em}{\itshape Proof: }}
-% \def\endproof{\hspace*{\fill}~\QED\par\endtrivlist\unskip}
+\def\proof{\noindent\hspace{2em}{\itshape Proof: }}
+\def\endproof{\hspace*{\fill}~\QED\par\endtrivlist\unskip}
 %\itemindent is set to \z@ by list, so define new temporary variable
 \newdimen\@IEEEtmpitemindent
 \def\@begintheorem#1#2{\@IEEEtmpitemindent\itemindent\topsep 0pt\rmfamily\trivlist%

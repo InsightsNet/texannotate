@@ -1,4 +1,4 @@
-% SVMULT DOCUMENT CLASS -- version 5.5 (23-Nov-18)
+% SVMULT DOCUMENT CLASS -- version 5.4 (25-Jun-07)
 % Springer Verlag global LaTeX2e support for multi authored books
 %%
 %%
@@ -19,7 +19,7 @@
 %%   Right brace   \}     Tilde         \~}
 %%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{svmult}[2018/01/11 v5.5
+\ProvidesClass{svmult}[2007/06/25 v5.4
 ^^JSpringer Verlag global LaTeX document class for multi authored books]
 % Options
 % citations
@@ -322,9 +322,8 @@ passing it to article class \MessageBreak
 \newcommand{\mottostyle}{\itshape\unboldmath\raggedright}
 \newcommand{\secsize}{\large}
 \newcommand{\secstyle}{\bfseries\boldmath}
-%%\newcommand{\subsecsize}{\large}
-\newcommand{\subsecsize}{\fontsize{11}{13}\selectfont}
-\newcommand{\subsecstyle}{\bfseries\boldmath}
+\newcommand{\subsecsize}{\large}
+\newcommand{\subsecstyle}{\bfseries\itshape\boldmath}
 \newcommand{\subsubsecstyle}{\bfseries\boldmath}
 %
 \def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
@@ -707,15 +706,9 @@ passing it to article class \MessageBreak
 \newcommand\subruninhead{\@startsection{paragraph}{4}{\z@}%
                        {-6\p@}% \p@lus -4\p@ \@minus -4\p@}%
                        {-6\p@}%
-                       {\normalfont\normalsize\bfseries\itshape
+                       {\normalfont\normalsize\itshape
                         \rightskip=\z@ \@plus 8em\pretolerance=10000 }}
 
-\newcommand\subsubruninhead{\@startsection{paragraph}{4}{\z@}%
-                       {-6\p@}% \p@lus -4\p@ \@minus -4\p@}%
-                       {0.1\p@}%
-                       {\normalfont\normalsize\bfseries
-                        \rightskip=\z@ \@plus 8em\pretolerance=10000 }}
-                        
 % Appendix
 \renewcommand\appendix{\par}         %article appendix
 
@@ -758,7 +751,6 @@ passing it to article class \MessageBreak
   \else
     \def\@svsechd{#4{\hskip #1\relax #5}}%
   \fi
-      \addcontentsline{toc}{section}{#5}%
   \@xsect{#3}}
 %
 \def\@sect#1#2#3#4#5#6[#7]#8{%
@@ -1013,7 +1005,7 @@ passing it to article class \MessageBreak
 \newcommand{\utau}{\allmodesymb{\greeksym}{t}}
 % redefines the \vec accent to a bold character - if desired
 \def\fig@type{arrow}% temporarily abused
-\AtBeginDocument{\ifx\vec@style\fig@type\else
+\ifx\vec@style\fig@type\else
 \@ifundefined{vec@style}{%
  \def\vec#1{\ensuremath{\mathchoice
                      {\mbox{\boldmath$\displaystyle\mathbf{#1}$}}
@@ -1027,7 +1019,7 @@ passing it to article class \MessageBreak
                      {\mbox{\boldmath$\scriptstyle#1$}}
                      {\mbox{\boldmath$\scriptscriptstyle#1$}}}}%
 }
-\fi}
+\fi
 % tensor
 \def\tens#1{\relax\ifmmode\mathsf{#1}\else\textsf{#1}\fi}
 
@@ -1580,8 +1572,7 @@ to\z@{\kern0.55\wd0\vrule\@height0.45\ht0\hss}\box0}}}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \def\@thmcountersep{.}
-%\def\@thmcounterend{.}
-\def\@thmcounterend{}%%As per request email dated 27 Feb 2018%%
+\def\@thmcounterend{.}
 \newcommand\nocaption{\noexpand\@gobble}
 \newdimen\spthmsep \spthmsep=3pt
 
@@ -1678,7 +1669,7 @@ to\z@{\kern0.55\wd0\vrule\@height0.45\ht0\hss}\box0}}}}
 
 %definition of divers theorem environments
 \spnewtheorem*{claim}{Claim}{\itshape}{\rmfamily}
-%\spnewtheorem*{proof}{Proof}{\itshape}{\rmfamily}
+\spnewtheorem*{proof}{Proof}{\itshape}{\rmfamily}
 %
 \if@envcntsame % all environments like "Theorem" - using its counter
    \def\spn@wtheorem#1#2#3#4{\@spothm{#1}[theorem]{#2}{#3}{#4}}
@@ -2214,7 +2205,7 @@ to\z@{\kern0.55\wd0\vrule\@height0.45\ht0\hss}\box0}}}}
           \typeout{a shorter form with \string\titlerunning\space prior to
                    \string\maketitle}%
           \global\setbox\titrun=\hbox{\small\rm
-           }%
+          Title Suppressed Due to Excessive Length}%
        \fi
        \xdef\@title{\copy\titrun}%
     \fi
@@ -2373,100 +2364,6 @@ to\z@{\kern0.55\wd0\vrule\@height0.45\ht0\hss}\box0}}}}
 
 \if@runhead\ps@myheadings\else
 \ps@empty\fi
-
-%%%SOPHIE TEMPLATE BEGIN%%%
-
-\RequirePackage[x11names]{xcolor}
-
-\definecolor{trailer}{gray}{0.9}
-\definecolor{question}{gray}{0.8}
-\definecolor{important}{gray}{0.75}
-\definecolor{warning}{gray}{0.7}
-\definecolor{programcode}{gray}{0.65}
-\definecolor{tips}{gray}{0.6}
-\definecolor{overview}{gray}{0.55}
-\definecolor{backgroundinformation}{gray}{0.5}
-\definecolor{legaltext}{gray}{0.45}
-
-\newcommand\circledmark[2][white]{%
-  \ooalign{%
-    \hidewidth
-    \kern0.65ex\raisebox{-1.3ex}{\scalebox{3}{\textcolor{#1}{\textbullet}}}
-    \hidewidth\cr
-    #2\cr
-  }%
-}
-
-\def\formtmp#1#2{{\vskip12pt\noindent\fboxsep=0pt\colorbox{#1}{\vbox{\vskip3pt\hbox to \textwidth{\hskip3pt\vbox{\raggedright\noindent\textbf{#2\vphantom{Qy}}}\hfill}\vspace*{3pt}}}\par\vskip2pt%
-\noindent\kern0pt}}
-
-\newenvironment{trailer}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{trailer}{#1}}{\par\noindent\textcolor{trailer}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\renewenvironment{question}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{question}{\ \circledmark[white]{\textcolor{black}{\sf\bfseries?}}{\kern6pt}#1}}{\par\noindent\textcolor{question}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{important}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{important}{\ \circledmark{\textcolor{black}{$\ >$}}{\kern6pt}#1}}{\par\noindent\textcolor{important}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{warning}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{warning}{\ \circledmark[white]{\textcolor{black}{!}}{\kern6pt}#1}}{\par\noindent\textcolor{warning}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{programcode}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{programcode}{#1}}{\noindent\textcolor{programcode}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{tips}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{tips}{#1}}{\par\noindent\textcolor{tips}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{overview}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{overview}{#1}}{\par\noindent\textcolor{overview}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
- 
-\newenvironment{backgroundinformation}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{backgroundinformation}{#1}}{\par\noindent\textcolor{backgroundinformation}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{legaltext}[1]{\ignorespaces\def\stmtopen##1{##1}%
-\formtmp{legaltext}{#1}}{\par\noindent\textcolor{legaltext}{\rule{\columnwidth}{1pt}}\vskip2pt\par\addvspace{\baselineskip}}%
-
-\newenvironment{newshaded}{%
-  \def\FrameCommand{\fboxsep=0pt \colorbox{shadecolor}}%
-  \MakeFramed
-{\FrameRestore}}%
-{\endMakeFramed}
-\AtBeginDocument{\renewenvironment{svgraybox}%
-       {\fboxsep=12pt\relax
-        \begin{newshaded}\vspace*{10pt}%
-        \list{}{\leftmargin=12pt\rightmargin=12pt\topsep=\z@\relax}%
-        \expandafter\item\parindent=\svparindent
-        \hskip-\listparindent}%
-       {\vspace*{10pt}\endlist\end{newshaded}}}%
-
-\def\boxtext#1{\vskip\baselineskip\moveleft26pt\vbox{\fboxsep3pt\fbox{#1}}}%
-
-\newcommand\guisection{\@startsection{section}{1}{\z@}%
-                       {-18\p@}% \p@lus -4\p@ \@minus -4\p@}%
-                       {4\p@}% \p@lus 4\p@ \@minus 4\p@}%
-                       {\normalfont\secsize\secstyle
-                        \rightskip=\z@ \@plus 8em\pretolerance=10000 }}
-\newcommand\guisubsection{\@startsection{subsection}{2}{\z@}%
-                       {-18\p@}% \p@lus -4\p@ \@minus -4\p@}%
-                       {4\p@}% \p@lus 4\p@ \@minus 4\p@}%
-                       {\normalfont\subsecsize\subsecstyle
-                        \rightskip=\z@ \@plus 8em\pretolerance=10000 }}
-
-\newenvironment{refguide}
-{\let\section\guisection%
-\let\subsection\guisubsection}
-{}
-
-                        %%%SOPHIE TEMPLATE END%%%
-
-\usepackage[thmmarks,thref]{ntheorem} 
-\theoremstyle{nonumberplain}
-\theoremheaderfont{\bfseries\itshape}
-\theorembodyfont{\upshape}
-\theoremsymbol{\ensuremath{\square}}
-\newtheorem{proof}{Proof} 
-\gdef\NoneSymbol{}
 
 \endinput
 %end of file svmult.cls

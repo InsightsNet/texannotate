@@ -88,3 +88,5 @@ script/cluster/
 archive/
 results*/
 output/
+debug_*/
+tools/

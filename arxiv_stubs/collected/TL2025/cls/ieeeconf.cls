@@ -745,7 +745,6 @@
                         \def\@IEEEmarginW{0.75in}}
 
 
-
 \DeclareOption{oneside}{\@twosidefalse \@mparswitchfalse}
 \DeclareOption{twoside}{\@twosidetrue \@mparswitchtrue}
 

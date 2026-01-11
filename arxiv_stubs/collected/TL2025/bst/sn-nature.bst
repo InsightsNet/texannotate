@@ -1,32 +1,16 @@
 %%
-%% This is file `naturemag.bst',
+%% This is file `sn-nature.bst',
 %% generated with the docstrip utility.
 %%
-%% The original source files were:
-%%
-%% merlin.mbs  (with options: `head,seq-no,nm-rev,ed-rev,jnrlst,nmlm,x5,m1,yr-par,xmth,vol-bf,vnum-x,volp-com,num-xser,jnm-x,bkpg-x,pub-date,edparxc,ppx,ed,abr,xedn,jabr,amper,and-xcom,etal-it,eprint,url,url-blk,bibinfo,nfss,{}')
-%% physjour.mbs  (with options: `seq-no,nm-rev,ed-rev,jnrlst,nmlm,x5,m1,yr-par,xmth,vol-bf,vnum-x,volp-com,num-xser,jnm-x,bkpg-x,pub-date,edparxc,ppx,ed,abr,xedn,jabr,amper,and-xcom,etal-it,eprint,url,url-blk,bibinfo,nfss,{}')
-%% geojour.mbs  (with options: `seq-no,nm-rev,ed-rev,jnrlst,nmlm,x5,m1,yr-par,xmth,vol-bf,vnum-x,volp-com,num-xser,jnm-x,bkpg-x,pub-date,edparxc,ppx,ed,abr,xedn,jabr,amper,and-xcom,etal-it,eprint,url,url-blk,bibinfo,nfss,{}')
-%% photjour.mbs  (with options: `seq-no,nm-rev,ed-rev,jnrlst,nmlm,x5,m1,yr-par,xmth,vol-bf,vnum-x,volp-com,num-xser,jnm-x,bkpg-x,pub-date,edparxc,ppx,ed,abr,xedn,jabr,amper,and-xcom,etal-it,eprint,url,url-blk,bibinfo,nfss,{}')
-%% merlin.mbs  (with options: `tail,seq-no,nm-rev,ed-rev,jnrlst,nmlm,x5,m1,yr-par,xmth,vol-bf,vnum-x,volp-com,num-xser,jnm-x,bkpg-x,pub-date,edparxc,ppx,ed,abr,xedn,jabr,amper,and-xcom,etal-it,eprint,url,url-blk,bibinfo,nfss,{}')
-%% ----------------------------------------
-%% *** Style for the journal Nature (created by Peter Czoschke) ***
-%% 
-%% Copyright 1994-2002 Patrick W Daly
- % ===============================================================
- % IMPORTANT NOTICE:
+%% The original source files were: merlin.mbs
+%% ------------------------------------------
  % This bibliographic style (bst) file has been generated from one or
  % more master bibliographic style (mbs) files, listed above.
  %
- % This generated file can be redistributed and/or modified under the terms
+ % This file can be redistributed and/or modified under the terms
  % of the LaTeX Project Public License Distributed from CTAN
  % archives in directory macros/latex/base/lppl.txt; either
  % version 1 of the License, or any later version.
- % ===============================================================
- % Name and version information of the main mbs file:
- % \ProvidesFile{merlin.mbs}[2002/10/21 4.05 (PWD, AO, DPC)]
- %   For use with BibTeX version 0.99a or later
- %-------------------------------------------------------------------
  % This bibliography style file is intended for texts in ENGLISH
  % This is a numerical citation style, and as such is standard LaTeX.
  % It requires no extra package to interface to the main text.
@@ -39,6 +23,13 @@
  % The order in the reference list is that by which the works were originally
  %   cited in the text, or that in the database.
  %---------------------------------------------------------------------
+
+FUNCTION {identify.nature.version}
+{ % Put identifying string in the .blg file
+  "sn-nature.bst"
+  " [2024/07/19 v1.1 bibliography style]"
+  * top$
+}
 
 ENTRY
   { address
@@ -657,18 +648,22 @@ FUNCTION {bibinfo.warn}
     }
   if$
 }
-FUNCTION {format.eprint}
-{ eprint duplicate$ empty$
-    'skip$
-    { "\eprint"
-      archive empty$
-        'skip$
-        { "[" * archive * "]" * }
-      if$
-      "{" * swap$ * "}" *
-    }
-  if$
-}
+
+
+%%Commented on 17th July 2024
+%FUNCTION {format.eprint}
+%{ eprint duplicate$ empty$
+%    'skip$
+%    { "\eprint"
+%      archive empty$
+%        'skip$
+%        { "[" * archive * "]" * }
+%      if$
+%      "{" * swap$ * "}" *
+%    }
+%  if$
+%}
+
 FUNCTION {format.url}
 { url empty$
     { "" }
@@ -1239,6 +1234,21 @@ FUNCTION {format.archive}
   if$           
 }
 
+%%updated on 17th July 2024
+FUNCTION {format.eprint}
+{ eprint empty$
+     { ""}
+     { archive empty$
+          {"{\href{https://arxiv.org/abs/" eprint * "}" *
+             "{{" * format.archive * eprint * "}}}" *}
+          {"{\href{https://arxiv.org/abs/" eprint * "}" *
+             "{{" * format.archive * eprint * "}}}" *}
+       if$
+     }
+     if$
+     "eprint" bibinfo.check
+}
+
 FUNCTION {format.primaryClass}
 {
   primaryClass empty$
@@ -1260,6 +1270,8 @@ FUNCTION {format.soft.eprint}
      if$
      "eprint" bibinfo.check
 }
+
+
 
 FUNCTION {format.softmisc.archive}
 {
@@ -1656,6 +1668,8 @@ FUNCTION {unpublished}
 
 FUNCTION {default.type} { misc }
 READ
+EXECUTE {identify.nature.version}
+
 STRINGS { longest.label }
 INTEGERS { number.label longest.label.width }
 FUNCTION {initialize.longest.label}
@@ -1707,4 +1721,4 @@ FUNCTION {end.bib}
 EXECUTE {end.bib}
 %% End of customized bst file
 %%
-%% End of file `nature.bst'.
+%% End of file `sn-nature.bst'.

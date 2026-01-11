@@ -1,0 +1,1786 @@
+
+
+\ProvidesPackage{compozition}
+
+\usepackage{tikz}
+
+
+%% not sure ifthen going to work.
+
+\usepackage{etoolbox} % \ifstrequal alternative to \iftheneles and provides \newrobustcmd. % I think I never used this package - should check.
+
+
+
+% \pgfmathdeclarefunction{ifthenelsefpu}{3}{ %}
+%   \pgfmathparse{#1*#2 + !#1*#3} %
+% }
+
+
+
+%% This is a small set of commands for drawing graphs with circles and squares and joining lines.  The default font is mathsf.
+
+%% The commands are based on Tikz.  The z in compozition is hommage to tikz.
+
+%% compozition.sty
+  %% Copyright 2013 Lucien Hardy
+  %
+  % This work may be distributed and/or modified under the
+  % conditions of the LaTeX Project Public License, either version 1.3
+  % of this license or (at your option) any later version.
+  % The latest version of this license is in
+  %   http://www.latex-project.org/lppl.txt
+  % and version 1.3 or later is part of all distributions of LaTeX
+  % version 2005/12/01 or later.
+  % This work consists of the files duotenzor.sty and duotenzormanual.pdf
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% Packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.markings}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%      arrows of various sorts         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%standard arrows
+
+
+\tikzset{->-/.style={decoration={
+  markings,
+  mark=at position #1 with {\arrow{>}}},postaction={decorate}}}
+
+%\usetikzlibrary{decorations.markings}
+\tikzset{-<-/.style={decoration={
+  markings,
+  mark=at position #1 with {\arrow{<}}},postaction={decorate}}}
+%%%%%%
+
+\tikzset{-left-/.style={decoration={
+  markings,
+  mark=at position #1 with {\arrow{left to}}},postaction={decorate}}}
+
+\tikzset{-right-/.style={decoration={
+  markings,
+  mark=at position #1 with {\arrow{right to}}},postaction={decorate}}}
+
+
+\tikzset{-leftl-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[black] (-1.5pt, 0pt) rectangle (1.5pt, 1.5pt);
+\path (0,8pt) coordinate (fontlocationbw);   \path (0,-8pt) coordinate (fontlocationbwunder);
+}},
+postaction={decorate}}}
+
+
+\tikzset{-rightl-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[black] (-1.5pt, 0pt) rectangle (1.5pt, -1.5pt);
+\path (0,8pt) coordinate (fontlocationbw);   \path (0,-8pt) coordinate (fontlocationbwunder);
+}},
+postaction={decorate}}}
+
+%square "arrow" heads
+
+
+\tikzset{-bsq/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[black] (-1.8pt, -1.8pt) rectangle (1.8pt, 1.8pt);
+}},
+postaction={decorate}}}
+
+\tikzset{-wsq/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[white] (-1.8pt, -1.8pt) rectangle (1.8pt, 1.8pt);
+\draw[thin] (-1.8pt, -1.8pt) rectangle (1.8pt, 1.8pt);
+}},
+postaction={decorate}}}
+
+\tikzset{-bsqw-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[white] (-0.8pt,-1.3pt) rectangle (+0.8pt, 1.3pt); \filldraw[black] (-3.4pt, -1.3pt) rectangle (-0.8pt, 1.3pt);\filldraw[white] (0.8pt, 1.3pt) rectangle (3.4pt,-1.3pt);
+\draw (0.8pt, 1.3pt) rectangle (3.4pt,-1.3pt);
+\path (0,8pt) coordinate (fontlocationbw);   \path (0,-8pt) coordinate (fontlocationbwunder);
+}},
+postaction={decorate}}}
+
+
+
+\tikzset{-wsqb-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\filldraw[white] (-0.8pt,-1.3pt) rectangle (+0.8pt, 1.3pt); \filldraw[white] (-3.4pt, -1.3pt) rectangle (-0.8pt, 1.3pt); \draw (-3.4pt, -1.3pt) rectangle (-0.8pt, 1.3pt);
+\filldraw[black] (0.8pt, 1.3pt) rectangle (3.4pt,-1.3pt);
+\path (0,8pt) coordinate (fontlocationwb);  \path (0,-8pt) coordinate (fontlocationwbunder);
+}},
+postaction={decorate}}}
+
+
+
+
+% circle arrow heads.
+
+
+
+%\usetikzlibrary{decorations.markings}
+\tikzset{-*o-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\draw[ultra thick, draw=white] (-2.3pt, 0pt) -- (2.3pt,0pt);
+\filldraw[black] (-2.3pt, 0pt) circle (1.85pt);
+\filldraw[white] (+2.3pt, 0pt) circle (1.85pt);
+\draw (+2.3pt, 0pt) circle (1.85pt);
+\path (0,8pt) coordinate (fontlocationbw);   \path (0,-8pt) coordinate (fontlocationbwunder);
+}},
+postaction={decorate}}}
+
+%\usetikzlibrary{decorations.markings}
+\tikzset{-o*-/.style={decoration={
+  markings,
+  mark=at position #1 with
+  {
+\draw[ultra thick, draw=white] (-2.3pt, 0pt) -- (2.3pt,0pt);
+\filldraw[white] (-2.3pt, 0pt) circle (1.85pt);\draw (-2.3pt, 0pt) circle (1.85pt);
+\filldraw[black] (+2.3pt, 0pt) circle (1.85pt);
+\path (0,8pt) coordinate (fontlocationwb);   \path (0,-8pt) coordinate (fontlocationwbunder);
+}},
+postaction={decorate}}}
+
+
+%% haven't used the -o*-*o- decoration below - can probably get rid of it. Also, now it has the wrong size circles and spacing.
+
+%\usetikzlibrary{decorations.markings}
+\tikzset{-o*-*o-/.style={decoration={
+  markings, mark=at position #1 with
+  {
+\draw[ultra thick, draw=white] (-13pt, 0pt) -- (-7pt,0pt);
+\filldraw[white] (-13pt, 0pt) circle (0.077);
+\draw (-13pt, 0pt) circle (0.077);
+\filldraw[black] (-7pt, 0pt) circle (0.077);
+\draw[ultra thick, draw=white] (7pt, 0pt) -- (13pt,0pt);
+\filldraw[black] (7pt, 0pt) circle (0.077);
+\filldraw[white] (13pt, 0pt) circle (0.077);
+\draw (13pt, 0pt) circle (0.077);
+}},
+postaction={decorate}}}
+
+
+
+
+
+
+%%%% to fine tune from above type commands.
+\usetikzlibrary{positioning}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage{xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% FONT COMMANDS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\defaultfont}{\mathsf}
+
+\newcommand{\secondfont}{ {} }
+
+\newcommand{\thirdfont}{ {} }
+
+\newcommand{\fourthfont}{ {} }
+
+% These commands can be used to change the fonts used.
+
+\newcommand{\setdefaultfont}[1]{\renewcommand{\defaultfont}{#1}}
+
+\newcommand{\setsecondfont}[1]{\renewcommand{\secondfont}{#1}}
+
+\newcommand{\setthirdfont}[1]{\renewcommand{\thirdfont}{#1}}
+
+\newcommand{\setfourthfont}[1]{\renewcommand{\fourthfont}{#1}}
+
+\newcommand{\defaultarrow}{stealth}
+
+\newcommand{\setdefaultarrow}[1]{\renewcommand{\defaultarrow}{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% ENVIRONMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% compose environment  \begin{compose}[scale] optional argument is scale. Default is 1=0.25cm
+
+\newenvironment{compose}[1][1]{\begin{tikzpicture}[scale=#1*0.25, >=\defaultarrow]
+\path (0,0) coordinate (XYshift); }{\end{tikzpicture}}
+
+
+% Compose environment \begin{Compose}[scale]{Xshift}{voffset}  has a verticle offset and a horizontal shift
+
+\newenvironment{Compose}[3][1]{\begin{tikzpicture}
+[scale=#1*0.25, baseline=-5-#3cm, >=\defaultarrow]
+\path (0,0)+(#2*4/#1,0) coordinate (XYshift);}{\end{tikzpicture}}
+
+
+\newcommand{\bcomp}{\begin{compose}}
+\newcommand{\ecomp}{\end{compose}}
+
+
+\newcommand{\bComp}[1][0]{\begin{Compose}{0}{#1}}
+\newcommand{\eComp}{\end{Compose}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% OBJECTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% define circle, rectangle, other shapes.
+
+
+\newcommand{\arectangle}[2]{ +(-#1, -#2) rectangle + (+#1,+#2) }
+
+\newcommand{\adiamond}[2]{ +(-#1,0) -- +(0,#2) -- +(#1,0) -- +(0,-#2) -- cycle }
+
+% an income is a rectangle but with a semicircle on the left.  An outcome is a rectangle but with a semicircle on the right.
+\newcommand{\anincome}[2]{ +(-#1, -#2) -- +(+#1,-#2) -- +(+#1, +#2) -- +(-#1,+#2) arc(90:-90:-#1*0.7 and #2) }
+\newcommand{\anoutcome}[2]{ +(+#1, -#2) -- +(-#1,-#2) -- +(-#1, +#2) -- +(+#1,+#2) arc(90:-90:#1*0.7 and #2) }
+
+\newcommand{\aleftdatafid}[2]{ +(-#1, -#2) -- +(+#1,-1.6*#2) -- +(+#1, +1.6*#2) -- +(-#1,+#2) --cycle}
+\newcommand{\arightdatafid}[2]{ +(-#1, -1.6*#2) -- +(+#1,-#2) -- +(+#1, +#2) -- +(-#1,+1.6*#2) --cycle}
+
+\newcommand{\anupsysfid}[2]{ +(-#1, -#2) -- +(+#1,-#2) -- +(+1.6*#1, +#2) -- +(-1.6*#1,+#2) --cycle}
+\newcommand{\adownsysfid}[2]{ +(-1.6*#1,-#2) -- +(+1.6*#1,-#2) -- +(+#1, +#2) -- +(-#1,+#2) --cycle}
+
+
+\newcommand{\acircle}[2]{ circle (#1) }
+
+\newcommand{\anellipse}[2]{ ellipse(#1 and #2) }
+
+\newcommand{\aleftterminal}[2]{  +(-#1,-0.25*#2) -- + (-#1,0.25*#2)
+                    +(0,-0.65*#2) -- + (0,0.65*#2)
+                    +(#1,-#2) -- + (#1,#2)  }
+
+\newcommand{\arightterminal}[2]{  +(#1,-0.25*#2) -- + (#1,0.25*#2)
+                    +(0,-0.65*#2) -- + (0,0.65*#2)
+                    +(-#1,-#2) -- + (-#1,#2)  }
+
+
+
+\newcommand{\aupterminal}[2]{  +(-0.25*#1, -#2) -- + (0.25*#1, -#2)
+                    +(-0.65*#1, 0) -- + (0.65*#1, 0)
+                    +(-#1,#2) -- + (#1,#2)  }
+
+\newcommand{\adownterminal}[2]{  +(-0.25*#1, #2) -- + (0.25*#1, #2)
+                    +(-0.65*#1, 0) -- + (0.65*#1, 0)
+                    +(-#1,-#2) -- + (#1,-#2)  }
+
+
+
+\newcommand{\apreselect}[2]{ +(-#1, -#2) -- +(+#1,-#2) -- +(+#1, #2) -- +(-#1,+#2) -- + (-1.6*#1,0) -- cycle}
+
+\newcommand{\apremeasure}[2]{ +(-#1, -#2) -- +(+#1,-#2) -- +(+#1, #2) -- +(-#1,+#2) -- + (-0.6*#1,0) -- cycle}
+
+\newcommand{\apostselect}[2]{ +(-#1, -#2) -- +(+#1,-#2)-- +(1.6*#1,0) -- +(+#1, #2) -- +(-#1,+#2) -- cycle}
+
+\newcommand{\apostmeasure}[2]{ +(-#1, -#2) -- +(+#1,-#2) -- +(0.6*#1,0) -- +(+#1, #2) -- +(-#1,+#2)  -- cycle}
+
+
+%%% need to define this in two parts
+\newcommand{\aleftthinboxPartA}[2]{ [thin]  +(-#1, -#2) rectangle + (+#1,+#2)  }
+\newcommand{\aleftthinboxPartB}[2]{ [thick, double distance=0.3pt, cap=round] +(#1,#2)  --  +(-#1,#2) -- +(-#1,-#2) -- +(#1,-#2) }
+
+
+\newcommand{\arightthinboxPartA}[2]{ [thin]  +(-#1, -#2) rectangle + (+#1,+#2) }
+\newcommand{\arightthinboxPartB}[2]{ [thick, double distance=0.3pt, cap=round] +(-#1,#2)  --  +(#1,#2) -- +(#1,-#2) -- +(-#1,-#2) }
+
+
+
+%%% three parts
+\newcommand{\atransposeboxZPartA}[2]{ [thin]  +(-#1,0) -- +(-#1,#2)  --  +(#1,#2) -- +(#1,0) -- +(#1,-#2) -- +(-#1,-#2) -- +(-#1,0) }
+\newcommand{\atransposeboxZPartB}[2]{ [thick, double distance=0.3pt, cap=round] +(-#1,#2)  --  +(#1,#2) -- +(#1,0) }
+\newcommand{\atransposeboxZPartC}[2]{ [thick, double distance=0.3pt, cap=round] +(#1,-#2) -- +(-#1,-#2) -- +(-#1,0) }
+
+\newcommand{\atransposeboxSPartA}[2]{ [thin]  +(-#1,0) -- +(-#1,#2)  --  +(#1,#2) -- +(#1,0) -- +(#1,-#2) -- +(-#1,-#2) -- +(-#1,0) }
+\newcommand{\atransposeboxSPartB}[2]{ [thick, double distance=0.3pt, cap=round] +(#1,#2)  --  +(-#1,#2) -- +(-#1,0) }
+\newcommand{\atransposeboxSPartC}[2]{ [thick, double distance=0.3pt, cap=round] +(-#1,-#2) -- +(#1,-#2) -- +(#1,0) }
+
+
+\newcommand{\acap}[2]{ +(#1, -#2) arc (0:180:#1) }
+
+
+\newcommand{\acup}[2]{ +(-#1, #2) arc (0:180:-#1) }
+
+
+\newcommand{\ahcap}[2]{ +(#2, -#1) arc (-90:90:#1) }
+
+
+\newcommand{\ahcup}[2]{ +(-#2, #1) arc (-90:90:-#1) }
+
+% the below shapes are blob-like.  I don't think they will work with the join commands. The rounded corners command is put under strain if xscale and yscale are too different.
+% they can be used inside \cshape, etc. For example \cshape{\atooth}{A}{1}{1}{4,5}
+
+%\atooth{xscale}{yscale}  various names like tooth.
+
+
+
+\newcommand{\thetooth}{ +(-7.25,-1.90) -- +(-1.25,0) -- +(-5.25,3.25) -- +(-5.25, 6.25) --
+                               +(-0.75, 3.25) -- +(4.25, 3.25) -- +(1.75,0.25) -- +(1.75, -3.75) -- +(0.25, -5.25) -- +(-1.70, -2.50)  -- cycle }
+
+\newcommand{\theblob}{ +(1,4.25) -- +(4,-0.75) -- +(0, -4.75) -- +(-2, -2.75) -- +(-4,2.75) -- cycle }
+
+\newcommand{\theflag}{ +(-4.75,-3) -- +(4.25, -4) -- +(-0.74,9) -- cycle}
+
+\newcommand{\thegelato}{ +(-3,2) -- +(0,5) -- +(2, 3) -- +(3, -7) -- +(0, -3) -- cycle}
+
+
+% thehuman
+
+
+
+
+
+%%%%%%%%%% \CCobject[6][thick]{ablob}{1}{1}{4,5} for placing for named shapes, thetooth, theblob, ... (having no arguments) with rounded corners
+
+
+\newcommand{\Cobject}[6][thick]{
+\path ($(#6)+(XYshift)$) coordinate (#3);
+\draw[#1, shift={(#3)}, xscale=#4, yscale=#5, rounded corners=#4*4pt+#5*4pt] #2;
+\path (#3) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+\path (#3) node {\ensuremath{\defaultfont #3}};
+}
+
+\newcommand{\cobject}[6][thick]{
+\path ($(#6)+(XYshift)$) coordinate (#3);
+\draw[#1, shift={(#3)}, xscale=#4, yscale=#5, rounded corners=#4*4pt+#5*4pt] #2;
+\path (#3) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+\newcommand{\Cobjectwhite}[6][thick]{
+\path ($(#6)+(XYshift)$) coordinate (#3);
+\filldraw[#1, fill=white, shift={(#3)}, xscale=#4, yscale=#5, rounded corners=#4*4pt+#5*4pt] #2;
+\path (#3) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+\path (#3) node {\ensuremath{\defaultfont #3}};
+}
+
+\newcommand{\cobjectwhite}[6][thick]{
+\path ($(#6)+(XYshift)$) coordinate (#3);
+\filldraw[#1, fill=white, shift={(#3)}, xscale=#4, yscale=#5, rounded corners=#4*4pt+#5*4pt] #2;
+\path (#3) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+
+%%%%%%%%%%%%%%\Cshape[thick]{\ashapename}{node name}{hsize}{vsize}{x,y}
+
+
+\newcommand{\Cshape}[6][thick]{\draw[#1] ($(#6)+(XYshift)$) node (#3) {\ensuremath{\defaultfont #3}}
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+\newcommand{\Cshapedouble}[6][thick, double distance=0.3pt]{\draw[#1] ($(#6)+(XYshift)$) node (#3) {\ensuremath{\defaultfont #3}}
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path ($(#4, 0)+(0.8pt,0)$) coordinate (#3 right);
+\path ($(0, #5)+(0,0.8pt)$) coordinate (#3 top);
+}
+
+%\cshape[thick]{\ashapename}{node name}{hsize}{vsize}{x,y}
+
+\newcommand{\cshape}[6][thick]{\draw[#1] ($(#6)+(XYshift)$) coordinate (#3)
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+
+\newcommand{\cshapedouble}[6][thick, double distance=0.3pt]{\draw[#1] ($(#6)+(XYshift)$) coordinate (#3)
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path ($(#4, 0)+(0.8pt,0)$) coordinate (#3 right);
+\path ($(0, #5)+(0,0.8pt)$) coordinate (#3 top);
+}
+
+\newcommand{\cshapefill}[6][thick]{\filldraw[fill=black, #1] ($(#6)+(XYshift)$) coordinate (#3)
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+\newcommand{\Cshapewhite}[6][thick]{\filldraw[fill=white, #1] ($(#6)+(XYshift)$) coordinate (#3)
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+\path (#3) node {\ensuremath{\defaultfont #3}};
+}
+
+\newcommand{\cshapewhite}[6][thick]{\filldraw[fill=white, #1] ($(#6)+(XYshift)$) coordinate (#3)
+#2{#4}{#5};
+\path ($(#6)+(XYshift)$) coordinate (fontlocation);
+\path (#4, 0) coordinate (#3 right);
+\path (0, #5) coordinate (#3 top);
+}
+
+
+
+%\Crectangle[thick]{A}{1}{1}{0,0} \Ccircle[thin]{A}{radius}{2,4}
+
+\newcommand{\Ccircle}[4][thick]{ \Cshape[#1]{\acircle}{#2}{#3}{#3}{#4} }
+\newcommand{\ccircle}[4][thick]{\cshape[#1]{\acircle}{#2}{#3}{#3}{#4} }
+
+\newcommand{\ccirclefill}[4][thick]{\cshapefill[#1]{\acircle}{#2}{#3}{#3}{#4} }
+
+
+\newcommand{\Crectangle}[5][thick]{\Cshape[#1]{\arectangle}{#2}{#3}{#4}{#5}}
+\newcommand{\crectangle}[5][thick]{\cshape[#1]{\arectangle}{#2}{#3}{#4}{#5}}
+
+
+\newcommand{\Cdiamond}[5][thick]{\Cshape[#1]{\adiamond}{#2}{#3}{#4}{#5}}
+\newcommand{\cdiamond}[5][thick]{\cshape[#1]{\adiamond}{#2}{#3}{#4}{#5}}
+
+
+%\crectanglerelpoint[thick]{A}{2}{3}{B}{4,5}   draws a rectangle named A at (B)+(4,5)
+\newcommand{\crectanglerelpoint}[6][thick]{\cshape[#1]{\arectangle}{#2}{#3}{#4}{$(#5)+(#6)$}}
+
+\newcommand{\crectangledoublerelpoint}[6][thick, double]{\cshapedouble[#1]{\arectangle}{#2}{#3}{#4}{$(#5)+(#6)$}}
+
+
+
+\newcommand{\Crectangledouble}[5][thick, double distance=0.3pt]{\Cshapedouble[#1]{\arectangle}{#2}{#3}{#4}{#5}}
+\newcommand{\crectangledouble}[5][thick, double distance=0.3pt]{\cshapedouble[#1]{\arectangle}{#2}{#3}{#4}{#5}}
+
+\newcommand{\crectanglefill}[5][thick]{\cshapefill[#1]{\arectangle}{#2}{#3}{#4}{#5}}
+
+
+\newcommand{\Cellipse}[5][thick]{\Cshape[#1]{\anellipse}{#2}{#3}{#4}{#5}}
+\newcommand{\cellipse}[5][thick]{\cshape[#1]{\anellipse}{#2}{#3}{#4}{#5}}
+
+
+\newcommand{\Csquare}[4][thick]{\Cshape[#1]{\arectangle}{#2}{#3}{#3}{#4}}
+\newcommand{\csquare}[4][thick]{\cshape[#1]{\arectangle}{#2}{#3}{#3}{#4}}
+
+\newcommand{\Ucircle}[2]{ \Cshape[thick]{\acircle}{#1}{1}{1}{#2} }
+\newcommand{\ucircle}[2]{ \cshape[thick]{\acircle}{#1}{1}{1}{#2} }
+
+\newcommand{\Scircle}[2]{ \Cshape[thick]{\acircle}{#1}{0.77}{0.77}{#2} }   %small circle
+\newcommand{\scircle}[2]{ \cshape[thick]{\acircle}{#1}{0.77}{0.77}{#2} }
+
+\newcommand{\Mcircle}[2]{ \Cshape[thin]{\acircle}{#1}{0.25}{0.25}{#2} }   %mini circle
+\newcommand{\mcircle}[2]{ \cshape[thin]{\acircle}{#1}{0.25}{0.25}{#2} }
+
+\newcommand{\Hatcircle}[2]{ \Cshape[thick]{\acircle}{#1}{0.82}{0.82}{#2} }   %small circle - slightly bigger to contain \hat{X}
+\newcommand{\hatcircle}[2]{ \cshape[thick]{\acircle}{#1}{0.82}{0.82}{#2} }
+
+\newcommand{\Cleftthinbox}[5][thick]{\cshape[#1]{\aleftthinboxPartA}{#2}{#3}{#4}{#5} \Cshapedouble[#1]{\aleftthinboxPartB}{#2}{#3}{#4}{#5}
+                                     \path (#3, 0) coordinate (#2 right);  }
+\newcommand{\cleftthinbox}[5][thick]{\cshape[#1]{\aleftthinboxPartA}{#2}{#3}{#4}{#5} \cshapedouble[#1]{\aleftthinboxPartB}{#2}{#3}{#4}{#5}
+                                     \path (#3, 0) coordinate (#2 right);  }
+
+\newcommand{\Crightthinbox}[5][thick]{\cshape[#1]{\arightthinboxPartA}{#2}{#3}{#4}{#5} \Cshapedouble[#1]{\arightthinboxPartB}{#2}{#3}{#4}{#5}
+                                      \path (#3, 0) coordinate (#2 right); }
+\newcommand{\crightthinbox}[5][thick]{\cshape[#1]{\arightthinboxPartA}{#2}{#3}{#4}{#5} \cshapedouble[#1]{\arightthinboxPartB}{#2}{#3}{#4}{#5}
+                                      \path (#3, 0) coordinate (#2 right); }
+
+
+%\CtransposeS
+\newcommand{\CtransposeboxS}[5][thick]{\cshape[#1]{\atransposeboxSPartA}{#2}{#3}{#4}{#5}
+                                       \cshape[#1]{\atransposeboxSPartB}{#2}{#3}{#4}{#5}
+                                       \Cshapedouble[#1]{\atransposeboxSPartC}{#2}{#3}{#4}{#5}  }
+
+\newcommand{\ctransposeboxS}[5][thick]{ \cshape[#1]{\atransposeboxSPartA}{#2}{#3}{#4}{#5}
+                                        \cshape[#1]{\atransposeboxSPartB}{#2}{#3}{#4}{#5}
+                                        \cshapedouble[#1]{\atransposeboxSPartC}{#2}{#3}{#4}{#5}  }
+
+
+\newcommand{\CtransposeboxZ}[5][thick]{\cshape[#1]{\atransposeboxZPartA}{#2}{#3}{#4}{#5}
+                                       \cshape[#1]{\atransposeboxZPartB}{#2}{#3}{#4}{#5}
+                                       \Cshapedouble[#1]{\atransposeboxZPartC}{#2}{#3}{#4}{#5}  }
+
+\newcommand{\ctransposeboxZ}[5][thick]{ \cshape[#1]{\atransposeboxZPartA}{#2}{#3}{#4}{#5}
+                                        \cshape[#1]{\atransposeboxZPartB}{#2}{#3}{#4}{#5}
+                                        \cshapedouble[#1]{\atransposeboxZPartC}{#2}{#3}{#4}{#5}  }
+
+% cup and cap
+
+\newcommand{\Ccup}[5][thin]{ \Cshape[#1]{\acup}{#2}{#3}{#4}{#5} }
+\newcommand{\ccup}[5][thin]{\cshape[#1]{\acup}{#2}{#3}{#4}{#5} }
+
+\newcommand{\Ccap}[5][thin]{ \Cshape[#1]{\acap}{#2}{#3}{#4}{#5}  }
+\newcommand{\ccap}[5][thin]{\cshape[#1]{\acap}{#2}{#3}{#4}{#5} }
+
+\newcommand{\Chcup}[5][thick]{ \Cshape[#1]{\ahcup}{#2}{#3}{#4}{#5} }
+\newcommand{\chcup}[5][thick]{\cshape[#1]{\ahcup}{#2}{#3}{#4}{#5} }
+
+\newcommand{\Chcap}[5][thick]{ \Cshape[#1]{\ahcap}{#2}{#3}{#4}{#5}  }
+\newcommand{\chcap}[5][thick]{\cshape[#1]{\ahcap}{#2}{#3}{#4}{#5} }
+
+
+
+% radius below was changed from 0.3 (to 1.85pt)
+
+\newcommand{\blackdot}[2]{ \cshapefill[thin]{\acircle}{#1}{0.25}{0.25}{#2} }
+\newcommand{\whitedot}[2]{ \cshape[thin]{\acircle}{#1}{0.25}{0.25}{#2} }
+
+\newcommand{\blackdotsq}[2]{ \cshapefill[thin]{\arectangle}{#1}{5pt}{5pt}{#2} }
+\newcommand{\whitedotsq}[2]{ \cshape[thin]{\arectangle}{#1}{5pt}{5pt}{#2} }
+
+
+\newcommand{\Usquare}[2]{ \Cshape[thick]{\arectangle}{#1}{1}{1}{#2} }
+\newcommand{\usquare}[2]{ \cshape[thick]{\arectangle}{#1}{1}{1}{#2} }
+
+\newcommand{\Ssquaredotted}[2]{ \Cshape[thick, densely dotted]{\arectangle}{#1}{0.7}{0.7}{#2} }
+\newcommand{\ssquaredotted}[2]{ \cshape[thick, densely dotted]{\arectangle}{#1}{0.7}{0.7}{#2} }
+
+
+\newcommand{\Cincome}[5][thick]{\Cshape[#1]{\anincome}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$) coordinate (fontlocation);}
+\newcommand{\Coutcome}[5][thick]{\Cshape[#1]{\anoutcome}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(0.2*#3,0)$) coordinate (fontlocation);}
+\newcommand{\cincome}[5][thick]{\cshape[#1]{\anincome}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$) coordinate (fontlocation);}
+\newcommand{\coutcome}[5][thick]{\cshape[#1]{\anoutcome}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(0.2*#3,0)$) coordinate (fontlocation);}
+
+\newcommand{\cincomerelpoint}[6][thick]{\cshape[#1]{\anincome}{#2}{#3}{#4}{$(#5)+(#6)$}
+\path ($(fontlocation)+(-0.2*#3,0)$) coordinate (fontlocation);
+}
+\newcommand{\coutcomerelpoint}[6][thick]{\cshape[#1]{\anoutcome}{#2}{#3}{#4}{$(#5)+(#6)$}
+\path ($(fontlocation)+(0.2*#3,0)$) coordinate (fontlocation);
+}
+
+\newcommand{\cleftdatafid}[5][thick]{\cshape[#1]{\aleftdatafid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\crightdatafid}[5][thick]{\cshape[#1]{\arightdatafid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\sleftdatafid}[3][fill=lightgray]{\cleftdatafid[#1]{#2}{0.5}{0.4}{#3}   }
+\newcommand{\srightdatafid}[3][fill=lightgray]{\crightdatafid[#1]{#2}{0.5}{0.4}{#3} }
+
+\newcommand{\cleftvecfid}[5][thick]{\cshapedouble{\aleftdatafid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\crightvecfid}[5][thick]{\cshapedouble{\arightdatafid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\sleftvecfid}[3][thick]{\cleftvecfid{#2}{0.5}{0.4}{#3}   }
+\newcommand{\srightvecfid}[3][thick]{\crightvecfid{#2}{0.5}{0.4}{#3} }
+
+
+\newcommand{\cupsysfid}[5][thick]{\cshape[#1]{\anupsysfid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\cdownsysfid}[5][thick]{\cshape[#1]{\adownsysfid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\supsysfid}[3][fill=lightgray]{\cupsysfid[#1]{#2}{0.5}{0.4}{#3}   }
+\newcommand{\sdownsysfid}[3][fill=lightgray]{\cdownsysfid[#1]{#2}{0.5}{0.4}{#3} }
+
+%construction starts
+
+\newcommand{\cupopfid}[5][thick]{\cshapedouble{\anupsysfid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+\newcommand{\cdownopfid}[5][thick]{\cshapedouble{\adownsysfid}{#2}{#3}{#4}{#5}\path ($(fontlocation)+(-0.2*#3,0)$)
+coordinate (fontlocation);}
+
+
+\newcommand{\supopfid}[3][thick]{\cupopfid[#1]{#2}{0.5}{0.4}{#3}   }
+\newcommand{\sdownopfid}[3][thick]{\cdownopfid[#1]{#2}{0.5}{0.4}{#3} }
+%construction ends
+
+\newcommand{\cleftterminal}[5][thick]{\cshape[#1]{\aleftterminal}{#2}{#3}{#4}{#5}  }
+
+\newcommand{\crightterminal}[5][thick]{\cshape[#1]{\aleftterminal}{#2}{#3}{#4}{#5} }
+
+
+
+\newcommand{\sleftterminal}[2]{ \cshape[thick]{\aleftterminal}{#1}{0.3}{0.6}{#2} }
+\newcommand{\srightterminal}[2]{ \cshape[thick]{\arightterminal}{#1}{0.3}{0.6}{#2} }
+
+
+\newcommand{\cdownterminal}[5][thick]{\cshape[#1]{\adownterminal}{#2}{#3}{#4}{#5}  }
+
+\newcommand{\cupterminal}[5][thick]{\cshape[#1]{\aupterminal}{#2}{#3}{#4}{#5} }
+
+
+
+\newcommand{\sdownterminal}[2]{ \cshape[thick]{\adownterminal}{#1}{0.6}{0.3}{#2} }
+\newcommand{\supterminal}[2]{ \cshape[thick]{\aupterminal}{#1}{0.6}{0.3}{#2} }
+
+
+\newcommand{\cpreselect}[5][thick]{\cshape[#1]{\apreselect}{#2}{#3}{#4}{#5}   }
+\newcommand{\cpostselect}[5][thick]{\cshape[#1]{\apostselect}{#2}{#3}{#4}{#5} }
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% JOINS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%\joincc[above]{A}{30}{B}{-90}
+
+\newcommand{\joincc}[5][above]{\draw[thin,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+% joinccwb[above]{A}{30}{B}{-90}   with white and black dot on path.
+
+\newcommand{\joinccwb}[5][above]{\draw[thin,->-=0.20,->-=-0.10,-o*-=0.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.08] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+\newcommand{\joinccbw}[5][above]{\draw[thin,->-=0.20,->-=-0.10,-*o-=0.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.08] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+\newcommand{\joinccwbbw}[5][above]{\draw[thin,->-=0.53,->-=0.14,->-=-0.09,-o*-=0.3,-*o-=-0.3] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+\newcommand{\joinccbwwb}[5][above]{\draw[thin,->-=0.53,->-=0.14,->-=-0.09,-*o-=0.3,-o*-=-0.3] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+\newcommand{\joinccwbsq}[5][above]{\draw[thin,->-=0.20,->-=-0.10,-wsqb-=0.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.08] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+\newcommand{\joinccbwsq}[5][above]{\draw[thin,->-=0.20,->-=-0.10,-bsqw-=0.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.08] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+\newcommand{\joinccwbbwsq}[5][above]{\draw[thin,->-=0.53,->-=0.14,->-=-0.09,-wsqb-=0.3,-bsqw-=-0.3] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+\newcommand{\joinccbwwbsq}[5][above]{\draw[thin,->-=0.53,->-=0.14,->-=-0.09,-bsqw-=0.3,-wsqb-=-0.3] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+\newcommand{\joinccwbold}[5][above]{
+\path ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) coordinate (left);
+\path ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) coordinate (right);
+\path ($0.5*(left) + 0.5*(right)$) coordinate (middle);
+\path ($0.501*(left) + 0.499*(right)$) coordinate (bmiddle);
+\draw[-o,->-=.5] (left) to [out=#3, in=0.5*#3+270+0.5*#5] ($(bmiddle)!-1.5pt!(middle)$) ;
+\draw[-*,-<-=.5] (right) to [out=#5, in=0.5*#3+90+0.5*#5] ($(bmiddle)!1.5pt!(middle)$);
+\path ($(bmiddle)!-1.5pt!(middle)$) to node[#1=0.09] (fontlocation){} ($(bmiddle)!1.5pt!(middle)$);  }
+
+
+\newcommand{\joinccbwold}[5][above]{
+\path ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) coordinate (left);
+\path ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) coordinate (right);
+\path ($0.5*(left) + 0.5*(right)$) coordinate (middle);
+\path ($0.501*(left) + 0.499*(right)$) coordinate (bmiddle);
+\draw[-*,->-=.5] (left) to [out=#3, in=0.5*#3+270+0.5*#5] ($(bmiddle)!-1.5pt!(middle)$) ;
+\draw[-o,-<-=.5] (right) to [out=#5, in=0.5*#3+90+0.5*#5] ($(bmiddle)!1.5pt!(middle)$);
+\path ($(bmiddle)!-1.5pt!(middle)$) to node[#1=0.09] (fontlocation){} ($(bmiddle)!1.5pt!(middle)$);  }
+
+
+
+% join cc and add decorations to arrow by hand \joinccdecorate[above]{A}{60}{B}{120}{,->-=0.5, *-*} in last argument - remember first comma.
+
+
+\newcommand{\joinccdecorate}[6][above]{\draw[thin #6] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5]
+node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+
+
+
+%\newcommand{\joinccwbbw}[5][above]{
+%\path ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) coordinate (left);
+%\path ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) coordinate (right);
+%\path ($0.5*(left) + 0.5*(right)$) coordinate (middle);
+%\path ($0.501*(left) + 0.499*(right)$) coordinate (bmiddle);
+%\path ($0.501*(right) + 0.499*(left)$) coordinate (amiddle);
+%\draw[-o,->-=.5] (left) to [out=#3, in=0.5*#3+270+0.5*#5] ($(bmiddle)!-1.5cm-1.5pt!(middle)$) ;
+%\draw[*-*,->-=.5] ($(bmiddle)!-1.5cm+1.5pt!(amiddle)$) to [out=0.5*#3+90+0.5*#5, in=0.5*#3+270+0.5*#5] ($(bmiddle)!1.5cm-1.5pt!(amiddle)$);
+%\draw[-o,-<-=.5] (right) to [out=#5, in=0.5*#3+90+0.5*#5] ($(bmiddle)!1.5cm+1.5pt!(middle)$);
+%\path ($(bmiddle)!-1.5pt!(middle)$) to node[#1=0.09] (fontlocation){} ($(bmiddle)!+1.5pt!(middle)$);  }
+
+%\newcommand{\joinccbwwb}[5][above]{
+%\path ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) coordinate (left);
+%\path ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) coordinate (right);
+%\path ($0.5*(left) + 0.5*(right)$) coordinate (middle);
+%\path ($0.501*(left) + 0.499*(right)$) coordinate (bmiddle);
+%\path ($0.501*(right) + 0.499*(left)$) coordinate (amiddle);
+%\draw[-*,->-=.5] (left) to [out=#3, in=0.5*#3+270+0.5*#5] ($(bmiddle)!-1.5cm-1.5pt!(middle)$) ;
+%\draw[o-o,->-=.5] ($(bmiddle)!-1.5cm+1.5pt!(amiddle)$) to [out=0.5*#3+90+0.5*#5, in=0.5*#3+270+0.5*#5] ($(bmiddle)!1.5cm-1.5pt!(amiddle)$);
+%\draw[-*,-<-=.5] (right) to [out=#5, in=0.5*#3+90+0.5*#5] ($(bmiddle)!1.5cm+1.5pt!(middle)$);
+%\path ($(bmiddle)!-1.5pt!(middle)$) to node[#1=0.09] (fontlocation){} ($(bmiddle)!+1.5pt!(middle)$);  }
+
+
+
+
+
+
+% \jointb[above]{A}{3}{B}{-4}
+
+\newcommand{\jointb}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbt}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointt}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbb}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointl}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointr}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinbl}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbr}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinll}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlr}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrl}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrr}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlt}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlb}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrt}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrb}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+% \jointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointc}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbc}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinct}[5][above]{\draw[thin,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincb}[5][above]{\draw[thin,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joincl}[5][above]{\draw[thin,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincr}[5][above]{\draw[thin,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlc}[5][above]{\draw[thin,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrc}[5][above]{\draw[thin,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+% arrowhead on left side or on right side only - not tested yet.
+
+\newcommand{\jointbleft}[5][above]{\draw[thin,-leftl-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtleft}[5][above]{\draw[thin,-rightl-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+
+\newcommand{\jointbright}[5][above]{\draw[thin,-rightl-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtright}[5][above]{\draw[thin,-leftl-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+
+
+%thick line versions
+
+\newcommand{\jointbthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+
+\newcommand{\jointcthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctthick}[5][above]{\draw[thick,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1=0.07] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbthick}[5][above]{\draw[thick,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclthick}[5][above]{\draw[thick,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1=0.07] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrthick}[5][above]{\draw[thick,->-=.5] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1=0.07] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcthick}[5][above]{\draw[thick,->-=.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcthick}[5][above]{\draw[thick,->-=.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1=0.07] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+%\linebyhand[thin, ->-=.5]{position1}{position2}
+
+\newcommand{\linebyhand}[3][thin, ->-=.5]{\draw[#1] (#2) to (#3); \path ($0.5*(#2)+0.5*(#3)$) coordinate (fontlocation); }
+
+\newcommand{\linebyhanddashed}[3][thin, dashed]{\draw[#1] (#2) to (#3); \path ($0.5*(#2)+0.5*(#3)$) coordinate (fontlocation); }
+
+% this puts small circles on each end.
+\newcommand{\linedashedcircles}[3][thin, dashed]{ \draw (#2) circle (0.25); \draw (#3) circle (0.25);
+\draw[#1] ($(#2)+(0,0.25)$) to ($(#3)-(0,0.25)$); \path ($0.5*(#2)+0.5*(#3)$) coordinate (fontlocation); }
+
+
+%\indashedout[thin,dashed]{A}{-2,-3}{-3,4}{aa} draws dashedline with circles from A+(-2,-3) to A+(-2,4).
+%Names these points A inaa and A outaa
+\newcommand{\indashedout}[5][thin, dashed]{ \draw ($(#2)+(#3)$) circle (0.25); \draw ($(#2)+(#4)$) circle (0.25);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+
+% same as above, but no out circle.
+\newcommand{\indasheddot}[5][thin, dashed]{ \draw ($(#2)+(#3)$) circle (0.25);  \draw[fill] ($(#2)+(#4)$) circle (0.125);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+\newcommand{\dotdashedout}[5][thin, dashed]{ \draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw ($(#2)+(#4)$) circle (0.25);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+%%%\indottedout  same as above, but with dots.
+
+\newcommand{\indottedout}[5][thin, densely dotted]{ \draw ($(#2)+(#3)$) circle (0.25); \draw ($(#2)+(#4)$) circle (0.25);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+
+% same as above, but no out circle.
+\newcommand{\indotteddot}[5][thin, densely dotted]{ \draw ($(#2)+(#3)$) circle (0.25);  \draw[fill] ($(#2)+(#4)$) circle (0.125);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+\newcommand{\dotdottedout}[5][thin, densely dotted]{ \draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw ($(#2)+(#4)$) circle (0.25);
+\draw ($(#2)+(#3)$) coordinate (#2 in#5); \path (0,0) coordinate (#2 in#5 top); \path (0,0) coordinate (#2 in#5 right);
+\draw ($(#2)+(#4)$) coordinate (#2 out#5); \path (0,0) coordinate (#2 out#5 top); \path (0,0) coordinate (#2 out#5 right);
+\draw[#1] ($(#2 in#5)+(0,0.25)$) to ($(#2 out#5)-(0,0.25)$); \path ($0.5*(#2 in#5)+0.5*(#2 out#5)$) coordinate (fontlocation); }
+
+
+
+%% \flagsquare[2]{A inaa}{0,3}{T=0}{4,0}   draws a flag of width 2 with T=0 at A inas+(0,4) with a black dot at A inaa+(0,3)
+
+\newcommand{\flagsquare}[5][2]{
+\draw[ultra thick, white] ($(#2)+(#3)$) to ($(#2)+(#3)+(#5)$);
+\draw ($(#2)+(#3)$) to ($(#2)+(#3)+(#5)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin, fill=white]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+
+%\leftflagsquare{A in7}{2,0}{S_2=1}{-4,0}
+\newcommand{\leftflagsquare}[5][2]{
+\draw[ultra thick, white] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0] ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[->] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0]  ($(#2)+(#3)+(#5)+(#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\rightflagsquare}[5][2]{
+\draw[ultra thick, white] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180] ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[->] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180]  ($(#2)+(#3)+(#5)+(-#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\leftflagsquaredotted}[5][2]{
+\draw[ultra thick, white] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0] ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[->] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0]  ($(#2)+(#3)+(#5)+(#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin, densely dotted]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\rightflagsquaredotted}[5][2]{
+\draw[ultra thick, white] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180] ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[->] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180]  ($(#2)+(#3)+(#5)+(-#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin, densely dotted]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\leftflagdot}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0] ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[-<-=.65] ($(#2)+(#3)+(0,0)$) to [out=180, in=0]  ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[fill] ($(#2)+(#3)$) circle (0.125);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\rightflagdot}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180] ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[-<-=.65] ($(#2)+(#3)+(0,0)$) to [out=0, in=180]  ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[fill] ($(#2)+(#3)$) circle (0.125);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\leftflag}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0] ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[-<-=.65] ($(#2)+(#3)+(0,0)$) to [out=180, in=0]  ($(#2)+(#3)+(#5)+(#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\rightflag}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180] ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[-<-=.65] ($(#2)+(#3)+(0,0)$) to [out=0, in=180]  ($(#2)+(#3)+(#5)+(-#1,0)$);
+%\draw[fill] ($(#2)+(#3)$) circle (0.125);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+
+% \flag[2]{A}{2,3}{hello}\leftellipseline[thin]{A}{2}{A in7}{2}
+
+\newcommand{\flag}[4][2]{
+\draw[thin] ($(#2)+(#3)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#1,1)$);
+\path ($(#2)+(#3)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(-#1,0)$) coordinate (#2 flagleft);
+\path ($(#2)+(#3)+(#1,0)$) coordinate (#2 flagright);
+\path ($(#2)+(#3)$) node {\ensuremath{#4}};
+}
+
+
+%\leftellipseline[thin]{A in7}{3}{A}{0.5} draws line from (A in7)+(0,3) to (A flagright) + (0,0.5)
+\newcommand{\leftellipseline}[5][thin, ->]{
+\draw[ultra thick, white] ($(#4 flagright)+(0.125,#5)$) to [out=0, in=180]  ($(#2)+(0,#3)+(-0.4,0)$);
+\draw[#1] ($(#2)+(0,#3)+(-0.4,0)$) to [out=180, in=0]($(#4 flagright)+(0,#5)$);
+\draw ($(#2)+(0,#3)+(-0.4,0)$) arc (180:420:0.4 and 0.2); \draw ($(#2)+(0,#3)+(-0.4,0)$) arc (180:120:0.4 and 0.2);
+}
+
+\newcommand{\rightellipseline}[5][thin, ->]{
+\draw[ultra thick, white] ($(#4 flagleft)+(-0.125,#5)$) to [out=0, in=180]  ($(#2)+(0,#3)+(0.4,0)$);
+\draw[#1] ($(#2)+(0,#3)+(0.4,0)$) to [out=0, in=180]($(#4 flagleft)+(0,#5)$);
+\draw ($(#2)+(0,#3)+(0.4,0)$) arc (0:60:0.4 and 0.2);  \draw ($(#2)+(0,#3)+(0.4,0)$) arc (0:-240:0.4 and 0.2);
+}
+
+
+
+
+
+
+
+
+\newcommand{\leftflagthick}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(-0.25,0)$) to [out=180, in=0] ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw ($(#2)+(#3)+(0,0)$) to [out=180, in=0]  ($(#2)+(#3)+(#5)+(#1,0)$);
+\draw[fill] ($(#2)+(#3)+(-0.125,-1)$) rectangle ($(#2)+(#3)+(0.125,1)$);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+\newcommand{\rightflagthick}[5][2]{
+%\draw[ultra thick, white] ($(#2)+(#3)+(0.25,0)$) to [out=0, in=180] ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw ($(#2)+(#3)+(0,0)$) to [out=0, in=180]  ($(#2)+(#3)+(#5)+(-#1,0)$);
+\draw[fill] ($(#2)+(#3)+(-0.125,-1)$) rectangle ($(#2)+(#3)+(0.125,1)$);
+%\draw[fill=white]  ($(#2)+(#3)+(-0.25,-0.25)$) rectangle ($(#2)+(#3)+(0.25,0.25)$);
+\draw  ($(#2)+(#3)+(0,-0.25)$) to ($(#2)+(#3)+(0,0.25)$);
+\draw[thin]  ($(#2)+(#3)+(#5)+(-#1,-1)$) rectangle ($(#2)+(#3)+(#5)+(#1,1)$);
+\path ($(#2)+(#3)+(#5)$) node {\ensuremath{#4}};
+\path ($(#2)+(#3)+(#5)$) coordinate (fontlocation);
+}
+
+%\groupblock[ultra thick]{A}{-3}{-1}
+
+\newcommand{\groupblockb}[4][ultra thick]{\draw[#1] ($(#2)-(#2 top)+(#3,0)-(0.4,0)$) to ($(#2)-(#2 top)+(#4,0)+(0.4,0)$);  }
+
+\newcommand{\groupblockt}[4][ultra thick]{\draw[#1] ($(#2)+(#2 top)+(#3,0)-(0.4,0)$) to ($(#2)+(#2 top)+(#4,0)+(0.4,0)$);  }
+
+
+% \jointbnoarrow[above]{A}{3}{B}{-4}
+
+\newcommand{\joinccnoarrow}[5][above]{\draw[thin] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+\newcommand{\jointbnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+% \jointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointcnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctnoarrow}[5][above]{\draw[thin] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbnoarrow}[5][above]{\draw[thin] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclnoarrow}[5][above]{\draw[thin] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrnoarrow}[5][above]{\draw[thin] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcnoarrow}[5][above]{\draw[thin] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcnoarrow}[5][above]{\draw[thin] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+\newcommand{\jointbnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+% \jointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointcnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctnoarrowthick}[5][above]{\draw[thick] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbnoarrowthick}[5][above]{\draw[thick] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclnoarrowthick}[5][above]{\draw[thick] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrnoarrowthick}[5][above]{\draw[thick] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcnoarrowthick}[5][above]{\draw[thick] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcnoarrowthick}[5][above]{\draw[thick] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+\newcommand{\jointbnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+% \jointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointcnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctnoarrowdouble}[5][above]{\draw[double] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbnoarrowdouble}[5][above]{\draw[double] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclnoarrowdouble}[5][above]{\draw[double] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrnoarrowdouble}[5][above]{\draw[double] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcnoarrowdouble}[5][above]{\draw[double] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcnoarrowdouble}[5][above]{\draw[double] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+% \tointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointbnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+% \jointc[above]{A}{3}{B}{60}
+
+\newcommand{\jointcnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcnoarrowthickwhite}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+%% following insert a white then a black square
+
+\newcommand{\jointbnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowwb}[5][above]{\draw[thin, -wsqb-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+%% inserts a black then white square
+
+\newcommand{\jointbnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowbw}[5][above]{\draw[thin, -bsqw-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+%% following insert a white then a black dot
+
+\newcommand{\jointbnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowdotswb}[5][above]{\draw[thin, -o*-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+%% inserts a black then white dot
+
+\newcommand{\jointbnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowdotsbw}[5][above]{\draw[thin, -*o-=0.5] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+
+
+\newcommand{\jointbnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowdotsbwwb}[5][above]{\draw[thin, -*o-=0.3,-o*-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+
+\newcommand{\jointbnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowdotswbbw}[5][above]{\draw[thin, -o*-=0.3,-*o-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+
+
+\newcommand{\jointbnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowsqbwwb}[5][above]{\draw[thin, -bsqw-=0.3,-wsqb-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+
+\newcommand{\jointbnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinbtnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowsqwbbw}[5][above]{\draw[thin, -wsqb-=0.3,-bsqw-=-0.3] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+% the first one gives a white border to a thin black line. The others need to be worked on.
+
+%jointbover{A}{2}{B}{0} draws a thin line with a white border (so it goes over other wires).
+
+\newcommand{\jointbnover}[5][above]{\draw[ultra thick, white]
+($(#2)+(#2 top)+(#3,0)+(0,0.06)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)+(0,-0.06)$);
+\draw[thin] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+% the below commands haven't been completed yet.
+
+
+
+
+\newcommand{\joinbtnoarrowwhiteborder}[5][above]{\draw[ultra thick, white]
+($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\jointtnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinbbnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointlnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\jointrnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinblnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinbrnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=0] node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinllnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinlrnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinrlnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=180]   node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joinrrnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=0]   node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinltnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinlbnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinrtnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=90]   node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joinrbnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=-90]   node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\jointcnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$) ;}
+\newcommand{\joinbcnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 top)+(#3,0)$)to [out=-90, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinctnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3,  in=90] node [#1] (fontlocation){} ($(#4)+(#4 top)+(#5,0)$);}
+\newcommand{\joincbnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=-90] node [#1] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+\newcommand{\joinclnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=180]    node [#1] (fontlocation){} ($(#4)-(#4 right)+(0, #5)$);}
+\newcommand{\joincrnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) to [out=#3, in=0]  node [#1] (fontlocation){} ($(#4)+(#4 right)+(0, #5)$);}
+\newcommand{\joinlcnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)-(#2 right)+(0,#3)$)to [out=180, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+\newcommand{\joinrcnoarrowwhiteborder}[5][above]{\draw[ultra thick, white] ($(#2)+(#2 right)+(0,#3)$)to [out=0, in=#5] node [#1] (fontlocation){} ($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+
+
+
+% \jointbdouble[above]{A}{2}{B}{3}
+
+\newcommand{\jointbdouble}[5][above]{\draw[double, thin,->-=.75] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+%below has arrow head at end
+
+\newcommand{\jointbdoubleend}[5][above]{\draw[double, thin,->] ($(#2)+(#2 top)+(#3,0)$)to [out=90, in=-90] node [#1=0.07] (fontlocation){} ($(#4)-(#4 top)+(#5,0)$);}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% Hopping matrix %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% in equations - can put a superscript above.
+% \bbmatrix[size]{h}{x,y}
+
+
+
+
+%horizontal round
+\newcommand{\bbmatrix}[3][1]{ \draw[thin, ->-=0.5, *-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrix}[3][1]{ \draw[thin, ->-=0.5, *-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrix}[3][1]{ \draw[thin, ->-=0.5, o-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrix}[3][1]{ \draw[thin, ->-=0.5, o-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bbmatrixr}[3][1]{ \draw[thin, -<-=0.5, *-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixr}[3][1]{ \draw[thin, -<-=0.5, *-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixr}[3][1]{ \draw[thin, -<-=0.5, o-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixr}[3][1]{ \draw[thin, -<-=0.5, o-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+
+%horizontal square
+\newcommand{\bbmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -bsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -bsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -wsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -wsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bbmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+
+
+
+%horizontal round no arrow
+\newcommand{\bbmatrixnoarrow}[3][1]{ \draw[thin, ->-=0.5, *-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixnoarrow}[3][1]{ \draw[thin,  *-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixnoarrow}[3][1]{ \draw[thin,  o-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixnoarrow}[3][1]{ \draw[thin,  o-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bbmatrixnoarrowr}[3][1]{ \draw[thin, -<-=0.5, *-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixnoarrowr}[3][1]{ \draw[thin, -<-=0.5, *-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixnoarrowr}[3][1]{ \draw[thin, -<-=0.5, o-*] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixnoarrowr}[3][1]{ \draw[thin, -<-=0.5, o-o] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+
+%horizontal square no arrow
+\newcommand{\bbmatrixnoarrowsq}[3][1]{ \draw[thin,  -bsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixnoarrowsq}[3][1]{ \draw[thin,  -bsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixnoarrowsq}[3][1]{ \draw[thin,  -wsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixnoarrowsq}[3][1]{ \draw[thin,  -wsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bbmatrixnoarrowrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\bwmatrixnoarrowrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wbmatrixnoarrowrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -bsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\wwmatrixnoarrowrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -wsq=1] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+
+
+
+%vertical
+\newcommand{\vbbmatrix}[3][1]{ \draw[thin, ->-=0.5, *-*] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbwmatrix}[3][1]{ \draw[thin, ->-=0.5, *-o] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwbmatrix}[3][1]{ \draw[thin, ->-=0.5, o-*] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwwmatrix}[3][1]{ \draw[thin, ->-=0.5, o-o] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbbmatrixr}[3][1]{ \draw[thin, -<-=0.5, *-*] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbwmatrixr}[3][1]{ \draw[thin, -<-=0.5, *-o] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwbmatrixr}[3][1]{ \draw[thin, -<-=0.5, o-*] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwwmatrixr}[3][1]{ \draw[thin, -<-=0.5, o-o] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+
+%vertical
+\newcommand{\vbbmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -bsq=0, -bsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbwmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -bsq=0, -wsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwbmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -wsq=0, -bsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwwmatrixsq}[3][1]{ \draw[thin, ->-=0.5, -wsq=0, -wsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbbmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -bsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vbwmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -bsq=0, -wsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwbmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -bsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+\newcommand{\vwwmatrixrsq}[3][1]{ \draw[thin, -<-=0.5, -wsq=0, -wsq=1] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+
+
+% custom \custommatrix[size]{h}{1,3}{,->-=0.5, -bsq=0}  don't forget first comma.
+\newcommand{\custommatrix}[4][1]{ \draw[thin #4] ($(#3)+(XYshift)+(-0.9*#1*2 + 0.2 ,0)$) --  node [above=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0.9*#1*2 -0.2,0)$);}
+\newcommand{\vcustommatrix}[4][1]{\draw[thin #4] ($(#3)+(XYshift)+(0,-0.9*#1*2 + 0.2)$) --  node [left=0.07] (fontlocation){}   ($(#3)+(XYshift)+ (0,0.9*#1*2 -0.2)$);}
+
+
+
+% in text
+
+% round
+\newcommand{\bbdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, *-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, *-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, o-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, o-o] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\bbdotsr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, *-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotsr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, *-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotsr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, o-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotsr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, o-o] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\nbdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\nwdots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bndots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,*-] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wndots}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,o-] (0,0) -- (6mm,0);\xspace}
+
+% square
+\newcommand{\bbdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, -bsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, -bsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, -wsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5, -wsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\bbdotssqr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, -bsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotssqr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, -bsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotssqr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, -wsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotssqr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, -wsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\nbdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\nwdotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bndotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-bsq=0] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wndotssq}{\tikz[baseline=-3pt]\path[draw, ->-=0.5,-wsq=0] (0,0) -- (6mm,0);\xspace}
+
+
+% custom \customdots[, ->-=0.5, *-*]   remember first comma
+\newcommand{\customdots}[1][, ->-=0.5, *-*]{\tikz[baseline=-3pt]\path[draw #1] (0,0) -- (6mm,0);\xspace}
+
+% round
+\newcommand{\bbdotsnoarrow}{\tikz[baseline=-3pt]\path[draw, *-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotsnoarrow}{\tikz[baseline=-3pt]\path[draw , *-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotsnoarrow}{\tikz[baseline=-3pt]\path[draw , o-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotsnoarrow}{\tikz[baseline=-3pt]\path[draw , o-o] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\bbdotsnoarrowr}{\tikz[baseline=-3pt]\path[draw, -<-=0.5, *-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotsnoarrowr}{\tikz[baseline=-3pt]\path[draw,  *-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotsnoarrowr}{\tikz[baseline=-3pt]\path[draw,  o-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotsnoarrowr}{\tikz[baseline=-3pt]\path[draw,  o-o] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\nbdotsnoarrow}{\tikz[baseline=-3pt]\path[draw ,-*] (0,0) -- (6mm,0);\xspace}
+\newcommand{\nwdotsnoarrow}{\tikz[baseline=-3pt]\path[draw ,-o] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bndotsnoarrow}{\tikz[baseline=-3pt]\path[draw ,*-] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wndotsnoarrow}{\tikz[baseline=-3pt]\path[draw ,o-] (0,0) -- (6mm,0);\xspace}
+
+% square
+\newcommand{\bbdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw , -bsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw , -bsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw , -wsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw , -wsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\bbdotsnoarrowsqr}{\tikz[baseline=-3pt]\path[draw,  -bsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bwdotsnoarrowsqr}{\tikz[baseline=-3pt]\path[draw,  -bsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wbdotsnoarrowsqr}{\tikz[baseline=-3pt]\path[draw,  -wsq=0, -bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wwdotsnoarrowsqr}{\tikz[baseline=-3pt]\path[draw,  -wsq=0, -wsq=1] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\nbdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw ,-bsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\nwdotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw ,-wsq=1] (0,0) -- (6mm,0);\xspace}
+\newcommand{\bndotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw ,-bsq=0] (0,0) -- (6mm,0);\xspace}
+\newcommand{\wndotsnoarrowsq}{\tikz[baseline=-3pt]\path[draw ,-wsq=0] (0,0) -- (6mm,0);\xspace}
+
+% custom \customdotsnoarrow[ , *-*]   remember first comma
+\newcommand{\customdotsnoarrow}[1][ , *-*]{\tikz[baseline=-3pt]\path[draw #1] (0,0) -- (6mm,0);\xspace}
+
+\newcommand{\customdotsnoarrowvar}[2][ , *-*]{\tikz[baseline=-3pt]\path[draw #1] (0,0) -- (#1,0);\xspace}
+
+% \placesymbol[1,3]{a} places an a at (1,3)
+
+\newcommand{\placesymbol}[2][0,0]{\tikz\path(0,0) to (#1) node {\ensuremath{#2}};}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% FONT PLACEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\csymbol}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocation)$) node {\ensuremath{\defaultfont{#2}}};}
+
+\newcommand{\csymbolalt}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocation)$) node {\ensuremath{\secondfont{#2}}};}
+
+\newcommand{\csymbolthird}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocation)$) node {\ensuremath{\thirdfont{#2}}};}
+
+\newcommand{\csymbolfourth}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocation)$) node {\ensuremath{\fourthfont{#2}}};}
+
+
+\newcommand{\otherside}{\coordinate (fontlocation) at (fontlocationb);}
+
+% \csymbol[0,0]{0.3}{a}  - where (font 0.3) is the name of the coordinate (these are at 0.3 and -0.3)
+
+\newcommand{\csymbolbw}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocationbw)$) node {\ensuremath{#2}};}
+
+\newcommand{\csymbolwb}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocationwb)$) node {\ensuremath{#2}};}
+
+\newcommand{\csymbolbwunder}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocationbwunder)$) node {\ensuremath{#2}};}
+
+\newcommand{\csymbolwbunder}[2][0,0]{ \path ($0.0352777778*(#1)+(fontlocationwbunder)$) node {\ensuremath{#2}};}
+
+
+
+% The below command is to put text on top of a white square.  It doesn't work very well.  Haven't used it.
+\newcommand{\csymbolwhitesquare}[2][0,0]{
+\draw[white, fill=white] ($(fontlocation)+(-0.5,-0.5)$)
+                                               rectangle ($(fontlocation)+(0.5,0.5)$);
+\path ($0.0352777778*(#1)+(fontlocation)$)   node {\ensuremath{#2}};}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%GRIDS %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\Cgrid[->]{0.5}{11}{11}{4,5}
+
+\newrobustcmd{\Cgrid}[5][->]{
+\foreach \x in {0,#2,...,#3}
+\draw[#1] ($(#5)+(XYshift)$)  [xshift=-\x cm, yshift=\x cm]  +($(-0.5,-#3-0.5)$) -- +($(#3+0.5,0.5)$);
+\foreach \x in {0,#2,...,#4}
+\draw[#1]  ($(#5)+(XYshift)$) [xshift=\x cm, yshift=\x cm] +($(0.5,-#3-0.5)$) -- +($(-#3-0.5,0.5)$);
+}
+
+\newcommand{\Ctestgrid}{
+\foreach \x in {1,1.5,...,11}
+\draw[xshift=-\x cm, yshift=\x cm, ->] (0,-12) -- (12,0);
+\foreach \x in {1,1.5,...,11}
+\draw[xshift=\x cm, yshift=\x cm, ->] (0,-12) -- (-12,0);
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% miscelaneous%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%\thispoint{A}{x,y}
+
+\newcommand{\thispoint}[2]{\path ($(#2)+(XYshift)$) coordinate (#1) {};
+\path ($(#2)+(XYshift)$) coordinate (fontlocation);
+\path (0, 0) coordinate (#1 right);
+\path (0, 0) coordinate (#1 top);
+}
+
+\newcommand{\Thispoint}[2]{\path ($(#2)+(XYshift)$) coordinate (#1)   {\ensuremath{\defaultfont #1}};
+\path ($(#2)+(XYshift)$) coordinate (fontlocation);
+\path (0, 0) coordinate (#1 right);
+\path (0, 0) coordinate (#1 top);
+}
+
+%\relpoint{A}{6,-4}{B} places a point named B at A+(6,-4)
+
+
+\newcommand{\relpoint}[3]{\path ($(#1)+(#2)+(XYshift)$) coordinate (#3) {};
+\path ($(#1)+(#2)+(XYshift)$) coordinate (fontlocation);
+\path (0, 0) coordinate (#3 right);
+\path (0, 0) coordinate (#3 top);
+}
+
+
+\newcommand{\Thistexthere}[2]{\path ($(#2)+(XYshift)$) node {#1};
+}
+
+\newcommand{\pointingarrow}[5][right]{\draw[thin, ->] ($(#2)+ cos(#3)*(#2 right) + sin(#3)*(#2 top)$) node [#1] (fontlocation){} to [out=#3, in=#5]
+($(#4)+ cos(#5)*(#4 right) + sin(#5)*(#4 top)$);}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% 3D diagrams %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% \Cxaxis[thin]{x}{0,0}{20)
+
+\newcommand{\Cxaxis}[4][thin]{
+\draw[#1, ->] ($(#3)+(XYshift)$)  +(0,0,0) -- +(#4,0,0) coordinate (axis end);
+\path ($(axis end)+ (0, -1, 0)$) node (fontlocation) {\ensuremath{\thirdfont #2}};
+}
+
+\newcommand{\Cyaxis}[4][thin]{
+\draw[#1, ->] ($(#3)+(XYshift)$)  +(0,0,0) -- +(0,#4,0) coordinate (axis end);
+\path ($(axis end)+ (-1, 0, 0)$) node (fontlocation) {\ensuremath{\thirdfont #2}};
+}
+
+\newcommand{\Czaxis}[4][thin]{
+\draw[#1, ->] ($(#3)+(XYshift)$)  +(0,0,0) -- +(0,0,#4) coordinate (axis end);
+\path ($(axis end)+ (-0.9, 0.2, 0)$) node (fontlocation) {\ensuremath{\thirdfont #2}};
+}
+
+
+% \csurface[thin]{0,0}{1}   \csurface[distort]{0,0}{scale}
+
+\newcommand{\csurface}[3][1]{
+\shadedraw[color=gray!20!white, draw=black, scale=#3, shift={($(#2)+(XYshift)$)}]
+(0,12,0) .. controls (6,15*#1,0) and (15,7*#1,0) ..  (20,7,0)
+         .. controls (20,9*#1,8) and (20,13*#1,15) .. (20,5,20)
+         .. controls (7,9,20) and (14,10,20) .. (0, 9,20)
+         .. controls (0,11*#1,10) and (0,11*#1,15) ..  (0,12,0);
+}
+
+
+% a cuboid with a surface in it.
+%\ccuboid[0.1]{8,5}{x}{y}{z}{bl}{br}{fr}{fl}  bl = backleft height to surface.  [0.1] option to curve surface.
+
+
+
+\newcommand{\ccuboid}[9][0]{
+\pgfmathsetmacro{\cubex}{#3}
+\pgfmathsetmacro{\cubey}{#4}
+\pgfmathsetmacro{\cubez}{#5}
+\pgfmathsetmacro{\cubebl}{#6}
+\pgfmathsetmacro{\cubebr}{#7}
+\pgfmathsetmacro{\cubefr}{#8}
+\pgfmathsetmacro{\cubefl}{#9}
+\draw[shift={($(#2)+(XYshift)$)},ultra thin, dashed] (0,0,0) -- (\cubex, 0,0) -- (\cubex,0,\cubez) -- (0, 0, \cubez) -- cycle;  % bottom
+\draw[shift={($(#2)+(XYshift)$)},very thick, white]
+(0,\cubebl,0) .. controls (0.5*\cubex, 0.5*\cubebl+0.5*\cubebr +#1,0) .. (\cubex, \cubebr,0)
+              .. controls (\cubex, 0.5*\cubebr+0.5*\cubefr +#1,0.5*\cubez) ..  (\cubex,\cubefr,\cubez)
+              .. controls (0.5*\cubex, 0.5*\cubefr+0.5*\cubefl +#1,\cubez) .. (0, \cubefl, \cubez)
+              .. controls (0, 0.5*\cubefl+0.5*\cubebl +#1,0.5*\cubez) ..  (0,\cubebl,0); % surface
+\draw[shift={($(#2)+(XYshift)$)},ultra thin, dashed] (0,0,0) -- (0,\cubebl,0) (\cubex, 0,0) -- (\cubex, \cubebr,0)
+(\cubex,0,\cubez) -- (\cubex,\cubefr,\cubez) (0, 0, \cubez) -- (0, \cubefl, \cubez); % bottom sides
+\draw[shift={($(#2)+(XYshift)$)},thick] (0,\cubey,0) -- (\cubex,\cubey,0) -- (\cubex,\cubey,\cubez) -- (0,\cubey,\cubez) -- cycle;  % top sides
+\draw[shift={($(#2)+(XYshift)$)},thick] (0,\cubey,0) -- (0,\cubebl,0) (\cubex, \cubey,0) -- (\cubex, \cubebr,0) (\cubex,\cubey,\cubez) -- (\cubex,\cubefr,\cubez) % sides
+(0, \cubey, \cubez) -- (0, \cubefl, \cubez);
+}
+
+%code below does the same
+
+%\newcommand{\ccuboid}[9][0]{
+%\draw[shift={($(#2)+(XYshift)$)},ultra thin, dashed] (0,0,0) -- (#3, 0,0) -- (#3,0,#5) -- (0, 0, #5) -- cycle;  % bottom
+%\draw[shift={($(#2)+(XYshift)$)},very thick, white] (0,#6,0) .. controls (0.5*#3, 0.5*#6+0.5*#7 +#1,0) .. (#3, #7,0) .. controls (#3, 0.5*#7+0.5*#8 +#1,0.5*#5) .. (#3,#8,#5) .. controls (0.5*#3, 0.5*#8+0.5*#9 +#1,#5) .. (0, #9, #5) .. controls (0, 0.5*#9+0.5*#6 +#1,0.5*#5) ..  cycle; % surface
+%\draw[shift={($(#2)+(XYshift)$)},ultra thin, dashed] (0,0,0) -- (0,#6,0) (#3, 0,0) -- (#3, #7,0) (#3,0,#5) -- (#3,#8,#5) (0, 0, #5) -- (0, #9, #5); % bottom sides
+%\draw[shift={($(#2)+(XYshift)$)},thick] (0,#4,0) -- (#3,#4,0) -- (#3,#4,#5) -- (0,#4,#5) -- cycle;  % top sides
+%\draw[shift={($(#2)+(XYshift)$)},thick] (0,#4,0) -- (0,#6,0) (#3, #4,0) -- (#3, #7,0) (#3,#4,#5) -- (#3,#8,#5) (0, #4, #5) -- (0, #9, #5); %sides
+%}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% HUMANS, ANTENAE, LAPTOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \humanEEG{size}{5,6}
+
+\newcommand{\humanEEG}[2][1]{
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,0) circle(1); %head
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-0.5,-0.5) arc (-135:-45:0.7); % smile
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-0.4, 0.15) ellipse(0.15 and 0.1); %right eye
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0.4, 0.15) ellipse(0.15 and 0.1);  %left eye
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0, 0.15) -- + (0.17, -0.4) -- + (0, -0.4); %nose
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (1.3,0) arc (0:180:1.3); %EEG headset
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (75:1.3) -- + (75:2.5)-- + (75:1.3) -- + (65:2.2) -- +(75:1.3) -- (85:2.2); %antena
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,-1) -- +(0,-4); %body
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.5,-3.5) -- + (0,-1.25) -- + (1.5, -3.5); %arms
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.85,-7) --  + (-1.5, -7) -- + (0, -4) -- + (1.5, -7) -- +(1.85,-7) ; %legs
+}
+
+
+\newcommand{\human}[2][1]{
+\path (0,0);   % test line, maybe remove this
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,0) circle(1); %head
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-0.5,-0.5) arc (-135:-45:0.7); % smile
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-0.4, 0.15) ellipse(0.15 and 0.1); %right eye
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0.4, 0.15) ellipse(0.15 and 0.1);  %left eye
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0, 0.15) -- + (0.17, -0.4) -- + (0, -0.4); %nose
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,-1) -- +(0,-4); %body
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.5,-3.5) -- + (0,-1.25) -- + (1.5, -3.5); %arms
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.85,-7) --  + (-1.5, -7) -- + (0, -4) -- + (1.5, -7) -- +(1.85,-7) ; %legs
+}
+
+\newcommand{\humanforward}[2][1]{
+\path (0,0);
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (20:1) arc(20:340:1); %head
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-35:1) arc(-90:-135:0.7); % smile
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0.55, 0.15) ellipse(0.15 and 0.1);  %right eye
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (20:1) -- + (-16:1.17) -- + (-20:1); %nose
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-0.1,0.25) -- + (-0.25,0.25) -- + (-0.2, -0.45) -- +(-0.1,-0.45) --+(0,-0.4); % -- + arc(-90:75:0.02); %ear
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,-1) -- +(0,-4); %body
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (0,-1.25) -- + (1.2, -2.5) -- +(2.6, -2.7); %arms
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.15,-7) --  + (-1.5, -7) -- + (0, -4) -- + (1.5, -7) -- +(1.85,-7) ; %legs
+}
+
+
+
+
+%% \antena[size]{A}{4,2}
+
+\newcommand{\antena}[3][1]{
+\path ($(#3)+(XYshift)$) coordinate (#2) {};
+\path ($(#3)+(XYshift)$) coordinate (fontlocation);
+\path (0, 0) coordinate (#2 right);
+\path (0, 0) coordinate (#2 top);
+\draw[shift={($(#3)+(XYshift)$)}, thin, scale=#1]  + (90:0) -- + (90:2.5)-- + (90:0) -- + (70:2.2) -- +(90:0) -- (120:2.2); %antena
+}
+
+
+%% \laptop[size]{A}{4,2}
+
+
+
+
+\newcommand{\laptop}[2][1]{
+\path (0,0);
+%\path (2.2, -2.9);
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (1.7,-3.1) rectangle (4.3, -2.9);
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (4.32,-2.9) -- +($(4.32,-2.9)+(75:2.6)$) -- + ($(4.32,-2.9)+(75:2.6)+(165:0.2)$) --+ ($(4.32,-2.9)+(165:0.2)$) -- cycle;
+}
+
+
+\newcommand{\laptoptest}[2][1]{
+\path (0,0);
+%\path (2.2, -2.9);
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (-1.3,-0.1) rectangle (1.3, 0.1);
+\draw[shift={($(#2)+(XYshift)$)}, thin, scale=#1] + (1.32,0.1) -- +($(1.32,0.1)+(75:2.6)$) -- + ($(1.32,0.1)+(75:2.6)+(165:0.2)$) --+ ($(1.32,0.1)+(165:0.2)$) -- cycle;
+}
+
+
+%% small dots for in text use.
+
+\newcommand{\smallblackcircle}{\begin{compose} \cshapefill[thin]{\acircle}{A}{5pt}{5pt}{0,0}\end{compose} }
+\newcommand{\smallwhitecircle}{\begin{compose} \cshape[thin]{\acircle}{A}{5pt}{5pt}{0,0} \end{compose} }
+
+\newcommand{\smallblacksquare}{\begin{compose} \cshapefill[thin]{\arectangle}{A}{5pt}{5pt}{0,0} \end{compose} }
+\newcommand{\smallwhitesquare}{\begin{compose} \cshape[thin]{\arectangle}{A}{5pt}{5pt}{0,0} \end{compose} }
+
+
+
+
+
+
+
+%

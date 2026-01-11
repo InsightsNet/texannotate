@@ -214,13 +214,13 @@ access fonts for the \string\astro\space command
 }\stop}
 
    \def\apjsecfont{\normalsize}
-   \def\secnum@size{\normalsize}
+   \def\secnum@size{\small}
    \def\subsecnum@size{\normalsize}
 
     \def\AppendixApjSectionMarkInTitle#1{\relax}
 \newif\ifletteredappendix
      \DeclareOption{letteredappendix}{\global\letteredappendixtrue
-       \def\AppendixApjSectionMarkInTitle#1{#1\ }
+       \def\AppendixApjSectionMarkInTitle#1{#1.\ }
      }
 
 %% this option is obsolete, since letteredappendix is a more logical name;
@@ -778,8 +778,8 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
 %% 
 \renewcommand\title[2][]{%
 \def\@title{\setbox0=\vbox{\let\footnote\tempfootnote #2}%
-{\Large%\uppercase % changed to \Large by Bin Ren to match 2019 ApJ publication font size for title
-\bf{#2}}%% here??? % changed by Bin Ren
+{\let\footnote\tempfootnoteintitle%\uppercase
+{#2}}%% here???
 \kickoutfootnotes
 \ifdoublespace\vskip 3\baselineskip\fi
 }%
@@ -802,7 +802,7 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
 
 
 \def\frontmatter@authorformat{\small\advance\baselineskip-3pt
-\parskip=0pt\ifrnaas\else\fi % changed by Bin Ren
+\parskip=0pt\ifrnaas\else\scshape\fi
 \ifmodern
 \vskip48pt
 \centering
@@ -876,7 +876,7 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
 \def\frontmatter@preabstractspace{12pt}
 \def\frontmatter@postabstractspace{12pt}
 
-\def\abstractname{\textbf{Abstract}} % Changed by Bin Ren
+\def\abstractname{ABSTRACT}
 \long\def\frontmatter@abstractheading{%
  \begingroup
   \centering
@@ -1125,7 +1125,7 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
 \def\p@subparagraph   {}
 
 
-\def\sec@upcase#1{\textbf{#1}} % Changed by Bin Ren
+\def\sec@upcase#1{\uppercase{#1}}
 \def\subsec@upcase#1{\relax{#1}}
 
 %
@@ -1143,8 +1143,8 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
     \refstepcounter{#1} \edef \@svsec {\ApjSectionMarkInTitle 
     {\csname the#1\endcsname}}\fi
   \@hangfrom {\hskip #3\relax 
-    \ifnum #2=1{\secnum@size {\bf\@svsec~}}% Modified by Bin Ren to match 2019 ApJ publication style: Section number font (\bf)
-    \else {\subsecnum@size {\it\@svsec~}}\fi }% Modified by Bin Ren to match 2019 ApJ publication style: Subsection number font (\it)
+    \ifnum #2=1{\secnum@size {\rm\@svsec~}}%
+    \else {\subsecnum@size {\rm\@svsec~}}\fi }%
   {\interlinepenalty \@M 
    \ifnum #2=1\sec@upcase{#8}%
    \else \subsec@upcase{#8}\fi\par}\endgroup 
@@ -1245,12 +1245,14 @@ the#1\endcsname}
 \def\appendix{
 \global\appendixontrue
 \if@two@col  
-\twocolumngrid % changed by Bin Ren on 2019 June 19 to allow for two column appendices
-\noindent\mbox{}\vrule height 24pt width0pt\hfill{\apjsecfont}\hfill\mbox{}\par\vskip18pt % changed by Bin Ren
+\onecolumngrid
+\noindent\mbox{}\vrule height 24pt width0pt\hfill{\apjsecfont APPENDIX}\hfill\mbox{}\par
+\vskip18pt
    \if@two@col@app\global\@two@coltrue\twocolumngrid \fi
    % above, we want onecolumngrid to be default. Only twocolumn is asked for in documentclass option
 \else
-\noindent\mbox{}\vrule height 24pt width0pt\hfill{\apjsecfont}\hfill\mbox{}\par % changed by Bin Ren
+\noindent\mbox{}\vrule height 24pt width0pt\hfill{\apjsecfont
+APPENDIX}\hfill\mbox{}\par 
 \vskip18pt
     \if@two@col@app\global\@two@coltrue\twocolumngrid 
          \fi\fi
@@ -1261,15 +1263,10 @@ the#1\endcsname}
           \setcounter{section}{0}
           \setcounter{subsection}{0}
           \setcounter{equation}{0}
-          \setcounter{figure}{0}
 %%
 \ifletteredappendix
-\def\thesection{Appendix~\Alph{section}}
-\def\thesubsection{\Alph{section}.\arabic{subsection}}
-\def\thesubsubsection{\Alph{section}.\arabic{subsubsection}}
-\def\theparagraph{\Alph{section}.\arabic{paragraph}}
-\def\theequation{\hbox{\Alph{section}\arabic{equation}}}
-\def\thefigure{\hbox{\Alph{section}\arabic{figure}}}
+          \def\thesection{\Alph{section}}
+          \def\theequation{\hbox{\Alph{section}\arabic{equation}}}
 %% these are NOT supposed to reset to zero
 %\setcounter{table}{0}
 %\setcounter{figure}{0}
@@ -1335,8 +1332,8 @@ the#1\endcsname}
 \onecolumngrid
 \vspace{20pt}
 \goodbreak
- \hbox to\textwidth{\hss\normalsize \textbf{References}\hss} % changed by Bin Ren
- \vspace{15pt}\parskip=0pt % changed by Bin Ren
+    \hbox to\textwidth{\hss\normalsize REFERENCES\hss}
+\vspace{6pt}\parskip=0pt
 \twocolumngrid 
 \par
  \raggedright
@@ -1355,11 +1352,11 @@ the#1\endcsname}
 \ifdoublespace
 \baselineskip=20pt
 \else
-\baselineskip=12.5pt plus 1pt \fi\fi \interlinepenalty \@M  % AV
+\baselineskip=13pt plus 1pt \fi\fi \interlinepenalty \@M  % AV
      \frenchspacing    % AV - to get right spacing after ``et al.'' 
      \hyphenpenalty=10000
      \itemindent=-1.0em                      %
-     \itemsep=-2pt                            % changed by Bin Ren
+     \itemsep=0pt                            %
      \listparindent=0pt                      %
      \settowidth\labelwidth{0pt} %
      \labelsep=0pt                           %
@@ -1743,6 +1740,7 @@ the#1\endcsname}
 \renewcommand\apj{\ref@jnl{ApJ}}%    % Astrophysical Journal 
 \newcommand\apjl{\ref@jnl{ApJL}}     % Astrophysical Journal, Letters 
 \newcommand\apjs{\ref@jnl{ApJS}}%    % Astrophysical Journal, Supplement 
+\newcommand\psj{\ref@jnl{PSJ}}%      % Planetary Science Journal
 \renewcommand\ao{\ref@jnl{ApOpt}}%   % Applied Optics 
 \newcommand\apss{\ref@jnl{Ap\&SS}}%  % Astrophysics and Space Science 
 \newcommand\aap{\ref@jnl{A\&A}}%     % Astronomy and Astrophysics 
@@ -1784,7 +1782,7 @@ the#1\endcsname}
 \newcommand\nphysa{\ref@jnl{NuPhA}}%     % Nuclear Physics A 
 \newcommand\physrep{\ref@jnl{PhR}}%       % Physics Reports 
 \newcommand\physscr{\ref@jnl{PhyS}}%        % Physica Scripta 
-\newcommand\planss{\ref@jnl{P\&SS}}%  % Planetary Space Science 
+\newcommand\planss{\ref@jnl{Planet.~Space~Sci.}}%  % Planetary Space Science 
 \newcommand\procspie{\ref@jnl{Proc.~SPIE}}%      % Proceedings of the SPIE 
 
 \newcommand\actaa{\ref@jnl{AcA}}%  % Acta Astronomica
@@ -5764,10 +5762,6 @@ by 1\relax}\ignorespaces}%
 \newcommand*\submitjournal[1]
 {\def\@submitted{Submitted to #1}}%
 
-\newcommand*\acceptjournall[1]
-{\def\@submitted{Accepted to #1}}% Added by Bin Ren
-
-
 %% this one is used &&&
 \def\titleblock@produce{%
  \begingroup
@@ -6242,12 +6236,12 @@ on page
  \move@AU\move@AF\move@AUAF
  \let\@AF@join\@author@join
  \def\@author{{\href{http://orcid.org/#1}{#2%
-\openin1 orcid.png \ifeof1
+\openin1 Orcid-ID.png \ifeof1
 %% message for authors??
-%\typeout{^^J^^J  ! Missing File: orcid.png; needed for Orcid Author icon !
+%\typeout{^^J^^J  ! Missing File: Orcid-ID.png; needed for Orcid Author icon !
 %^^J}
 \else%
-\hskip2pt\includegraphics[width=7pt]{orcid.png}\fi}}{}}% Modified by Bin Ren
+\hskip2pt\includegraphics[width=9pt]{Orcid-ID.png}\fi}}{}}%
 }%
 
 \def\orciderrormessage{
@@ -7536,12 +7530,6 @@ with additions.
 
 ================
 
-================
-June 19, 2019
-
- Modified by Bin Ren to match 2019 ApJ publication style, including (but not limited to)
- 1. Bold font for Section number and text.
- 2. Two column appendix is turned on.
 
 
 

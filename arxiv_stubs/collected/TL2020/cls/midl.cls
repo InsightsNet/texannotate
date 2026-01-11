@@ -1,6 +1,5 @@
-  
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{midl}[2018/10/09 v1.0 MIDL Proceedings]
+\ProvidesClass{midl}[2020/01/19 v1.2 MIDL Proceedings]
 
 % Note that if the use of NoHyper below still causes
 % issues, we could suppress hyperlinks to footnotes entirely
@@ -22,10 +21,18 @@
 
 \LoadClass[pmlr]{jmlr}
 
+\@ifclasslater{jmlr}{2020/01/17}{%
+% Using a post 1.25 version of jmlr.cls - all good
+}{%
 % Temporary workaround for incompatibility of jmlr class with filename handeling in 2019 latex release
-% (see https://tex.stackexchange.com/questions/513300/unable-to-compile-with-includegraphics-using-jmlr-cls)
-%\def\set@curr@file#1{\def\@curr@file{#1}}
+% See https://tex.stackexchange.com/questions/513300/unable-to-compile-with-includegraphics-using-jmlr-cls
+% https://github.com/MIDL-Conference/MIDLLatexTemplate/issues/3
+% https://ctan.org/ctan-ann/id/mailman.3352.1579371965.2586.ctan-ann@ctan.org
+\ClassWarning{midl}{Using a pre 1.25 version of jmlr.cls with an midl-specific work around}
+\def\set@curr@file#1{\def\@curr@file{#1}}
+}
 
+\jmlrproceedings{PMLR}{Proceedings of Machine Learning Research}
 
 \renewcommand\cite{\citep}
 
@@ -33,7 +40,7 @@
 \newcommand{\midlotherjointauthor}{\nametag{\addtocounter{footnote}{-1}\footnotemark}}
 
 \ifanonsubmission
- \newcommand{\midlauthor}[1]{\author{\Name{Author(s) names withheld} \Email{email(s) withheld} \\ \addr Address withheld}}
+ \newcommand{\midlauthor}[1]{\author{\Name[Anonymous]{Author name(s) withheld} \Email{email(s) withheld} \\ \addr Address withheld}}
  \newcommand{\midlacknowledgments}[1]{\acks{Acknowledgments withheld.}}
 \else
  \newcommand{\midlauthor}[1]{\author{\begin{NoHyper}#1\end{NoHyper}}}

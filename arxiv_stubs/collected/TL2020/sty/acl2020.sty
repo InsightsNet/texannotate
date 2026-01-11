@@ -337,7 +337,7 @@
 
 
 \def\aclpaperid{***}
-\def\confidential{\textcolor{black}{ACL 2020 Submission~\aclpaperid.  Confidential Review Copy.  DO NOT DISTRIBUTE.}}
+\def\confidential{\textcolor{black}{ACL 2021 Submission~\aclpaperid.  Confidential Review Copy.  DO NOT DISTRIBUTE.}}
 
 %% Page numbering, Vruler and Confidentiality %%
 % \makevruler[<SCALE>][<INITIAL_COUNT>][<STEP>][<DIGITS>][<HEIGHT>]
@@ -450,6 +450,10 @@
 \renewcommand\cite{\citep}	% to get "(Author Year)" with natbib    
 \newcommand\shortcite{\citeyearpar}% to get "(Year)" with natbib    
 \newcommand\newcite{\citet}	% to get "Author (Year)" with natbib    
+
+% DK/IV: Workaround for annoying hyperref pagewrap bug 
+\RequirePackage{etoolbox}
+%\patchcmd\@combinedblfloats{\box\@outputbox}{\unvbox\@outputbox}{}{\errmessage{\noexpand patch failed}}
 
 % bibliography
 

@@ -571,6 +571,7 @@ FUNCTION {n.separate}
 }
 FUNCTION {n.dashify}
 {
+  n.separate
   't :=
   ""
     { t empty$ not }

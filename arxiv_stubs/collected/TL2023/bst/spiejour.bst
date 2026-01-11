@@ -420,10 +420,10 @@ FUNCTION {format.journal.volume.number}
 { journal empty$
     { "empty " t * " in " * cite$ * warning$ ""}
     { journal emphasize }
-  if$
-  volume empty$      %% kmh - warning if no volume
-    { "empty volume in " cite$ * warning$ " " *}
-    { " " * volume bold *}      %% kmh - make volume bold
+%%  if$
+%%  volume empty$      %% kmh - warning if no volume
+%%    { "empty volume in " cite$ * warning$ " " *}
+%%    { " " * volume bold *}      %% kmh - make volume %%bold
 %%    { "vol.~" volume * }
   if$
   month empty$

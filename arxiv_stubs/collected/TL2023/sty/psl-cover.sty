@@ -1,5 +1,5 @@
 % LaTeX PSL thesis cover template
-% Copyright (c) 2018, Pierre Guillou
+% Copyright (c) 2016, Pierre Guillou
 % All rights reserved.
 %
 % This program is free software: you can redistribute it and/or modify
@@ -20,82 +20,34 @@
 
 \ProvidesPackage{psl-cover}
 
-\RequirePackage{tabularx}
-\RequirePackage{etoolbox}
+\RequirePackage{xcolor}
 \RequirePackage{iftex}
 \RequirePackage{tikz}
 \usetikzlibrary{backgrounds}
 
-\definecolor{pslblue}{RGB}{36, 56, 141}
+\definecolor{pslpurple}{RGB}{62, 55, 134}
 
 \newcommand*{\institute}[1]{\gdef\@institute{#1}}
-\newcommand*{\laboratory}[1]{\gdef\@laboratory{#1}}
+\newcommand*{\@institute}{l'Observatoire de Paris}
+
 \newcommand*{\specialty}[1]{\gdef\@specialty{#1}}
-\newcommand*{\doctoralschool}[2]{
-  \gdef\@doctoralschoolname{#1}%
-  \gdef\@doctoralschoolnumber{#2}
-}
-%% default values
-%\newcommand*{\@institute}{MINES ParisTech}
-%\newcommand*{\@specialty}{Sp\'{e}cialit\'{e} de l'ED}
-%\newcommand*{\@doctoralschoolname}{Nom de l'ED}
-%\newcommand*{\@doctoralschoolnumber}{XXX}
+\newcommand*{\@specialty}{Indiquez votre sp\'{e}cialit\'{e}}
 
-\newcommand{\jurymember}[4]{
-  \ifnum#1=1
-  \gdef\@jiname{#2}\gdef\@jitt{#3}\gdef\@jirole{#4}
-  \fi
-  \ifnum#1=2
-  \gdef\@jiiname{#2}\gdef\@jiitt{#3}\gdef\@jiirole{#4}
-  \fi
-  \ifnum#1=3
-  \gdef\@jiiiname{#2}\gdef\@jiiitt{#3}\gdef\@jiiirole{#4}
-  \fi
-  \ifnum#1=4
-  \gdef\@jivname{#2}\gdef\@jivtt{#3}\gdef\@jivrole{#4}
-  \fi
-  \ifnum#1=5
-  \gdef\@jvname{#2}\gdef\@jvtt{#3}\gdef\@jvrole{#4}
-  \fi
-  \ifnum#1=6
-  \gdef\@jviname{#2}\gdef\@jvitt{#3}\gdef\@jvirole{#4}
-  \fi
-  \ifnum#1=7
-  \gdef\@jviiname{#2}\gdef\@jviitt{#3}\gdef\@jviirole{#4}
-  \fi
-  \ifnum#1=8
-  \gdef\@jviiiname{#2}\gdef\@jviiitt{#3}\gdef\@jviiirole{#4}
-  \fi
-  \ifnum#1=9
-  \gdef\@jixname{#2}\gdef\@jixtt{#3}\gdef\@jixrole{#4}
-  \fi
-  \ifnum#1=10
-  \gdef\@jxname{#2}\gdef\@jxtt{#3}\gdef\@jxrole{#4}
-  \fi
-  \ifnum#1=11
-  \gdef\@jxiname{#2}\gdef\@jxitt{#3}\gdef\@jxirole{#4}
-  \fi
-  \ifnum#1=12
-  \gdef\@jxiiname{#2}\gdef\@jxiitt{#3}\gdef\@jxiirole{#4}
-  \fi
-}
+\newcommand*{\doctoralschool}[2]{\gdef\@doctoralschoolname{#1}%
+  \gdef\@doctoralschoolnumber{#2}}
+\newcommand*{\@doctoralschoolname}{Nom d'\'{e}cole doctorale nom
+  d'\'{e}cole doctorale}
+\newcommand*{\@doctoralschoolnumber}{NNN}
 
-%% empty default values
-\newcommand*{\@jiname}{} \newcommand*{\@jitt}{} \newcommand*{\@jirole}{}
-\newcommand*{\@jiiname}{} \newcommand*{\@jiitt}{} \newcommand*{\@jiirole}{}
-\newcommand*{\@jiiiname}{} \newcommand*{\@jiiitt}{} \newcommand*{\@jiiirole}{}
-\newcommand*{\@jivname}{} \newcommand*{\@jivtt}{} \newcommand*{\@jivrole}{}
-\newcommand*{\@jvname}{} \newcommand*{\@jvtt}{} \newcommand*{\@jvrole}{}
-\newcommand*{\@jviname}{} \newcommand*{\@jvitt}{} \newcommand*{\@jvirole}{}
-\newcommand*{\@jviiname}{} \newcommand*{\@jviitt}{} \newcommand*{\@jviirole}{}
-\newcommand*{\@jviiiname}{} \newcommand*{\@jviiitt}{} \newcommand*{\@jviiirole}{}
-\newcommand*{\@jixname}{} \newcommand*{\@jixtt}{} \newcommand*{\@jixrole}{}
-\newcommand*{\@jxname}{} \newcommand*{\@jxtt}{} \newcommand*{\@jxrole}{}
-\newcommand*{\@jxiname}{} \newcommand*{\@jxitt}{} \newcommand*{\@jxirole}{}
-\newcommand*{\@jxiiname}{} \newcommand*{\@jxiitt}{} \newcommand*{\@jxiirole}{}
+\newcommand*{\supervisor}[2][]{\gdef\@supervisor{#2}%
+  \gdef\@manager{#1}}
+\newcommand*{\@supervisor}{Pr\'{e}nom Nom}
 
-\newcommand*{\pslassetspath}[1]{\gdef\@pslassetspath{#1}}
-\newcommand*{\@pslassetspath}{.}
+\newcommand{\jury}[1]{\long\gdef\@jury{#1}}
+\newcommand*{\@jury}{}
+
+\newcommand*{\logopath}[1]{\gdef\@logopath{#1}}
+\newcommand*{\@logopath}{./Figures/}
 
 \newcommand{\frabstract}[1]{\long\gdef\@frabstract{#1}}
 \newcommand*{\@frabstract}{}
@@ -116,7 +68,7 @@
 \else
 \fi
 \ifXeTeX{}
-\newfontfamily\pslfont{Arial}
+\newfontfamily\pslfont{arial}
 \newenvironment{pslfontenv}{\pslfont}{\par}
 \else
 \fi
@@ -126,15 +78,10 @@
 \fi
 
 \newif\if@nomaketitle\@nomaketitlefalse
+
 \DeclareOption{nomaketitle}{
   \@nomaketitletrue
 }
-
-\newif\if@cotutelle\@cotutellefalse
-\DeclareOption{cotutelle}{
-  \@cotutelletrue
-}
-
 \ProcessOptions{}\relax{}
 
 \if@nomaketitle
@@ -145,15 +92,9 @@
 }
 \fi
 
-\if@cotutelle
-\newcommand{\entitle}[1]{\gdef\@entitle{#1}}
-\newcommand{\otherinstitute}[1]{\gdef\@otherinstitute{#1}}
-\newcommand{\logootherinstitute}[1]{\gdef\@logootherinstitute{#1}}
-\fi
-
 %% Whole PSL cover, front + back
 \newcommand*{\pslcover}{
-  \AfterPreamble{\pslfrontcover{}}
+  \pslfrontcover{}
   \AtEndDocument{\pslbackcover{}}
 }
 
@@ -164,134 +105,103 @@
     \begin{tikzpicture}[overlay, remember picture,
       text centered, align=center]
 
-      %% background PSL logo
-      \node[on background layer]
-      at (current page.center) {\includegraphics{\@pslassetspath/front-bg.jpg}};
+      %% scaled PSL logo
+      \node[on background layer, xshift=12.5cm, yshift=-3.5cm]
+      at (current page.center) {\scalebox{6.25}{\psllogo}};
 
       %% node origin
       \coordinate (o) at (current page.center);
-      \coordinate[yshift=-0mm] (o2) at (o);
-      
-      %% institute
-      \node[xshift=-86mm, yshift=75mm, anchor=north west] at (o) {
-        \begin{minipage}[h]{.45\paperwidth}
-          \color{pslblue}
-          \fontsize{14}{17}\selectfont
-          Pr\'{e}par\'{e}e \`{a} \@institute{}\unskip\strut\par
-          \if@cotutelle
-          Dans le cadre d'une cotutelle avec \@otherinstitute{}\unskip\strut\par
-          \fi
+
+      %% header
+      \node[xshift=-85mm, yshift=128.5mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{pslpurple}
+          {\fontsize{18}{21}\selectfont
+            \textbf{TH\`{E}SE DE DOCTORAT}\unskip\strut\par}
+          \vspace{.5cm}
+          {\fontsize{17}{20}\selectfont de l'Universit\'{e} de recherche
+            Paris Sciences et Lettres\\
+            PSL Research University\unskip\strut\par
+          }
+          \vspace{1.8cm}
+          {\fontsize{15}{18}\selectfont
+            \textbf{Pr\'{e}par\'{e}e \`{a} \@institute{}}\unskip\strut\par
+          }
         \end{minipage}
       };
 
       %% thesis title
-      \if@cotutelle
-      \node[yshift=0mm] at (o2) {
+      \node[xshift=-82mm, yshift=49mm, anchor=north west] at (o) {
         \begin{minipage}[h]{.85\paperwidth}
-          \centering
-          \fontsize{18}{22}\selectfont
-          \textbf{\@title{}}\unskip\strut\par
-          \vspace{5mm}
-          \color{pslblue}
-          \@entitle{}\unskip\strut\par
-        \end{minipage}
-      };
-      \else
-      \node[yshift=31mm] at (o2) {
-        \begin{minipage}[h]{.85\paperwidth}
-          \centering
-          \fontsize{18}{22}\selectfont
-          \textbf{\@title{}}\unskip\strut\par
-        \end{minipage}
-      };
-      \fi
-        
-        \coordinate[yshift = 10mm] (o3) at (o2);
-
-      %% author
-      \node[xshift=-86mm, yshift=-8mm, anchor=north west] (autho) at (o3) {
-        \begin{minipage}[h]{.3\paperwidth}
-          \pslbluelabel{Soutenue par}\unskip\strut\par
-          \vspace{1mm}
-          {\fontsize{16}{19}\selectfont\textbf{\@author{}}}\unskip\strut\par
-          \vspace{1mm}
-          {\fontsize{12}{15}\selectfont Le \@date{}}\unskip\strut\par
+          \color{white}\fontsize{16}{19}\selectfont
+          \@title{}\unskip\strut\par
         \end{minipage}
       };
 
       %% doctoral school
-      \node[xshift=0mm, yshift=-7mm, anchor=north west] (docsc) at (autho.south west) {
-        \begin{minipage}[h]{.3\paperwidth}
-          \pslbluelabel{\'{E}cole doctorale n\textsuperscript{o}\@doctoralschoolnumber{}}
+      \node[xshift=-70mm, yshift=24mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white} \textbf{\fontsize{16}{19}\selectfont \'{E}cole doctorale
+            n\textsuperscript{o}\@doctoralschoolnumber{}}\unskip\strut\par
+          \vspace{.4cm}
+          {\fontsize{12}{14}\selectfont
+            \expandafter\MakeUppercase\expandafter{\@doctoralschoolname{}}}
           \unskip\strut\par
-            \vspace{1mm}
-            \begin{flushleft} \unskip
-            {\fontsize{14}{17}\selectfont\textbf{\@doctoralschoolname{}}}
-            \end{flushleft} 
         \end{minipage}
       };
 
       %% doctoral specialty
-      \node[xshift=0mm, yshift=-7mm, anchor=north west] (docspe) at (docsc.south west) {
-        \begin{minipage}[h]{.3\paperwidth}
-          \pslbluelabel{Sp\'{e}cialit\'{e}}
-          \unskip\strut\par
-          \vspace{1mm}
-          {\fontsize{14}{17}\selectfont\textbf{\@specialty{}}}
+      \node[xshift=-55mm, yshift=2mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white}
+          \textbf{\fontsize{16}{19}\selectfont Sp\'{e}cialit\'{e}}\quad
+          {\fontsize{11}{13}\selectfont
+            \expandafter\MakeUppercase\expandafter{\@specialty{}}}
         \end{minipage}
       };
 
-      %% labo
-      \node[xshift=0mm, yshift=-7mm, anchor=north west] (labo) at (docspe.south west) {
-        \begin{minipage}[h]{.4\paperwidth}
-          \pslbluelabel{Pr\'{e}par\'{e}e au}
+      %% author and supervisor
+      \node[xshift=-86mm, yshift=-75mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \fontsize{15}{18}\selectfont\color{pslpurple}
+          Soutenue par \textbf{\fontsize{16}{19}\selectfont\@author{}}\\
+          le \@date{}\unskip\strut\par
+          \vspace{1cm}
+          {\fontsize{14}{17}\selectfont
+            Dirig\'{e}e par \textbf{\@supervisor{}}
+            \ifx\@manager\empty
+            \else
+            
+            \hspace{1.85cm} et \hspace{0.2cm} \textbf{\@manager{}}
+            \fi
             \unskip\strut\par
-            \vspace{1mm}
-            \begin{flushleft} \unskip
-            % {\fontsize{14}{17}\selectfont\textbf{\@laboratory{}}}
-            {\fontsize{12}{15}\selectfont \@laboratory{}}
-            \end{flushleft} 
+          }
         \end{minipage}
       };
 
       %% jury
-      \node[fill=lightgray!10, xshift=-15mm, yshift=-6.5mm, anchor=north west] (compo) at (o3) {
-        \begin{minipage}[h]{100mm}
-          \vspace{2mm}
-          {\hspace{1mm}\color{pslblue}\fontsize{12}{15}\selectfont Composition du jury :}
-
-          \vspace{5mm}
-          \hspace{-2mm}
-          \fontsize{9}{11}\selectfont
-          \begin{tabularx}{100mm}{p{70mm}p{30mm}}
-            \psljurystylepresident{\@jiname}{\@jitt}%{\@jirole}
-            \psljurystyle{\@jiiname}{\@jiitt}{\@jiirole}
-            \psljurystyle{\@jiiiname}{\@jiiitt}{\@jiiirole}
-            \psljurystyle{\@jivname}{\@jivtt}{\@jivrole}
-            \psljurystyle{\@jvname}{\@jvtt}{\@jvrole}
-            \psljurystyle{\@jviname}{\@jvitt}{\@jvirole}
-            \psljurystyle{\@jviiname}{\@jviitt}{\@jviirole}
-            \psljurystyle{\@jviiiname}{\@jviiitt}{\@jviiirole}
-            \psljurystyle{\@jixname}{\@jixtt}{\@jixrole}
-            \psljurystyle{\@jxname}{\@jxtt}{\@jxrole}
-            \psljurystyle{\@jxiname}{\@jxitt}{\@jxirole}
-            \psljurystyle{\@jxiiname}{\@jxiitt}{\@jxiirole}
-          \end{tabularx}
-          \vspace{0mm}
+      \node[xshift=28mm, yshift=-18.5mm, anchor=north west] at (o) {
+        \begin{minipage}[h]{\paperwidth}
+          \color{white}
+          \fontsize{11}{13}\selectfont
+          \expandafter\MakeUppercase\expandafter{\textbf{Composition
+              du jury :}}\unskip\strut\par
+          \vspace{.6cm}
+          \setlength{\parskip}{.4cm}
+          \@jury{}
         \end{minipage}
       };
 
-      %% PSL institute logo
-       \node[xshift=0mm, yshift=-124mm] at (o) {
-          \includegraphics[scale=.25]{\@pslassetspath/logo-institute.jpg}
-       };
-
-      %% other institute logo (cotutelle)
-      \if@cotutelle
-      \node[xshift=65mm, yshift=125mm] at (o) {
-        \includegraphics[height=1.8cm]{\@logoinstitute}
+      %% logos
+      \coordinate[xshift=-64.3mm, yshift=-118.5mm] (vt0) at (o);
+      \coordinate[xshift=-64.3mm, yshift=-136.5mm] (vt1) at (o);
+      \draw[darkgray] (vt0) -- (vt1);
+      \node[xshift=-75mm, yshift=-126.5mm] at (o) {
+        \includegraphics[width=2cm]{\@logopath/LESIA.png}
       };
-      \fi
+      \node[xshift=-50mm, yshift=-126.5mm] at (o) {
+        \includegraphics[width=2cm]{\@logopath/logo-psl}
+      };
 
     \end{tikzpicture}
   \end{pslfontenv}
@@ -308,80 +218,102 @@
   \cleardoublepage{}
   \ifodd\value{page}\hbox{}\newpage\fi
   \begin{pslfontenv}
-    \begin{tikzpicture}[overlay, remember picture, text centered, align=center]
+    \begin{tikzpicture}[overlay, remember picture,
+      text centered, align=center]
 
       %% node origin
       \coordinate (o) at (current page.center);
 
-      % background images (PSL logo and blue semi-circle)
-      \node[on background layer, xshift=73mm, yshift=-94mm] at (current page.north west)
-      {\includegraphics[scale=.75]{\@pslassetspath/back-bg.png}};
-      \coordinate[xshift=-21mm] (circcenter) at (current page.south east);
-      \filldraw[pslblue] (circcenter) circle(21mm);
-      \coordinate[xshift=-56mm, yshift=.2mm] (gl0) at (current page.south east);
-      \draw[darkgray, line width=.5mm] (gl0) -| (current page.south east);
+      %% scaled PSL logo
+      \node[on background layer, xshift=-10.5cm, yshift=-5cm]
+      at (current page.center) {\scalebox{5}{\psllogo}};
+
+      %% white rectangle
+      \coordinate[xshift=-70mm, yshift=-122mm] (r0) at (o);
+      \coordinate[xshift=70mm, yshift=122mm] (r1) at (o);
+      \fill[white] (r0) rectangle (r1);
 
       \fontsize{11}{13}\selectfont
-      %% french keywords
-      \node[yshift=0mm, above] (frKeywords) at (o) {
-        \pslbacknode{MOTS CL\'{E}S}{\@frkeywords{}}{10}{12}
-      };
       %% french abstract
-      \node[yshift=2mm, above] at (frKeywords.north) {
-        \pslbacknode{R\'{E}SUM\'{E}}{\@frabstract{}}{9}{11}
+      \node[xshift=-68mm, yshift=+122mm, anchor=north west] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont R\'{e}sum\'{e}}\unskip\strut\par
+          \vspace{.5cm}
+          \@frabstract{}
+        \end{minipage}
+      };
+      %% french keywords
+      \node[xshift=-68mm, yshift=-122mm, anchor=south west] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Mots Cl\'{e}s}\unskip\strut\par
+          \vspace{.5cm}
+          \@frkeywords{}
+          \vspace{.5cm}
+        \end{minipage}
       };
       %% english abstract
-      \node[yshift=-6mm, below] (enAbstract) at (o) { % old -10mm
-        \pslbacknode{ABSTRACT}{\@enabstract{}}{9}{11}
+      \node[xshift=+69mm, yshift=+122mm, anchor=north east] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Abstract}\unskip\strut\par
+          \vspace{.5cm}
+          \@enabstract{}
+        \end{minipage}
       };
       %% english keywords
-      \node[yshift=-2mm, below] at (enAbstract.south) {
-        \pslbacknode{KEYWORDS}{\@enkeywords{}}{10}{12}
+      \node[xshift=+69mm, yshift=-122mm, anchor=south east] at (o) {
+        \begin{minipage}[ht]{.3\paperwidth}
+          \color{pslpurple}
+          {\fontsize{15}{18}\selectfont Keywords}\unskip\strut\par
+          \vspace{.5cm}
+          \@enkeywords{}
+          \vspace{.5cm}
+        \end{minipage}
       };
-
     \end{tikzpicture}
   \end{pslfontenv}
 }
 
-%% Some text styling
-\newcommand{\pslbluelabel}[1]{{\color{pslblue}\fontsize{12}{15}\selectfont #1}}
-% \newcommand{\psljurystyle}[3]{
-%   \ifdefempty{#1}{}{
-%     \fontsize{10}{12}\selectfont #1 & \\
-%     #2 & \emph{#3} \\[3mm]
-%   }
-% }
+%% Simplified PSL logo
+\newcommand*{\psllogo}{
+  \begin{tikzpicture}[text centered, align=center,
+    squarecircle/.style={line width=3, pslpurple},
+    diagonals/.style={pslpurple, line width=1.1},
+    smallcircle/.style={line width=1.3},
+    wcircle/.style={smallcircle, white},
+    pcircle/.style={smallcircle, pslpurple},
+    ]
 
-\newcommand{\psljurystyle}[3]{
-  \ifdefempty{#1}{}{
-    \fontsize{10}{12}\selectfont #1 & \emph{#3}\\
-    #2 &  \\[3mm]
-  }
+    \def\hwidth{5}
+    \def\gratio{(1 + sqrt(5))/2}
+    \def\swidth{\hwidth / (\gratio * \gratio)}
+
+    %% main square, circle
+    \draw[squarecircle]
+    (-\hwidth, -\hwidth) rectangle +(2*\hwidth, 2*\hwidth);
+    \draw[squarecircle] (0, 0) circle (\hwidth);
+
+    %% secondary lines
+    \draw[diagonals] (-\hwidth, -\hwidth) -- (\hwidth, \hwidth);
+    \draw[diagonals] (0, 0) -- (\hwidth, -\hwidth);
+    \draw[diagonals] (0, 0) -- (\hwidth, 0);
+    \draw[diagonals] (0, \hwidth) -- (0, -\hwidth);
+
+    %% pentagon, five-branch star
+    \coordinate (a) at (90:\hwidth);
+    \coordinate (b) at (18:\hwidth);
+    \coordinate (c) at (-54:\hwidth);
+    \coordinate (d) at (-126:\hwidth);
+    \coordinate (e) at (162:\hwidth);
+    \coordinate (a') at (54:{\swidth} );
+    \coordinate (b') at (-18:{\swidth} );
+    \coordinate (c') at (-90:{\swidth} );
+    \coordinate (d') at (-162:{\swidth} );
+    \coordinate (e') at (126:{\swidth} );
+    \fill[pslpurple] (a) -- (a') -- (b) -- (b') -- (c)
+    -- (d) -- (d') -- (e) -- (e') -- (a) ;
+  \end{tikzpicture}
 }
-
-% \newcommand{\psljurystylepresident}[3]{
-%   \ifdefempty{#1}{}{
-%     \fontsize{10}{12}\selectfont #1 & \emph{Président du jury}\\
-%     #2 & \emph{#3} \\[3mm]
-%   }
-% }
-
-\newcommand{\psljurystylepresident}[2]{
-  \ifdefempty{#1}{}{
-    \fontsize{10}{12}\selectfont #1 & \emph{Président du jury}\\
-    #2 \\[3mm]
-  }
-}
-
-\newcommand{\pslbacknode}[4]{
-  \begin{minipage}[h]{.8\paperwidth}
-    {\color{pslblue}\fontsize{12}{15}\selectfont #1}\unskip\strut\par
-    \vspace{-2.5mm}
-    \tikz{\draw[pslblue, line width=.5mm] (0, 0) -- (16.8, 0);}
-
-    \vspace{1mm} %old 3 mm
-    {\color{black}\fontsize{#3}{#4}\selectfont #2}\unskip\strut\par
-  \end{minipage}
-}
-
 \endinput

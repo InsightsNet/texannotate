@@ -1,4 +1,4 @@
-% UT Physics bibliographic style, ver. 2.7. Based on:
+% UT Physics bibliographic style, ver. 2.5. Based on:
 %
 %X     IEEE Transactions bibliography style (29-Jan-88 version)
 %X       numeric labels, order-of-reference, IEEE abbreviations,
@@ -51,8 +51,6 @@
 %                                    fix journal number formatting.
 %                   ver 2.5   9/10 - Internationalization and some more journal
 %                                    MACROs (thanks to Mateus Araujo)
-%                   ver 2.7   8/11 - Fix "et~al." in format.crossref.editor, too.
-%                                    (Reported by Blake Stacey)
 %
 % HyperTeX Wizardry:
 %
@@ -371,7 +369,7 @@ FUNCTION {format.names}
 		'skip$
 	      if$
 	      t "others" =
-		{ " {\em et~al.}" * }
+		{ " {\em et al.}" * }
 		{ string.and * t * }
 	      if$
 	    }
@@ -760,11 +758,11 @@ FUNCTION {format.crossref.editor}
 { editor #1 "{vv~}{ll}" format.name$
   editor num.names$ duplicate$
   #2 >
-    { pop$ " {\em et~al.}" * }
+    { pop$ " {\em et.~al.}" * }
     { #2 <
 	'skip$
 	{ editor #2 "{ff }{vv }{ll}{ jj}" format.name$ "others" =
-	    { " {\em et~al.}" * }
+	    { " {\em et.~al.}" * }
 	    { string.and * editor #2 "{vv~}{ll}" format.name$ * }
 	  if$
 	}
