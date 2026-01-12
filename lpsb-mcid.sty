@@ -122,15 +122,29 @@
   \lpsb@orig@twocolumn
   \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
 }
+% Install twocolumn wrapper - but skip for classes with complex twocolumn usage
+% IEEEtran uses \twocolumn[{\IEEEquantizevspace{...}}] which conflicts with
+% our \@ifnextchar[ based wrapper.
 \def\lpsb@install@twocolumn@wrapper{%
-  % If someone overwrote \twocolumn after we wrapped it, re-wrap the new one.
-  % If \twocolumn is already our wrapper, do nothing.
-  \ifx\twocolumn\lpsb@twocolumn@wrapper
-  \else
+  % Check if IEEEtran class is loaded by looking for its internal dimension
+  % (@IEEEtrantmpdimenA is defined early in IEEEtran.cls)
+  \@ifundefined{@IEEEtrantmpdimenA}{%
+    % Not IEEEtran - safe to install full wrapper
+    \ifx\twocolumn\lpsb@twocolumn@wrapper
+    \else
+      \let\lpsb@orig@twocolumn\twocolumn
+      \let\twocolumn\lpsb@twocolumn@wrapper
+      \global\@lpsb@twocolumn@wrappedtrue
+    \fi
+  }{%
+    % IEEEtran detected - use pure passthrough to avoid conflicts
+    \typeout{LPSB-MCID Info: IEEEtran detected - using passthrough twocolumn wrapper}%
     \let\lpsb@orig@twocolumn\twocolumn
-    \let\twocolumn\lpsb@twocolumn@wrapper
-    \global\@lpsb@twocolumn@wrappedtrue
-  \fi
+    \def\twocolumn{%
+      \lpsb@orig@twocolumn
+      % Note: layout switch recording skipped for IEEEtran compatibility
+    }%
+  }%
 }
 \lpsb@install@twocolumn@wrapper
 % Re-install late to capture final \twocolumn definition (TL2020+).
