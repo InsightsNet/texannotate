@@ -18,7 +18,7 @@
 % last revision: March 2023
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{neurips_2023}[2023/11/17 NeurIPS 2023 submission/camera-ready style file]
+\ProvidesPackage{neurips_2023}[2023/03/31 NeurIPS 2023 submission/camera-ready style file]
 
 % declare final option, which creates camera-ready copy
 \newif\if@neuripsfinal\@neuripsfinalfalse
@@ -41,12 +41,6 @@
   \@preprinttrue
 }
 
-\newif\if@attention\@attentionfalse
-\DeclareOption{attention}{
-  \@attentiontrue
-}
-
-
 \ProcessOptions\relax
 
 % determine whether this is an anonymized submission
@@ -59,9 +53,9 @@
 \renewcommand{\sfdefault}{phv}
 
 % change this every year for notice string at bottom
-\newcommand{\@neuripsordinal}{35th}
+\newcommand{\@neuripsordinal}{37th}
 \newcommand{\@neuripsyear}{2023}
-\newcommand{\@neuripslocation}{New Orleans, USA}
+\newcommand{\@neuripslocation}{New Orleans}
 
 % acknowledgments
 \usepackage{environ}
@@ -71,61 +65,6 @@
   \BODY
 }
 
-% handle tweaks for camera-ready copy vs. submission copy
-\if@preprint
-  \newcommand{\@noticestring}{%
-    Preprint. Under review.%
-  }
-\else
-  \if@neuripsfinal
-    \newcommand{\@noticestring}{%
-%
-    }
-  \else
-    \if@attention
-        \newcommand{\@noticestring}{%
-%
-        }
-    \else
-        \newcommand{\@noticestring}{%
-%
-        }
-
-    % hide the acknowledgements
-    \NewEnviron{hide}{}
-    \let\ack\hide
-    \let\endack\endhide
-    
-    % line numbers for submission
-    \RequirePackage{lineno}
-    \linenumbers
-
-    % fix incompatibilities between lineno and amsmath, if required, by
-    % transparently wrapping linenomath environments around amsmath
-    % environments
-    \AtBeginDocument{%
-      \@ifpackageloaded{amsmath}{%
-        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
-          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
-          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
-          \renewenvironment{#1}%
-                           {\linenomath\csname old#1\endcsname}%
-                           {\csname oldend#1\endcsname\endlinenomath}%
-        }%
-        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
-          \patchAmsMathEnvironmentForLineno{#1}%
-          \patchAmsMathEnvironmentForLineno{#1*}%
-        }%
-        \patchBothAmsMathEnvironmentsForLineno{equation}%
-        \patchBothAmsMathEnvironmentsForLineno{align}%
-        \patchBothAmsMathEnvironmentsForLineno{flalign}%
-        \patchBothAmsMathEnvironmentsForLineno{alignat}%
-        \patchBothAmsMathEnvironmentsForLineno{gather}%
-        \patchBothAmsMathEnvironmentsForLineno{multline}%
-      }{}
-    }
-  \fi
-\fi
 
 % load natbib unless told otherwise
 \if@natbib
@@ -150,10 +89,9 @@
 
 \widowpenalty=10000
 \clubpenalty=10000
-% \flushbottom
-% \sloppy
-\raggedbottom
-\fussy
+\flushbottom
+\sloppy
+
 
 % font sizes with reduced leading
 \renewcommand{\normalsize}{%
@@ -379,10 +317,59 @@
   \vskip 1ex%
 }
 
-% For the paper checklist
-\newcommand{\answerYes}[1][]{\textcolor{blue}{[Yes] #1}}
-\newcommand{\answerNo}[1][]{\textcolor{orange}{[No] #1}}
-\newcommand{\answerNA}[1][]{\textcolor{gray}{[N/A] #1}}
-\newcommand{\answerTODO}[1][]{\textcolor{red}{\bf [TODO]}}
+% handle tweaks for camera-ready copy vs. submission copy
+\if@preprint
+  \newcommand{\@noticestring}{%
+    Preprint. Under review.%
+  }
+\else
+  \if@neuripsfinal
+    \newcommand{\@noticestring}{%
+      \@neuripsordinal\/ Conference on Neural Information Processing Systems
+      (NeurIPS \@neuripsyear).%, \@neuripslocation.%
+    }
+  \else
+    \newcommand{\@noticestring}{%
+      Submitted to \@neuripsordinal\/ Conference on Neural Information
+      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+    }
+
+    % hide the acknowledgements
+    \NewEnviron{hide}{}
+    \let\ack\hide
+    \let\endack\endhide
+
+    % line numbers for submission
+    \RequirePackage{lineno}
+    \linenumbers
+
+    % fix incompatibilities between lineno and amsmath, if required, by
+    % transparently wrapping linenomath environments around amsmath
+    % environments
+    \AtBeginDocument{%
+      \@ifpackageloaded{amsmath}{%
+        \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+          \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+          \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+          \renewenvironment{#1}%
+                          {\linenomath\csname old#1\endcsname}%
+                          {\csname oldend#1\endcsname\endlinenomath}%
+        }%
+        \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+          \patchAmsMathEnvironmentForLineno{#1}%
+          \patchAmsMathEnvironmentForLineno{#1*}%
+        }%
+        \patchBothAmsMathEnvironmentsForLineno{equation}%
+        \patchBothAmsMathEnvironmentsForLineno{align}%
+        \patchBothAmsMathEnvironmentsForLineno{flalign}%
+        \patchBothAmsMathEnvironmentsForLineno{alignat}%
+        \patchBothAmsMathEnvironmentsForLineno{gather}%
+        \patchBothAmsMathEnvironmentsForLineno{multline}%
+      }
+      {}
+    }
+  \fi
+\fi
+
 
 \endinput

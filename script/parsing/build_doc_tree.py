@@ -49,7 +49,98 @@ def _heading_level(tag_type: str) -> Optional[int]:
     return None
 
 
+def _primary_mcid(e: TaggedElement) -> int:
+    if not getattr(e, "mcids", None):
+        return 0
+    return int(e.mcids[0].mcid)
+
+
+def _primary_page(e: TaggedElement) -> int:
+    return int(getattr(e, "start_page", 0) or 0)
+
+
+def _merge_split_headings(elements: List[TaggedElement]) -> List[TaggedElement]:
+    """
+    Merge the classic "split starred heading" pattern:
+      Hn (MCID N) + P (MCID N+1, often empty) + P (MCID N+2, title text)
+
+    We do NOT have access to actual text here, so we use a conservative,
+    pattern-based heuristic to avoid eating normal paragraphs:
+      - require both N+1 and (N+2 or N+3) P elements on the same page.
+
+    Result:
+      - move the later P's MCIDs into the heading element (as additional mcids)
+      - drop that P element from the element list
+    """
+    by_id = {e.elem_id: e for e in elements}
+    ordered = sorted([e for e in elements if not e.is_atom], key=lambda x: x.elem_id)
+
+    drop_ids = set()
+    promote: Dict[int, str] = {}  # pid -> Hn type
+
+    for idx, h in enumerate(ordered):
+        if h.tag_type not in ("H1", "H2", "H3"):
+            continue
+        h_mcid = _primary_mcid(h)
+        if h_mcid <= 0:
+            continue
+        h_page = _primary_page(h)
+
+        p_plus1 = None
+        p_late = None
+        p_bib = None
+        saw_bib = False
+
+        for j in range(idx + 1, min(idx + 7, len(ordered))):
+            e = ordered[j]
+            if _primary_page(e) != h_page:
+                break
+
+            if e.tag_type in ("BibList", "BibEntry"):
+                saw_bib = True
+                if p_bib is not None:
+                    break
+                continue
+
+            if e.tag_type != "P":
+                continue
+            d = _primary_mcid(e) - h_mcid
+            if d == 1 and p_plus1 is None:
+                p_plus1 = e
+            elif d in (2, 3):
+                p_late = e
+                if d == 2:
+                    break
+            if 0 < d <= 3 and p_bib is None:
+                p_bib = e
+
+        # Case A: classic staged-heading split (requires both +1 and +2/+3)
+        if p_plus1 is not None and p_late is not None:
+            promote[p_late.elem_id] = h.tag_type
+            drop_ids.add(h.elem_id)
+            continue
+
+        # Case B: bibliography heading split (H? + P + BibList/BibEntry)
+        if saw_bib and p_bib is not None:
+            promote[p_bib.elem_id] = h.tag_type
+            drop_ids.add(h.elem_id)
+            continue
+
+    if not drop_ids:
+        return elements
+
+    out: List[TaggedElement] = []
+    for e in elements:
+        if e.elem_id in drop_ids:
+            continue
+        if e.elem_id in promote:
+            e.tag_type = promote[e.elem_id]
+        out.append(e)
+    return out
+
+
 def build_tree(elements: List[TaggedElement]) -> Dict:
+    elements = _merge_split_headings(elements)
     # Build node map.
     nodes: Dict[int, Node] = {}
     for e in elements:

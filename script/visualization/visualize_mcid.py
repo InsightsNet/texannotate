@@ -77,8 +77,14 @@ def get_mcid_tag_types(doc: fitz.Document, page_num: int) -> dict:
     return mcid_tags
 
 
-def get_mcid_bboxes(pdf_path: str) -> dict:
-    """Extract bounding boxes for each MCID on each page."""
+def get_mcid_bboxes(pdf_path: str, line_based: bool = True) -> dict:
+    """Extract bounding boxes for each MCID on each page.
+    
+    Args:
+        pdf_path: Path to PDF file
+        line_based: If True, group chars by line to avoid cross-column merged boxes.
+                   Each MCID will have a list of line bboxes instead of one merged bbox.
+    """
     pdf = pdfplumber.open(pdf_path)
     page_data = {}
     
@@ -92,19 +98,57 @@ def get_mcid_bboxes(pdf_path: str) -> dict:
                         mcid_chars[mcid] = []
                     mcid_chars[mcid].append(char)
             
-            # Calculate bounding box for each MCID
+            # Calculate bounding box(es) for each MCID
             mcid_bboxes = {}
             for mcid, chars in mcid_chars.items():
-                x0 = min(c['x0'] for c in chars)
-                y0 = min(c['top'] for c in chars)
-                x1 = max(c['x1'] for c in chars)
-                y1 = max(c['bottom'] for c in chars)
+                if line_based:
+                    # Group chars by line (y-coordinate with tolerance)
+                    y_tolerance = 3.0  # chars within 3pt are on same line
+                    lines = []
+                    sorted_chars = sorted(chars, key=lambda c: (c['top'], c['x0']))
+                    current_line = []
+                    current_y = None
+                    
+                    for c in sorted_chars:
+                        if current_y is None or abs(c['top'] - current_y) <= y_tolerance:
+                            current_line.append(c)
+                            if current_y is None:
+                                current_y = c['top']
+                        else:
+                            if current_line:
+                                lines.append(current_line)
+                            current_line = [c]
+                            current_y = c['top']
+                    if current_line:
+                        lines.append(current_line)
+                    
+                    # Create bbox for each line
+                    line_bboxes = []
+                    for line_chars in lines:
+                        lx0 = min(c['x0'] for c in line_chars)
+                        ly0 = min(c['top'] for c in line_chars)
+                        lx1 = max(c['x1'] for c in line_chars)
+                        ly1 = max(c['bottom'] for c in line_chars)
+                        line_bboxes.append((lx0, ly0, lx1, ly1))
+                    
+                    # Overall bbox is union of all lines (for sorting/labeling)
+                    x0 = min(bb[0] for bb in line_bboxes) if line_bboxes else 0
+                    y0 = min(bb[1] for bb in line_bboxes) if line_bboxes else 0
+                    x1 = max(bb[2] for bb in line_bboxes) if line_bboxes else 0
+                    y1 = max(bb[3] for bb in line_bboxes) if line_bboxes else 0
+                else:
+                    x0 = min(c['x0'] for c in chars)
+                    y0 = min(c['top'] for c in chars)
+                    x1 = max(c['x1'] for c in chars)
+                    y1 = max(c['bottom'] for c in chars)
+                    line_bboxes = [(x0, y0, x1, y1)]
                 
                 # Get sample text
                 text = ''.join(c['text'] for c in sorted(chars, key=lambda c: (c['top'], c['x0']))[:20])
                 
                 mcid_bboxes[mcid] = {
                     'bbox': (x0, y0, x1, y1),
+                    'line_bboxes': line_bboxes,
                     'text_preview': text[:30],
                     'char_count': len(chars)
                 }
@@ -703,23 +747,20 @@ def visualize_mcid(
         # Get total MCIDs for color generation
         total_mcids = len(mcid_bboxes)
         
-        # Sort MCIDs by reading order (top-to-bottom, left-to-right)
-        sorted_mcids = sorted(mcid_bboxes.keys(), 
-                              key=lambda m: (mcid_bboxes[m]['bbox'][1], mcid_bboxes[m]['bbox'][0]))
+        # Sort MCIDs by their MCID number - this is the actual reading order from LaTeX
+        sorted_mcids = sorted(mcid_bboxes.keys())
         
         # Draw boxes for each MCID
         for order, mcid in enumerate(sorted_mcids, 1):
             data = mcid_bboxes[mcid]
-            bbox = data['bbox']
+            bbox = data['bbox']  # Overall bbox for label positioning
+            line_bboxes = data.get('line_bboxes', [bbox])  # Per-line boxes for drawing
             
             # Get tag type
             tag_type = mcid_tags.get(mcid, '?')
             if merge_tables and tag_type == "Table":
                 # We'll draw a merged Table bbox using aux structure.
                 continue
-            
-            # Convert pdfplumber coordinates to fitz (same coordinate system)
-            rect = fitz.Rect(bbox[0], bbox[1], bbox[2], bbox[3])
             
             # Generate color based on tag type for consistency
             tag_colors = {
@@ -736,19 +777,30 @@ def visualize_mcid(
             }
             color = tag_colors.get(tag_type, generate_color(mcid, total_mcids))
             
-            # Draw semi-transparent filled rectangle with border
-            fill_color = (*color, 0.2)  # 20% opacity for fill
-            shape = page.new_shape()
-            shape.draw_rect(rect)
-            shape.finish(color=color, fill=color, fill_opacity=0.15, width=1.5)
-            shape.commit()
+            # Float tags (Figure, Table, Caption) should use merged bbox, not line-based
+            float_tags = {'Figure', 'Table', 'Caption', 'Formula'}
+            if tag_type in float_tags:
+                # Use single merged bbox for floats
+                draw_bboxes = [bbox]
+            else:
+                # Use per-line boxes for text elements
+                draw_bboxes = line_bboxes
             
-            # Label: TagType#Order (e.g., P#1, H1#2)
+            # Draw semi-transparent filled rectangle for each bbox
+            for line_bb in draw_bboxes:
+                rect = fitz.Rect(line_bb[0], line_bb[1], line_bb[2], line_bb[3])
+                shape = page.new_shape()
+                shape.draw_rect(rect)
+                shape.finish(color=color, fill=color, fill_opacity=0.15, width=1.5)
+                shape.commit()
+            
+            # Label: TagType#Order (e.g., P#1, H1#2) - placed at top-left of first line
             label = f"{tag_type}#{order}"
             
-            # Position label at top-left of box with background
-            label_x = bbox[0]
-            label_y = bbox[1] - 3
+            # Position label at top-left of first line bbox
+            first_bb = line_bboxes[0] if line_bboxes else bbox
+            label_x = first_bb[0]
+            label_y = first_bb[1] - 3
             
             # Draw label background (filled rectangle)
             text_width = len(label) * 6 + 6

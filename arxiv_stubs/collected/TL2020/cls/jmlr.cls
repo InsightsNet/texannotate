@@ -102,7 +102,8 @@
   \jmlrproceedings{JMLR W\&CP}{JMLR: Workshop and Conference Proceedings}%
 }
 \newcommand*{\jmlrpmlr}{%
-  \jmlrproceedings{PMLR}{Proceedings of Machine Learning Research}%
+  % \jmlrproceedings{PMLR}{Proceedings of Machine Learning Research}%
+  \jmlrproceedings{PMLR}{}%
 }
 \DeclareOptionX{nowcp}{\jmlrnowcp}
 \DeclareOptionX{wcp}{\jmlrwcp}
@@ -549,7 +550,8 @@ Keywords:} \ignorespaces}%
 \newcommand*{\jmlrissue}[1]{\renewcommand*{\@jmlrissue}{#1}}
 \providecommand*{\@jmlryear}{}
 \newcommand*{\jmlryear}[1]{\renewcommand*{\@jmlryear}{#1}}
-\providecommand*\@jmlrpages{\pageref{jmlrstart}--\pageref{jmlrend}}
+% \providecommand*\@jmlrpages{\pageref{jmlrstart}--\pageref{jmlrend}}
+\providecommand*\@jmlrpages{}
 \newcommand*{\jmlrpages}[1]{\renewcommand*{\@jmlrpages}{#1}}
 \providecommand*\@jmlrsubmitted{}
 \newcommand*{\jmlrsubmitted}[1]{\renewcommand*{\@jmlrsubmitted}{#1}}

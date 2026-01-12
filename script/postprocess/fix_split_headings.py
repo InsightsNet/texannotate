@@ -26,83 +26,115 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 
-def parse_aux_file(aux_path: Path) -> Dict:
-    """Parse aux file and extract LPSB tag data."""
-    elements = {}
-    
-    with open(aux_path, 'r', encoding='utf-8', errors='replace') as f:
-        content = f.read()
-    
-    # Parse tag data: \lpsb@tag@data{elem_id}{type}{mcid}{page}
-    for m in re.finditer(r'\\lpsb@tag@data\{(\d+)\}\{(\w+)\}\{(\d+)\}\{(\d+)\}', content):
+_TAG_DATA_RE = re.compile(r'\\lpsb@tag@data\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}')
+_MCID_CONT_RE = re.compile(r'\\lpsb@mcid@cont\{(\d+)\}\{(\d+)\}\{(\d+)\}')
+_TAG_END_RE = re.compile(r'\\lpsb@tag@end\{(\d+)\}\{(\d+)\}')
+
+
+def _parse_aux_records(aux_path: Path) -> Tuple[List[Tuple[int, str, int, int]], Dict[int, List[Tuple[int, int]]]]:
+    """
+    Parse aux into:
+      - ordered tag_data records: [(elem_id, tag_type, mcid, page), ...] in file order
+      - continuation map: elem_id -> [(mcid, page), ...]
+    """
+    ordered: List[Tuple[int, str, int, int]] = []
+    cont: Dict[int, List[Tuple[int, int]]] = {}
+    content = aux_path.read_text(errors="replace")
+
+    for m in _TAG_DATA_RE.finditer(content):
         elem_id = int(m.group(1))
         tag_type = m.group(2)
         mcid = int(m.group(3))
         page = int(m.group(4))
-        elements[elem_id] = {
-            'id': elem_id,
-            'type': tag_type,
-            'mcid': mcid,
-            'page': page,
-            'mcids': [{'mcid': mcid, 'page': page}]
-        }
-    
-    # Parse continuations
-    for m in re.finditer(r'\\lpsb@mcid@cont\{(\d+)\}\{(\d+)\}\{(\d+)\}', content):
+        ordered.append((elem_id, tag_type, mcid, page))
+
+    for m in _MCID_CONT_RE.finditer(content):
         elem_id = int(m.group(1))
         mcid = int(m.group(2))
         page = int(m.group(3))
-        if elem_id in elements:
-            elements[elem_id]['mcids'].append({'mcid': mcid, 'page': page})
-    
-    return elements
+        cont.setdefault(elem_id, []).append((mcid, page))
+
+    return ordered, cont
 
 
-def detect_split_headings(elements: Dict) -> List[Tuple[int, int]]:
+def _detect_split_headings_aux(ordered: List[Tuple[int, str, int, int]]) -> List[Tuple[int, int]]:
     """
-    Detect split heading patterns.
-    
-    Returns list of tuples: (h1_elem_id, title_p_elem_id)
-    where the title_p should be merged into h1.
-    
-    Pattern detected: H1/H2 with MCID N, immediately followed by P with MCID N+2
-    (N+1 is typically an empty P from everypar)
+    Detect split heading patterns in aux ordering.
+
+    Conservative heuristic (avoids eating normal paragraphs):
+      - heading element is H1/H2/H3 with primary MCID = N
+      - within the next few tag_data records on the SAME page we see:
+          P with MCID N+1  (often empty P from our section hook)
+          P with MCID N+2 or N+3 (title text emitted late)
+      - merge the later P into the heading
     """
     splits = []
-    elem_ids = sorted(elements.keys())
-    
-    for i, elem_id in enumerate(elem_ids):
-        elem = elements[elem_id]
-        
-        # Look for H1 or H2
-        if elem['type'] not in ('H1', 'H2'):
+
+    for i, (hid, htype, hmcid, hpage) in enumerate(ordered):
+        if htype not in ("H1", "H2", "H3"):
             continue
-        
-        h1_mcid = elem['mcids'][0]['mcid'] if elem.get('mcids') else 0
-        if h1_mcid == 0:
-            continue
-        
-        # Look for P within next 3 elements that has MCID close to H1's
-        for j in range(i+1, min(i+4, len(elem_ids))):
-            next_id = elem_ids[j]
-            next_elem = elements[next_id]
-            
-            # Different page? Stop looking
-            if next_elem.get('start_page') != elem.get('start_page'):
+        # Look ahead a small window.
+        p1 = None  # (elem_id, mcid)
+        p2 = None
+        p_bib = None
+        saw_bib = False
+        for j in range(i + 1, min(i + 7, len(ordered))):
+            eid, etype, emcid, epage = ordered[j]
+            if epage != hpage:
                 break
-            
-            if next_elem['type'] == 'P':
-                next_mcid = next_elem['mcids'][0]['mcid'] if next_elem.get('mcids') else 0
-                
-                # Check if this P is close to the H1 (within 3 MCIDs)
-                # Pattern: H1 MCID=272, P MCID=274 (diff=2) - this is the split title
-                if 0 < (next_mcid - h1_mcid) <= 3:
-                    splits.append((elem_id, next_id))
+            if etype in ("BibList", "BibEntry"):
+                saw_bib = True
+                # If we already saw a close P, this is the bibliography heading split.
+                if p_bib is not None:
                     break
-    
+                continue
+            if etype != "P":
+                continue
+            d = emcid - hmcid
+            if d == 1 and p1 is None:
+                p1 = (eid, emcid)
+            elif d in (2, 3):
+                # Prefer the first match at +2, otherwise allow +3.
+                p2 = (eid, emcid)
+                if d == 2:
+                    break
+            # Bibliography special-case: H? followed by a single P, then BibList.
+            if 0 < d <= 3 and p_bib is None:
+                p_bib = (eid, emcid)
+
+        # Case A: classic staged-heading split (requires both +1 and +2/+3)
+        if p1 is not None and p2 is not None:
+            splits.append((hid, p2[0]))
+            continue
+
+        # Case B: bibliography heading split: H? + P + BibList/BibEntry on same page.
+        if saw_bib and p_bib is not None:
+            splits.append((hid, p_bib[0]))
+            continue
+        
+        # Case C: direct H1 + P merge when P immediately follows H1 (MCID diff = 1)
+        # This handles cases where section title goes directly into P without
+        # an intermediate empty P (e.g., when followed by algorithm environment)
+        if p1 is not None and p2 is None:
+            # Only merge if the next non-P element is NOT another heading
+            # (to avoid eating content paragraphs)
+            next_is_heading = False
+            for j in range(i + 1, min(i + 5, len(ordered))):
+                eid, etype, emcid, epage = ordered[j]
+                if etype in ("H1", "H2", "H3"):
+                    next_is_heading = True
+                    break
+                if etype == "P" and eid != p1[0]:
+                    # There's another P between H1 and this one - skip
+                    break
+                if etype not in ("P",):
+                    # Found a non-P, non-heading element (like Algorithm) - safe to merge
+                    splits.append((hid, p1[0]))
+                    break
+
     return splits
 
 
@@ -148,6 +180,75 @@ def merge_split_headings_json(json_path: Path, output_path: Path) -> int:
     return merged_count
 
 
+def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
+    r"""
+    Merge split headings directly in the aux file by:
+      - moving the title P's MCIDs into the heading via \lpsb@mcid@cont
+      - removing the title P element records (\lpsb@tag@data/\lpsb@mcid@cont/\lpsb@tag@end)
+
+    This is used by downstream StructTree building (which consumes aux).
+    """
+    ordered, cont = _parse_aux_records(aux_path)
+    splits = _detect_split_headings_aux(ordered)
+    if not splits:
+        output_path.write_text(aux_path.read_text(errors="replace"))
+        return 0
+
+    # Build a quick lookup for primary mcid/page per elem_id.
+    primary: Dict[int, Tuple[str, int, int]] = {}  # id -> (type, mcid, page)
+    for eid, etype, emcid, epage in ordered:
+        # keep first occurrence (should be unique)
+        primary.setdefault(eid, (etype, emcid, epage))
+
+    # We want to REMOVE the stub heading element (often "6*") from semantics.
+    # Strategy:
+    #   - drop the original heading element records (H1/H2/H3)
+    #   - "promote" the title P element into that heading type by rewriting its tag_type
+    # This removes the spurious stub from the logical structure without trying to
+    # guess/modify the PDF content stream.
+    promote: Dict[int, str] = {}  # pid -> heading type (H1/H2/H3)
+    remove_ids = set()            # element IDs to delete entirely (stub headings)
+
+    for hid, pid in splits:
+        hinfo = primary.get(hid)
+        if not hinfo:
+            continue
+        htype = hinfo[0]
+        if htype not in ("H1", "H2", "H3"):
+            continue
+        promote[pid] = htype
+        remove_ids.add(hid)
+
+    # Rewrite aux: filter out removed heading elements; rewrite promoted P -> Hn.
+    lines = aux_path.read_text(errors="replace").splitlines(keepends=True)
+    out_lines: List[str] = []
+    for ln in lines:
+        m = _TAG_DATA_RE.search(ln)
+        if m:
+            eid = int(m.group(1))
+            if eid in remove_ids:
+                continue
+            if eid in promote:
+                # Rewrite tag type in-place.
+                # \lpsb@tag@data{eid}{TYPE}{mcid}{page}
+                new_type = promote[eid]
+                ln = re.sub(r'(\\lpsb@tag@data\{\d+\}\{)([^}]+)(\}\{\d+\}\{\d+\})',
+                            r'\g<1>' + new_type + r'\g<3>', ln, count=1)
+        m = _MCID_CONT_RE.search(ln)
+        if m and int(m.group(1)) in remove_ids:
+            continue
+        m = _TAG_END_RE.search(ln)
+        if m and int(m.group(1)) in remove_ids:
+            continue
+        out_lines.append(ln)
+
+    out_lines.append("\n% --- LPSB: merged split headings ---\n")
+    out_lines.append(f"% Promoted {len(promote)} title P elements into headings; dropped {len(remove_ids)} stub headings.\n")
+
+    output_path.write_text("".join(out_lines))
+    return len(splits)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Merge split section headings in LPSB output')
@@ -162,17 +263,28 @@ def main():
         return 1
     
     output = args.output or args.input.with_suffix(args.input.suffix + '.fixed')
-    
-    if args.input.suffix == '.json':
-        print(f"Processing JSON: {args.input}")
-        count = merge_split_headings_json(args.input, output)
-        print(f"✓ Merged {count} split headings -> {output}")
-    else:
-        print(f"Error: Unsupported file type. Use .json")
-        return 1
-    
-    return 0
 
+    if args.input.suffix == '.json':
+        if args.verbose:
+            print(f"Processing JSON: {args.input}")
+        count = merge_split_headings_json(args.input, output)
+        if args.verbose:
+            print(f"✓ Merged {count} split headings -> {output}")
+        return 0
+
+    in_name = args.input.name
+    is_aux_like = (args.input.suffix == '.aux') or in_name.endswith('.aux.fixed') or ('.aux.' in in_name)
+    if is_aux_like:
+        if args.verbose:
+            print(f"Processing AUX: {args.input}")
+        count = merge_split_headings_aux(args.input, output)
+        if args.verbose:
+            print(f"✓ Merged {count} split headings -> {output}")
+        return 0
+
+    print("Error: Unsupported file type. Use .aux or .json")
+    return 1
+    
 
 if __name__ == '__main__':
     exit(main())

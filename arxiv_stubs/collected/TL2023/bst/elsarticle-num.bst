@@ -1,7 +1,7 @@
 %%
-%% This is file `elsarticle-num.bst',
+%% This is file `elsarticle-num.bst' (Version 2.1),
 %% 
-%% Copyright 2007, 2008, 2009 Elsevier Ltd
+%% Copyright 2007-2020 Elsevier Ltd
 %% 
 %% This file is part of the 'Elsarticle Bundle'.
 %% ---------------------------------------------
@@ -13,15 +13,13 @@
 %% and version 1.2 or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
 %% 
-%% The list of all files belonging to the 'Elsarticle Bundle' is
-%% given in the file `manifest.txt'.
 %% 
-%%
-%% $Id: elsarticle-num.bst 19 2009-12-17 07:07:52Z rishi $
-%%
+%% $Id: elsarticle-num.bst 194 2020-11-23 11:29:27Z rishi $
+%% 
+%% $URL: https://lenova.river-valley.com/svn/elsarticle/trunk/elsarticle-num.bst $
 %%
 %% ----------------------------------------
-%%
+
 ENTRY
   { address
     author
@@ -62,7 +60,7 @@ FUNCTION {init.urlbst.variables}
   "Available from: " 'urlintro := % prefix before URL
   "http://arxiv.org/abs/" 'eprinturl := % prefix to make URL from eprint ref
   "arXiv:" 'eprintprefix := % text prefix printed before eprint ref
-  "http://dx.doi.org/" 'doiurl := % prefix to make URL from DOI
+  "https://doi.org/" 'doiurl := % prefix to make URL from DOI
   "doi:" 'doiprefix :=      % text prefix printed before DOI ref
   #1 'addeprints :=         % 0=no eprints; 1=include eprints
   #1 'adddoiresolver :=     % 0=no DOI resolver; 1=include it
@@ -1176,6 +1174,10 @@ FUNCTION {article}
   if$
   format.journal.pages
   format.note output
+  pages empty$  
+	  { format.date "year" output.check }
+    'skip$ 
+  if$
   fin.entry
   write.url
 }
@@ -1217,7 +1219,7 @@ FUNCTION {booklet}
   howpublished output
   address output
   format.note output
-  format.date output
+  format.date "year" output.check
   fin.entry
   write.url
 }
@@ -1335,7 +1337,7 @@ FUNCTION {manual}
   if$
   format.edition output
   format.note output
-  format.date output
+  format.date "year" output.check
   fin.entry
   write.url
 }
@@ -1361,7 +1363,7 @@ FUNCTION {misc}
   format.title output
   howpublished output
   format.note output
-  format.date output
+  format.date "year" output.check
   fin.entry
   write.url
   empty.misc.check
@@ -1434,7 +1436,7 @@ FUNCTION {unpublished}
   title empty$ 'skip$ 'setup.inlinelink if$ % urlbst
   format.title "title" output.check
   format.note "note" output.check
-  format.date output
+  format.date "year" output.check
   fin.entry
   write.url
 }

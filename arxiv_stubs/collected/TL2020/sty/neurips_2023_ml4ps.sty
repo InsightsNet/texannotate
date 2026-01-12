@@ -15,10 +15,14 @@
 % Roman Garnett (garnett@wustl.edu) and the many authors of
 % nips15submit_e.sty, including MK and drstrip@sandia
 %
-% last revision: March 2023
+% Modified for the NeurIPS Machine Learning and the Physical Sciences workshop
+% by Siddharth Mishra-Sharma (smsharma@mit.edu), October 2023
+% https://ml4physicalsciences.github.io
+%
+% last revision: 31 Oct 2023
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{neurips_2023}[2023/03/31 NeurIPS 2023 submission/camera-ready style file]
+\ProvidesPackage{neurips_2023_ml4ps}[2023/03/31 NeurIPS 2023 submission/camera-ready style file]
 
 % declare final option, which creates camera-ready copy
 \newif\if@neuripsfinal\@neuripsfinalfalse
@@ -325,13 +329,13 @@
 \else
   \if@neuripsfinal
     \newcommand{\@noticestring}{%
-      \@neuripsordinal\/ Conference on Neural Information Processing Systems
-      (NeurIPS \@neuripsyear).%, \@neuripslocation.%
+    Machine Learning and the Physical Sciences Workshop, NeurIPS \@neuripsyear.
+    % \@neuripslocation.%
     }
   \else
     \newcommand{\@noticestring}{%
-      Submitted to \@neuripsordinal\/ Conference on Neural Information
-      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+    Submitted to Machine Learning and the Physical Sciences Workshop, NeurIPS \@neuripsyear.
+    Do not distribute.%
     }
 
     % hide the acknowledgements

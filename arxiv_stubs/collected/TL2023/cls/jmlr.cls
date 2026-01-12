@@ -7,7 +7,7 @@
 %% jmlr.dtx  (with options: `jmlr.cls,package')
 %% 
 %%  jmlr.dtx
-%%  Copyright 2017 Nicola Talbot
+%%  Copyright 2020 Nicola Talbot
 %% 
 %%  This work may be distributed and/or modified under the
 %%  conditions of the LaTeX Project Public License, either version 1.3
@@ -41,7 +41,7 @@
 %% First editor:
 %% Second editor:
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{jmlr}[2017/08/01 v1.24 (NLCT) Journal of Machine Learning Research]
+\ProvidesClass{jmlr}[2020/09/21 v1.28 (NLCT) Journal of Machine Learning Research]
 \RequirePackage{xkeyval}
 \RequirePackage{calc}
 \RequirePackage{etoolbox}
@@ -102,11 +102,9 @@
   \jmlrproceedings{JMLR W\&CP}{JMLR: Workshop and Conference Proceedings}%
 }
 \newcommand*{\jmlrpmlr}{%
- \jmlrproceedings{PMLR}{Proceedings of Machine Learning Research}%
+  % \jmlrproceedings{PMLR}{Proceedings of Machine Learning Research}%
+  \jmlrproceedings{PMLR}{}%
 }
-% \newcommand*{\jmlrpmlr}{%
-%   \jmlrproceedings{PMLR}{Preprint: Under Review}%
-% }
 \DeclareOptionX{nowcp}{\jmlrnowcp}
 \DeclareOptionX{wcp}{\jmlrwcp}
 \DeclareOptionX{pmlr}{\jmlrpmlr}
@@ -120,6 +118,9 @@
 \DeclareOptionX*{\PassOptionsToClass{\CurrentOption}{article}}
 \ExecuteOptions{letterpaper}
 \ProcessOptionsX
+\if@twoside
+ \PassOptionsToClass{twoside}{article}
+\fi
 \LoadClass[\pt@size]{article}
 \ifviiXx
   \setlength{\paperwidth}{7in}
@@ -146,6 +147,7 @@
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{natbib}
+\RequirePackage{graphicx}
 \RequirePackage{url}
 \PassOptionsToPackage{x11names}{xcolor}
 \RequirePackage{xcolor}
@@ -157,7 +159,6 @@
 \@ifundefined{@pre@hyperref}{}{\@pre@hyperref}
 \RequirePackage{hyperref}
 \RequirePackage{nameref}
- 
 \@ifundefined{@post@hyperref}{}{\@post@hyperref}
 \hypersetup{colorlinks,
             linkcolor=blue,
@@ -217,9 +218,9 @@
 }
 \newcommand*{\footnoteseptext}{. }
 \renewcommand*{\thanks}[1]{%
-  \footnotemark
-  \protected@xdef\@thanks{\@thanks
-    \protect\footnotetext[\arabic{footnote}]{#1}}%
+  \refstepcounter{mpfootnote}%
+  \footnotemark[\number\value{mpfootnote}]%
+  \xappto\@thanks{\noexpand\footnotetext[\number\value{mpfootnote}]{#1}}%
 }
 \ifjmlrhtml
   \renewenvironment{abstract}{\HCode{<h3>}Abstract\HCode{</h3>}}{}%
@@ -453,16 +454,17 @@ Keywords:} \ignorespaces}%
   \fi
   \vskip \aftermaketitskip
 }
-\def\@jmlrmaketitle{\vbox{\hsize\textwidth
- \linewidth\hsize
- \jmlrpretitle
+\def\@jmlrmaketitle{%
+ {%
+  \jmlrpretitle
   {%
     \def\titletag##1{##1}%
     \@title
   }%
- \jmlrposttitle
- \jmlrpreauthor \@author \jmlrpostauthor
-}}
+  \jmlrposttitle
+  \jmlrpreauthor \ignorespaces\@author \jmlrpostauthor
+  }%
+}
 \newcommand*\kernelmachines{(for
   {\textsc{http://www.kernel-machines.org}})}
 \newcommand*{\editorname}{Editor}
@@ -548,7 +550,8 @@ Keywords:} \ignorespaces}%
 \newcommand*{\jmlrissue}[1]{\renewcommand*{\@jmlrissue}{#1}}
 \providecommand*{\@jmlryear}{}
 \newcommand*{\jmlryear}[1]{\renewcommand*{\@jmlryear}{#1}}
-\providecommand*\@jmlrpages{\pageref{jmlrstart}--\pageref{jmlrend}}
+% \providecommand*\@jmlrpages{\pageref{jmlrstart}--\pageref{jmlrend}}
+\providecommand*\@jmlrpages{}
 \newcommand*{\jmlrpages}[1]{\renewcommand*{\@jmlrpages}{#1}}
 \providecommand*\@jmlrsubmitted{}
 \newcommand*{\jmlrsubmitted}[1]{\renewcommand*{\@jmlrsubmitted}{#1}}
@@ -591,11 +594,10 @@ Keywords:} \ignorespaces}%
 \newcommand{\acks}[1]{\section*{Acknowledgments}#1}
 \newcommand{\researchnote}[1]{\noindent {\LARGE\itshape Research Note} #1}
 \providecommand{\ifprint}[2]{\ifgrayscale#1\else#2\fi}
-%%    \begin{macrocode}
 \ifjmlrhtml
 \else
   \let\@org@Ginclude@graphics\Ginclude@graphics
-  \def\Ginclude@graphics#1{%
+  \def\@jmlr@old@Ginclude@graphics#1{%
     \begingroup
     \let\input@path\Ginput@path
     \ifprint{\filename@parse{#1-gray}}{\filename@parse{#1}}%
@@ -631,6 +633,91 @@ Keywords:} \ignorespaces}%
                \csname Gin@rule@\Gin@ext\endcsname{\Gin@base\Gin@ext}}%
       \fi
     \endgroup}
+\def\@jmlr@new@Ginclude@graphics#1{%
+  \ifx\detokenize\@undefined\else
+    \edef\Gin@extensions{\detokenize\expandafter{\Gin@extensions}}%
+  \fi
+  \begingroup
+  \let\input@path\Ginput@path
+  \ifprint{\set@curr@file{#1-gray}}{\set@curr@file{#1}}%
+  \expandafter\filename@parse\expandafter{\@curr@file}%
+  \ifx\filename@ext\Gin@gzext
+    \expandafter\filename@parse\expandafter{\filename@base}%
+    \ifx\filename@ext\relax
+      \let\filename@ext\Gin@gzext
+    \else
+      \edef\Gin@ext{\Gin@ext\Gin@sepdefault\Gin@gzext}%
+    \fi
+  \fi
+  \let\@jmlr@filename@ext\filename@ext
+  \ifx\filename@ext\relax
+    \@for\Gin@temp:=\Gin@extensions\do{%
+      \ifx\Gin@ext\relax
+        \Gin@getbase\Gin@temp
+      \fi}%
+    \ifprint
+    {\ifx\Gin@ext\relax
+       \set@curr@file{#1}%
+       \expandafter\filename@parse\expandafter{\@curr@file}%
+       \ifx\filename@ext\Gin@gzext
+        \expandafter\filename@parse\expandafter{\filename@base}%
+        \ifx\filename@ext\relax
+          \let\filename@ext\Gin@gzext
+        \else
+          \edef\Gin@ext{\Gin@ext\Gin@sepdefault\Gin@gzext}%
+        \fi
+       \fi
+       \let\@jmlr@filename@ext\filename@ext
+       \ifx\filename@ext\relax
+       \@for\Gin@temp:=\Gin@extensions\do{%
+         \ifx\Gin@ext\relax
+           \Gin@getbase\Gin@temp
+         \fi}%
+       \fi
+     \fi}{}%
+  \fi
+  \ifx\@jmlr@filename@ext\relax
+  \else
+    \Gin@getbase{\Gin@sepdefault\filename@ext}%
+    \ifx\Gin@ext\relax
+      \let\Gin@savedbase\filename@base
+      \let\Gin@savedext\filename@ext
+      \edef\filename@base{\filename@base\Gin@sepdefault\filename@ext}%
+      \let\filename@ext\relax
+       \@for\Gin@temp:=\Gin@extensions\do{%
+          \ifx\Gin@ext\relax
+            \Gin@getbase\Gin@temp
+          \fi}%
+        \ifx\Gin@ext\relax
+        \let\filename@base\Gin@savedbase
+        \let\filename@ext\Gin@savedext
+      \fi
+    \fi
+    \ifx\Gin@ext\relax
+       \@warning{File `#1' not found}%
+       \def\Gin@base{\filename@area\filename@base}%
+       \edef\Gin@ext{\Gin@sepdefault\filename@ext}%
+    \fi
+  \fi
+  \ifx\Gin@ext\relax
+       \@latex@error{File `#1' not found}%
+       {I could not locate the file with any of these extensions:^^J%
+        \Gin@extensions^^J\@ehc}%
+  \else
+     \@ifundefined{Gin@rule@\Gin@ext}%
+       {\ifx\Gin@rule@*\@undefined
+          \@latex@error{Unknown graphics extension: \Gin@ext}\@ehc
+        \else
+          \expandafter\Gin@setfile\Gin@rule@*{\Gin@base\Gin@ext}%
+         \fi}%
+       {\expandafter\expandafter\expandafter\Gin@setfile
+           \csname Gin@rule@\Gin@ext\endcsname{\Gin@base\Gin@ext}}%
+  \fi
+  \endgroup
+}
+  \@ifpackagelater{graphics}{2019/07/01}
+  {\let\Ginclude@graphics\@jmlr@new@Ginclude@graphics}%
+  {\let\Ginclude@graphics\@jmlr@old@Ginclude@graphics}%
 \fi
 \newcommand{\artappendix}{\par
   \setcounter{section}{0}

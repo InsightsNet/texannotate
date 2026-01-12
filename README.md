@@ -94,15 +94,18 @@ LPSB generates PDF/UA-compatible tagged content using MCID (Marked Content IDent
 
 ### Structure Tags
 - **Document structure**: `Document`, `Sect`, `Div`
-- **Headings**: `H1`-`H6`
+- **Headings**: Dynamic levels based on document class:
+  - **Article** (no chapter): `H1`=section, `H2`=subsection, `H3`=subsubsection, `H4`=paragraph
+  - **Book/Report**: `H1`=chapter, `H2`=section, `H3`=subsection, `H4`=subsubsection, `H5`=paragraph
 - **Text blocks**: `P`, `Abstract`, `Caption`
 - **Lists**: `L`, `LI`, `Lbl`
 - **Tables**: `Table`, `TR`, `TD`
 - **Figures**: `Figure`
 - **Math**: `Formula`
 - **References**: `Reference`, `BibList`, `BibEntry`
-- **Footnotes**: `Note` (mark and text)
+- **Footnotes**: `Lbl` (mark/superscript), `Note` (content at page bottom)
 - **Links**: `Link` (URLs and hyperlinks)
+- **Code**: `Code` (verbatim, listings, fancyvrb)
 
 ### Cross-Page Handling
 
@@ -187,40 +190,13 @@ docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
 Generate a visual overlay showing MCID tags:
 
 ```bash
-python3 script/visualize_mcid.py output.pdf -o visualized.pdf
+python3 script/visualization/visualize_mcid.py output.pdf -o visualized.pdf
 ```
 
-Each tag type gets a distinct color:
-- **P**: Light blue
-- **H1/H2**: Orange/Yellow
-- **Table**: Green
-- **Figure**: Purple
-- **Formula**: Pink
-
----
-
-## Development
-
-### Running Tests
-
-```bash
-# Single paper test
-python3 script/lpsb_compiler.py data/test/sample.tar.gz -o test_output
-
-# Batch test
-python3 script/lpsb_compiler.py --batch data/download -o results --workers 4
-```
-
-### Debug Cross-Page Issues
-
-```bash
-# Parse MCID data
-python3 script/parse_lpsb_mcid.py build/paper.aux
-
-# Fix and visualize
-python3 script/fix_crosspage_mcid.py build/paper.pdf --aux build/paper.aux -o fixed.pdf
-python3 script/visualize_mcid.py fixed.pdf -o debug.pdf
-```
+Features:
+- **Line-based boxes**: Text elements (P, H1-H4) display per-line boxes to avoid cross-column artifacts
+- **Float bodies merged**: Figure, Table, Caption show as single blocks
+- **Reading order**: Boxes numbered by MCID order (LaTeX's actual writing/reading order)
 
 ---
 

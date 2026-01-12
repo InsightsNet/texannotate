@@ -635,13 +635,53 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str, options: str = "")
     except Exception:
         return
 
-def _inject_lpsb_mcid_after_fancyhdr(tex_file: Path, options: str = "") -> None:
+
+def _detect_native_tagged_class(tex_file: Path) -> str | None:
+    """Detect if document uses a class with native PDF tagging (e.g., acmart-tagged).
+    
+    These classes implement their own PDF tagging mechanism which conflicts with
+    LPSB's tagging. When detected, LPSB injection should be skipped.
+    
+    Args:
+        tex_file: Path to the main .tex file
+        
+    Returns:
+        Name of the native-tagged class if detected, None otherwise
+    """
+    # List of classes known to have native PDF tagging
+    NATIVE_TAGGED_CLASSES = [
+        "acmart-tagged",  # ACM's tagged PDF version of acmart
+    ]
+    
+    try:
+        content = tex_file.read_text(errors="ignore")
+    except Exception:
+        return None
+    
+    # Look for \documentclass[...]{classname} or \documentclass{classname}
+    # Must be on a NON-COMMENTED line (not starting with %)
+    # Pattern handles optional arguments and whitespace
+    docclass_pattern = re.compile(
+        r"^[^%\n]*\\documentclass\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}",
+        re.MULTILINE
+    )
+    
+    match = docclass_pattern.search(content)
+    if match:
+        classname = match.group(1).strip()
+        if classname in NATIVE_TAGGED_CLASSES:
+            return classname
+    
+    return None
+
+
+def _inject_lpsb_mcid_after_packages(tex_file: Path, options: str = "") -> None:
     """Inject lpsb-mcid after the LAST \\usepackage, before \\title/\\author.
-    
-    This ensures lpsb-mcid loads after all other packages (including fancyhdr,
-    which may be loaded via .sty files), allowing proper wrapping of
-    f@nch@head/f@nch@foot with /Artifact markers.
-    
+
+    This ensures lpsb-mcid loads after all other packages, allowing proper
+    detection of template types and installation of hooks (header/footer
+    artifact marking, layout tracking via shipout hooks, etc.).
+
     Args:
         tex_file: Path to the main .tex file
         options: Package options string (e.g., "pass-one" for two-pass compilation)
@@ -657,24 +697,63 @@ def _inject_lpsb_mcid_after_fancyhdr(tex_file: Path, options: str = "") -> None:
     
     newline = "\r\n" if "\r\n" in content else "\n"
     
-    # Strategy: Find the LAST \usepackage or \RequirePackage line (non-commented)
-    # and insert lpsb-mcid right after it
+    # Strategy: Find the LAST completed \usepackage/\RequirePackage command (non-commented)
+    # and insert lpsb-mcid right after it.
+    #
+    # IMPORTANT: both \usepackage and \RequirePackage can have multi-line optional
+    # arguments. Inserting after the *first line* of a multi-line command will
+    # corrupt the argument stream (common in biblatex samples).
     lines = content.splitlines(keepends=True)
-    usepackage_pattern = re.compile(r"^\s*\\(usepackage|RequirePackage)")
-    
-    last_usepackage_idx = -1
+
+    cmd_start = re.compile(r"^\s*\\(usepackage|RequirePackage)\b")
+    in_cmd = False
+    bracket_depth = 0
+    brace_depth = 0
+    seen_open_brace = False
+    last_pkg_cmd_end_idx = -1
+
+    def _update_depths(s: str) -> None:
+        nonlocal bracket_depth, brace_depth, seen_open_brace
+        # Best-effort scanning; this is not a full TeX parser, but it is enough
+        # to avoid splitting multi-line package commands.
+        for ch in s:
+            if ch == "[":
+                bracket_depth += 1
+            elif ch == "]":
+                bracket_depth -= 1
+            elif ch == "{":
+                seen_open_brace = True
+                brace_depth += 1
+            elif ch == "}":
+                brace_depth -= 1
+
     for i, line in enumerate(lines):
         stripped = line.lstrip()
         if stripped.startswith("%"):
             continue
-        if usepackage_pattern.match(line):
-            last_usepackage_idx = i
+
+        if not in_cmd:
+            if not cmd_start.match(line):
+                continue
+            # Start of a package command (may span multiple lines).
+            in_cmd = True
+            bracket_depth = 0
+            brace_depth = 0
+            seen_open_brace = False
+
+        _update_depths(line)
+
+        # Command ends when optional args (if any) are closed and the mandatory
+        # {..} argument has closed.
+        if seen_open_brace and bracket_depth <= 0 and brace_depth <= 0:
+            in_cmd = False
+            last_pkg_cmd_end_idx = i
     
     opt_str = f"[{options}]" if options else ""
     
-    if last_usepackage_idx >= 0:
-        # Insert lpsb-mcid right after the last usepackage
-        lines.insert(last_usepackage_idx + 1, f"\\usepackage{opt_str}{{lpsb-mcid}} % LPSB MCID - must load after all other packages{newline}")
+    if last_pkg_cmd_end_idx >= 0:
+        # Insert lpsb-mcid right after the last package command.
+        lines.insert(last_pkg_cmd_end_idx + 1, f"\\usepackage{opt_str}{{lpsb-mcid}} % LPSB MCID - must load after all other packages{newline}")
         try:
             tex_file.write_text("".join(lines))
         except Exception:
@@ -1857,18 +1936,27 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 
             return _copy_one
 
-        # LPSB tagging: use lpsb-mcid.sty exclusively (modern MCID-based approach)
-        # Note: lpsb.sty (archive) is legacy and should NOT be used
-        _copy_if_exists("lpsb-mcid.sty", pd_tex_dir)
-
         pd_main_tex_full = pdflatex_dir / main_tex
+        two_pass_enabled = False
         
-        # Two-pass compilation: first pass uses pass-one option to collect positioning info
-        two_pass_enabled = _is_two_pass_enabled()
-        if two_pass_enabled:
-            _inject_lpsb_mcid_after_fancyhdr(pd_main_tex_full, options="pass-one")
+        # Check if document uses a class with native PDF tagging (e.g., acmart-tagged)
+        # These classes implement their own tagging which conflicts with LPSB
+        native_tagged_class = _detect_native_tagged_class(pd_main_tex_full)
+        skip_lpsb_injection = native_tagged_class is not None
+        
+        if skip_lpsb_injection:
+            print(f"  [INFO] Detected native-tagged class '{native_tagged_class}' - skipping LPSB injection")
         else:
-            _inject_lpsb_mcid_after_fancyhdr(pd_main_tex_full)
+            # LPSB tagging: use lpsb-mcid.sty exclusively (modern MCID-based approach)
+            # Note: lpsb.sty (archive) is legacy and should NOT be used
+            _copy_if_exists("lpsb-mcid.sty", pd_tex_dir)
+            
+            # Two-pass compilation: first pass uses pass-one option to collect positioning info
+            two_pass_enabled = _is_two_pass_enabled()
+            if two_pass_enabled:
+                _inject_lpsb_mcid_after_packages(pd_main_tex_full, options="pass-one")
+            else:
+                _inject_lpsb_mcid_after_packages(pd_main_tex_full)
 
         docker_image, selected_tl, selected_reason = _select_docker_image(work_dir, tex_dir_rel, main_base, paper_id)
 
@@ -2059,7 +2147,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 
         # Two-pass compilation: Second pass uses the collected positioning data
         # to emit accurate BDC markers for float/cross-page elements
-        if two_pass_enabled:
+        if (not skip_lpsb_injection) and two_pass_enabled:
             with open(log_file, "a") as log:
                 log.write("\n=== Two-Pass: Pass 2 (using collected positioning data) ===\n")
             
@@ -2193,14 +2281,52 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # Post-processing: MCID parsing and fixes
         # =========================================================================
         script_dir = Path(__file__).parent
+
+        # Prefer a local venv python for post-processing (pikepdf lives there in many setups).
+        # By default we use sys.executable, but if ../.venv/bin/python exists (relative to repo)
+        # and can import pikepdf, use that for StructTree injection.
+        post_py = sys.executable
+        try:
+            import subprocess as sp
+            # Do NOT .resolve() here: venv python is often a symlink to the base
+            # interpreter; resolving would bypass the venv context (and lose site-packages).
+            venv_py = (lpsb_root.parent / ".venv" / "bin" / "python")
+            if venv_py.exists():
+                r = sp.run([str(venv_py), "-c", "import pikepdf"], check=False,
+                           capture_output=True, timeout=10, text=True)
+                if r.returncode == 0:
+                    post_py = str(venv_py)
+                    with open(log_file, "a") as log:
+                        log.write(f"\nInfo: Using venv python for postprocess: {post_py}\n")
+        except Exception:
+            pass
+
+        # Fix split headings in AUX for downstream consumers (tree/StructTree).
+        # This targets the classic pattern produced by LaTeX's staged heading output,
+        # especially around \section* and bibliography headings.
+        aux_for_downstream = aux_file
+        aux_fixed = pd_tex_dir / f"{main_base}.aux.fixed"
+        try:
+            import subprocess as sp
+            fix_headings_script = script_dir / "postprocess" / "fix_split_headings.py"
+            if fix_headings_script.exists() and aux_file.exists():
+                result = sp.run([sys.executable, str(fix_headings_script),
+                                 str(aux_file), "-o", str(aux_fixed)],
+                                check=False, capture_output=True, timeout=60, text=True)
+                if result.returncode == 0 and aux_fixed.exists():
+                    aux_for_downstream = aux_fixed
+                    with open(log_file, "a") as log:
+                        log.write(f"\nInfo: Split headings fixed (aux): {aux_fixed}\n")
+        except Exception as e:
+            with open(log_file, "a") as log:
+                log.write(f"\nWarning: Failed to fix split headings (aux): {e}\n")
         
         # 1. Parse MCID data from aux file to JSON
         mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
         try:
-            import subprocess as sp
             parse_script = script_dir / "parsing" / "parse_lpsb_mcid.py"
             if parse_script.exists():
-                sp.run([sys.executable, str(parse_script), str(aux_file)],
+                sp.run([sys.executable, str(parse_script), str(aux_for_downstream)],
                        check=False, capture_output=True, timeout=60)
                 with open(log_file, "a") as log:
                     log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
@@ -2247,9 +2373,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
         try:
             inject_structtree_script = script_dir / "postprocess" / "inject_structtree.py"
-            if inject_structtree_script.exists() and pdf_fixed.exists() and aux_file.exists():
-                result = sp.run([sys.executable, str(inject_structtree_script),
-                                str(pdf_fixed), "--aux", str(aux_file),
+            if inject_structtree_script.exists() and pdf_fixed.exists() and aux_for_downstream.exists():
+                result = sp.run([post_py, str(inject_structtree_script),
+                                str(pdf_fixed), "--aux", str(aux_for_downstream),
                                 "-o", str(pdf_tagged)],
                                check=False, capture_output=True, timeout=120, text=True)
                 if result.returncode == 0 and pdf_tagged.exists():
@@ -2265,7 +2391,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                 log.write(f"\nWarning: Failed to inject StructTree: {e}\n")
         
         # Copy post-processed files to result directory
-        for src_file in [mcid_json, mcid_fixed_json, pdf_fixed, pdf_tagged]:
+        for src_file in [mcid_json, mcid_fixed_json, aux_fixed, pdf_fixed, pdf_tagged]:
             if src_file.exists():
                 try:
                     shutil.copy(src_file, res_dir / src_file.name)

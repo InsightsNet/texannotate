@@ -46,6 +46,7 @@
 \providecommand{\lpsb@pass@float}[4]{}   % {float_id}{source_page}{rendered_page}{type}
 \providecommand{\lpsb@pass@pagebreak}[2]{} % {page}{active_elem_id}
 \providecommand{\lpsb@pass@elempage}[3]{}  % {elem_id}{start_page}{end_page}
+\providecommand{\lpsb@pass@section}[4]{}   % {section_id}{source_page}{rendered_page}{level}
 
 %% =========================================
 %% 1c. Two-Pass Compilation Options
@@ -60,6 +61,10 @@
 \newcounter{lpsb@floatID}
 \setcounter{lpsb@floatID}{0}
 
+% Counter for section tracking in pass-one
+\newcounter{lpsb@sectionID}
+\setcounter{lpsb@sectionID}{0}
+
 % Storage for pass-one float placement data (read from aux)
 % Format: \lpsb@float@page@{float_id} -> rendered_page
 \newcommand{\lpsb@record@float@page}[2]{%
@@ -73,12 +78,29 @@
   \fi
 }
 
+% Storage for pass-one section placement data (read from aux)
+% Format: \lpsb@section@page@{section_id} -> rendered_page
+\newcommand{\lpsb@record@section@page}[2]{%
+  \expandafter\gdef\csname lpsb@section@page@#1\endcsname{#2}%
+}
+\newcommand{\lpsb@get@section@page}[1]{%
+  \ifcsname lpsb@section@page@#1\endcsname
+    \csname lpsb@section@page@#1\endcsname
+  \else
+    0%
+  \fi
+}
+
 % Process pass-one aux commands when aux is read
 \AtBeginDocument{%
   % Re-define aux readers to actually store the data
   \renewcommand{\lpsb@pass@float}[4]{%
     \global\@lpsb@has@pass@datatrue
     \lpsb@record@float@page{#1}{#3}% Store: float_id -> rendered_page
+  }%
+  \renewcommand{\lpsb@pass@section}[4]{%
+    \global\@lpsb@has@pass@datatrue
+    \lpsb@record@section@page{#1}{#3}% Store: section_id -> rendered_page
   }%
 }
 
@@ -92,66 +114,63 @@
   \fi
 }
 
-% Track layout switches mid-document (e.g., \onecolumn in appendix)
-% Record: \lpsb@layout@switch{mode}{page}
-\let\lpsb@orig@onecolumn\onecolumn
-\renewcommand{\onecolumn}{%
-  \lpsb@orig@onecolumn
-  \protected@write\@auxout{}{\string\lpsb@layout@switch{onecolumn}{\thepage}}%
-}
-% IMPORTANT:
-% - \twocolumn has an optional argument: \twocolumn[<top material>]
-% - Many classes call it inside \maketitle.
-% If we wrap it without preserving the optional-arg form, the delimiter tokens
-% '[' and ']' can leak into the PDF as visible glyphs.
+% Track layout switches mid-document using shipout hook
+% This approach is more robust than wrapping \twocolumn/\onecolumn commands,
+% as it avoids conflicts with templates that use complex \twocolumn[...] syntax
+% (e.g., IEEEtran's \twocolumn[{\IEEEquantizevspace{...}}]).
 %
-% Also, other packages/classes may redefine \twocolumn in \AtBeginDocument.
-% To avoid capturing an early definition, we (re)install our wrapper at the
-% end of \begin{document} initialization (when available).
-%
-\newif\if@lpsb@twocolumn@wrapped \@lpsb@twocolumn@wrappedfalse
-\newcommand{\lpsb@orig@twocolumn}{}%
-\protected\def\lpsb@twocolumn@wrapper{%
-  \@ifnextchar[\lpsb@twocolumn@wrapper@opt\lpsb@twocolumn@wrapper@noopt
-}
-\def\lpsb@twocolumn@wrapper@opt[#1]{%
-  \lpsb@orig@twocolumn[#1]%
-  \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
-}
-\def\lpsb@twocolumn@wrapper@noopt{%
-  \lpsb@orig@twocolumn
-  \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
-}
-% Install twocolumn wrapper - but skip for classes with complex twocolumn usage
-% IEEEtran uses \twocolumn[{\IEEEquantizevspace{...}}] which conflicts with
-% our \@ifnextchar[ based wrapper.
-\def\lpsb@install@twocolumn@wrapper{%
-  % Check if IEEEtran class is loaded by looking for its internal dimension
-  % (@IEEEtrantmpdimenA is defined early in IEEEtran.cls)
-  \@ifundefined{@IEEEtrantmpdimenA}{%
-    % Not IEEEtran - safe to install full wrapper
-    \ifx\twocolumn\lpsb@twocolumn@wrapper
+% Strategy: At each page shipout, check \if@twocolumn and record if it changed.
+% This records the ACTUAL layout of each page, not when the command was called.
+
+% Track the last recorded layout to detect changes
+\newif\if@lpsb@last@twocolumn \@lpsb@last@twocolumnfalse
+\newif\if@lpsb@layout@initialized \@lpsb@layout@initializedfalse
+
+% Record layout change at shipout time
+\newcommand{\lpsb@record@layout@at@shipout}{%
+  \if@lpsb@layout@initialized
+    % Check if layout changed since last shipout
+    \if@twocolumn
+      \if@lpsb@last@twocolumn
+        % Still twocolumn - no change
+      \else
+        % Changed to twocolumn
+        \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
+        \global\@lpsb@last@twocolumntrue
+      \fi
     \else
-      \let\lpsb@orig@twocolumn\twocolumn
-      \let\twocolumn\lpsb@twocolumn@wrapper
-      \global\@lpsb@twocolumn@wrappedtrue
+      \if@lpsb@last@twocolumn
+        % Changed to onecolumn
+        \protected@write\@auxout{}{\string\lpsb@layout@switch{onecolumn}{\thepage}}%
+        \global\@lpsb@last@twocolumnfalse
+      \else
+        % Still onecolumn - no change
+      \fi
     \fi
-  }{%
-    % IEEEtran detected - use pure passthrough to avoid conflicts
-    \typeout{LPSB-MCID Info: IEEEtran detected - using passthrough twocolumn wrapper}%
-    \let\lpsb@orig@twocolumn\twocolumn
-    \def\twocolumn{%
-      \lpsb@orig@twocolumn
-      % Note: layout switch recording skipped for IEEEtran compatibility
-    }%
-  }%
+  \else
+    % First shipout - initialize tracking state from base layout
+    \if@twocolumn
+      \global\@lpsb@last@twocolumntrue
+    \else
+      \global\@lpsb@last@twocolumnfalse
+    \fi
+    \global\@lpsb@layout@initializedtrue
+  \fi
 }
-\lpsb@install@twocolumn@wrapper
-% Re-install late to capture final \twocolumn definition (TL2020+).
+
+% Install shipout hook using LaTeX3 hook system (TL2020+) or atbegshi fallback
 \@ifundefined{AddToHook}{%
-  \AtBeginDocument{\lpsb@install@twocolumn@wrapper}%
+  % Fallback for older LaTeX: use atbegshi if available
+  \IfFileExists{atbegshi.sty}{%
+    \RequirePackage{atbegshi}%
+    \AtBeginShipout{\lpsb@record@layout@at@shipout}%
+  }{%
+    % No hook mechanism available - skip layout tracking
+    \typeout{LPSB-MCID Warning: No shipout hook available, layout tracking disabled}%
+  }%
 }{%
-  \AddToHook{begindocument/end}{\lpsb@install@twocolumn@wrapper}%
+  % LaTeX3 hook system available
+  \AddToHook{shipout/before}{\lpsb@record@layout@at@shipout}%
 }
 
 % Define aux readers (no-op, just for parsing by Python)
@@ -263,7 +282,13 @@
         % We're inside a float - use P for any subsequent content
         \xdef\lpsb@actual@reopen@type{P}%
       \else
-        \xdef\lpsb@actual@reopen@type{\lpsb@reopen@type}%
+        % Check if we're inside a section heading that spans pages
+        \if@lpsb@in@section
+          % Section heading crosses page - reopen with heading tag, not P
+          \xdef\lpsb@actual@reopen@type{\lpsb@pending@heading@level}%
+        \else
+          \xdef\lpsb@actual@reopen@type{\lpsb@reopen@type}%
+        \fi
       \fi
       % Immediately reopen tag
       \stepcounter{lpsb@globalMCID}%
@@ -283,60 +308,792 @@
 % Page numbers, running heads, etc. should be marked as /Artifact (PDF/UA standard)
 % not as P. This is cleaner than trying to suppress MCIDs entirely.
 
-% Helper to wrap fancyhdr internals with Artifact
-\newcommand{\lpsb@wrap@fancyhdr@artifact}{%
-  \@ifundefined{f@nch@head}{}{%
-    \@ifundefined{lpsb@orig@fnchhead}{%
-      % Wrap \f@nch@head with Artifact BMC/EMC
-      \let\lpsb@orig@fnchhead\f@nch@head
-      \long\def\f@nch@head##1##2##3##4##5{%
-        \lpsb@pdfliteralcmd{ /Artifact BMC }%
-        \lpsb@orig@fnchhead{##1}{##2}{##3}{##4}{##5}%
-        \lpsb@pdfliteralcmd{ EMC }%
-      }%
+% IMPORTANT:
+% Do NOT patch fancyhdr internals (\f@nch@head/\f@nch@foot). Many classes patch
+% fancyhdr aggressively and those internals are fragile.
+%
+% Instead we wrap the *output-level* header/footer macros (\@oddhead/\@oddfoot/...):
+% this is lower-level and it also lets us disable paragraph tagging while the
+% head/foot boxes are built (otherwise \everypar can emit stray P tags there).
+%
+% However: some classes (notably acmart) bypass \@oddhead/\@thehead and build
+% headers/footers via fancyhdr internals. In that case we must wrap fancyhdr too.
+
+% Flag: building header/footer content (output routine, not shipout)
+\newif\if@lpsb@in@headfoot \@lpsb@in@headfootfalse
+\newif\if@lpsb@in@artifact \@lpsb@in@artifactfalse
+
+% Wrap header/footer content as /Artifact and suppress paragraph tagging inside.
+\long\def\lpsb@headfoot@artifact#1{%
+  \begingroup
+    \@lpsb@in@headfoottrue
+    \@ifundefined{lpsb@seen@headfoot@artifact}{%
+      \gdef\lpsb@seen@headfoot@artifact{1}%
+      \typeout{LPSB-MCID Info: head/foot artifact wrapper EXECUTED}%
     }{}%
-  }%
-  \@ifundefined{f@nch@foot}{}{%
-    \@ifundefined{lpsb@orig@fnchfoot}{%
-      % Wrap \f@nch@foot with Artifact BMC/EMC
-      \let\lpsb@orig@fnchfoot\f@nch@foot
-      \long\def\f@nch@foot##1##2##3##4##5{%
-        \lpsb@pdfliteralcmd{ /Artifact BMC }%
-        \lpsb@orig@fnchfoot{##1}{##2}{##3}{##4}{##5}%
-        \lpsb@pdfliteralcmd{ EMC }%
-      }%
-    }{}%
-  }%
+    \if@lpsb@in@artifact
+      #1%
+    \else
+      \@lpsb@in@artifacttrue
+      \lpsb@pdfliteralcmd{ /Artifact BMC }%
+      #1%
+      \lpsb@pdfliteralcmd{ EMC }%
+    \fi
+  \endgroup
 }
 
-% Try to wrap fancyhdr NOW (if already loaded before lpsb-mcid)
-\@ifpackageloaded{fancyhdr}{\lpsb@wrap@fancyhdr@artifact}{}
+% Wrap fancyhdr internals (when present) with /Artifact, for classes that bypass
+% \@oddhead/\@thehead.
+%
+% NOTE: fancyhdr internals are not stable across versions/classes. A wrong
+% signature here will corrupt the argument stream (catastrophic). Keep this
+% disabled until we detect and match the correct definition in the target setup.
+\newcommand{\lpsb@wrap@fancyhdr@artifact}{}
 
-% Also wrap at begin document (for case where fancyhdr loaded AFTER lpsb-mcid)
+% Wrap header/footer at the output routine level via \@thehead/\@thefoot.
+% This catches fancyhdr, custom pagestyles, and templates that redefine \@oddhead
+% after begin document.
+%
+% NOTE: We do NOT call \lpsb@wrap@headfoot@artifact globally at \AtBeginDocument
+% because output routine hooks already wrap headers/footers locally in each call.
+% Global wrapping + output routine wrapping causes recursive \begingroup overflow.
 \AtBeginDocument{%
-  \@ifpackageloaded{fancyhdr}{\lpsb@wrap@fancyhdr@artifact}{}%
-  % Also wrap @oddfoot etc. for non-fancy pagestyles or non-fancyhdr documents
-  \lpsb@wrap@headfoot@artifact
+  \@ifundefined{@outputpage}{}{%
+    \@ifundefined{lpsb@orig@@outputpage}{%
+      \let\lpsb@orig@@outputpage\@outputpage
+      \typeout{LPSB-MCID Info: outputpage wrapped for head/foot artifacts}%
+      \def\@outputpage{%
+        \begingroup
+          \@ifundefined{lpsb@seen@outputpage}{%
+            \gdef\lpsb@seen@outputpage{1}%
+            \typeout{LPSB-MCID Info: outputpage CALLED (shipout path uses @outputpage)}%
+          }{}%
+          \@ifundefined{@oddhead}{}{%
+            \let\lpsb@orig@oddhead\@oddhead
+            \def\@oddhead{\lpsb@headfoot@artifact{\lpsb@orig@oddhead}}%
+          }%
+          \@ifundefined{@evenhead}{}{%
+            \let\lpsb@orig@evenhead\@evenhead
+            \def\@evenhead{\lpsb@headfoot@artifact{\lpsb@orig@evenhead}}%
+          }%
+          \@ifundefined{@oddfoot}{}{%
+            \let\lpsb@orig@oddfoot\@oddfoot
+            \def\@oddfoot{\lpsb@headfoot@artifact{\lpsb@orig@oddfoot}}%
+          }%
+          \@ifundefined{@evenfoot}{}{%
+            \let\lpsb@orig@evenfoot\@evenfoot
+            \def\@evenfoot{\lpsb@headfoot@artifact{\lpsb@orig@evenfoot}}%
+          }%
+          \@ifundefined{@thehead}{}{%
+            \let\lpsb@orig@thehead\@thehead
+            \def\@thehead{\lpsb@headfoot@artifact{\lpsb@orig@thehead}}%
+          }%
+          \@ifundefined{@thefoot}{}{%
+            \let\lpsb@orig@thefoot\@thefoot
+            \def\@thefoot{\lpsb@headfoot@artifact{\lpsb@orig@thefoot}}%
+          }%
+          \lpsb@orig@@outputpage
+        \endgroup
+      }%
+    }{}%
+  }%
+  % NOTE: We do NOT wrap \@outputdblcol separately because it internally calls
+  % \@outputpage, which already handles header/footer artifact wrapping.
+  % Wrapping both causes recursive \begingroup overflow.
+  % Patch standard pagestyles so they wrap headers/footers after defining them
+  % This is critical for first page where \thispagestyle{plain} overwrites our wrapping
+  \lpsb@patch@pagestyles
 }
 
 % Fallback: wrap standard LaTeX header/footer commands with Artifact
 \newcommand{\lpsb@wrap@headfoot@artifact}{%
   \@ifundefined{@oddfoot}{}{%
     \let\lpsb@orig@oddfoot\@oddfoot
-    \def\@oddfoot{\lpsb@pdfliteralcmd{ /Artifact BMC }\lpsb@orig@oddfoot\lpsb@pdfliteralcmd{ EMC }}%
+    \def\@oddfoot{\lpsb@headfoot@artifact{\lpsb@orig@oddfoot}}%
   }%
   \@ifundefined{@evenfoot}{}{%
     \let\lpsb@orig@evenfoot\@evenfoot
-    \def\@evenfoot{\lpsb@pdfliteralcmd{ /Artifact BMC }\lpsb@orig@evenfoot\lpsb@pdfliteralcmd{ EMC }}%
+    \def\@evenfoot{\lpsb@headfoot@artifact{\lpsb@orig@evenfoot}}%
   }%
   \@ifundefined{@oddhead}{}{%
     \let\lpsb@orig@oddhead\@oddhead
-    \def\@oddhead{\lpsb@pdfliteralcmd{ /Artifact BMC }\lpsb@orig@oddhead\lpsb@pdfliteralcmd{ EMC }}%
+    \def\@oddhead{\lpsb@headfoot@artifact{\lpsb@orig@oddhead}}%
   }%
   \@ifundefined{@evenhead}{}{%
     \let\lpsb@orig@evenhead\@evenhead
-    \def\@evenhead{\lpsb@pdfliteralcmd{ /Artifact BMC }\lpsb@orig@evenhead\lpsb@pdfliteralcmd{ EMC }}%
+    \def\@evenhead{\lpsb@headfoot@artifact{\lpsb@orig@evenhead}}%
   }%
+}
+
+% Wrap current header/footer definitions with Artifact markers using \edef
+% This captures the current definition at call time, avoiding double-wrap issues
+% when pagestyles redefine \@oddfoot etc.
+\newcommand{\lpsb@wrap@current@headfoot}{%
+  \@ifundefined{@oddfoot}{}{%
+    \ifx\@oddfoot\@empty\else
+      \edef\@oddfoot{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@oddfoot}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@evenfoot}{}{%
+    \ifx\@evenfoot\@empty\else
+      \edef\@evenfoot{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@evenfoot}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@oddhead}{}{%
+    \ifx\@oddhead\@empty\else
+      \edef\@oddhead{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@oddhead}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@evenhead}{}{%
+    \ifx\@evenhead\@empty\else
+      \edef\@evenhead{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@evenhead}%
+        }%
+      }%
+    \fi
+  }%
+}
+
+% Patch standard pagestyles to wrap headers/footers after they are defined
+% This is necessary because \thispagestyle{plain} etc. redefine \@oddfoot,
+% overwriting any previous wrapping done at \AtBeginDocument.
+\newcommand{\lpsb@patch@pagestyles}{%
+  % Patch \ps@plain
+  \@ifundefined{ps@plain}{}{%
+    \let\lpsb@orig@ps@plain\ps@plain
+    \def\ps@plain{%
+      \lpsb@orig@ps@plain
+      \lpsb@wrap@current@headfoot
+    }%
+  }%
+  % Patch \ps@empty
+  \@ifundefined{ps@empty}{}{%
+    \let\lpsb@orig@ps@empty\ps@empty
+    \def\ps@empty{%
+      \lpsb@orig@ps@empty
+      \lpsb@wrap@current@headfoot
+    }%
+  }%
+  % Patch \ps@headings
+  \@ifundefined{ps@headings}{}{%
+    \let\lpsb@orig@ps@headings\ps@headings
+    \def\ps@headings{%
+      \lpsb@orig@ps@headings
+      \lpsb@wrap@current@headfoot
+    }%
+  }%
+  % Patch \ps@myheadings
+  \@ifundefined{ps@myheadings}{}{%
+    \let\lpsb@orig@ps@myheadings\ps@myheadings
+    \def\ps@myheadings{%
+      \lpsb@orig@ps@myheadings
+      \lpsb@wrap@current@headfoot
+    }%
+  }%
+}
+
+%% =========================================
+%% 4c. Table of Contents Tagging
+%% =========================================
+% TOC entries should be tagged as TOCI (TOC Item) instead of P
+% We hook \@starttoc to set a flag, then modify tag emission in contentsline
+
+\newif\if@lpsb@in@toc \@lpsb@in@tocfalse
+
+% Hook \@starttoc to set TOC flag
+\AtBeginDocument{%
+  \@ifundefined{@starttoc}{}{%
+    \let\lpsb@orig@starttoc\@starttoc
+    \def\@starttoc#1{%
+      \global\@lpsb@in@toctrue
+      \lpsb@orig@starttoc{#1}%
+      \global\@lpsb@in@tocfalse
+    }%
+  }%
+}
+
+% Hook \contentsline to wrap each entry with TOCI tag
+\AtBeginDocument{%
+  \@ifundefined{contentsline}{}{%
+    \let\lpsb@orig@contentsline\contentsline
+    \def\contentsline#1#2#3#4{%
+      % #1 = level (section, subsection, etc.)
+      % #2 = title text
+      % #3 = page number
+      % #4 = hyperref destination
+      \if@lpsb@in@toc
+        % End any active P tag first
+        \if@lpsb@active
+          \lpsbTagEnd
+        \fi
+        % Start TOCI tag
+        \lpsbTagBegin{TOCI}%
+        \lpsb@orig@contentsline{#1}{#2}{#3}{#4}%
+        % End TOCI tag
+        \lpsbTagEnd
+      \else
+        \lpsb@orig@contentsline{#1}{#2}{#3}{#4}%
+      \fi
+    }%
+  }%
+}
+
+%% =========================================
+%% 4d. Title Area Semantic Tagging (Template-Aware)
+%% =========================================
+% Title, Author, Date, and Abstract need semantic tags instead of P
+% This section provides template-aware hooks for various document classes
+% and conference styles used in academic publishing.
+%
+% Supported patterns:
+% 1. Standard article class: \@title, \@author, \@date
+% 2. Conference styles (ACL, NeurIPS, ICLR, CVPR, AAAI): \@title, \@author
+% 3. Springer (llncs, svjour): \@title, \@author, \institute
+% 4. Elsevier (elsarticle): \@title, \elsauthors
+% 5. AMS (amsart): \@title, \authors
+% 6. Complex frontmatter (revtex, aastex, acmart): special handling
+
+% Flag to track if we're inside maketitle
+\newif\if@lpsb@in@maketitle \@lpsb@in@maketitlefalse
+
+% Template detection flags
+\newif\if@lpsb@template@detected \@lpsb@template@detectedfalse
+\gdef\lpsb@detected@template{unknown}
+
+% Helper: Detect template type based on defined macros/classes
+% Uses smart detection based on characteristic macros instead of explicit package names
+% This avoids needing to list every year variant (aaai24, aaai25, neurips_2023, etc.)
+\newcommand{\lpsb@detect@template}{%
+  % Default to article
+  \gdef\lpsb@detected@template{article}%
+  \global\@lpsb@template@detectedfalse
+  %
+  % Strategy: Detect by characteristic internal macros that each template family defines
+  % This is more robust than checking package names by year
+  %
+  % Check for specific class files first (these are stable names)
+  \@ifclassloaded{llncs}{\gdef\lpsb@detected@template{llncs}\global\@lpsb@template@detectedtrue}{}%
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{IEEEtran}{\gdef\lpsb@detected@template{ieeetran}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    % acmart loads amsart.cls internally; do NOT let amsart override acmart.
+    \@ifclassloaded{acmart}{\gdef\lpsb@detected@template{acmart}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{elsarticle}{\gdef\lpsb@detected@template{elsarticle}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{svjour3}{\gdef\lpsb@detected@template{svjour}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{svjour}{\gdef\lpsb@detected@template{svjour}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{amsart}{\gdef\lpsb@detected@template{amsart}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{revtex4-2}{\gdef\lpsb@detected@template{revtex}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{revtex4-1}{\gdef\lpsb@detected@template{revtex}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  %
+  % Detect conference styles by characteristic macros (works for any year variant)
+  %
+  % NeurIPS: defines \@toptitlebar and \@bottomtitlebar for title decoration
+  \if@lpsb@template@detected\else
+    \@ifundefined{@toptitlebar}{}{%
+      \@ifundefined{@bottomtitlebar}{}{\gdef\lpsb@detected@template{neurips}\global\@lpsb@template@detectedtrue}%
+    }%
+  \fi
+  % ICLR: defines \iclrfinalcopy command (not the conditional \ificlrfinal)
+  \if@lpsb@template@detected\else
+    \@ifundefined{iclrfinalcopy}{}{\gdef\lpsb@detected@template{iclr}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % ACL/EMNLP/NAACL: defines \outauthor and \titlebox length
+  \if@lpsb@template@detected\else
+    \@ifundefined{outauthor}{}{%
+      \@ifundefined{titlebox}{}{\gdef\lpsb@detected@template{acl}\global\@lpsb@template@detectedtrue}%
+    }%
+  \fi
+  % CVPR: defines \cvprsection command (not the conditional \ifcvprfinal)
+  \if@lpsb@template@detected\else
+    \@ifundefined{cvprsection}{}{\gdef\lpsb@detected@template{cvpr}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % AAAI: defines \copyrighttext command (more reliable than \affiliations_ which is defined later)
+  \if@lpsb@template@detected\else
+    \@ifundefined{copyrighttext}{}{\gdef\lpsb@detected@template{aaai}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % ICML: defines \icmltitle command
+  \if@lpsb@template@detected\else
+    \@ifundefined{icmltitle}{}{\gdef\lpsb@detected@template{icml}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % AASTeX/RevTeX family: defines \frontmatter@maketitle
+  \if@lpsb@template@detected\else
+    \@ifundefined{frontmatter@maketitle}{}{\gdef\lpsb@detected@template{aastex}\global\@lpsb@template@detectedtrue}%
+  \fi
+  %
+  % Additional conference templates
+  % ICCV: defines \iccvsection command
+  \if@lpsb@template@detected\else
+    \@ifundefined{iccvsection}{}{\gdef\lpsb@detected@template{iccv}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % WACV: defines \wacvsection command
+  \if@lpsb@template@detected\else
+    \@ifundefined{wacvsection}{}{\gdef\lpsb@detected@template{wacv}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % AISTATS: defines \aistatstitle command
+  \if@lpsb@template@detected\else
+    \@ifundefined{aistatstitle}{}{\gdef\lpsb@detected@template{aistats}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % TMLR (Transactions on ML Research): defines \interauthorskip (not \openreview which is user-defined)
+  \if@lpsb@template@detected\else
+    \@ifundefined{interauthorskip}{}{%
+      % Also check for \aftertitskip to distinguish from other templates
+      \@ifundefined{aftertitskip}{}{%
+        \gdef\lpsb@detected@template{tmlr}\global\@lpsb@template@detectedtrue
+      }%
+    }%
+  \fi
+  %
+  % Journal templates
+  % MNRAS (Monthly Notices of Royal Astronomical Society): defines \ion command
+  \if@lpsb@template@detected\else
+    \@ifundefined{ion}{}{\gdef\lpsb@detected@template{mnras}\global\@lpsb@template@detectedtrue}%
+  \fi
+  %
+  \typeout{LPSB-MCID Info: Detected template type: \lpsb@detected@template}%
+}
+
+% Hook \maketitle to suppress normal P tags and inline tags during title area
+\AtBeginDocument{%
+  \lpsb@detect@template
+  \@ifundefined{maketitle}{}{%
+    \let\lpsb@orig@maketitle\maketitle
+    \def\maketitle{%
+      \global\@lpsb@in@maketitletrue
+      \global\@lpsb@suppress@inlinetrue  % Suppress inline tags during title
+      % End any active P tag before title area
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsb@orig@maketitle
+      \global\@lpsb@suppress@inlinefalse
+      \global\@lpsb@in@maketitlefalse
+      % Start P for content after title
+      \if@lpsb@active
+        \lpsbTagBegin{P}%
+        \global\@lpsb@first@paratrue
+      \fi
+    }%
+  }%
+}
+
+% Hook \@maketitle for standard article class and similar templates
+% This wraps \@title, \@author, \@date with semantic tags
+\AtBeginDocument{%
+  \@ifundefined{@maketitle}{%
+    % No @maketitle - check for alternative patterns
+    \typeout{LPSB-MCID Info: @maketitle not found, checking alternatives}%
+  }{%
+    % Check if this is a complex frontmatter system that shouldn't be hooked
+    \def\lpsb@tmp@revtex{revtex}%
+    \def\lpsb@tmp@aastex{aastex}%
+    \def\lpsb@tmp@acmart{acmart}%
+    \def\lpsb@tmp@amsart{amsart}%
+    \ifx\lpsb@detected@template\lpsb@tmp@revtex
+      \typeout{LPSB-MCID Info: revtex detected - using passthrough for @maketitle}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aastex
+      \typeout{LPSB-MCID Info: aastex detected - using passthrough for @maketitle}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@acmart
+      \typeout{LPSB-MCID Info: acmart detected - using passthrough for @maketitle}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@amsart
+      \typeout{LPSB-MCID Info: amsart detected - using passthrough for @maketitle}%
+    \else
+      % Safe to hook @maketitle
+      \let\lpsb@orig@@maketitle\@maketitle
+      \def\@maketitle{%
+        % Create a group to localize changes
+        \begingroup
+          % Wrap \@title with Title tag
+          \@ifundefined{@title}{}{%
+            \let\lpsb@saved@title\@title
+            \def\@title{%
+              \lpsbTagBegin{Title}%
+              \lpsb@saved@title
+              \lpsbTagEnd
+            }%
+          }%
+          % Wrap \@author with Author tag (check if it's not empty)
+          \@ifundefined{@author}{}{%
+            \let\lpsb@saved@author\@author
+            \def\@author{%
+              \lpsbTagBegin{Author}%
+              \lpsb@saved@author
+              \lpsbTagEnd
+            }%
+          }%
+          % Wrap \@date with Date tag
+          \@ifundefined{@date}{}{%
+            \let\lpsb@saved@date\@date
+            \def\@date{%
+              \lpsbTagBegin{Date}%
+              \lpsb@saved@date
+              \lpsbTagEnd
+            }%
+          }%
+          % For Elsevier: wrap \elsauthors if present
+          \@ifundefined{elsauthors}{}{%
+            \let\lpsb@saved@elsauthors\elsauthors
+            \def\elsauthors{%
+              \lpsbTagBegin{Author}%
+              \lpsb@saved@elsauthors
+              \lpsbTagEnd
+            }%
+          }%
+          % For AMS: wrap \authors if present (different from \@author)
+          \@ifundefined{authors}{}{%
+            \let\lpsb@saved@authors\authors
+            \def\authors{%
+              \lpsbTagBegin{Author}%
+              \lpsb@saved@authors
+              \lpsbTagEnd
+            }%
+          }%
+          % For Springer: wrap \@institute if present
+          \@ifundefined{@institute}{}{%
+            \let\lpsb@saved@institute\@institute
+            \def\@institute{%
+              \lpsbTagBegin{Affiliation}%
+              \lpsb@saved@institute
+              \lpsbTagEnd
+            }%
+          }%
+          % For templates with institutename (llncs)
+          \@ifundefined{institutename}{}{%
+            \let\lpsb@saved@institutename\institutename
+            \def\institutename{%
+              \lpsbTagBegin{Affiliation}%
+              \lpsb@saved@institutename
+              \lpsbTagEnd
+            }%
+          }%
+          % For templates with \@subtitle
+          \@ifundefined{@subtitle}{}{%
+            \let\lpsb@saved@subtitle\@subtitle
+            \def\@subtitle{%
+              \lpsbTagBegin{Subtitle}%
+              \lpsb@saved@subtitle
+              \lpsbTagEnd
+            }%
+          }%
+          \lpsb@orig@@maketitle
+        \endgroup
+      }%
+    \fi\fi\fi\fi
+  }%
+}
+
+% Special hook for AAAI's \affiliations command (separate from author)
+\AtBeginDocument{%
+  \@ifundefined{affiliations}{}{%
+    \let\lpsb@orig@affiliations\affiliations
+    \renewcommand{\affiliations}[1]{%
+      \def\lpsb@affil@content{#1}%
+      \lpsb@orig@affiliations{#1}%
+    }%
+  }%
+}
+
+% Hook abstract environment to use Abstract tag
+\AtBeginDocument{%
+  \@ifundefined{abstract}{}{%
+    \let\lpsb@orig@abstract\abstract
+    \let\lpsb@orig@endabstract\endabstract
+    \renewenvironment{abstract}{%
+      % End any active P tag
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Abstract}%
+      \lpsb@orig@abstract
+    }{%
+      \lpsb@orig@endabstract
+      \lpsbTagEnd
+    }%
+  }%
+}
+
+%% =========================================
+%% 4e. Code Listing Semantic Tagging
+%% =========================================
+% lstlisting environments should be tagged as Code instead of P
+% Note: listings package uses complex internals, use etoolbox hooks instead
+% Note: We don't call lpsbTagEnd here to avoid breaking section headings
+
+\AtBeginDocument{%
+  \@ifpackageloaded{listings}{%
+    % Use etoolbox hooks instead of renewenvironment (listings is complex)
+    \BeforeBeginEnvironment{lstlisting}{%
+      \lpsbTagBegin{Code}%
+    }%
+    \AfterEndEnvironment{lstlisting}{%
+      \lpsbTagEnd
+    }%
+    % Hook listings caption: listings uses \lst@MakeCaption internally
+    \@ifundefined{lst@MakeCaption}{}{%
+      \let\lpsb@orig@lstMakeCaption\lst@MakeCaption
+      \def\lst@MakeCaption#1{%
+        \lpsbTagAtom{Caption}{\lpsb@orig@lstMakeCaption{#1}}%
+      }%
+    }%
+  }{}%
+  % fancyvrb package: Verbatim environment
+  \@ifpackageloaded{fancyvrb}{%
+    \BeforeBeginEnvironment{Verbatim}{%
+      \lpsbTagBegin{Code}%
+    }%
+    \AfterEndEnvironment{Verbatim}{%
+      \lpsbTagEnd
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4f. Algorithm Semantic Tagging
+%% =========================================
+% algorithm environments should be tagged as Algorithm instead of P
+% Using etoolbox hooks for consistency
+% Note: We don't call lpsbTagEnd here to avoid breaking section headings
+
+% Flag to suppress inline tags (Strong, Em, etc.) inside certain environments
+\newif\if@lpsb@suppress@inline \@lpsb@suppress@inlinefalse
+
+% algorithm2e package
+\AtBeginDocument{%
+  \@ifpackageloaded{algorithm2e}{%
+    \BeforeBeginEnvironment{algorithm}{%
+      \lpsbTagBegin{Algorithm}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{algorithm}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+    }%
+  }{}%
+}
+
+% algorithmicx package
+\AtBeginDocument{%
+  \@ifpackageloaded{algorithmicx}{%
+    \BeforeBeginEnvironment{algorithmic}{%
+      \lpsbTagBegin{Algorithm}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{algorithmic}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4g. Multicol Environment Tagging
+%% =========================================
+% multicols environment collects content in a vbox before splitting into columns
+% This can suppress normal everypar behavior. We explicitly start a P tag.
+\AtBeginDocument{%
+  \@ifpackageloaded{multicol}{%
+    \BeforeBeginEnvironment{multicols}{%
+      % End any active tag and start fresh P for multicol content
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{P}%
+    }%
+    \AfterEndEnvironment{multicols}{%
+      \lpsbTagEnd
+      % Start new P for content after multicol
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4h. Longtable Environment Tagging
+%% =========================================
+% longtable creates multi-page tables outside of float environments.
+% Tag as Table and suppress inline formatting to avoid fragmentation.
+\AtBeginDocument{%
+  \@ifpackageloaded{longtable}{%
+    \BeforeBeginEnvironment{longtable}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Table}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{longtable}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4i. Theorem Environment Tagging
+%% =========================================
+% Theorem-like environments (theorem, lemma, definition, etc.) should
+% suppress inline tags to avoid fragmentation. We use a generic approach
+% that hooks into amsthm's \@thm command.
+\AtBeginDocument{%
+  \@ifpackageloaded{amsthm}{%
+    % Hook \@thm which is called for all theorem environments
+    \@ifundefined{@thm}{}{%
+      \let\lpsb@orig@@thm\@thm
+      \def\@thm#1#2#3{%
+        \if@lpsb@active
+          \lpsbTagEnd
+          \lpsbTagBegin{P}%  % Use P for theorem content (semantic role unclear in PDF/UA)
+          \global\@lpsb@suppress@inlinetrue
+        \fi
+        \lpsb@orig@@thm{#1}{#2}{#3}%
+      }%
+    }%
+    % Hook \@endtheorem to restore inline tagging
+    \@ifundefined{@endtheorem}{}{%
+      \let\lpsb@orig@@endtheorem\@endtheorem
+      \def\@endtheorem{%
+        \lpsb@orig@@endtheorem
+        \global\@lpsb@suppress@inlinefalse
+      }%
+    }%
+  }{}%
+  % Also handle old-style theorem package
+  \@ifpackageloaded{theorem}{%
+    \@ifundefined{@thm}{}{%
+      \@ifundefined{lpsb@orig@@thm}{%  % Don't double-hook if amsthm already did
+        \let\lpsb@orig@@thm\@thm
+        \def\@thm#1#2#3{%
+          \if@lpsb@active
+            \lpsbTagEnd
+            \lpsbTagBegin{P}%
+            \global\@lpsb@suppress@inlinetrue
+          \fi
+          \lpsb@orig@@thm{#1}{#2}{#3}%
+        }%
+      }{}%
+    }%
+    \@ifundefined{@endtheorem}{}{%
+      \@ifundefined{lpsb@orig@@endtheorem}{%
+        \let\lpsb@orig@@endtheorem\@endtheorem
+        \def\@endtheorem{%
+          \lpsb@orig@@endtheorem
+          \global\@lpsb@suppress@inlinefalse
+        }%
+      }{}%
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4j. Tcolorbox/Mdframed Environment Tagging
+%% =========================================
+% These packages create colored/framed boxes. Suppress inline tags inside.
+\AtBeginDocument{%
+  \@ifpackageloaded{tcolorbox}{%
+    \BeforeBeginEnvironment{tcolorbox}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Aside}%  % Use Aside for informational boxes
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{tcolorbox}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+  \@ifpackageloaded{mdframed}{%
+    \BeforeBeginEnvironment{mdframed}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Aside}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{mdframed}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 4k. Quote/Quotation/Verse Environment Tagging
+%% =========================================
+% These environments should be tagged as BlockQuote, not LI.
+% Suppress inline tags to avoid fragmentation.
+\AtBeginEnvironment{quote}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{BlockQuote}%
+    \global\@lpsb@suppress@inlinetrue
+  \fi
+}
+\AtEndEnvironment{quote}{%
+  \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
+    \lpsbTagEnd
+    \lpsbTagBegin{P}%
+  \fi
+}
+
+\AtBeginEnvironment{quotation}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{BlockQuote}%
+    \global\@lpsb@suppress@inlinetrue
+  \fi
+}
+\AtEndEnvironment{quotation}{%
+  \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
+    \lpsbTagEnd
+    \lpsbTagBegin{P}%
+  \fi
+}
+
+\AtBeginEnvironment{verse}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{BlockQuote}%  % Verse is similar to quote semantically
+    \global\@lpsb@suppress@inlinetrue
+  \fi
+}
+\AtEndEnvironment{verse}{%
+  \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
+    \lpsbTagEnd
+    \lpsbTagBegin{P}%
+  \fi
 }
 
 %% =========================================
@@ -386,16 +1143,58 @@
         \global\@lpsb@in@tagfalse
       \else
         \lpsb@pop@tag
-        % Reopen parent tag with new MCID
-        \stepcounter{lpsb@globalMCID}%
-        \lpsb@pdfliteralcmd{ /\lpsb@current@tag@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-        \immediate\write\@auxout{%
-          \string\lpsb@mcid@cont{\lpsb@current@logical@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-        }%
-        % Prevent everypar from cycling the restored P
-        \global\@lpsb@first@paratrue
+        % Check if restoring a section heading that is now complete
+        % If @nobreak is false, the heading text has been output and we should
+        % NOT reopen the heading - start P instead.
+        \lpsb@maybe@close@heading@or@reopen
       \fi
     \fi
+  \fi
+}
+
+% Helper: Reopen parent tag normally (used when parent should continue)
+\newcommand{\lpsb@reopen@parent@tag}{%
+  \stepcounter{lpsb@globalMCID}%
+  \lpsb@pdfliteralcmd{ /\lpsb@current@tag@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+  \immediate\write\@auxout{%
+    \string\lpsb@mcid@cont{\lpsb@current@logical@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+  }%
+  \global\@lpsb@first@paratrue
+}
+
+% Helper: Check if restored parent is a completed section heading
+% Section headings (H1-H6) should only continue if @nobreak is still true
+% (meaning the heading text hasn't been output yet via everypar).
+% Once @nobreak becomes false, the heading is complete and should not reopen.
+\newcommand{\lpsb@maybe@close@heading@or@reopen}{%
+  \edef\lpsb@tmp@restored{\lpsb@current@tag@type}%
+  \def\lpsb@const@H{H}%
+  % Check if tag type starts with "H" (H1, H2, H3, etc.)
+  \expandafter\lpsb@check@heading@prefix\lpsb@tmp@restored\@nil
+}
+\def\lpsb@check@heading@prefix#1#2\@nil{%
+  \def\lpsb@tmp@first{#1}%
+  \ifx\lpsb@tmp@first\lpsb@const@H
+    % It's a heading tag - check if heading text has been output
+    % If @lpsb@heading@deferred is TRUE, heading is still pending - keep H1 open
+    % If @lpsb@heading@deferred is FALSE, heading was output - close H1
+    \if@lpsb@heading@deferred
+      % Heading text is still pending output - keep H1 open
+      % This ensures the heading is captured by H1 even across page breaks
+      \lpsb@reopen@parent@tag
+    \else
+      % Heading text was output - close H1 and start P instead
+      \immediate\write\@auxout{%
+        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+      }%
+      \global\@lpsb@in@sectionfalse
+      % Start new P for content after the block element
+      \lpsbTagBegin{P}%
+      \global\@lpsb@first@paratrue
+    \fi
+  \else
+    % Not a heading - reopen parent normally
+    \lpsb@reopen@parent@tag
   \fi
 }
 
@@ -643,80 +1442,338 @@
 
 % --- Sections → H1, H2, H3, etc. ---
 % Section titles only - H1 wraps title text, then P starts for content
-% Simple approach: wrap the entire section command and use \aftergroup
+%
+% IMPORTANT: LaTeX may defer section headings to the next page if there's
+% insufficient space. For display-style headings (not run-in), the title
+% is stored in \@svsechd and output via \everypar on the NEXT paragraph.
+%
+% Strategy: We hook into the actual heading output mechanism:
+% 1. When \section is called, we DON'T emit H1 immediately
+% 2. We set a flag indicating "next everypar should be H1"
+% 3. In everypar, if the flag is set, we emit H1 for that content
+% 4. After the heading content, we close H1 and start P
+%
+% This ensures H1 wraps the actual heading text, even across page breaks.
+
+\newif\if@lpsb@in@section \@lpsb@in@sectionfalse
+\newif\if@lpsb@section@pending \@lpsb@section@pendingfalse
+\gdef\lpsb@pending@heading@level{H1}
+\gdef\lpsb@current@section@id{}
+
+% Flag to track if we need to emit heading tag at next everypar
+\newif\if@lpsb@heading@deferred \@lpsb@heading@deferredfalse
 
 \AtBeginDocument{%
-  % Hook \section
-  \@ifundefined{section}{}{%
+  % Hook \@afterheading - this is called after \@xsect but BEFORE
+  % the heading text is actually output (for display headings).
+  % We use this to set up deferred heading tagging.
+  %
+  % CRITICAL: The original \@afterheading SETS \@nobreaktrue for display headings.
+  % We must call it FIRST, then check the flag, otherwise we always get false!
+  \@ifundefined{@afterheading}{}{%
+    \let\lpsb@orig@@afterheading\@afterheading
+    \def\@afterheading{%
+      % Call original FIRST - it sets \@nobreaktrue for display headings
+      \lpsb@orig@@afterheading
+      % Now check if heading is deferred (display-style)
+      % \@nobreak is true for display headings, false for run-in
+      \if@nobreak
+        % Display heading - title will be output by everypar on next paragraph
+        % Keep H1 open so the deferred title text is tagged correctly
+        \global\@lpsb@heading@deferredtrue
+      \else
+        % Run-in heading - heading text already output, close H1 now
+        \if@lpsb@in@section
+          \lpsbTagEnd
+          \lpsbTagBegin{P}%
+          \global\@lpsb@in@sectionfalse
+          \global\@lpsb@first@paratrue
+        \fi
+      \fi
+    }%
+  }%
+  %
+  % Hook \@sect to capture when heading text is about to be stored
+  % \@sect handles numbered sections: \@sect{name}{level}{indent}{beforeskip}{afterskip}{style}{*heading}
+  \@ifundefined{@sect}{}{%
+    \let\lpsb@orig@@sect\@sect
+    \def\@sect#1#2#3#4#5#6[#7]#8{%
+      % Call original \@sect
+      \lpsb@orig@@sect{#1}{#2}{#3}{#4}{#5}{#6}[#7]{#8}%
+      % After \@sect returns, if heading was deferred, the H1 is still open
+      % and will be closed when everypar outputs the heading
+    }%
+  }%
+  %
+  % Dynamic heading levels based on document class:
+  % - If \chapter is defined (book/report): chapter=H1, section=H2, subsection=H3, etc.
+  % - If \chapter is NOT defined (article): section=H1, subsection=H2, etc.
+  %
+  \@ifundefined{chapter}{%
+    % Article-style: no chapter
+    \def\lpsb@H@chapter{H1}%   (not used)
+    \def\lpsb@H@section{H1}%
+    \def\lpsb@H@subsection{H2}%
+    \def\lpsb@H@subsubsection{H3}%
+    \def\lpsb@H@paragraph{H4}%
+    \def\lpsb@H@subparagraph{H5}%
+  }{%
+    % Book/Report-style: chapter is highest
+    \def\lpsb@H@chapter{H1}%
+    \def\lpsb@H@section{H2}%
+    \def\lpsb@H@subsection{H3}%
+    \def\lpsb@H@subsubsection{H4}%
+    \def\lpsb@H@paragraph{H5}%
+    \def\lpsb@H@subparagraph{H6}%
+  }%
+  %
+  % acmart compatibility:
+  % acmart.cls forbids redefining \section/\subsection/\paragraph (class error).
+  % Use kernel-level \@startsection instead (no user-level redefinition).
+  \@ifundefined{ACM@format}{}{%
+    \@ifundefined{@startsection}{}{%
+      \let\lpsb@orig@@startsection\@startsection
+      \def\@startsection#1#2#3#4#5#6{%
+        \lpsbTagEnd
+        \ifnum#2=1
+          \lpsbTagBegin{\lpsb@H@section}%
+          \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
+        \else\ifnum#2=2
+          \lpsbTagBegin{\lpsb@H@subsection}%
+          \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
+        \else\ifnum#2=3
+          \lpsbTagBegin{\lpsb@H@subsubsection}%
+          \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
+        \else\ifnum#2=4
+          \lpsbTagBegin{\lpsb@H@paragraph}%
+          \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+        \else
+          \lpsbTagBegin{\lpsb@H@paragraph}%
+          \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+        \fi\fi\fi\fi
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@heading@deferredfalse
+        \lpsb@orig@@startsection{#1}{#2}{#3}{#4}{#5}{#6}%
+      }%
+    }%
+  }%
+  %
+  % Hook \chapter (for book/report document classes)
+  %
+  \@ifundefined{chapter}{}{%
+    \let\lpsb@orig@chapter\chapter
+    \def\chapter{\@ifstar\lpsb@chapter@star\lpsb@chapter@nostar}%
+    \def\lpsb@chapter@star#1{%
+      \lpsb@orig@chapter*{#1}%
+    }%
+    \def\lpsb@chapter@nostar{%
+      \@ifnextchar[\lpsb@chapter@opt\lpsb@chapter@noopt
+    }%
+    \def\lpsb@chapter@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@chapter}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
+      \lpsb@orig@chapter[#1]{#2}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@chapter@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@chapter}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
+      \lpsb@orig@chapter{#1}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+  }%
+  %
+  % Hook \section / \subsection.
+  %
+  % CRITICAL: Preserve the star form (\section*{...}). If we don't, LaTeX will
+  % mis-parse \section*{References} as \section{*} and you'll literally typeset
+  % "6 *" (section 6 with title '*'), with "References" falling into the next P.
+  %
+  \@ifundefined{ACM@format}{\@ifundefined{section}{}{%
     \let\lpsb@orig@section\section
-    \renewcommand{\section}[1][]{%
-      \lpsbTagEnd
-      \lpsbTagBegin{H1}%
-      \def\lpsb@sec@opt{#1}%
-      \ifx\lpsb@sec@opt\@empty
-        \expandafter\lpsb@do@section
-      \else
-        \expandafter\lpsb@do@section@opt
-      \fi
+    \def\section{\@ifstar\lpsb@section@star\lpsb@section@nostar}%
+    \def\lpsb@section@star#1{%
+      % Delegate to the original starred section; our \@ssect hook handles tagging.
+      \lpsb@orig@section*{#1}%
     }%
-    \newcommand{\lpsb@do@section}[1]{%
+    \def\lpsb@section@nostar{%
+      \@ifnextchar[\lpsb@section@opt\lpsb@section@noopt
+    }%
+    \def\lpsb@section@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@section}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
+      \lpsb@orig@section[#1]{#2}%
+      % Close H1 and start P for body content
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@section@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@section}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
       \lpsb@orig@section{#1}%
-      \lpsbTagEnd\lpsbTagBegin{P}%
-    }%
-    \newcommand{\lpsb@do@section@opt}[1]{%
-      \expandafter\lpsb@orig@section\expandafter[\lpsb@sec@opt]{#1}%
-      \lpsbTagEnd\lpsbTagBegin{P}%
-    }%
-  }%
-  % Hook \subsection
-  \@ifundefined{subsection}{}{%
-    \let\lpsb@orig@subsec\subsection
-    \renewcommand{\subsection}[1][]{%
+      % Close H1 and start P for body content
       \lpsbTagEnd
-      \lpsbTagBegin{H2}%
-      \def\lpsb@subsec@opt{#1}%
-      \ifx\lpsb@subsec@opt\@empty
-        \expandafter\lpsb@do@subsec
-      \else
-        \expandafter\lpsb@do@subsec@opt
-      \fi
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
     }%
-    \newcommand{\lpsb@do@subsec}[1]{%
+  }}{}%
+  \@ifundefined{ACM@format}{\@ifundefined{subsection}{}{%
+    \let\lpsb@orig@subsec\subsection
+    \def\subsection{\@ifstar\lpsb@subsection@star\lpsb@subsection@nostar}%
+    \def\lpsb@subsection@star#1{%
+      \lpsb@orig@subsec*{#1}%
+    }%
+    \def\lpsb@subsection@nostar{%
+      \@ifnextchar[\lpsb@subsection@opt\lpsb@subsection@noopt
+    }%
+    \def\lpsb@subsection@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@subsection}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
+      \lpsb@orig@subsec[#1]{#2}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@subsection@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@subsection}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
       \lpsb@orig@subsec{#1}%
-      \lpsbTagEnd\lpsbTagBegin{P}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
     }%
-    \newcommand{\lpsb@do@subsec@opt}[1]{%
-      \expandafter\lpsb@orig@subsec\expandafter[\lpsb@subsec@opt]{#1}%
-      \lpsbTagEnd\lpsbTagBegin{P}%
+  }}{}%
+  % Hook \subsubsection
+  \@ifundefined{ACM@format}{\@ifundefined{subsubsection}{}{%
+    \let\lpsb@orig@subsubsec\subsubsection
+    \def\subsubsection{\@ifstar\lpsb@subsubsection@star\lpsb@subsubsection@nostar}%
+    \def\lpsb@subsubsection@star#1{%
+      \lpsb@orig@subsubsec*{#1}%
     }%
-  }%
+    \def\lpsb@subsubsection@nostar{%
+      \@ifnextchar[\lpsb@subsubsection@opt\lpsb@subsubsection@noopt
+    }%
+    \def\lpsb@subsubsection@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@subsubsection}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
+      \lpsb@orig@subsubsec[#1]{#2}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@subsubsection@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@subsubsection}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
+      \lpsb@orig@subsubsec{#1}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+  }}{}%
+  % Hook \paragraph
+  \@ifundefined{ACM@format}{\@ifundefined{paragraph}{}{%
+    \let\lpsb@orig@paragraph\paragraph
+    \def\paragraph{\@ifstar\lpsb@paragraph@star\lpsb@paragraph@nostar}%
+    \def\lpsb@paragraph@star#1{%
+      \lpsb@orig@paragraph*{#1}%
+    }%
+    \def\lpsb@paragraph@nostar{%
+      \@ifnextchar[\lpsb@paragraph@opt\lpsb@paragraph@noopt
+    }%
+    \def\lpsb@paragraph@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@paragraph}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+      \lpsb@orig@paragraph[#1]{#2}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@paragraph@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@paragraph}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+      \lpsb@orig@paragraph{#1}%
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+  }}{}%
   % Hook \@ssect for starred sections (\section*, \subsection*)
-  % \@ssect{indent}{beforeskip}{afterskip}{style}{title}
-  % 
-  % KNOWN LIMITATION: LaTeX's section formatting outputs content in stages.
-  % For starred sections, the title text may be output AFTER \@ssect returns
-  % (via \@svsechd in \@xsect). This causes split tagging where H1 contains
-  % only the section number area (e.g., "6*") and the title goes to following P.
-  % 
-  % This is a LaTeX kernel limitation. Use post-processing to merge split headings.
-  % See: script/fix_split_headings.py
-  \newif\if@lpsb@in@section \@lpsb@in@sectionfalse
   \@ifundefined{@ssect}{}{%
     \let\lpsb@orig@@ssect\@ssect
     \def\@ssect#1#2#3#4#5{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      %
       \lpsbTagEnd
       \global\@lpsb@in@sectiontrue
-      % Determine heading level based on indent (rough heuristic)
+      \global\@lpsb@heading@deferredfalse
+      % Determine heading level based on indent
       \ifdim#1<1em
         \lpsbTagBegin{H1}%
+        \gdef\lpsb@pending@heading@level{H1}%
       \else
         \lpsbTagBegin{H2}%
+        \gdef\lpsb@pending@heading@level{H2}%
       \fi
       \lpsb@orig@@ssect{#1}{#2}{#3}{#4}{#5}%
       \lpsbTagEnd
       \lpsbTagBegin{P}%
       \global\@lpsb@in@sectionfalse
-      \global\@lpsb@first@paratrue
     }%
   }%
 }
@@ -734,6 +1791,30 @@
 % Define first-para flag unconditionally (needed in both paths)
 \newif\if@lpsb@first@para \@lpsb@first@paratrue
 \def\lpsb@P@const{P}%
+
+% Helper: Check if current tag type starts with "H" (heading)
+% If so, close H1 and start P (heading text was output)
+% Otherwise, don't close (we're inside a nested structure)
+\def\lpsb@const@H@para{H}%
+\def\lpsb@check@if@heading@type#1#2\@nil{%
+  \def\lpsb@tmp@first@para{#1}%
+  \ifx\lpsb@tmp@first@para\lpsb@const@H@para
+    % Current tag is a heading - we're at section level
+    % Heading text was output via everypar, close H1 and start P
+    \global\@lpsb@heading@deferredfalse
+    % Close the H1 tag
+    \lpsb@pdfliteralcmd{ EMC }%
+    \immediate\write\@auxout{%
+      \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+    }%
+    \global\@lpsb@in@tagfalse
+    \global\@lpsb@in@sectionfalse
+    % Start new P for content after heading
+    \lpsbTagBegin{P}%
+    \global\@lpsb@first@paratrue
+  \fi
+  % If not a heading, don't close - we're inside a nested structure
+}
 
 % Paragraph detection logic - defined separately to avoid \IfFileExists parsing issues
 % with nested \if..\fi conditionals
@@ -764,6 +1845,9 @@
 }
 
 \newcommand{\lpsb@para@hook}{%
+  % Skip header/footer box construction (output routine): we mark those as /Artifact
+  % and we must not emit structural paragraph tags there.
+  \if@lpsb@in@headfoot\else
   % FIRST: Handle cross-page tag continuation
   \if@lpsb@needs@reopen
     \global\@lpsb@needs@reopenfalse
@@ -776,8 +1860,24 @@
       }%
     \fi
   \fi
+  % SECOND: Detect when deferred heading text has been output
+  % For display-style headings, @lpsb@heading@deferred is TRUE until the heading
+  % text is output via everypar. When @nobreak becomes FALSE, the heading is done.
+  % IMPORTANT: Only clear the deferred flag when we're at the section level
+  % (current tag is H1/H2/etc.), not when inside nested structures like Algorithm.
+  \if@lpsb@heading@deferred
+    \if@nobreak
+      % Still waiting for heading output - do nothing
+    \else
+      % @nobreak is false - but only clear deferred if we're at section level
+      % Check if current tag is a heading (starts with H)
+      \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
+      \expandafter\lpsb@check@if@heading@type\lpsb@tmp@chk@type\@nil
+    \fi
+  \fi
   % Normal paragraph handling
   \if@lpsb@in@shipout\else  % Skip during shipout (header/footer)
+  \if@lpsb@in@maketitle\else  % Skip during maketitle (title area)
   \if@lpsb@active
     % Filter: skip list items (@listdepth > 0)
     \ifnum\@listdepth=0
@@ -801,7 +1901,9 @@
       \fi % @minipage
     \fi % @listdepth
   \fi % @lpsb@active
+  \fi % @lpsb@in@maketitle
   \fi % @lpsb@in@shipout
+  \fi % @lpsb@in@headfoot
 }%
 
 % Set up paragraph hook using the best available method:
@@ -879,10 +1981,12 @@
   \if@lpsb@active
     \lpsbTagEnd
     \lpsbTagBegin{L}%
+    \global\@lpsb@suppress@inlinetrue  % Suppress inline in description lists
   \fi
 }
 \AtEndEnvironment{description}{%
   \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
     \lpsbTagEnd
     \lpsbTagBegin{P}%  % Resume P after description list
   \fi
@@ -914,10 +2018,12 @@
 
 \AtBeginEnvironment{thebibliography}{%
   \global\@lpsb@in@bibtrue
+  \global\@lpsb@suppress@inlinetrue  % Suppress Em/Strong inside BibEntry
   % Don't start BibList here - bibsection hook handles it after heading
 }
 \AtEndEnvironment{thebibliography}{%
   \global\@lpsb@in@bibfalse
+  \global\@lpsb@suppress@inlinefalse
   \if@lpsb@active
     \lpsbTagEnd
     \lpsbTagBegin{P}%
@@ -1079,6 +2185,19 @@
       \lpsb@orig@enddblfloat
     }%
   }%
+  % Hook float package's float@endH for [H] option floats
+  % These bypass standard end@float and use float@endH instead
+  \@ifundefined{float@endH}{}{%
+    \let\lpsb@orig@floatendH\float@endH
+    \renewcommand{\float@endH}{%
+      \if@lpsb@active
+        \lpsbTagEndFloat
+        \global\@lpsb@first@paratrue
+      \fi
+      \global\@lpsb@in@floatfalse
+      \lpsb@orig@floatendH
+    }%
+  }%
 }
 
 % At source location: CLOSE current P before float definition starts
@@ -1200,23 +2319,27 @@
 \AtBeginDocument{%
   \@ifundefined{footnote}{}{%
     \let\lpsb@orig@footnote\footnote
+    % \footnote produces both a mark (superscript) and text (at page bottom)
+    % We tag the mark as Lbl (label), the text will be tagged via @makefntext as Note
     \renewcommand{\footnote}[2][]{%
       \def\lpsb@fn@opt{#1}%
       \ifx\lpsb@fn@opt\@empty
-        \lpsbTagAtom{Note}{\lpsb@orig@footnote{#2}}%
+        % The mark is tagged as Lbl, the text is tagged separately via @makefntext
+        \lpsb@orig@footnote{#2}%
       \else
-        \lpsbTagAtom{Note}{\lpsb@orig@footnote[#1]{#2}}%
+        \lpsb@orig@footnote[#1]{#2}%
       \fi
     }%
   }%
   % Many papers use split footnotes: \footnotemark + \footnotetext.
+  % Footnotemark is the superscript reference - tag as Lbl (label)
   \@ifundefined{footnotemark}{}{%
     \let\lpsb@orig@footnotemark\footnotemark
     \renewcommand{\footnotemark}{%
       \@ifnextchar[\lpsb@fnmark@opt\lpsb@fnmark@noopt
     }%
-    \def\lpsb@fnmark@opt[#1]{\lpsbTagAtom{Note}{\lpsb@orig@footnotemark[#1]}}%
-    \def\lpsb@fnmark@noopt{\lpsbTagAtom{Note}{\lpsb@orig@footnotemark}}%
+    \def\lpsb@fnmark@opt[#1]{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark[#1]}}%
+    \def\lpsb@fnmark@noopt{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark}}%
   }%
   \@ifundefined{footnotetext}{}{%
     \let\lpsb@orig@footnotetext\footnotetext
@@ -1234,10 +2357,18 @@
   % To properly tag, we hook \@makefntext which formats the actual footnote content.
   %
   % Footnote structure in PDF/UA:
-  % - Footnote mark (in paragraph): tagged via \footnote -> \lpsbTagAtom{Note}{mark}
-  % - Footnote text (at page bottom): tagged via \@makefntext hook
+  % - Footnote mark (in paragraph): tagged as Lbl via \@footnotemark hook
+  % - Footnote text (at page bottom): tagged as Note via \@makefntext hook
   %
   \newif\if@lpsb@in@footnote \@lpsb@in@footnotefalse
+  %
+  % Hook \@footnotemark to tag the superscript mark as Lbl
+  \@ifundefined{@footnotemark}{}{%
+    \let\lpsb@orig@@footnotemark\@footnotemark
+    \def\@footnotemark{%
+      \lpsbTagAtom{Lbl}{\lpsb@orig@@footnotemark}%
+    }%
+  }%
   %
   \@ifundefined{@makefntext}{}{%
     \let\lpsb@orig@@makefntext\@makefntext
@@ -1269,45 +2400,71 @@
 
 % --- URL/Hyperlinks → Link ---
 % Tag \url and \href as Link (PDF/UA) for accessibility
+% Skip tagging when inside algorithm environment (@lpsb@suppress@inline)
 \AtBeginDocument{%
   % Hook \url from url.sty
   \@ifundefined{url}{}{%
     \let\lpsb@orig@url\url
     \renewcommand{\url}[1]{%
-      \lpsbTagAtom{Link}{\lpsb@orig@url{#1}}%
+      \if@lpsb@suppress@inline
+        \lpsb@orig@url{#1}%
+      \else
+        \lpsbTagAtom{Link}{\lpsb@orig@url{#1}}%
+      \fi
     }%
   }%
   % Hook \href from hyperref.sty
   \@ifundefined{href}{}{%
     \let\lpsb@orig@href\href
     \renewcommand{\href}[2]{%
-      \lpsbTagAtom{Link}{\lpsb@orig@href{#1}{#2}}%
+      \if@lpsb@suppress@inline
+        \lpsb@orig@href{#1}{#2}%
+      \else
+        \lpsbTagAtom{Link}{\lpsb@orig@href{#1}{#2}}%
+      \fi
     }%
   }%
   % Hook \nolinkurl from hyperref.sty
   \@ifundefined{nolinkurl}{}{%
     \let\lpsb@orig@nolinkurl\nolinkurl
     \renewcommand{\nolinkurl}[1]{%
-      \lpsbTagAtom{Link}{\lpsb@orig@nolinkurl{#1}}%
+      \if@lpsb@suppress@inline
+        \lpsb@orig@nolinkurl{#1}%
+      \else
+        \lpsbTagAtom{Link}{\lpsb@orig@nolinkurl{#1}}%
+      \fi
     }%
   }%
 }
 
 % --- Emphasis → Em/Strong ---
 % Use atom tags for inline formatting
+% Skip tagging when inside algorithm environment (@lpsb@suppress@inline)
 \let\lpsb@orig@emph\emph
 \renewcommand{\emph}[1]{%
-  \lpsbTagAtom{Em}{\lpsb@orig@emph{#1}}%
+  \if@lpsb@suppress@inline
+    \lpsb@orig@emph{#1}%
+  \else
+    \lpsbTagAtom{Em}{\lpsb@orig@emph{#1}}%
+  \fi
 }
 
 \let\lpsb@orig@textbf\textbf
 \renewcommand{\textbf}[1]{%
-  \lpsbTagAtom{Strong}{\lpsb@orig@textbf{#1}}%
+  \if@lpsb@suppress@inline
+    \lpsb@orig@textbf{#1}%
+  \else
+    \lpsbTagAtom{Strong}{\lpsb@orig@textbf{#1}}%
+  \fi
 }
 
 \let\lpsb@orig@textit\textit
 \renewcommand{\textit}[1]{%
-  \lpsbTagAtom{Em}{\lpsb@orig@textit{#1}}%
+  \if@lpsb@suppress@inline
+    \lpsb@orig@textit{#1}%
+  \else
+    \lpsbTagAtom{Em}{\lpsb@orig@textit{#1}}%
+  \fi
 }
 
 % --- Declarative Font Commands (DISABLED) ---
@@ -1403,6 +2560,155 @@
     \lpsbTagEnd
     \lpsbTagBegin{P}%
   }%
+}
+
+% AMS math environments: align, gather, multline, flalign, alignat
+% These should all be tagged as Formula
+\AtBeginEnvironment{align}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{align}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{align*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{align*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{gather}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{gather}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{gather*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{gather*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{multline}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{multline}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{multline*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{multline*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{flalign}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{flalign}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+\AtBeginEnvironment{flalign*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+\AfterEndEnvironment{flalign*}{%
+  \lpsbTagEnd
+  \lpsbTagBegin{P}%
+}
+
+% --- Wrapfigure/Wraptable Tagging ---
+% wrapfig package creates inline figures/tables that text wraps around.
+% These should be tagged as Figure/Table with inline suppression.
+\AtBeginDocument{%
+  \@ifpackageloaded{wrapfig}{%
+    \BeforeBeginEnvironment{wrapfigure}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Figure}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{wrapfigure}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+    \BeforeBeginEnvironment{wraptable}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Table}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{wraptable}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+% --- Tabular/TabularX Outside Float ---
+% When tabular environments appear outside of table floats, they should
+% still be tagged as Table and have inline suppression.
+% Note: We detect this by checking if we're NOT inside a float.
+\AtBeginDocument{%
+  \@ifpackageloaded{tabularx}{%
+    \BeforeBeginEnvironment{tabularx}{%
+      \if@lpsb@active
+        \if@lpsb@in@float\else
+          \lpsbTagEnd
+          \lpsbTagBegin{Table}%
+          \global\@lpsb@suppress@inlinetrue
+        \fi
+      \fi
+    }%
+    \AfterEndEnvironment{tabularx}{%
+      \if@lpsb@active
+        \if@lpsb@in@float\else
+          \global\@lpsb@suppress@inlinefalse
+          \lpsbTagEnd
+          \lpsbTagBegin{P}%
+        \fi
+      \fi
+    }%
+  }{}%
+}
+
+% Standard tabular: suppress inline when outside float
+\BeforeBeginEnvironment{tabular}{%
+  \if@lpsb@active
+    \if@lpsb@in@float\else
+      \global\@lpsb@suppress@inlinetrue
+    \fi
+  \fi
+}
+\AfterEndEnvironment{tabular}{%
+  \if@lpsb@active
+    \if@lpsb@in@float\else
+      \global\@lpsb@suppress@inlinefalse
+    \fi
+  \fi
 }
 
 % --- Citations → Reference ---
