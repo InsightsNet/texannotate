@@ -99,10 +99,45 @@
   \lpsb@orig@onecolumn
   \protected@write\@auxout{}{\string\lpsb@layout@switch{onecolumn}{\thepage}}%
 }
-\let\lpsb@orig@twocolumn\twocolumn
-\renewcommand{\twocolumn}{%
+% IMPORTANT:
+% - \twocolumn has an optional argument: \twocolumn[<top material>]
+% - Many classes call it inside \maketitle.
+% If we wrap it without preserving the optional-arg form, the delimiter tokens
+% '[' and ']' can leak into the PDF as visible glyphs.
+%
+% Also, other packages/classes may redefine \twocolumn in \AtBeginDocument.
+% To avoid capturing an early definition, we (re)install our wrapper at the
+% end of \begin{document} initialization (when available).
+%
+\newif\if@lpsb@twocolumn@wrapped \@lpsb@twocolumn@wrappedfalse
+\newcommand{\lpsb@orig@twocolumn}{}%
+\protected\def\lpsb@twocolumn@wrapper{%
+  \@ifnextchar[\lpsb@twocolumn@wrapper@opt\lpsb@twocolumn@wrapper@noopt
+}
+\def\lpsb@twocolumn@wrapper@opt[#1]{%
+  \lpsb@orig@twocolumn[#1]%
+  \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
+}
+\def\lpsb@twocolumn@wrapper@noopt{%
   \lpsb@orig@twocolumn
   \protected@write\@auxout{}{\string\lpsb@layout@switch{twocolumn}{\thepage}}%
+}
+\def\lpsb@install@twocolumn@wrapper{%
+  % If someone overwrote \twocolumn after we wrapped it, re-wrap the new one.
+  % If \twocolumn is already our wrapper, do nothing.
+  \ifx\twocolumn\lpsb@twocolumn@wrapper
+  \else
+    \let\lpsb@orig@twocolumn\twocolumn
+    \let\twocolumn\lpsb@twocolumn@wrapper
+    \global\@lpsb@twocolumn@wrappedtrue
+  \fi
+}
+\lpsb@install@twocolumn@wrapper
+% Re-install late to capture final \twocolumn definition (TL2020+).
+\@ifundefined{AddToHook}{%
+  \AtBeginDocument{\lpsb@install@twocolumn@wrapper}%
+}{%
+  \AddToHook{begindocument/end}{\lpsb@install@twocolumn@wrapper}%
 }
 
 % Define aux readers (no-op, just for parsing by Python)
@@ -462,11 +497,31 @@
 % Even with \protected\def, the \def commands inside lpsbTagAtom cause
 % layout issues when the macro is executed inside subfigure's internal context.
 % The only safe solution is to make it a pure passthrough.
-\AtBeginDocument{%
+%
+% We use AtEndOfPackage to run this check immediately after lpsb-mcid.sty
+% is fully loaded (but before document content). Additionally, we use
+% AtBeginDocument as a fallback in case subfigure is loaded after us.
+
+% Flag to track if subfigure was detected
+\newif\if@lpsb@subfigure@detected
+
+% Primary check: run at end of our package (catches subfigure loaded before us)
+\AtEndOfPackage{%
   \@ifpackageloaded{subfigure}{%
-    \PackageInfo{lpsb-mcid}{Legacy subfigure.sty detected - disabling atom tagging for compatibility}%
-    \protected\def\lpsbTagAtom#1#2{#2}%  % Pure passthrough - no side effects
+    \typeout{LPSB-MCID Info: Legacy subfigure.sty detected (at package end) - disabling atom tagging}%
+    \@lpsb@subfigure@detectedtrue
+    \protected\def\lpsbTagAtom#1#2{#2}%
   }{}%
+}
+
+% Secondary check: AtBeginDocument (catches subfigure loaded after us)
+\AtBeginDocument{%
+  \if@lpsb@subfigure@detected\else
+    \@ifpackageloaded{subfigure}{%
+      \typeout{LPSB-MCID Info: Legacy subfigure.sty detected (at begin doc) - disabling atom tagging}%
+      \protected\def\lpsbTagAtom#1#2{#2}%
+    }{}%
+  \fi
 }
 
 % Reference atom that also records citation keys (for downstream parent/child structure).
@@ -668,6 +723,32 @@
 
 % Paragraph detection logic - defined separately to avoid \IfFileExists parsing issues
 % with nested \if..\fi conditionals
+
+% Inner paragraph hook - the core logic, extracted for conditional reuse
+\newcommand{\lpsb@para@hook@inner}{%
+  % Filter: skip section formatting (to prevent H1/H2 from being interrupted)
+  \if@lpsb@in@section\else
+  % Natural paragraph detected
+  \if@lpsb@in@tag
+    % Already in a tag
+    \if@lpsb@first@para
+      % First para after structure - don't CYCLE P
+      \global\@lpsb@first@parafalse
+    \else
+      % if it's P, cycle it
+      \ifx\lpsb@current@tag@type\lpsb@P@const
+        \lpsbTagEnd
+        \lpsbTagBegin{P}%
+      \fi
+    \fi
+  \else
+    % NOT in any tag - ALWAYS start new P (after float or other structure)
+    \lpsbTagBegin{P}%
+    \global\@lpsb@first@parafalse
+  \fi
+  \fi % @lpsb@in@section
+}
+
 \newcommand{\lpsb@para@hook}{%
   % FIRST: Handle cross-page tag continuation
   \if@lpsb@needs@reopen
@@ -688,30 +769,21 @@
     \ifnum\@listdepth=0
       % Filter: skip minipage
       \if@minipage\else
-        % Note: We NO LONGER filter by @lpsb@in@float because float boxes
-        % may contain paragraph text (explanatory text, extended captions, etc.)
-        % that needs proper P tagging. The Float tag handles structure.
-        % Filter: skip section formatting (to prevent H1/H2 from being interrupted)
-        \if@lpsb@in@section\else
-        % Natural paragraph detected
-        \if@lpsb@in@tag
-          % Already in a tag
-          \if@lpsb@first@para
-            % First para after structure - don't CYCLE P
-            \global\@lpsb@first@parafalse
+        % Filter floats when legacy subfigure.sty is loaded
+        % (subfigure.sty's argument parsing can trigger everypar incorrectly)
+        % Note: Without subfigure.sty, we do NOT filter by @lpsb@in@float because
+        % float boxes may contain paragraph text that needs proper P tagging.
+        \if@lpsb@subfigure@detected
+          \if@lpsb@in@float
+            % Skip - subfigure + float = no paragraph tagging
           \else
-            % if it's P, cycle it
-            \ifx\lpsb@current@tag@type\lpsb@P@const
-              \lpsbTagEnd
-              \lpsbTagBegin{P}%
-            \fi
+            % subfigure loaded but not in float - proceed with paragraph detection
+            \lpsb@para@hook@inner
           \fi
         \else
-          % NOT in any tag - ALWAYS start new P (after float or other structure)
-          \lpsbTagBegin{P}%
-          \global\@lpsb@first@parafalse
+          % No subfigure - always proceed with paragraph detection
+          \lpsb@para@hook@inner
         \fi
-        \fi % @lpsb@in@section
       \fi % @minipage
     \fi % @listdepth
   \fi % @lpsb@active
@@ -1325,7 +1397,10 @@
 \AtBeginDocument{%
   \@ifpackageloaded{natbib}{%
     \typeout{LPSB-MCID Info: natbib detected - tagging citep/citet/cite as Reference atoms}%
-
+    %
+    % NOTE: natbib also provides \citealt/\citealp etc. We intentionally do NOT
+    % wrap those here yet; they are used in moving arguments in real templates.
+    %
     \@ifundefined{citep}{}{%
       \let\lpsb@orig@citep\citep
       \def\citep{\@ifnextchar[\lpsb@citep@optA\lpsb@citep@noopt}%
@@ -1334,7 +1409,6 @@
       \def\lpsb@citep@oneopt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@citep[#1]{#2}}}%
       \def\lpsb@citep@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@citep{#1}}}%
     }%
-
     \@ifundefined{citet}{}{%
       \let\lpsb@orig@citet\citet
       \def\citet{\@ifnextchar[\lpsb@citet@optA\lpsb@citet@noopt}%
@@ -1343,7 +1417,6 @@
       \def\lpsb@citet@oneopt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@citet[#1]{#2}}}%
       \def\lpsb@citet@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@citet{#1}}}%
     }%
-
     \@ifundefined{cite}{}{%
       \let\lpsb@orig@cite\cite
       \def\cite{\@ifnextchar[\lpsb@cite@optA\lpsb@cite@noopt}%
@@ -1358,12 +1431,8 @@
       \typeout{LPSB-MCID Info: tagging cite as Reference atom}%
       \let\lpsb@orig@cite\cite
       \def\cite{\@ifnextchar[\lpsb@cite@opt\lpsb@cite@noopt}%
-      \def\lpsb@cite@opt[#1]#2{%
-        \lpsbTagReferenceAtom{#2}{\lpsb@orig@cite[#1]{#2}}%
-      }%
-      \def\lpsb@cite@noopt#1{%
-        \lpsbTagReferenceAtom{#1}{\lpsb@orig@cite{#1}}%
-      }%
+      \def\lpsb@cite@opt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@cite[#1]{#2}}}%
+      \def\lpsb@cite@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@cite{#1}}}%
     }%
   }%
 }

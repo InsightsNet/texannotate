@@ -63,3 +63,30 @@ Empty P tags are harmless for semantic structure but add noise to the MCID outpu
 **Status**: Fixed in fix_crosspage_mcid.py
 
 Elements spanning pages now correctly tracked and tagged via the `\lpsb@mcid@cont` aux records.
+
+---
+
+## Wrapping LaTeX Macros: Preserve Optional Arguments (or You Will Leak Tokens)
+
+**Status**: Fixed (but this is a recurring foot-gun)
+
+**Symptom**:
+Stray `[` and `]` appear as *visible glyphs* in the PDF (often near the title block), sometimes also corrupting layout/overlaps.
+
+**Root Cause**:
+We wrapped `\twocolumn` to record layout switches, but did **not** preserve its optional-argument form:
+
+- `\twocolumn[<top material>]` is a real interface used by many classes/templates (including title pages).
+- If a wrapper defines only `\twocolumn` with *no optional-arg parsing*, the following `[` / `]` tokens are no longer consumed as delimiters and get typeset as normal text.
+
+**Key Lesson**:
+When you wrap/patch a LaTeX command, you must preserve **all call shapes** it supports:
+
+- Optional arguments `[...]` (possibly multiple)
+- Star forms `\cmd*`
+- Kernel helpers like `\@dblarg`, `\@ifnextchar`, etc.
+
+If you don't, you are not “slightly incompatible” — you are *printing delimiters into the document*.
+
+**Fix Pattern (example for `\twocolumn`)**:
+Use `\@ifnextchar[` to forward both variants to the original macro.
