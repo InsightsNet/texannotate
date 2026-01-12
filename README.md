@@ -1,13 +1,15 @@
 # LPSB: LaTeX-PDF Semantic Bridge
 
-**LPSB** extracts semantic structure from LaTeX documents during compilation and aligns it with PDF page coordinates. It produces a comprehensive JSON output with document structure, bounding boxes, and optional MathML.
+**LPSB** extracts semantic structure from LaTeX documents during compilation. It produces **tagged PDFs** with complete StructTree (PDF/UA compliant) and MCID structure data in JSON format for further analysis.
 
 ## Features
 
-- **PDF/UA-compatible structure tags**: Document, Sect, H1-H6, P, L, LI, Table, Figure, Formula, etc.
-- **Precise coordinates**: Bounding boxes from `\zsavepos` (PDFLaTeX gold standard)
-- **MathML extraction**: Via LuaLaTeX + `luamml` or LaTeXML
+- **PDF/UA-compatible structure tags**: Document, Sect, H1-H6, P, L, LI, Table, Figure, Formula, Note, Link, etc.
+- **Two-pass compilation**: Smart float handling with accurate tag placement
+- **StructTree injection**: Complete PDF structure tree for PDF/UA compliance
+- **MathML extraction**: Via LaTeXML (planned)
 - **Cross-page element handling**: Automatic MCID continuation for split paragraphs
+- **Footnote & URL tagging**: Proper Note and Link structure elements
 - **Batch processing**: Compile thousands of arXiv papers with Docker
 
 ---
@@ -20,20 +22,19 @@
 docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 ```
 
-### 2. Compile a Single Paper
+### 2. Compile a Single Paper (Recommended)
 
 ```bash
-# Copy lpsb*.sty to your document directory, then:
-docker run --rm -v "$(pwd)":/workdir -w /workdir lpsb-texlive:latest \
-  pdflatex -interaction=nonstopmode main.tex
+# Two-pass compilation with StructTree injection
+LPSB_TWO_PASS=1 python3 script/lpsb_compiler.py --single <source_dir> --output <output_dir>
 ```
 
-Output: `main.pdf`, `main.lpsb.json`
+Output: `<paper>.pdf` (with StructTree), `<paper>.lpsb.json`, `<paper>.mcid.json`
 
 ### 3. Batch Processing (arXiv)
 
 ```bash
-python3 script/lpsb_compiler.py --batch data/download --output results --workers 8
+LPSB_TWO_PASS=1 python3 script/lpsb_compiler.py --batch data/download --output results --workers 8
 ```
 
 ---
@@ -45,12 +46,11 @@ python3 script/lpsb_compiler.py --batch data/download --output results --workers
 │           LaTeX Source (.tex)           │
 └─────────────────────────────────────────┘
                     │
-                    ▼  \usepackage{lpsb}
+                    ▼  \usepackage{lpsb-mcid}
 ┌─────────────────────────────────────────┐
-│         Stage A: PDFLaTeX (Gold)        │
-│  • lpsb.sty, lpsb-mcid.sty              │
-│  • Structure events + coordinates        │
-│  • MCID tags in PDF content stream      │
+│      Stage A: Two-Pass PDFLaTeX         │
+│  Pass 1: Collect float positions        │
+│  Pass 2: Smart tagging with position    │
 └─────────────────────────────────────────┘
          │                    │
          ▼                    ▼
@@ -59,13 +59,14 @@ python3 script/lpsb_compiler.py --batch data/download --output results --workers
          ▼
 ┌─────────────────────────────────────────┐
 │      Post-Processing Pipeline           │
-│  • parse_lpsb_mcid.py → MCID JSON       │
-│  • fix_split_headings.py → Merge H1+P   │
-│  • fix_crosspage_mcid.py → Fix tags     │
+│  1. parse_lpsb_mcid.py → MCID JSON      │
+│  2. fix_split_headings.py → Merge H1+P  │
+│  3. fix_crosspage_mcid.py → Fix tags    │
+│  4. inject_structtree.py → StructTree   │
 └─────────────────────────────────────────┘
          │
          ▼
-    main_fixed.pdf (Tagged PDF)
+    main_tagged.pdf (PDF/UA Ready)
 ```
 
 ---
@@ -75,12 +76,15 @@ python3 script/lpsb_compiler.py --batch data/download --output results --workers
 | File | Purpose |
 |------|---------|
 | `lpsb.sty` | Main structure event emitter |
-| `lpsb-mcid.sty` | PDF content stream tagging (BDC/EMC) |
+| `lpsb-mcid.sty` | PDF content stream tagging (BDC/EMC), two-pass support |
 | `lpsb-luamath.sty` | MathML extraction via LuaLaTeX |
-| `script/lpsb_compiler.py` | Batch compiler with Docker |
-| `script/fix_crosspage_mcid.py` | Fix cross-page tagging |
-| `script/fix_split_headings.py` | Merge split H1+P headings |
-| `script/visualize_mcid.py` | Visualize MCID tags on PDF |
+| `script/lpsb_compiler.py` | Batch compiler with Docker, two-pass flow |
+| `script/postprocess/fix_crosspage_mcid.py` | Fix cross-page tagging |
+| `script/postprocess/inject_structtree.py` | Inject PDF StructTree (pikepdf) |
+| `script/postprocess/fix_split_headings.py` | Merge split H1+P headings |
+| `script/parsing/parse_lpsb_mcid.py` | Parse MCID data from aux file |
+| `script/parsing/build_doc_tree.py` | Build document hierarchy |
+| `script/visualization/visualize_mcid.py` | Visualize MCID tags on PDF |
 
 ---
 
@@ -97,13 +101,24 @@ LPSB generates PDF/UA-compatible tagged content using MCID (Marked Content IDent
 - **Figures**: `Figure`
 - **Math**: `Formula`
 - **References**: `Reference`, `BibList`, `BibEntry`
+- **Footnotes**: `Note` (mark and text)
+- **Links**: `Link` (URLs and hyperlinks)
 
 ### Cross-Page Handling
 
 LPSB automatically handles elements that span page boundaries:
 - Generates continuation MCIDs at page breaks
+- Two-pass compilation for accurate float handling
 - Post-processing fixes orphaned text after floats
 - Maintains correct reading order
+
+### StructTree Injection
+
+The final PDF includes a complete StructTree for PDF/UA compliance:
+- `/StructTreeRoot` in document catalog
+- Hierarchical structure elements (Document → H1 → P → atoms)
+- MCR (Marked Content Reference) for each MCID
+- `MarkInfo.Marked = true`
 
 ---
 
@@ -212,3 +227,24 @@ python3 script/visualize_mcid.py fixed.pdf -o debug.pdf
 ## License
 
 MIT License
+
+---
+
+## Known Limitations
+
+### Legacy `subfigure.sty` Package
+When the legacy `subfigure.sty` package is used (not `subcaption`), **atom-level tagging is disabled** to avoid expansion conflicts. Block-level tagging (P, H1, Figure, etc.) still works.
+
+**Workaround**: Use the modern `subcaption` package instead of `subfigure.sty`:
+```latex
+% Replace:
+\usepackage{subfigure}
+\subfigure[caption]{...}
+
+% With:
+\usepackage{subcaption}
+\begin{subfigure}{0.48\textwidth}
+  ...
+  \caption{caption}
+\end{subfigure}
+```

@@ -356,6 +356,16 @@ ARXIV_TEXLIVE_DEFAULT = "2025"
 # LPSB requires a modern LaTeX kernel (hooks). Clamp very old arXiv papers up to a minimum.
 TEXLIVE_MIN_DEFAULT = "2020"
 
+# Two-pass compilation for accurate float/cross-page tagging
+# Set LPSB_TWO_PASS=1 to enable (adds one extra pdflatex pass)
+LPSB_TWO_PASS_DEFAULT = False
+
+
+def _is_two_pass_enabled() -> bool:
+    """Check if two-pass compilation mode is enabled."""
+    env_val = os.environ.get("LPSB_TWO_PASS", "0").strip().lower()
+    return env_val in ("1", "true", "yes", "on")
+
 def _scan_compile_log_for_issues(log_path: Path):
     """Best-effort scan for errors that still allow a PDF to be produced.
 
@@ -625,20 +635,24 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str, options: str = "")
     except Exception:
         return
 
-def _inject_lpsb_mcid_after_fancyhdr(tex_file: Path) -> None:
+def _inject_lpsb_mcid_after_fancyhdr(tex_file: Path, options: str = "") -> None:
     """Inject lpsb-mcid after the LAST \\usepackage, before \\title/\\author.
     
     This ensures lpsb-mcid loads after all other packages (including fancyhdr,
     which may be loaded via .sty files), allowing proper wrapping of
     f@nch@head/f@nch@foot with /Artifact markers.
+    
+    Args:
+        tex_file: Path to the main .tex file
+        options: Package options string (e.g., "pass-one" for two-pass compilation)
     """
     try:
         content = tex_file.read_text(errors="ignore")
     except Exception:
         return
     
-    # Check if lpsb-mcid already present
-    if r"\usepackage{lpsb-mcid}" in content or r"\usepackage[]{lpsb-mcid}" in content:
+    # Check if lpsb-mcid already present (with any options)
+    if re.search(r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}", content):
         return
     
     newline = "\r\n" if "\r\n" in content else "\n"
@@ -656,16 +670,51 @@ def _inject_lpsb_mcid_after_fancyhdr(tex_file: Path) -> None:
         if usepackage_pattern.match(line):
             last_usepackage_idx = i
     
+    opt_str = f"[{options}]" if options else ""
+    
     if last_usepackage_idx >= 0:
         # Insert lpsb-mcid right after the last usepackage
-        lines.insert(last_usepackage_idx + 1, f"\\usepackage{{lpsb-mcid}} % LPSB MCID - must load after all other packages{newline}")
+        lines.insert(last_usepackage_idx + 1, f"\\usepackage{opt_str}{{lpsb-mcid}} % LPSB MCID - must load after all other packages{newline}")
         try:
             tex_file.write_text("".join(lines))
         except Exception:
             pass
     else:
         # No usepackage found, fall back to after documentclass
-        _inject_pkg_after_documentclass(tex_file, "lpsb-mcid")
+        _inject_pkg_after_documentclass(tex_file, "lpsb-mcid", options)
+
+
+def _modify_lpsb_mcid_options(tex_file: Path, new_options: str) -> bool:
+    """Modify the options of an already-injected lpsb-mcid package.
+    
+    Used for two-pass compilation to switch from pass-one mode to normal mode.
+    
+    Args:
+        tex_file: Path to the main .tex file
+        new_options: New options string (empty string for no options)
+    
+    Returns:
+        True if modification was successful, False otherwise
+    """
+    try:
+        content = tex_file.read_text(errors="ignore")
+    except Exception:
+        return False
+    
+    # Pattern to match \usepackage[...]{lpsb-mcid} or \usepackage{lpsb-mcid}
+    pattern = r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}"
+    
+    if not re.search(pattern, content):
+        return False  # lpsb-mcid not found
+    
+    opt_str = f"[{new_options}]" if new_options else ""
+    new_content = re.sub(pattern, f"\\\\usepackage{opt_str}{{lpsb-mcid}}", content)
+    
+    try:
+        tex_file.write_text(new_content)
+        return True
+    except Exception:
+        return False
 
 def _has_unsafe_bibitem_key_in_text(s: str) -> bool:
     """Return True if text contains \\bibitem{<key>} where <key> contains a raw '_'."""
@@ -1813,7 +1862,13 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         _copy_if_exists("lpsb-mcid.sty", pd_tex_dir)
 
         pd_main_tex_full = pdflatex_dir / main_tex
-        _inject_lpsb_mcid_after_fancyhdr(pd_main_tex_full)  # Must load after fancyhdr
+        
+        # Two-pass compilation: first pass uses pass-one option to collect positioning info
+        two_pass_enabled = _is_two_pass_enabled()
+        if two_pass_enabled:
+            _inject_lpsb_mcid_after_fancyhdr(pd_main_tex_full, options="pass-one")
+        else:
+            _inject_lpsb_mcid_after_fancyhdr(pd_main_tex_full)
 
         docker_image, selected_tl, selected_reason = _select_docker_image(work_dir, tex_dir_rel, main_base, paper_id)
 
@@ -2002,6 +2057,23 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-synctex=1", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
         had_rc_error |= (rc != 0)
 
+        # Two-pass compilation: Second pass uses the collected positioning data
+        # to emit accurate BDC markers for float/cross-page elements
+        if two_pass_enabled:
+            with open(log_file, "a") as log:
+                log.write("\n=== Two-Pass: Pass 2 (using collected positioning data) ===\n")
+            
+            # Modify lpsb-mcid to remove pass-one option (enable normal tagging mode)
+            if _modify_lpsb_mcid_options(pd_main_tex_full, ""):
+                with open(log_file, "a") as log:
+                    log.write("Info: Modified lpsb-mcid to use positioning data from pass-one\n")
+            
+            # Run additional pdflatex passes to generate the final PDF with accurate tags
+            rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-synctex=1", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error |= (rc != 0)
+            rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-synctex=1", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
+            had_rc_error |= (rc != 0)
+
         aux_file = pd_tex_dir / f"{main_base}.aux"
         pdf_file = pd_tex_dir / f"{main_base}.pdf"
         dvi_file = pd_tex_dir / f"{main_base}.dvi"
@@ -2126,7 +2198,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
         try:
             import subprocess as sp
-            parse_script = script_dir / "parse_lpsb_mcid.py"
+            parse_script = script_dir / "parsing" / "parse_lpsb_mcid.py"
             if parse_script.exists():
                 sp.run([sys.executable, str(parse_script), str(aux_file)],
                        check=False, capture_output=True, timeout=60)
@@ -2139,7 +2211,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # 2. Fix split headings (merge H1 + following P into single heading)
         mcid_fixed_json = pd_tex_dir / f"{main_base}.mcid.fixed.json"
         try:
-            fix_headings_script = script_dir / "fix_split_headings.py"
+            fix_headings_script = script_dir / "postprocess" / "fix_split_headings.py"
             if fix_headings_script.exists() and mcid_json.exists():
                 result = sp.run([sys.executable, str(fix_headings_script), 
                                 str(mcid_json), "-o", str(mcid_fixed_json)],
@@ -2152,9 +2224,11 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                 log.write(f"\nWarning: Failed to fix split headings: {e}\n")
         
         # 3. Fix cross-page MCIDs in PDF (inject continuation BDC markers)
+        # NOTE: Two-pass mode provides better LaTeX-level tagging, but
+        #       post-processing is still needed to handle edge cases.
         pdf_fixed = pd_tex_dir / f"{main_base}_fixed.pdf"
         try:
-            fix_crosspage_script = script_dir / "fix_crosspage_mcid.py"
+            fix_crosspage_script = script_dir / "postprocess" / "fix_crosspage_mcid.py"
             if fix_crosspage_script.exists() and pdf_file.exists():
                 result = sp.run([sys.executable, str(fix_crosspage_script),
                                 str(pdf_file), "--aux", str(aux_file), 
@@ -2169,8 +2243,29 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             with open(log_file, "a") as log:
                 log.write(f"\nWarning: Failed to fix cross-page MCIDs: {e}\n")
         
+        # 4. Inject StructTree into PDF (for PDF/UA compliance)
+        pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
+        try:
+            inject_structtree_script = script_dir / "postprocess" / "inject_structtree.py"
+            if inject_structtree_script.exists() and pdf_fixed.exists() and aux_file.exists():
+                result = sp.run([sys.executable, str(inject_structtree_script),
+                                str(pdf_fixed), "--aux", str(aux_file),
+                                "-o", str(pdf_tagged)],
+                               check=False, capture_output=True, timeout=120, text=True)
+                if result.returncode == 0 and pdf_tagged.exists():
+                    with open(log_file, "a") as log:
+                        log.write(f"\nInfo: StructTree injected: {pdf_tagged}\n")
+                    # Replace the output PDF with the tagged version
+                    shutil.copy(pdf_tagged, final_pdf)
+                else:
+                    with open(log_file, "a") as log:
+                        log.write(f"\nWarning: StructTree injection failed: {result.stderr[:200] if result.stderr else 'unknown error'}\n")
+        except Exception as e:
+            with open(log_file, "a") as log:
+                log.write(f"\nWarning: Failed to inject StructTree: {e}\n")
+        
         # Copy post-processed files to result directory
-        for src_file in [mcid_json, mcid_fixed_json, pdf_fixed]:
+        for src_file in [mcid_json, mcid_fixed_json, pdf_fixed, pdf_tagged]:
             if src_file.exists():
                 try:
                     shutil.copy(src_file, res_dir / src_file.name)

@@ -5,6 +5,11 @@ fix_crosspage_mcid.py - Post-process PDF to inject missing cross-page BDC marker
 This script reads the .aux file to find cross-page continuation records,
 then modifies the PDF content stream to insert proper BDC markers.
 
+NOTE: Even with LPSB_TWO_PASS=1 (two-pass compilation), this post-processing
+script is still needed to handle edge cases that LaTeX cannot address natively.
+Two-pass provides better LaTeX-level tagging, but this script handles the
+final cleanup to ensure 0 untagged TEXT.
+
 Enhanced with float-aware injection: skips over Figure/Table blocks at page top
 to correctly identify where continuation content actually begins.
 """
@@ -18,6 +23,290 @@ from typing import Dict, List, Tuple, Optional, Set
 
 # Tag types that represent floats (should not receive cross-page continuation)
 FLOAT_TAG_TYPES = {'Figure', 'Table'}
+# 还有算法，prompt等
+
+
+def get_layout_from_aux(aux_path: str) -> Tuple[Optional[str], Dict[int, str]]:
+    r"""Get layout mode from aux file if available.
+    
+    Looks for \lpsb@layout{twocolumn} or \lpsb@layout{onecolumn} 
+    written by lpsb-mcid.sty at document begin.
+    
+    Also looks for \lpsb@layout@switch{mode}{page} for mid-document changes.
+    
+    Returns:
+        Tuple of (base_layout, switches_dict)
+        - base_layout: 'twocolumn', 'onecolumn', or None if not found
+        - switches_dict: {page_num: 'twocolumn'/'onecolumn'} for mid-doc switches
+    """
+    base_layout = None
+    switches = {}
+    
+    try:
+        with open(aux_path, 'r', errors='replace') as f:
+            content = f.read()
+        
+        # Base layout at document start
+        match = re.search(r'\\lpsb@layout\{(\w+)\}', content)
+        if match:
+            base_layout = match.group(1)
+        
+        # Mid-document layout switches
+        for m in re.finditer(r'\\lpsb@layout@switch\{(\w+)\}\{(\d+)\}', content):
+            mode = m.group(1)
+            page = int(m.group(2))
+            switches[page] = mode
+            
+    except:
+        pass
+    
+    return base_layout, switches
+
+
+def get_page_layout(page_num: int, base_layout: Optional[str], 
+                    switches: Dict[int, str]) -> str:
+    """Determine the layout for a specific page.
+    
+    Args:
+        page_num: 1-indexed page number
+        base_layout: Document's default layout ('twocolumn' or 'onecolumn')
+        switches: Dict mapping page numbers to layout switches
+        
+    Returns:
+        'twocolumn' or 'onecolumn'
+    """
+    if base_layout is None:
+        return 'onecolumn'  # Default assumption
+    
+    current_layout = base_layout
+    
+    # Apply switches in order
+    for switch_page in sorted(switches.keys()):
+        if switch_page <= page_num:
+            current_layout = switches[switch_page]
+        else:
+            break
+    
+    return current_layout
+
+
+def detect_two_column_layout(doc, page_idx: int) -> bool:
+    """Detect if a page uses two-column layout by analyzing text block positions.
+    
+    Strategy: 
+    1. Extract all text blocks with their X positions
+    2. If there's a clear gap in the middle of the page with text on both sides, it's two-column
+    
+    Args:
+        doc: PyMuPDF document
+        page_idx: 0-indexed page number
+        
+    Returns:
+        True if page appears to be two-column layout
+    """
+    page = doc[page_idx]
+    width = page.rect.width
+    mid_x = width / 2
+    margin = width * 0.1  # 10% margin around center for gap detection
+    
+    blocks = page.get_text('dict')['blocks']
+    text_x_positions = []
+    
+    for b in blocks:
+        if 'lines' in b:
+            # Use the left edge of text block
+            x = b['bbox'][0]
+            text_x_positions.append(x)
+    
+    if len(text_x_positions) < 4:
+        return False  # Not enough text blocks to determine
+    
+    # Count blocks in left column (x < mid - margin) and right column (x > mid + margin)
+    left_count = sum(1 for x in text_x_positions if x < mid_x - margin)
+    right_count = sum(1 for x in text_x_positions if x > mid_x + margin)
+    
+    # Two-column if both sides have significant content
+    return left_count >= 2 and right_count >= 2
+
+
+def find_column_boundary(doc, page_idx: int) -> Optional[float]:
+    """Find the X coordinate that divides left and right columns.
+    
+    Args:
+        doc: PyMuPDF document  
+        page_idx: 0-indexed page number
+        
+    Returns:
+        X coordinate of column boundary, or None if not two-column
+    """
+    if not detect_two_column_layout(doc, page_idx):
+        return None
+    
+    page = doc[page_idx]
+    width = page.rect.width
+    mid_x = width / 2
+    max_col_width = width * 0.45  # Single column should be < 45% of page width
+    
+    blocks = page.get_text('dict')['blocks']
+    
+    # Find the gap between columns
+    # Filter out blocks that are too wide (likely spanning both columns)
+    left_column_rights = []
+    right_column_lefts = []
+    
+    for b in blocks:
+        if 'lines' in b:
+            bbox = b['bbox']
+            block_width = bbox[2] - bbox[0]
+            left = bbox[0]
+            right = bbox[2]
+            
+            # Skip blocks that span more than 45% of page width
+            if block_width > max_col_width:
+                continue
+            
+            if left < mid_x and right < mid_x + width * 0.1:  # Left column ends before midpoint + 10%
+                left_column_rights.append(right)
+            elif left > mid_x - width * 0.1:  # Right column starts near or after midpoint
+                right_column_lefts.append(left)
+    
+    if not left_column_rights or not right_column_lefts:
+        return mid_x  # Fallback to page center
+    
+    # Use median instead of max for robustness
+    left_column_rights.sort()
+    right_column_lefts.sort()
+    
+    # Boundary is between typical right edge of left column and typical left edge of right column
+    typical_left_right = left_column_rights[len(left_column_rights) // 2]  # median
+    typical_right_left = right_column_lefts[len(right_column_lefts) // 2]  # median
+    
+    # Return the midpoint of the gap
+    return (typical_left_right + typical_right_left) / 2
+
+
+def split_cross_column_tags(content_stream: bytes, boundary_x: float, 
+                            doc, page_idx: int, mcid_counter: int,
+                            verbose: bool = False) -> Tuple[bytes, int, int]:
+    """Split tags that span both columns at the column boundary.
+    
+    Strategy:
+    1. Parse BDC markers with their MCIDs
+    2. For each P/H1/etc tag, find the text operations (Tm matrices) within it
+    3. If text spans both sides of boundary_x, split by:
+       - Insert EMC before first text in right column
+       - Insert new BDC with new MCID for right column content
+    
+    Args:
+        content_stream: Raw PDF content stream bytes
+        boundary_x: X coordinate dividing columns
+        doc: PyMuPDF document
+        page_idx: 0-indexed page number
+        mcid_counter: Starting MCID for new tags
+        verbose: Print debug info
+        
+    Returns:
+        (new_stream, num_splits, new_mcid_counter)
+    """
+    try:
+        text = content_stream.decode('latin-1')
+    except:
+        text = content_stream.decode('utf-8', errors='replace')
+    
+    # Parse all BDC markers with positions
+    bdc_pattern = re.compile(r'/(\w+)\s*<<\s*/MCID\s*(\d+)\s*>>\s*BDC')
+    emc_pattern = re.compile(r'\bEMC\b')
+    tm_pattern = re.compile(r'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+Tm')
+    
+    # Find all BDC regions
+    bdc_matches = list(bdc_pattern.finditer(text))
+    emc_matches = list(emc_pattern.finditer(text))
+    
+    if not bdc_matches:
+        return content_stream, 0, mcid_counter
+    
+    # Match BDCs with their EMCs
+    tag_regions = []
+    for bdc in bdc_matches:
+        tag_type = bdc.group(1)
+        mcid = int(bdc.group(2))
+        bdc_end = bdc.end()
+        
+        # Find matching EMC (next EMC after this BDC that's not inside another BDC)
+        # Simple approach: find next EMC
+        matching_emc = None
+        for emc in emc_matches:
+            if emc.start() > bdc_end:
+                matching_emc = emc
+                break
+        
+        if matching_emc:
+            tag_regions.append({
+                'type': tag_type,
+                'mcid': mcid,
+                'bdc_start': bdc.start(),
+                'bdc_end': bdc_end,
+                'emc_start': matching_emc.start(),
+                'emc_end': matching_emc.end(),
+            })
+    
+    # Find tags that span both columns
+    splits_needed = []
+    for region in tag_regions:
+        if region['type'] not in ('P', 'LI', 'L'):  # Only split these types
+            continue
+        
+        content = text[region['bdc_end']:region['emc_start']]
+        
+        # Extract all Tm X positions within this tag
+        tms = tm_pattern.findall(content)
+        if not tms:
+            continue
+        
+        x_positions = [float(tm[4]) for tm in tms]
+        min_x = min(x_positions)
+        max_x = max(x_positions)
+        
+        # Check if it spans both columns
+        if min_x < boundary_x and max_x > boundary_x:
+            # Find position to split (first Tm with x > boundary_x)
+            split_pos = None
+            for tm in tm_pattern.finditer(content):
+                x = float(tm.group(5))
+                if x > boundary_x:
+                    split_pos = region['bdc_end'] + tm.start()
+                    break
+            
+            if split_pos:
+                splits_needed.append({
+                    'region': region,
+                    'split_pos': split_pos,
+                })
+                if verbose:
+                    print(f"    Will split {region['type']} MCID {region['mcid']}: X range [{min_x:.0f}, {max_x:.0f}]")
+    
+    if not splits_needed:
+        return content_stream, 0, mcid_counter
+    
+    # Apply splits from end to start to preserve positions
+    splits_needed.sort(key=lambda x: x['split_pos'], reverse=True)
+    
+    current_mcid = mcid_counter
+    for split in splits_needed:
+        pos = split['split_pos']
+        region = split['region']
+        tag_type = region['type']
+        
+        # Insert: EMC <newline> /P << /MCID N >> BDC
+        injection = f'EMC\n/{tag_type} << /MCID {current_mcid} >> BDC\n'
+        text = text[:pos] + injection + text[pos:]
+        current_mcid += 1
+    
+    if verbose:
+        print(f"    Split {len(splits_needed)} cross-column tags")
+    
+    return text.encode('latin-1'), len(splits_needed), current_mcid
+
 
 
 def parse_aux_file(aux_path: str) -> Dict:
@@ -361,22 +650,27 @@ def parse_content_stream_markers(text: str) -> List[Tuple[int, str, str, Optiona
 
 
 def inject_bdc_into_stream(content_stream, mcid, tag_type='P', skip_float_types: Set[str] = None):
-    """Inject BDC marker into content stream before first untagged text.
+    """Inject BDC markers into content stream before ALL untagged text segments.
     
     Enhanced strategy:
     1. Track BDC/EMC nesting level
     2. Track which tag types we're inside (to detect floats)
-    3. Skip over complete float blocks (Figure/Table BDC...EMC)
-    4. Find first TEXT that is:
+    3. Find ALL TEXT segments that are:
        a) At nesting level 0 (truly untagged), AND
        b) NOT inside a float block
-    5. Insert BDC before that text command
+    4. Insert BDC before each untagged text segment, EMC after
+    
+    This handles pages with multiple gaps between floats (like appendices with
+    many small tables interspersed with text).
     
     Args:
         content_stream: Raw content stream bytes
-        mcid: MCID number to inject
+        mcid: Starting MCID number to inject (incremented for each injection)
         tag_type: Tag type for the BDC (e.g., 'P', 'H1')
         skip_float_types: Set of tag types to skip over (floats at page top)
+    
+    Returns:
+        (new_stream, success, injections_count)
     """
     if skip_float_types is None:
         skip_float_types = FLOAT_TAG_TYPES
@@ -390,45 +684,76 @@ def inject_bdc_into_stream(content_stream, mcid, tag_type='P', skip_float_types:
     
     # Track state while scanning
     level = 0  # Nesting depth
-    tag_stack = []  # Stack of (tag_type, start_pos) for nested elements
-    inside_float = False  # Currently inside a float block
-    float_depth = 0  # How deep in float nesting (floats can contain captions etc)
+    tag_stack = []  # Stack of tag_types for nested elements
     
-    insertion_pos = None
+    # Find injection points: each position where untagged TEXT starts
+    # An injection point is needed when:
+    # 1. We're at level 0 (not inside any tag)
+    # 2. We encounter TEXT
+    # 3. There was no previous untagged TEXT (or we just exited a tag)
+    injection_points = []  # List of (position, prev_marker_end_pos) tuples
     
-    for pos, marker_type, content, marker_tag_type in markers:
+    in_untagged_run = False  # Track if we're currently in a run of untagged text
+    last_marker_end = 0  # End position of last BDC/EMC marker
+    
+    for i, (pos, marker_type, content, marker_tag_type) in enumerate(markers):
         if marker_type == 'BDC' or marker_type == 'BMC':
+            in_untagged_run = False  # Entering a tag ends any untagged run
             level += 1
             tag_stack.append(marker_tag_type)
-            
-            # Check if entering a float
-            if marker_tag_type in skip_float_types:
-                inside_float = True
-                float_depth = level
+            last_marker_end = pos + len(content) if content else pos + 20
                 
         elif marker_type == 'EMC':
+            in_untagged_run = False  # Just exited a tag
             if tag_stack:
-                exited_tag = tag_stack.pop()
-                # Check if exiting a float
-                if level == float_depth and exited_tag in skip_float_types:
-                    inside_float = False
-                    float_depth = 0
+                tag_stack.pop()
             level = max(0, level - 1)
+            last_marker_end = pos + 3  # "EMC" is 3 chars
             
         elif marker_type == 'TEXT':
-            # Found text - check if it's our target
-            if level == 0 and not inside_float:
-                # This is untagged text that's not inside a float
-                insertion_pos = pos
+            # Check if this is untagged text
+            if level == 0:
+                if not in_untagged_run:
+                    # Start of a new untagged text run - need to inject P here
+                    injection_points.append(pos)
+                    in_untagged_run = True
+                # If already in untagged run, continue (don't inject again)
+    
+    if not injection_points:
+        return content_stream, False, 0
+    
+    # Inject BDC at each injection point (from end to start to preserve positions)
+    # We inject just BDC without EMC - the next real tag will naturally close/interrupt
+    # Or we could inject BDC...EMC pairs around each text run
+    
+    # Actually, for PDF structure correctness, each BDC needs a matching EMC
+    # Strategy: For each injection point, find where to put the EMC (before next BDC/BMC)
+    
+    current_mcid = mcid
+    
+    # Build list of (inject_pos, emc_pos) for each gap
+    injections_with_emc = []
+    for inj_pos in injection_points:
+        # Find where EMC should go: before the next BDC/BMC
+        emc_pos = None
+        for pos, mtype, content, mtag in markers:
+            if pos > inj_pos and mtype in ('BDC', 'BMC'):
+                emc_pos = pos
                 break
+        if emc_pos is None:
+            emc_pos = len(text)  # End of stream
+        injections_with_emc.append((inj_pos, emc_pos))
     
-    if insertion_pos is not None:
-        # Insert BDC right before the text
-        bdc = f' /{tag_type} << /MCID {mcid} >> BDC \n'
-        new_text = text[:insertion_pos] + bdc + text[insertion_pos:]
-        return new_text.encode('latin-1'), True
+    # Inject from end to start
+    for inj_pos, emc_pos in reversed(injections_with_emc):
+        # Insert EMC first (at higher position)
+        text = text[:emc_pos] + ' EMC\n' + text[emc_pos:]
+        # Insert BDC (at lower position)
+        bdc = f' /{tag_type} << /MCID {current_mcid} >> BDC\n'
+        text = text[:inj_pos] + bdc + text[inj_pos:]
+        current_mcid += 1
     
-    return content_stream, False
+    return text.encode('latin-1'), True, len(injections_with_emc)
 
 
 def find_first_text_position(content_stream):
@@ -528,6 +853,10 @@ def process_pdf(pdf_path, aux_path, output_path=None, verbose=True):
     # Open PDF
     doc = fitz.open(pdf_path)
     
+    # Use unique MCID counter starting at 10000 to avoid collision with LaTeX MCIDs
+    # LaTeX typically uses MCIDs 1-999 for normal documents
+    unique_mcid_counter = 10000
+    
     # Method 1: Find pages from aux-based cross-page element detection
     pages_from_aux = {}
     all_pages = set(cont['page'] for cont in continuations)
@@ -603,10 +932,12 @@ def process_pdf(pdf_path, aux_path, output_path=None, verbose=True):
                                 last_type = t
                                 last_mcid = int(m.group(2))
                         if last_mcid is not None:
-                            tag_type = last_type
+                            # Use P as tag type - orphan text is almost always a new paragraph
+                            # Keep the MCID from previous page for reading order consistency
+                            tag_type = 'P'
                             mcid = last_mcid
                             if verbose:
-                                print(f"  Page {page_num}: orphan text, using prev page's /{tag_type} MCID {mcid}")
+                                print(f"  Page {page_num}: orphan text, using /P MCID {mcid} (prev was {last_type})")
                         else:
                             tag_type = 'P'
                             mcid = 1  # Fallback
@@ -622,18 +953,26 @@ def process_pdf(pdf_path, aux_path, output_path=None, verbose=True):
         
         # Check if this page has floats at top that we need to skip
         floats_on_page = get_floats_starting_on_page(aux_data, page_num)
-        if floats_on_page and verbose:
+        if floats_on_page:
             float_types = [f['type'] for f in floats_on_page]
-            print(f"  Page {page_num}: has floats at top: {float_types}")
+            if verbose:
+                print(f"  Page {page_num}: has floats at top: {float_types}")
+            # When page has floats, content after them is usually a new paragraph,
+            # not a continuation of whatever element (H1, Reference, etc) was before.
+            # Override to P unless the aux specifically indicates otherwise.
+            if tag_type in ('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'Reference', 'LI', 'BibEntry'):
+                # These are unlikely to truly continue after floats
+                tag_type = 'P'
+                if verbose:
+                    print(f"  Page {page_num}: overriding to P (content after floats)")
         
-        # Note: We don't override MCID here anymore - the previous page's last MCID
-        # maintains correct reading order. The inject_bdc_into_stream function
-        # will skip over float blocks to find the correct injection point.
+        # Use unique MCID to avoid collision with LaTeX-generated MCIDs
+        injection_mcid = unique_mcid_counter
         
-        # Try to inject BDC, skipping over floats
-        new_stream, success = inject_bdc_into_stream(
+        # Try to inject BDC, skipping over floats (now handles multiple gaps)
+        new_stream, success, num_injections = inject_bdc_into_stream(
             content_stream,
-            mcid,
+            injection_mcid,
             tag_type,
             skip_float_types=FLOAT_TAG_TYPES
         )
@@ -641,19 +980,79 @@ def process_pdf(pdf_path, aux_path, output_path=None, verbose=True):
         if success:
             # Update content stream in PDF
             doc.update_stream(contents_xref, new_stream)
+            unique_mcid_counter += num_injections  # Increment by number of injections
             if verbose:
-                print(f"  Page {page_num}: injected /{tag_type} << /MCID {mcid} >> BDC")
-            fixed_count += 1
+                if num_injections > 1:
+                    print(f"  Page {page_num}: injected {num_injections} /{tag_type} tags (MCIDs {injection_mcid}-{injection_mcid + num_injections - 1})")
+                else:
+                    print(f"  Page {page_num}: injected /{tag_type} << /MCID {injection_mcid} >> BDC")
+            fixed_count += num_injections
         else:
             if verbose:
                 print(f"  Page {page_num}: could not find injection point")
+    
+    # === Phase 2: Split cross-column tags for two-column layouts ===
+    if verbose:
+        print("\n--- Phase 2: Two-column layout processing ---")
+    
+    # Get layout info from aux file (more reliable than PDF heuristics)
+    base_layout, layout_switches = get_layout_from_aux(aux_path)
+    if verbose and base_layout:
+        print(f"  Base layout: {base_layout}, switches: {layout_switches}")
+    
+    column_split_count = 0
+    for page_idx in range(len(doc)):
+        page_num = page_idx + 1  # 1-indexed for display
+        
+        # Use aux-based layout detection if available, otherwise fall back to PDF heuristic
+        if base_layout:
+            page_layout = get_page_layout(page_num, base_layout, layout_switches)
+            if page_layout != 'twocolumn':
+                continue  # Skip single-column pages
+        
+        # Get column boundary (still needed even with aux-based detection)
+        boundary_x = find_column_boundary(doc, page_idx)
+        if boundary_x is None:
+            # aux says two-column but PDF analysis can't find boundary
+            # Use page center as fallback
+            boundary_x = doc[page_idx].rect.width / 2
+        
+        if verbose:
+            print(f"  Page {page_num}: two-column (boundary at x={boundary_x:.0f})")
+        
+        # Get content stream
+        page = doc[page_idx]
+        xref = page.xref
+        contents_ref = doc.xref_get_key(xref, "Contents")
+        
+        if contents_ref[0] != 'xref':
+            continue
+        
+        contents_xref = int(contents_ref[1].split()[0])
+        content_stream = doc.xref_stream(contents_xref)
+        
+        if not content_stream:
+            continue
+        
+        # Split cross-column tags
+        new_stream, num_splits, unique_mcid_counter = split_cross_column_tags(
+            content_stream, boundary_x, doc, page_idx, 
+            unique_mcid_counter, verbose=verbose
+        )
+        
+        if num_splits > 0:
+            doc.update_stream(contents_xref, new_stream)
+            column_split_count += num_splits
+    
+    if verbose and column_split_count > 0:
+        print(f"  Split {column_split_count} cross-column tags total")
     
     # Save modified PDF
     doc.save(output_path)
     doc.close()
     
     if verbose:
-        print(f"\nFixed {fixed_count} pages, saved to: {output_path}")
+        print(f"\nFixed {fixed_count} cross-page + {column_split_count} cross-column, saved to: {output_path}")
     return output_path
 
 
