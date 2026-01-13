@@ -61,6 +61,7 @@ ENTRY
     edition
     editor
     howpublished
+    repository
     institution
     isbn
     issn
@@ -427,13 +428,6 @@ FUNCTION {format.date}
        pop$ "" }
     'skip$
   if$
-  month empty$
-    'skip$
-    { month
-      " " * swap$ *
-    }
-  if$
-  extra.label *
 }
 
 FUNCTION {format.btitle}
@@ -712,10 +706,6 @@ FUNCTION {article}
   new.block
   crossref missing$
     { journal emphasize "journal" output.check
-      eid empty$
-        { format.vol.num.pages output }
-        { format.vol.num.eid output }
-      if$
       format.date "year" output.check
     }
     { format.article.crossref output.nonnull
@@ -725,11 +715,6 @@ FUNCTION {article}
       if$
     }
   if$
-  format.issn output
-  format.doi output
-  format.url output
-  new.block
-  note output
   fin.entry
 }
 
@@ -762,9 +747,6 @@ FUNCTION {book}
   if$
   format.edition output
   format.date "year" output.check
-  format.isbn output
-  format.doi output
-  format.url output
   new.block
   note output
   fin.entry
@@ -780,9 +762,6 @@ FUNCTION {booklet}
   howpublished output
   address output
   format.date output
-  format.isbn output
-  format.doi output
-  format.url output
   new.block
   note output
   fin.entry
@@ -806,11 +785,6 @@ FUNCTION {inbook}
   crossref missing$
     { format.bvolume output
       format.chapter.pages "chapter and pages" output.check
-      new.block
-      format.number.series output
-      new.sentence
-      publisher "publisher" output.check
-      address output
     }
     { format.chapter.pages "chapter and pages" output.check
       new.block
@@ -819,11 +793,6 @@ FUNCTION {inbook}
   if$
   format.edition output
   format.date "year" output.check
-  format.isbn output
-  format.doi output
-  format.url output
-  new.block
-  note output
   fin.entry
 }
 
@@ -836,24 +805,12 @@ FUNCTION {incollection}
   new.block
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
-      format.bvolume output
-      format.number.series output
-      format.chapter.pages output
-      new.sentence
-      publisher "publisher" output.check
-      address output
-      format.edition output
       format.date "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
       format.chapter.pages output
     }
   if$
-  format.isbn output
-  format.doi output
-  format.url output
-  new.block
-  note output
   fin.entry
 }
 
@@ -866,32 +823,12 @@ FUNCTION {inproceedings}
   new.block
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
-      format.bvolume output
-      format.number.series output
-      format.pages output
-      address empty$
-        { organization publisher new.sentence.checkb
-          organization output
-          publisher output
-          format.date "year" output.check
-        }
-        { address output.nonnull
-          format.date "year" output.check
-          new.sentence
-          organization output
-          publisher output
-        }
-      if$
+      format.date "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
-      format.pages output
+      format.chapter.pages output
     }
   if$
-  format.isbn output
-  format.doi output
-  format.url output
-  new.block
-  note output
   fin.entry
 }
 
@@ -937,13 +874,16 @@ FUNCTION {misc}
   author format.key output
   title howpublished new.block.checkb
   format.title output
+  publisher empty$
+    { format.url empty$
+      'skip$
+      {format.url output}
+    if$ }
+    {"In " publisher emphasize * output}
+  if$
   howpublished new.block.checka
   howpublished output
   format.date output
-  format.issn output
-  format.url output
-  new.block
-  note output
   fin.entry
   empty.misc.check
 }
@@ -978,9 +918,6 @@ FUNCTION {proceedings}
   new.sentence
   organization output
   publisher output
-  format.isbn output
-  format.doi output
-  format.url output
   new.block
   note output
   fin.entry

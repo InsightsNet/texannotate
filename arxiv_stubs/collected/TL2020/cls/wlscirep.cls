@@ -8,8 +8,7 @@
 \NeedsTeXFormat{LaTeX2e}
 % \ProvidesClass{wlscirep}[18/03/2016, v1.1]
 % \ProvidesClass{wlscirep}[03/11/2016, v1.2]
-% \ProvidesClass{wlscirep}[27/02/2017, v1.3]
-\ProvidesClass{wlscirep}[08/08/2020, v1.4]
+\ProvidesClass{wlscirep}[27/02/2017, v1.3]
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[english]{babel}
 
@@ -19,12 +18,11 @@
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
 \ProcessOptions*
 \LoadClass{article}
-\RequirePackage{amsmath,amsfonts,amssymb}
+\RequirePackage{times}      % Loads the Times-Roman Fonts
 \RequirePackage{mathptmx}   % Loads the Times-Roman Math Fonts
-\RequirePackage{helvet}
-\RequirePackage{courier}
 \RequirePackage{ifpdf}
 
+\RequirePackage{amsmath,amsfonts,amssymb}
 \RequirePackage{graphicx,xcolor}
 \RequirePackage{booktabs}
 

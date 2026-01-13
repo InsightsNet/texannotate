@@ -662,9 +662,12 @@
 \def\sublargesize{\@setfontsize{\sublargesize}{11}{13.4pt}}
 \def\large{\@setfontsize{\large}{12}{14pt}}
 \def\Large{\@setfontsize{\Large}{14}{17pt}}
-\def\LARGE{\@setfontsize{\LARGE}{17}{20pt}}
-\def\huge{\@setfontsize{\huge}{20}{24pt}}
-\def\Huge{\@setfontsize{\Huge}{24}{28pt}}
+%20230227 \def\LARGE{\@setfontsize{\LARGE}{17}{20pt}}
+%20230227 \def\huge{\@setfontsize{\huge}{20}{24pt}}
+%20230227 \def\Huge{\@setfontsize{\Huge}{24}{28pt}}
+\def\LARGE{\@setfontsize{\LARGE}{18}{20pt}}
+\def\huge{\@setfontsize{\huge}{18}{24pt}}
+\def\Huge{\@setfontsize{\Huge}{18}{28pt}}
 \fi
 %
 % 11pt option defaults
@@ -942,15 +945,11 @@
 \ifx\f@family\@IEEEstringphv\kern -0.03em\vbox{\hrule\@width 0.62em\@height 0.52pt\kern -0.33ex}\kern -0.03em\else
 \kern 0.09em\vbox{\hrule\@width 0.6em\@height 0.44pt\kern -0.63pt\kern -0.42ex}\kern 0.09em\fi\fi\fi\fi\fi\relax}
 
-
-
-
 % set the default \baselinestretch
 \def\baselinestretch{1}
 \ifCLASSOPTIONdraftcls
   \def\baselinestretch{1.5}% default baselinestretch for draft modes
 \fi 
-
 
 % process CLASSINPUT baselinestretch
 \ifx\CLASSINPUTbaselinestretch\@IEEEundefined
@@ -961,9 +960,6 @@
 \fi
 
 \small\normalsize % make \baselinestretch take affect
-
-
-
 
 % store the normalsize baselineskip
 \newdimen\CLASSINFOnormalsizebaselineskip

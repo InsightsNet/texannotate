@@ -2,7 +2,7 @@
 %% Compatible with bibtex version 0.99d.
 %%
 %% Note: Per default sorting entries is done in the order of citation. 
-%% If the journal requires alphabetical order of references, select the Â“alphaÂ” option
+%% If the journal requires alphabetical order of references, select the “alpha” option
 %%
 %% You are free to use this style file as you see fit, provided 
 %% that you do not make changes to the file. 

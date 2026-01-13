@@ -3,7 +3,7 @@
 % MNRAS journal document class file
 % v3.0 for LaTeX 2e
 %
-% Copyright (C) Royal Astronomical Society 2024, Blackwell Science 2001,
+% Copyright (C) Royal Astronomical Society 2015, Blackwell Science 2001,
 % Cambridge University Press 1994
 %
 % Authors:
@@ -32,8 +32,8 @@
 
 % Preamble to this style file
 
-\def\@version{3.3}
-\def\@releasedate{2024/04/23}
+\def\@version{3.0}
+\def\@releasedate{2015/05/22}
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{mnras}[\@releasedate\ v\@version\ LaTeX2e MNRAS document class]
@@ -1816,7 +1816,4 @@ has been typeset from a \TeX/\LaTeX\ file prepared by the author.}
 %         Package renamed from 'mn2e' to 'mnras' after
 %           discussion with the TeX Users Group
 %         Numerous small tweaks and improvements following testing
-% v3.0, v3.1, v3.2, v3.3 Peter Jones (Oxford University Press)
-%         April 2024
-%         Numbering changes to accord with numbering changes of mnras_template.tex resulting from content updates recorded in that file
 % end of mnras.cls

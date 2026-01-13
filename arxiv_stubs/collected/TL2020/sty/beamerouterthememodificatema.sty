@@ -1,0 +1,128 @@
+\mode<presentation>
+
+%\setbeamercolor*{title}{parent=red}
+
+
+\setbeamercolor{palette tertiary}{fg=black,bg=structure!50!white}
+\setbeamercolor{palette secondary}{fg=structure!50!white,bg=structure!70!black}
+\setbeamercolor{palette primary}{fg=black,bg=structure!20!white}
+\setbeamercolor{palette secondary bis}{bg=structure!50!white,fg=structure!70!black}
+
+
+\setbeamercolor*{author in head/foot}{parent=palette secondary bis}
+\setbeamercolor*{title in head/foot}{parent=palette secondary}
+\setbeamercolor*{date in head/foot}{parent=palette primary}
+
+\setbeamercolor*{section in head/foot}{parent=palette tertiary}
+\setbeamercolor*{subsection in head/foot}{parent=palette primary}
+% colors for the external link field
+\setbeamercolor*{external link}{parent=palette secondary}
+
+\defbeamertemplate*{footline}{modificatema theme}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.39\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor\expandafter\beamer@ifempty\expandafter{\beamer@shortinstitute}{}{~~(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.53\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.08\paperwidth,ht=2.25ex,dp=1ex,center]{date in head/foot}%
+    \usebeamerfont{date in head/foot}
+    \insertframenumber{} / \inserttotalframenumber 
+  \end{beamercolorbox}%
+  % this is a new field with an external link
+%  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{external link}%
+   % \usebeamerfont{author in head/foot}\href{a}{a}\hspace*{2ex}
+  %\end{beamercolorbox}
+  }%
+  \vskip0pt%
+}
+
+
+
+\defbeamertemplate*{headline}{modificatema theme}
+{
+  \leavevmode%
+  \hbox{%
+%  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{section in head/foot}%
+%    \usebeamerfont{section in head/foot}\insertsectionhead\hspace*{2ex}
+%  \end{beamercolorbox}%
+%  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{subsection in head/foot}%
+%    \usebeamerfont{subsection in head/foot}\hspace*{2ex}\insertsubsectionhead
+%  \end{beamercolorbox}
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.25ex,dp=1ex,center]{section in head/foot}%
+    \usebeamerfont{section in head/foot}  \insertsectionnavigationhorizontal{0.55\textwidth}{\hspace*{2ex} \sepsezioniheader}{}\hspace*{2ex}
+  \end{beamercolorbox}%
+  
+  }%
+  \vskip0pt%
+}
+
+%\usepackage{MnSymbol}
+%\newcommand{\sepsezioniheader}{\color{gray}$\uptherefore$}
+%\newcommand{\sepsezioniheader}{\color{gray}$\blacklozenge$}
+
+%\usepackage{marvosym}
+%\newcommand{\sepsezioniheader}{\color{gray}\Clocklogo}
+
+\newcommand{\sepsezioniheader}{\color{gray}$\bullet$}
+
+\setbeamertemplate{section in head/foot shaded}{%  
+\color{gray}\insertsectionhead\color{black}\ \ \ \ \sepsezioniheader
+}  
+
+\setbeamertemplate{section in head/foot}{%  
+\insertsectionhead\color{black}\ \ \ \ \sepsezioniheader
+}  
+
+
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+\pgfdeclareimage[height=1cm]{bannerorizzontalealto}{bannerorizzontalealto.pdf}
+\pgfdeclareimage[height=0.5cm]{bannerorizzontalebasso}{bannerorizzontalebasso.pdf}
+\pgfdeclareimage[height=1cm]{logoUnits}{logoUnits2.jpg}
+%\pgfdeclareimage[height=1cm]{scologo}{grafici/scologo.jpg}
+\pgfdeclareimage[height=13mm]{scologo}{SISlogo.jpg}
+
+
+
+\setbeamercolor{miotitolo}{fg=blue!50!white}
+
+\setbeamertemplate{title page}
+{
+\vspace{1cm}
+\pgfuseimage{logoUnits}\hfill\pgfuseimage{bannerorizzontalealto}
+
+\vskip0pt plus 1filll
+
+{\usebeamercolor[fg]{structure}\rule{0.9\paperwidth}{2pt}}
+
+\vspace{0.5cm}
+
+%\begin{centering}
+{\usebeamerfont{title}\usebeamercolor[fg]{title}\huge\bf\usebeamercolor[fg]{structure}\inserttitle}
+
+\vspace{2mm}
+
+{\bf\insertauthor}
+
+\vspace{2mm}
+
+{\scriptsize \insertinstitute}
+%\end{centering}
+
+\vspace{8mm}
+\insertdate\hfill\pgfuseimage{scologo}
+
+
+
+\vskip0pt plus 1filll
+
+}
+
+
+
+\mode
+<all>

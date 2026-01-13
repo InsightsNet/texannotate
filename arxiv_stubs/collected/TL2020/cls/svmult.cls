@@ -1,4 +1,4 @@
-% SVMULT DOCUMENT CLASS -- version 5.4 (25-Jun-07)
+% SVMULT DOCUMENT CLASS -- version 5.5 (11-Mar-16)
 % Springer Verlag global LaTeX2e support for multi authored books
 %%
 %%
@@ -19,7 +19,7 @@
 %%   Right brace   \}     Tilde         \~}
 %%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{svmult}[2007/06/25 v5.4
+\ProvidesClass{svmult}[2016/03/11 v5.5
 ^^JSpringer Verlag global LaTeX document class for multi authored books]
 % Options
 % citations
@@ -382,7 +382,8 @@ passing it to article class \MessageBreak
 \newcommand{\@mtwritefile}[1]{\if Y\MiniTOC
 \@temptokena{#1} \immediate\write\minitoc{\the\@temptokena}\fi}
 
-\AtEndDocument{\immediate\write\@auxout{\string\immediate\string\closeout\string\minitoc}}
+\AtEndDocument{\clearpage
+\immediate\write\@auxout{\string\immediate\string\closeout\string\minitoc}}
 
 \newcommand{\dominitoc}{% switch \let\MiniTOC=Y
     \protected@immwrite\@auxout{}{\let\MiniTOC=Y}%
@@ -1608,7 +1609,7 @@ to\z@{\kern0.55\wd0\vrule\@height0.45\ht0\hss}\box0}}}}
   \global\@namedef{end#1}{\@endtheorem}}}}
 
 \def\@spthm#1#2#3#4{\topsep 7\p@ \@plus2\p@ \@minus4\p@
-\labelsep=\spthmsep\refstepcounter{#1}%
+\labelsep=\spthmsep\refstepcounter{#1}\phantomsection
 \@ifnextchar[{\@spythm{#1}{#2}{#3}{#4}}{\@spxthm{#1}{#2}{#3}{#4}}}
 
 \def\@spxthm#1#2#3#4{\@spbegintheorem{#2}{\csname the#1\endcsname}{#3}{#4}%

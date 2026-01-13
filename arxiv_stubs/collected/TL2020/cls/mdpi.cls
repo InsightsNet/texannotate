@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%	MDPI class for LaTeX files	 12 August 2022
+%% %%	MDPI class for LaTeX files	 28.9.2018 b
 %% %%	For any information please send an e-mail to:
 %% %%		latex@mdpi.com
 %% %%
@@ -15,16 +15,18 @@
 %% %%   Versions:
 %% %%		v1.0 before Dr. Janine Daum
 %% %%		v2.0 when Dr. Janine Daum started (March 2013)
-%% %%		v3.0 layout change September 2015
-%%%%		v4.0 layout change December 2020
+%% %%		v3.0 after layout change (September 2015)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% IDENTIFICATION
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{Definitions/mdpi}[12/08/2022 MDPI paper class]
+\ProvidesClass{mdpi}[28/09/2018 MDPI paper class]
 
- %% PRELIMINARY DECLARATIONS
-\LoadClass[10pt,a4paper]{article}
+%%%% Copyright and citebox
+ \AtEndDocument{\par \cright \par \vspace{12pt} \citebox}
+ 
+%% PRELIMINARY DECLARATIONS
+\LoadClass[10pt]{article}
 \RequirePackage[T1]{fontenc}
 \RequirePackage[utf8]{inputenc}
 \RequirePackage{calc}
@@ -33,46 +35,31 @@
 \RequirePackage{graphicx,epstopdf}
 \RequirePackage{lastpage}
 \RequirePackage{ifthen}
-\RequirePackage[right]{lineno}
+\RequirePackage{lineno}
 \RequirePackage{float}
 \RequirePackage{amsmath}
-\RequirePackage{amssymb} % For math environment bold format
 \RequirePackage{setspace}
 \RequirePackage{enumitem}
 \RequirePackage{mathpazo}
 \RequirePackage{booktabs} % For \toprule etc. in tables
-\RequirePackage{titlesec}
+\RequirePackage[largestsep]{titlesec}
 \RequirePackage{etoolbox} % For \AtBeginDocument etc.
 \RequirePackage{tabto} % To use tab for alignment on first page
-\RequirePackage{xcolor, colortbl} % To provide color for soul (for english editing), for adding cell color of table
+\RequirePackage{xcolor} % To provide color for soul
 \RequirePackage{soul} % To highlight text
-\newcommand{\highlighting}[1]{\colorbox{yellow}{#1}}
+\newcommand{\highlight}[1]{\colorbox{yellow}{#1}}
 \RequirePackage{multirow}
 \RequirePackage{microtype} % For command \textls[]{}
 \RequirePackage{tikz} % For \foreach used for Orcid icon
 \RequirePackage{totcount} % To enable extracting the value of the counter "page" 
-\RequirePackage{changepage} % To adjust the width of the column for the title part and figures/tables (adjustwidth environment)
-\RequirePackage{attrib} % For XML2PDF use \tag{} for equation
-\RequirePackage{upgreek} % For making greek letters not italic
-\RequirePackage{array} % For table array
-\RequirePackage{tabularx}
-\RequirePackage{pbox} % For biography environment
-\RequirePackage{ragged2e} % For command \justifying
-\RequirePackage[]{tocloft} % For dots in TOC. If subfigure package is loaded, the subfigure option needs to be added here to avoid clash: \RequirePackage[subfigure]{tocloft}
-\RequirePackage{marginnote} % For left column
-\reversemarginpar % To have the left column on the left side
-\RequirePackage{marginfix} % For command \clearmargin for manually moving the left column to the next page
-\RequirePackage{enotez} % For endnotes
 
+ 
 %% OPTIONS
-% For transition period to change back to continuous page numbers
-\def\@continuouspages{}
-\newcommand{\continuouspages}[1]{\gdef\@continuouspages{#1}}
-
 %% To choose the journal
-% All journals (website name, full name, short name, DOI abbreviation, and ISSN + choice of continuous page numbers) are defined in an extra file. 
+% All journals (website name, full name, short name, DOI abbreviation, and ISSN) are defined in an extra file. 
+% This is the same as for mdpi.cls.
 \input{Definitions/journalnames}
-\DeclareOption{journal}{\ClassWarning{mdpi}{You used an invalid journal name or you have not specified the journal. The first option of the documentclass command specifies the journal. The word 'journal' should be replaced by one of the journal names specified in template.tex (in the comment 'Choose between the following MDPI journal').}} 
+\DeclareOption{journal}{\ClassWarning{mdpi}{You have not specified the journal. The first class option of the document class mdpi specifies the journal. The word journal should be replaced by one of the following journal names: acoustics, actuators, addictions, admsci, aerospace, agriculture, agronomy, algorithms, animals, antibiotics, antibodies, antioxidants, applsci, arts, asi, atmosphere, atoms, axioms, batteries, bdcc, behavsci, beverages, bioengineering, biology, biomedicines, biomimetics, biomolecules, biosensors, brainsci, buildings, carbon, cancers, catalysts, cells, ceramics, challenges, chemengineering, chemosensors, children, cleantechnol, climate, clockssleep, cmd, coatings, colloids, computation, computers, condensedmatter, cosmetics, cryptography, crystals, cybersecurity, data, dentistry, designs, diagnostics, dairy, diseases, diversity, drones, econometrics, economies, education, electrochem, electrochemistry, electronics, energies, entropy, environments, epigenomes, est, fermentation, fibers, fire, fishes, fluids, foods, forecasting, forests, fractalfract, futureinternet, galaxies, games, gastrointestdisord, gels, genealogy, genes, geohazards, geosciences, geriatrics, hazardousmatters, healthcare, heritage, highthroughput, horticulturae, humanities, hydrology, informatics, information, infrastructures, inorganics, insects, instruments, ijerph, ijfs, ijms, ijgi, ijtpp, inventions, j, jcdd, jcm, jcs, jdb, jfb, jfmk, jimaging, jof, jintelligence, jlpea, jmmp, jmse, jpm, jrfm, jsan, land, languages, laws, life, literature, logistics, lubricants, machines, magnetochemistry, make, marinedrugs, materials, mathematics, mca, medsci, medicina, medicines, membranes, metabolites, metals, microarrays, micromachines, microorganisms, minerals, modelling, molbank, molecules, mps, mti, nanomaterials, ncrna, neonatalscreening, neuroglia, nitrogen, nutrients, ohbm, particles, pathogens, pharmaceuticals, pharmaceutics, pharmacy, philosophies, photonics, plants, plasma, polymers, polysaccharides, proceedings, processes, proteomes, publications, quaternary, qubs, reactions, recycling, religions, remotesensing, reports, resources, risks, robotics, safety, sci, scipharm, sensors, separations, sexes, sinusitis, smartcities, socsci, societies, soilsystems, sports, standards, stats, surfaces, surgeries, sustainability, symmetry, systems, technologies, toxics, toxins, tropicalmed, universe, urbansci, vaccines, vehicles, vetsci, vibration, viruses, vision, water, wem, wevj}} 
 
 %% To choose the type of manuscript
 \DeclareOption{abstract}{\gdef\@arttype{Abstract}}
@@ -91,10 +78,10 @@
 \DeclareOption{conferenceproceedings}{\gdef\@arttype{Proceedings}}
 \DeclareOption{correction}{\gdef\@arttype{Correction}}
 \DeclareOption{conferencereport}{\gdef\@arttype{Conference Report}}
-\DeclareOption{creative}{\gdef\@arttype{Creative}}
-\DeclareOption{entry}{\gdef\@arttype{Entry}}
 \DeclareOption{expressionofconcern}{\gdef\@arttype{Expression of Concern}}
 \DeclareOption{extendedabstract}{\gdef\@arttype{Extended Abstract}}
+\DeclareOption{meetingreport}{\gdef\@arttype{Meeting Report}}
+\DeclareOption{creative}{\gdef\@arttype{Creative}}
 \DeclareOption{datadescriptor}{\gdef\@arttype{Data Descriptor}}
 \DeclareOption{discussion}{\gdef\@arttype{Discussion}}
 \DeclareOption{editorial}{\gdef\@arttype{Editorial}}
@@ -107,22 +94,17 @@
 \DeclareOption{newbookreceived}{\gdef\@arttype{New Book Received}}
 \DeclareOption{obituary}{\gdef\@arttype{Obituary}}
 \DeclareOption{opinion}{\gdef\@arttype{Opinion}}
-\DeclareOption{proceedingpaper}{\gdef\@arttype{Proceeding Paper}}
 \DeclareOption{projectreport}{\gdef\@arttype{Project Report}}
 \DeclareOption{reply}{\gdef\@arttype{Reply}}
+\DeclareOption{reprint}{\gdef\@arttype{Reprint}}
 \DeclareOption{retraction}{\gdef\@arttype{Retraction}}
 \DeclareOption{review}{\gdef\@arttype{Review}}
-\DeclareOption{perspective}{\gdef\@arttype{Perspective}}
-\DeclareOption{protocol}{\gdef\@arttype{Protocol}}
+\DeclareOption{perspective}{\gdef\@arttype{Perspective}} 
+\DeclareOption{protocol}{\gdef\@arttype{Protocol}} 
 \DeclareOption{shortnote}{\gdef\@arttype{Short Note}}
-\DeclareOption{studyprotocol}{\gdef\@arttype{Study Protocol}}
 \DeclareOption{supfile}{\gdef\@arttype{Supfile}}
-\DeclareOption{systematicreview}{\gdef\@arttype{Systematic Review}}
 \DeclareOption{technicalnote}{\gdef\@arttype{Technical Note}}
 \DeclareOption{viewpoint}{\gdef\@arttype{Viewpoint}}
-\DeclareOption{guidelines}{\gdef\@arttype{Guidelines}}
-\DeclareOption{registeredreport}{\gdef\@arttype{Registered Report}}
-\DeclareOption{tutorial}{\gdef\@arttype{Tutorial}}
 
 %% To choose the status of the manuscript
 \DeclareOption{submit}{\gdef\@status{submit}}
@@ -142,7 +124,6 @@
 \ProcessOptions\relax
 
 %% MORE DECLARATIONS
-
 %%%% Maths environments
 \RequirePackage{amsthm}
 \newtheoremstyle{mdpi}% name
@@ -221,53 +202,31 @@
  \setcounter{notation}{0}
  \newtheorem{Notation}[notation]{Notation}
  
- \newcounter{assumption}
- \setcounter{assumption}{0}
- \newtheorem{Assumption}[assumption]{Assumption}
- 
- \newcounter{algorithm}
- \setcounter{algorithm}{0}
- \newtheorem{Algorithm}[algorithm]{Algorithm}
- 
- % Define left/right mark in math environment
-\let\originalleft\left
-\let\originalright\right
-\renewcommand{\left}{\mathopen{}\mathclose\bgroup\originalleft}
-\renewcommand{\right}{\aftergroup\egroup\originalright}
- 
+%%%% Hyphenation
+\RequirePackage[none]{hyphenat}
+\sloppy
 
 %%%% References
-\RequirePackage[sort&compress,sectionbib]{natbib} % Option sectionbib is for optionally organizing references using sections (author request)
+\RequirePackage[sort&compress]{natbib}
 
-
-%%%% Chicago style journals
-\newcommand{\chicagostylejournals}{
-	\ifthenelse{\equal{\@journal}{admsci}
-		\OR \equal{\@journal}{arts}
-		\OR \equal{\@journal}{econometrics}
-		\OR \equal{\@journal}{economies}
-		\OR \equal{\@journal}{genealogy}
-		\OR \equal{\@journal}{histories}
-		\OR \equal{\@journal}{humanities}
-		\OR \equal{\@journal}{ijfs}
-		\OR \equal{\@journal}{jintelligence}
-		\OR \equal{\@journal}{journalmedia}
-		\OR \equal{\@journal}{jrfm}
-		\OR \equal{\@journal}{languages}
-		\OR \equal{\@journal}{laws}
-		\OR \equal{\@journal}{literature}
-		\OR \equal{\@journal}{religions}
-		\OR \equal{\@journal}{risks}
-		\OR \equal{\@journal}{socsci}
-		}
-}
-
-\chicagostylejournals{%
+\ifthenelse{\equal{\@journal}{admsci}
+\OR \equal{\@journal}{arts}
+\OR \equal{\@journal}{econometrics}
+\OR \equal{\@journal}{economies}
+\OR \equal{\@journal}{genealogy}
+\OR \equal{\@journal}{humanities}
+\OR \equal{\@journal}{ijfs}
+\OR \equal{\@journal}{jrfm}
+\OR \equal{\@journal}{languages}
+\OR \equal{\@journal}{laws}
+\OR \equal{\@journal}{religions}
+\OR \equal{\@journal}{risks}
+\OR \equal{\@journal}{socsci}}{%
 	\bibliographystyle{Definitions/chicago2}
 	\bibpunct{(}{)}{;}{x}{}{}%
 	}{%
 	\bibliographystyle{Definitions/mdpi}
-	\bibpunct{[}{]}{,}{n}{}{,}%
+	\bibpunct{[}{]}{,}{n}{}{}%
 	}%
 
 \renewcommand\NAT@set@cites{%
@@ -300,15 +259,11 @@
     \def\natexlab##1{##1}%
   \fi}
 
-
 %%%%% Hyperlinks
 %% Define color for citations
 \definecolor{bluecite}{HTML}{0875b7}
 
-% After TeXLive 2021, \AddToHook{begindocument} is needed to make sure that hyperref is loaded last. \ifdef{\AddToHook{begindocument}}{ is needed for backwards-compatibility because \AddToHook{begindocument} did not yet exist in 2020.
-% After TeXLive 2022, \AddToHook{begindocument/before}{} is needed and  \DeclareHookRule{begindocument}{hyperref}{before}{mdpi} needs to be added because of the new version of hyperref.
-\newcommand{\hyperrefpackage}{
-\ifthenelse{\equal{\@arttype}{Book}}{
+\ifthenelse{\equal{\@arttype}{Reprint} \OR \equal{\@arttype}{Book}}{
 	\RequirePackage[unicode=true,
 	bookmarksopen={true},
 	pdffitwindow=true, 
@@ -320,7 +275,6 @@
 	pdfstartview={FitH},
 	pdfpagemode=UseNone]{hyperref}
 	}{
-	\ifthenelse{\equal{\@journal}{laws}}{
 	\RequirePackage[unicode=true,
 	bookmarksopen={true},
 	pdffitwindow=true, 
@@ -331,33 +285,12 @@
 	hyperfootnotes=false, 
 	pdfstartview={FitH},
 	pdfpagemode= UseNone]{hyperref}
-	}{
-	\RequirePackage[unicode=true,
-	bookmarksopen={true},
-	pdffitwindow=true, 
-	colorlinks=true, 
-	linkcolor=bluecite, 
-	citecolor=bluecite, 
-	urlcolor=bluecite, 
-	hyperfootnotes=true, 
-	pdfstartview={FitH},
-	pdfpagemode= UseNone]{hyperref}
-	} 
-}
-}
-\ifdef{\AddToHook}{
-\DeclareHookRule{begindocument}{hyperref}{before}{mdpi}
-	\AddToHook{begindocument/before}{ 
-		\hyperrefpackage
-		}
-	}{
-	\hyperrefpackage
-}
+} 
+
 %% To have the possibility to change the urlcolor
 \newcommand{\changeurlcolor}[1]{\hypersetup{urlcolor=#1}} 
 
-
-%%%% Metadata
+%% Metadata
 \newcommand{\org@maketitle}{}% LATEX-Check
 \let\org@maketitle\maketitle
 \def\maketitle{%
@@ -366,152 +299,70 @@
 		pdfsubject={\@abstract},
 		pdfkeywords={\@keyword},
 		pdfauthor={\@AuthorNames}
-	}%
+		}%
 	\org@maketitle
 }
 
-
-%%%%% Endnotes
-\setenotez{backref=true}
-\DeclareInstance{enotez-list}{custom}{paragraph}{
-	format=\fontsize{9}{11}\selectfont\leftskip0.76cm,
-	number=\textsuperscript{#1} \hspace{4.7mm},
-	notes-sep=0pt
-}
-
-
-%%%% Footnotes, for journal Laws
-\RequirePackage{scrextend}
-\setlength{\skip\footins}{0.6cm} % Increase space between text and footnote
-\setlength{\footnotesep}{8pt} % Increase space between line and footnote
-\deffootnote{1.5em}{0em}{\textsuperscript{\thefootnotemark}\quad} % Remove indent
-
+%%%% Footnotes
+\RequirePackage[hang]{footmisc}
+\setlength{\skip\footins}{1.2cm}
+\setlength{\footnotemargin}{5mm}
+\def\footnoterule{\kern-14\p@
+\hrule \@width 2in \kern 11.6\p@}
 
 %%%% URL
 \RequirePackage{url}
 \urlstyle{same}
-% Line breaks in URL
-\def\UrlDigits{\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9\do\0}
-\g@addto@macro{\UrlBreaks}{\UrlOrds}
-\g@addto@macro{\UrlBreaks}{\UrlDigits}
-
+\g@addto@macro{\UrlBreaks}{\UrlOrds} 
 
 %%%% Widows & orphans
 \clubpenalty=10000
 \widowpenalty=10000
 \displaywidowpenalty=10000
 
-
-%%%% To avoid "Output-loop.." compile bug
-\maxdeadcycles=10000
-
-
 %%%% Front matter
-% Command for checking for a question mark or exclamation mark in title
-\def\instring#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@}
-
 \newcommand{\firstargument}{}
 \newcommand{\Title}[1]{\gdef\@Title{#1}}%
-\def\@TitleCitation{}
-\newcommand{\TitleCitation}[1]{\gdef\@TitleCitation{#1}}%
-\def\@Author{}
 \newcommand{\Author}[1]{\gdef\@Author{#1}}%
 \def\@AuthorNames{}
 \newcommand{\AuthorNames}[1]{\gdef\@AuthorNames{#1}}%
-\def\@AuthorCitation{}
-\newcommand{\AuthorCitation}[1]{\gdef\@AuthorCitation{#1}}%
 \newcommand{\firstpage}[1]{\gdef\@firstpage{#1}}
 \newcommand{\doinum}[1]{\gdef\@doinum{#1}}
-\newcommand{\hreflink}[1]{\gdef\@hreflink{#1}}
-\newcommand{\papercitation}{%
-	\chicagostylejournals{%
-		\@AuthorCitation{}. %
-		{\@pubyear}. %
-		\@TitleCitation. % Remove period if title ends with ? or ! or ...
-		\textit{\@journalfull} %
-		\@pubvolume: %
-		}{%
-		\@AuthorCitation{} %
-		\@TitleCitation. % Remove period if title ends with ? or ! or ...
-		\textit{\@journalshort} %
-		\textbf{\@pubyear}, %
-		\textit{\@pubvolume},%
-		}
-	\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-		\@articlenumber.
-		}{%
-		\@firstpage\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{--\pageref*{LastPage}}. %
-		}
-	\changeurlcolor{black}%
-	\href{https://doi.org/\@doinum}%
-	{\@hreflink}
-}
+
 % DOI number
-% Create command to add a leading zero if 1 digit
 \newcommand\twodigits[1]{%
-	\ifnum#1<10 %
-		0\number#1
-   	\else
-		\number#1
-	\fi
+\ifnum#1<10
+0\number#1
+   \else
+\number#1
+\fi
 }
 
-% Create command to add a leading zero if less then 5 digits
-\newcommand\fivedigits[1]{%
-	\ifnum#1<10 %
-		000\number#1
-	\else
-		\ifnum#1<100 %
-			00\number#1
-		\else
-			\ifnum#1<1000 %
-				0\number#1
-			\else
-				\ifnum#1<10000 %
-					\number#1
-				\else
-					\ifnum#1<100000 %
-						\number#1
-					\else
-						error
-					\fi
-				\fi
-			\fi
-		\fi
-	\fi
+\newcommand\fourdigits[1]{%
+\ifnum#1<10 000\number#1 
+  \else
+     \ifnum#1<100 00\number#1
+        \else
+           \ifnum#1<1000 0\number#1
+              \else
+                  \ifnum#1<10000 \number#1
+                   \else                   
+                     error
+               \fi
+            \fi
+         \fi
+  \fi
 }
 
 
-
-\ifthenelse{\equal{\@journal}{molbank}
-	\OR \equal{\@journal}{chemproc}
-	\OR \equal{\@journal}{engproc}
-	\OR \equal{\@journal}{environsciproc}
-	\OR \equal{\@journal}{materproc}
-	\OR \equal{\@journal}{blsf}
-	\OR \equal{\@journal}{msf}
-	\OR \equal{\@journal}{psf}
-	\OR \equal{\@journal}{csmf}
-	}{
+\ifthenelse{\equal{\@journal}{molbank}}{
 	\doinum{10.3390/\@articlenumber}
 	}{
-	\doinum{10.3390/\@doiabbr\@pubvolume\twodigits\@issuenum\fivedigits\@articlenumber}
+	\doinum{10.3390/\@doiabbr\@pubvolume\twodigits\@issuenum\fourdigits\@articlenumber}
 }
 
-% For \@pubvolume, \@issuenum, and \@articlenumber: create command to cut leading zeros
-\newcommand\cutdigits[1]{%
-	\ifnum#1>0 %
-		\number#1 
-	\else
-		\ifnum#1<10000 %
-			\number#1
-		\else             
-			error
-		\fi
-	\fi
-}
 
-\newcommand{\pubvolume}[1]{\gdef\@pubvolume{\cutdigits{#1}}}
+\newcommand{\pubvolume}[1]{\gdef\@pubvolume{#1}}
 \newcommand{\pubyear}[1]{\gdef\@pubyear{#1}}
 \newcommand{\copyrightyear}[1]{\gdef\@copyrightyear{#1}}
 \newcommand{\address}[2][]{\renewcommand{\firstargument}{#1}\gdef\@address{#2}}
@@ -526,17 +377,7 @@
 \newcommand{\externaleditor}[1]{\gdef\@externaleditor{#1}}
 \def\@LSID{}
 \newcommand{\LSID}[1]{\gdef\@LSID{#1}}
-\def\@datereceived{}
-\newcommand{\datereceived}[1]{\gdef\@datereceived{#1}} 
-\def\@daterevised{}
-\newcommand{\daterevised}[1]{\gdef\@daterevised{#1}} 
-\def\@dateaccepted{}
-\newcommand{\dateaccepted}[1]{\gdef\@dateaccepted{#1}} 
-\newcommand{\datepublished}[1]{\gdef\@datepublished{#1}} 
-\def\@datecorrected{}
-\newcommand{\datecorrected}[1]{\gdef\@datecorrected{#1}}
-\def\@dateretracted{}
-\newcommand{\dateretracted}[1]{\gdef\@dateretracted{#1}}
+\newcommand{\history}[1]{\gdef\@history{#1}} 
 \def\@pacs{}
 \newcommand{\PACS}[1]{\gdef\@pacs{#1}} 
 \def\@msc{}
@@ -553,8 +394,13 @@
 \newcommand{\featuredapplication}[1]{\gdef\@featuredapplication{#1}}
 \def\@keycontribution{}
 \newcommand{\keycontribution}[1]{\gdef\@keycontribution{#1}}
+
+
 \def\@issuenum{}
-\newcommand{\issuenum}[1]{\gdef\@issuenum{\cutdigits{#1}}}
+\newcommand{\issuenum}[1]{\gdef\@issuenum{#1}}
+\def\@updates{}
+\newcommand{\updates}[1]{\gdef\@updates{#1}}
+
 \def\@firstnote{}
 \newcommand{\firstnote}[1]{\gdef\@firstnote{#1}}
 \def\@secondnote{}
@@ -571,54 +417,72 @@
 \newcommand{\seventhnote}[1]{\gdef\@seventhnote{#1}}%
 \def\@eighthnote{}
 \newcommand{\eighthnote}[1]{\gdef\@eighthnote{#1}}%
+
 \def\@simplesumm{}
 \newcommand{\simplesumm}[1]{\gdef\@simplesumm{#1}}
-\newcommand{\articlenumber}[1]{
-	\ifthenelse{\equal{\@journal}{molbank}}{
-		\gdef\@articlenumber{#1}%
-		}{
-		\gdef\@articlenumber{\cutdigits{#1}}%
-		}
-	}
+\newcommand{\articlenumber}[1]{\gdef\@articlenumber{#1}}
 
 \def\@externalbibliography{}
 \newcommand{\externalbibliography}[1]{\gdef\@externalbibliography{#1}}
+
 \def\@reftitle{}
 \newcommand{\reftitle}[1]{\gdef\@reftitle{#1}}
-\def\@longauthorlist{}
-\newcommand{\longauthorlist}[1]{\gdef\@longauthorlist{#1}}
-\def\@encyclopediadef{}
-\newcommand{\encyclopediadef}[1]{\gdef\@encyclopediadef{#1}}
-\def\@addhighlights{}
-\newcommand{\addhighlights}[1]{\gdef\@addhighlights{#1}}
+
+% For transition period to change back to continuous page numbers
+\def\@continuouspages{}
+\newcommand{\continuouspages}[1]{\gdef\@continuouspages{#1}}
+
+
+%Reprint
+\def\@originalarttype{}
+\newcommand{\originalarttype}[1]{\gdef\@originalarttype{#1}}%
 
 
 %% ORCID
 % Make Orcid icon
-\newcommand{\orcidicon}{\includegraphics[width=0.32cm]{Definitions/logo-orcid.pdf}}
+\newcommand{\orcidicon}{\includegraphics[width=0.32cm]{Definitions/logo-orcid.eps}}
 
 % Define link and button for each author
 \foreach \x in {A, ..., Z}{%
 \expandafter\xdef\csname orcid\x\endcsname{\noexpand\href{https://orcid.org/\csname orcidauthor\x\endcsname}{\noexpand\orcidicon}}
 }
 
-
 %%%% Journal name for the header
 \newcommand{\journalname}{\@journalshort}
     
-\regtotcounter{page} % To enable extracting the value of the counter "page" using the totcount package
 
+\regtotcounter{page} % to enable extracting the value of the counter "page" using the totcount package
 
 %%%% Header and footer on first page
 %% The plain page style needs to be redefined because with \maketitle in the article class, LaTeX applies the the plain page style automatically to the first page.
 \ifthenelse{\equal{\@journal}{preprints} %
+		\OR \equal{\@arttype}{Reprint} %
 		\OR \equal{\@arttype}{Book}}{%
 	\fancypagestyle{plain}{%
 		\fancyhf{}
-		\ifthenelse{\equal{\@arttype}{Book}}{
-        			\fancyfoot[C]{\footnotesize\thepage}
-     	   		}{%
-			}		
+		\ifthenelse{\equal{\@arttype}{Reprint} %
+			\OR \equal{\@arttype}{Book}}{
+        			\fancyfoot[C]{%
+        				\footnotesize%
+        				\thepage}
+       	 		\ifthenelse{\equal{\@arttype}{Book}}{}{%
+        				\fancyfoot[L]{%
+        					\footnotesize%
+        					{\em \journalname}\ %
+        					{\bfseries {\@pubyear}}, %
+        					{\em \@pubvolume}, %
+        					\ifthenelse{\equal{\@articlenumber}{\@empty}}{%
+        						\@firstpage --\pageref*{LastPage}
+        						}{\@articlenumber}%
+        					}
+        				\fancyfoot[R]{%
+        	 				\footnotesize%
+        					{\changeurlcolor{black}%
+        					\href{http://www.mdpi.com/journal/\@journal}%
+        					{www.mdpi.com/journal/\@journal}}%
+        					}
+        				}
+     	   		}		
 		}
 	}{%
 	\ifthenelse{\equal{\@arttype}{Supfile}}{
@@ -627,72 +491,66 @@
 			\fancyhead[R]{
 				\footnotesize %
 				S\thepage{} of S\pageref*{LastPage}%
-				\\\rule{\fulllength}{0.4pt}%
 				}%
 			\fancyhead[L]{
 				\footnotesize %
 				\ifthenelse{\equal{\@status}{submit}}{%
-					Version {\@ \today} submitted to {\em \journalname}%
+					Version {\@ \today} submitted to {\em\journalname}%
 					}{%
 					{\em \journalname} %
 					{\bfseries \@pubyear}, %
 					{\em \@pubvolume}, %
 					\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-						\@articlenumber%
+						\@firstpage --\pageref*{LastPage}%
 						}{%
-						S\@firstpage\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{--S\pageref*{LastPage}}%
+						\@articlenumber%
 						}%
-					. {\changeurlcolor{black}%
-        					\url{https://doi.org/\@doinum}}%
+					; doi:{\changeurlcolor{black}%
+        					\href{http://dx.doi.org/\@doinum}%
+        					{\@doinum}}%
 					}%
-					\\\vspace{-2pt}\rule{\fulllength}{0.4pt}%
 				}%
 			}%
 		}{
 		\fancypagestyle{plain}{
-		\renewcommand{\footrulewidth}{0.4pt}
-			\fancyhead{\null\vspace{8pt}}
+			\fancyhf{}
 			\fancyfoot[L]{
-			\fontsize{8}{8}\selectfont
-			\ifthenelse{\equal{\@status}{submit}}{%
-				Version {\@ \today} submitted to {\em \journalname}%
-				}{%
-				{\em\journalname\ }{\bfseries\@pubyear}, {\em \@pubvolume}, %
-				\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-					\@articlenumber. %
-					}{%
-					\@firstpage\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{--\pageref*{LastPage}}. %
+				\footnotesize%
+ 	 				\ifthenelse{\equal{\@status}{submit}}{%
+					Submitted to {\em\journalname}, %
+					pages \thepage \ -- \color{black}{\pageref*{LastPage}}%
+					}{
+					{\em \journalname}\ %
+					{\bfseries \@pubyear}, %
+					{\em \@pubvolume}, %
+					\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
+						\@articlenumber%
+						}{%
+						\@firstpage\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{--\pageref*{LastPage}}%
+						}%
+						; doi:{\changeurlcolor{black}%
+        					\href{http://dx.doi.org/\@doinum}%
+        					{\@doinum}}%
 					}%
-					{\changeurlcolor{black}%
-					\url{https://doi.org/\@doinum}
-					}
 				}%
-			}
 			\fancyfoot[R]{
-			\fontsize{8}{8}\selectfont
-			{\changeurlcolor{black}%
-			\url{https://www.mdpi.com/journal/\@journal}}%
-			}
+ 				\footnotesize%
+				{\changeurlcolor{black}%
+				\href{http://www.mdpi.com/journal/\@journal}%
+				{www.mdpi.com/journal/\@journal}}%
+				}%
+			\fancyhead{}
+		 	\renewcommand{\headrulewidth}{0.0pt}%
 			}
 		}%
 	}%	
 
-
 %%%% Maketitle part 1: Logo, Arttype, Title, Author
 \renewcommand{\@maketitle}{
-	\ifthenelse{\equal{\@arttype}{Book}}{}{
-		\ifthenelse{\equal{\@leftcolumnsplit}{\@empty}}{% Default option for the left column
-			\marginnote[\contentleftcolumn]{}[\MyLen] % Bottom aligned
-			}{%
-		}
-		\begin{adjustwidth}{-\extralength}{}
-	}
 	\begin{flushleft}
 	\ifthenelse{\equal{\@arttype}{Supfile}}{%
 		\fontsize{18}{18}\selectfont
 		\raggedright
-		\hyphenpenalty=10000
-		\tolerance=1000
 		\noindent\textbf{Supplementary Materials: \@Title}%
 		\par
 		\vspace{12pt}
@@ -701,26 +559,29 @@
 		}{%
 		\ifthenelse{\equal{\@arttype}{Book}}{}{%
 			\vspace*{-1.75cm}
-		}
+			}
 		{%0
 		\ifthenelse{\equal{\@journal}{preprints}
 			\OR \equal{\@arttype}{Book}}{}{%
 				\ifthenelse{\equal{\@status}{submit}}{%	
-					\hfill \href{https://www.mdpi.com}{%
-					\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+					\hfill \href{http://www.mdpi.com}{%
+					\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}\vspace{0.5cm}%
 					}{
-					\href{https://www.mdpi.com/journal/\@journal}{
-					\includegraphics[height=1.2cm]{Definitions/\@journal-logo.eps}}%
+					\href{http://www.mdpi.com/journal/\@journal}{
+%					\includegraphics[height=1.2cm]{Definitions/\@journal-logo.eps}}%
+                                        \includegraphics[height=1.2cm]{Definitions/\@journal-logo.pdf}}%
 					\hfill
+					\ifthenelse{\equal{\@journal}{proceedings}}{
+						\href{http://www.mdpi.com/journal/\@journal}{
+						\includegraphics[height=1.2cm]{Definitions/logo-conference.eps}
+						\hfill}
+						}{}
 					\ifthenelse{\equal{\@journal}{scipharm}}{%
-						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-scipharm.eps}}%
+						\href{http://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-scipharm.eps}}%
 						}{%
-						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+						\href{http://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
 						}%
 					}%
-					\par
-					\vspace{-8 pt}
-					\rule{\fulllength}{0.4pt}%
 			}%
 		\par
 		}%0
@@ -728,226 +589,41 @@
     		\vspace{14pt}
     		\fontsize{10}{10}\selectfont
 		\ifthenelse{\equal{\@arttype}{Book}}{}{
-			\textit{\@arttype}%
+			\ifthenelse{\equal{\@arttype}{Reprint}}{%
+				\textit{\ifthenelse{\equal{\@originalarttype}{\@empty}}{Article}{\@originalarttype}}%
+				}{%
+				\textit{\@arttype}%
+				}%
 			}%	
  	   	\par%
     		}%1
     		{%2
+   	 	\vspace{-1pt}
   	  	\fontsize{18}{18}\selectfont
-		\hyphenpenalty=10000
-		\tolerance=1000
    	 	\boldmath\bfseries{\@Title}
    	 	\par
-   	 	\vspace{12pt}
+   	 	\vspace{15pt}
    	 	}%2
-		\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
-			}{%
-			\end{flushleft}%
-			\end{adjustwidth}%
-			\vspace{-2.5pt}
-		}
    		{%3
-		\hyphenpenalty=10000
-		\tolerance=1000
     		\boldmath\bfseries{\@Author}
     		\par
-		\vspace{12pt}
+    		\vspace{-4pt}
     		}%3
-		}%
-	\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
-		\end{flushleft}%
-		}{%
-	}%
-	\ifthenelse{\equal{\@arttype}{Book}}{}{%
-		\ifthenelse{\equal{\@longauthorlist}{\@empty}}{%
-			\end{adjustwidth}%
-			}{%
 		}
-	}
-		\ifthenelse{\equal{\@leftcolumnsplit}{\@empty}}{% Left column split
-			}{
-			\marginnote[\contentleftcolumn]{}% Alignment with the affiliations
-		}
+	\end{flushleft}%
 	}
 
-%%%% Commands for hanging indent
+% Commands for hanging indent
 \newcommand{\dist}{1.7em}
 \newcommand{\hang}{\hangafter=1\hangindent=\dist\noindent}
 
-
-%%% Left column on first page (= "left column" = "leftcol")
-
-% Split content into five parts
-\newcommand{\leftcolFont}{%
-	\linespread{1.71} 
-	\fontsize{7}{7}\selectfont
-	\justify
-	\hyphenpenalty=10000
-	\tolerance=1000
-}
-
-%% Part 1: Check-for-updates logo + citation
-\newcommand{\leftcolUpdateCitation}{
-	\leftcolFont
-	\ifthenelse{\equal{\@status}{submit}}{
-		}{%
-		\href{https://www.mdpi.com/article/\@doinum?type=check_update&version=1}{\includegraphics[height=.6cm]{Definitions/logo-updates.eps}}\\
-		}%
-	\raggedright
-	\textbf{Citation:}\papercitation
-}
-
-%% Part 2: External editor
-\newcommand{\leftcolExternalEditor}{
-	\ifthenelse{\equal{\@externaleditor}{\@empty}}{%
-		}{%
-		\leftcolFont
-		\raggedright
-		\@externaleditor
-		\ifthenelse{\equal{\@status}{submit}}{%
-			\vspace{-2pt}
-			}{%
-			\vspace{-1pt}
-			}
-	}
-}	
-
-% Part 3: Dates
-\newcommand{\leftcolDates}{
-\ifthenelse{\equal{\@journal}{preprints}}{%
-	}{%
-	\leftcolFont
-	\ifthenelse{\equal{\@journal}{proceedings}
-		\OR \equal{\@journal}{chemproc}
-		\OR \equal{\@journal}{engproc}
-		\OR \equal{\@journal}{environsciproc}
-		\OR \equal{\@journal}{materproc}
-		\OR \equal{\@journal}{blsf}
-		\OR \equal{\@journal}{msf}
-		\OR \equal{\@journal}{psf}
-		\OR \equal{\@journal}{csmf}}{%
-			Published: \@datepublished\\\vspace{-12pt}
-			}{%
-			Received: \@datereceived\\
-			\ifthenelse{\equal{\@daterevised}{\@empty}}{%
-				}{%
-				Revised: \@daterevised\\%
-				}
-			Accepted: \@dateaccepted\\
-			Published: \@datepublished
-			\ifthenelse{\equal{\@datecorrected}{\@empty}}{%
-				}{%
-			\newline Corrected: \@datecorrected
-			}
-			\ifthenelse{\equal{\@dateretracted}{\@empty}}{%
-				}{%
-			\newline Retracted: \@dateretracted
-			}
-		}
-	}
-}
-
-% Part 4: Publisher's note
-\newcommand{\leftcolPublishersNote}{
-	\leftcolFont
-	\textbf{Publisher's Note:} MDPI stays neutral with regard to jurisdictional claims in published maps and institutional affil-\linebreak iations.
-}
-
-% Part 5: Copyright
-\newcommand{\leftcolumnCright}{
-	\leftcolFont
-	\cright
-}	
-
-% Content of the left column. The marginnote with this content will be placed it at the very top of the first page to have a fixed reference point
-\newcommand{\contentleftcolumn}{ 
-\ifthenelse{\equal{\@arttype}{Supfile}}{}{
-	\leftcolUpdateCitation\vspace{-2pt} %1
-	\leftcolExternalEditor %2
-	\leftcolDates\vspace{-2pt} %3
-	\leftcolPublishersNote %4
-	\ifthenelse{\equal{\@status}{submit}}{%
-		\vspace{-8pt}
-		}{}
-	\vspace{6pt}\leftcolumnCright %5
-}
-}
-
-% Placing on the left column
-\newlength{\MyLen} % For length of the left column content
-\newsavebox{\MyBox} % A box is needed to measure the length (= height) of the left column content
-
-\newcommand{\calculateMyLen}{ % The calculation needs to be done after begin document, therefore this command is executed at \AtBeginDocument
-	\savebox{\MyBox}{ % All this savebox and parbox is apparently needed to measure the length (= height) of the text
-		\parbox[l]{\leftcolumnlength}{ %This is the width of the left column, defined above at "Dimensions" and "Layout"
-			\contentleftcolumn
-		}
-	}
-	\settototalheight{\MyLen}{\usebox{\MyBox}} % Use the length (= height) of the box to assign this value to \MyLen (this can be queried in .tex by \the\MyLen)
-	\setlength{\MyLen}{\textheight-\MyLen-12pt} % Change \MyLen to be \textheight minus \MyLen so that the resulting value can be used to alig the left column to the bottom of \textheight. Then substract 12pt to make the bottom alignment
-}
-
-% Left column split options for long titles/author lists
-% Make new command for deciding for the split option
-\def\@leftcolumnsplit{}
-\newcommand{\leftcolumnsplit}[1]{\gdef\@leftcolumnsplit{#1}}
-
-% Split option 1	
-\newcommand{\OptionOneA}{
-	\leftcolUpdateCitation\vspace{-2pt} %1
-	\leftcolExternalEditor %2
-	\leftcolDates\vspace{-2pt} %3
-	\leftcolPublishersNote %4
-}
-		
-\newcommand{\OptionOneB}{
-	\leftcolumnCright %5
-}
-
-% Split option 2	
-\newcommand{\OptionTwoA}{
-	\leftcolUpdateCitation\vspace{-2pt} %1
-	\leftcolExternalEditor %2
-	\leftcolDates %3
-}
-		
-\newcommand{\OptionTwoB}{
-	\leftcolPublishersNote %4
-	\vspace{6pt}\leftcolumnCright %5
-}
-
-% Split option 3	
-\newcommand{\OptionThreeA}{
-	\leftcolUpdateCitation\vspace{-2pt} %1
-	\leftcolExternalEditor\vspace{-10pt} %2
-}
-
-\newcommand{\OptionThreeB}{
-	\leftcolDates\vspace{-2pt} %3
-	\leftcolPublishersNote %4
-	\vspace{6pt}\leftcolumnCright %5
-}
-
-% Split option 4
-\newcommand{\OptionFourA}{
-	\leftcolUpdateCitation %1
-}
-
-\newcommand{\OptionFourB}{
-	\leftcolExternalEditor %2
-	\leftcolDates\vspace{-2pt} %3
-	\leftcolPublishersNote %4
-	\vspace{6pt}\leftcolumnCright %5
-}
-
 %%%% Maketitle part 2
 \newcommand{\maketitlen}{ 
-	\ifthenelse{\equal{\@arttype}{Book}}{\vspace{12pt}}{%
+\ifthenelse{\equal{\@arttype}{Book}}{\vspace{12pt}}{
 	\begin{flushleft}
 	\begin{spacing}{1.35}
-	\hyphenpenalty=10000
-	\tolerance=1000
-	\fontsize{8}{8}\selectfont
+	\leftskip0.2cm
+	\fontsize{9}{9}\selectfont
 	{%
 	\ifthenelse{\equal{\firstargument}{1}}{}{%
 	\hang}\@address
@@ -1005,11 +681,39 @@
 	\hang \ifthenelse{\equal{\@conference}{\@empty}}{$\ddagger\ddagger$}{***} \tabto{\dist} \@eighthnote}
 	\par
 	}%
-	{%
-	\ifthenelse{\equal{\@LSID}{\@empty}}{}{%
-	\vskip12pt \@LSID}
+	\vspace{6pt}
+	\ifthenelse{\equal{\@updates}{\@empty}}{
+        	\ifthenelse{\equal{\@externaleditor}{\@empty}}{}{\@externaleditor}
+        		\par
+        		\ifthenelse{\equal{\@LSID}{\@empty}}{}{\@LSID}
+        		\par
+        		\ifthenelse{\equal{\@status}{submit}}{
+        			Version {\@ \today} submitted to \journalname
+        			}{
+        			\mbox{\@history}
+			}
+        	}{
+        	\parbox[tb]{.79\textwidth}{
+        		\ifthenelse{\equal{\@externaleditor}{\@empty}}{}{\@externaleditor}
+        		\par
+        		\ifthenelse{\equal{\@LSID}{\@empty}}{}{\@LSID}
+        		\par
+        		\ifthenelse{\equal{\@status}{submit}}{
+        			Version {\@ \today} submitted to \journalname
+        			}{
+        			\mbox{\@history}
+			}
+        		}
+        	\parbox[b]{.19\textwidth}{
+        		\hfill
+        		\ifthenelse{\equal{\@updates}{\@empty}}{
+        			}{
+        			\href{http://www.mdpi.com/\@ISSN/\@pubvolume/\@issuenum/\@articlenumber?type=check_update&version=1}{\includegraphics[height=.6cm]{Definitions/logo-updates.pdf}}%
+        			}%
+        		}%
+		}
 	\par
-	}%
+	\vspace{-4pt}%
 	\end{spacing}
 	\end{flushleft}
 }
@@ -1017,199 +721,177 @@
 
 %%%% Abstract, keywords, journal data, PACS, MSC, JEL
 \newcommand{\abstractkeywords}{
-\fontsize{9}{12.4}\selectfont
 \vspace{-8pt}
-% For journal Applied Sciences:
-\ifthenelse{\equal{\@featuredapplication}{\@empty}}{
-	}{%
-	\noindent\textbf{Featured Application:\space\@featuredapplication}
-	\vspace{12pt}
-	\par
-}	
-%
-%10
+{% For journal Applied Sciences:
+\ifthenelse{\equal{\@featuredapplication}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{Featured Application:\space\@featuredapplication}
+\vspace{12pt}
+\par
+\endgroup}
+}%
+{%10
+\begingroup
+\leftskip0.2cm 
 \ifthenelse{\equal{\@simplesumm}{\@empty}}{}{
-	\noindent\textbf{Simple Summary:\space}\@simplesumm
-	\vspace{12pt}
-	\par
-}
-\ifthenelse{\equal{\@addhighlights}{\@empty}}{}{
-	\noindent\textbf{Highlights:\\\vspace{-12pt}}\addhighlights % redefined in .tex to use itemize
-	\vspace{12pt}
-	\par
+\noindent\textbf{Simple Summary:\space}\@simplesumm
+\vspace{12pt}
+\par
 }
 \ifthenelse{\equal{\@abstract}{\@empty}}{}{
-	\noindent\textbf{Abstract:\space}\@abstract
-	\vspace{12pt}
-	\par
-}
-\ifthenelse{\equal{\@encyclopediadef}{\@empty}}{}{
-	\noindent\textbf{Definition:\space}\@encyclopediadef
-	\vspace{12pt}
-	\par
-}
-%10
-% For journal Data:
-\ifthenelse{\equal{\@dataset}{\@empty}}{}{
-	\noindent\textbf{Dataset:\space}\@dataset
-	\vspace{12pt}
-	\par
-}
-%
-%For journal Data:
-\ifthenelse{\equal{\@datasetlicense}{\@empty}}{}{
-	\noindent\textbf{Dataset License:\space}\@datasetlicense
-	\vspace{12pt}
-	\par
-}
-%
-%11
-\ifthenelse{\equal{\@keyword}{\@empty}}{}{
-	\noindent\textbf{Keywords:\space}\@keyword
-	\vspace{12pt}
-	\par
-}
-%11
-%For journal Toxins:
-\ifthenelse{\equal{\@keycontribution}{\@empty}}{}{
-	\noindent\textbf{Key Contribution:\space}\@keycontribution
-	\vspace{12pt}
-	\par
-}
-%11
-%12
-\ifthenelse{\equal{\@pacs}{\@empty}}{}{
-	\noindent\textbf{PACS:\space}\@pacs
-	\vspace{12pt}
-	\par
-}
-%12
-%13
-\ifthenelse{\equal{\@msc}{\@empty}}{}{
-	\noindent\textbf{MSC:\space}\@msc
-	\vspace{12pt}
-	\par
-}
-%13
-%14
-\ifthenelse{\equal{\@jel}{\@empty}}{}{
-	\noindent\textbf{JEL Classification:\space}\@jel
-	\vspace{12pt}
-	\par
-}
-%14
-\vspace{4pt}
-\ifthenelse{\equal{\@arttype}{Book}}{}{\hrule}
+\noindent\textbf{Abstract:\space}\@abstract
 \vspace{12pt}
-\normalsize
+\par
+}
+\endgroup
+}%10
+{% For journal Data:
+\ifthenelse{\equal{\@dataset}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{Dataset:\space}\@dataset
+\vspace{12pt}
+\par
+\endgroup}
+}%
+{%For journal Data:
+\ifthenelse{\equal{\@datasetlicense}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{Dataset License:\space}\@datasetlicense
+\vspace{12pt}
+\par
+\endgroup}
+}%
+{%11
+\begingroup
+\leftskip0.2cm
+\ifthenelse{\equal{\@keyword}{\@empty}}{}{
+\noindent\textbf{Keywords:\space}\@keyword
+\vspace{12pt}
+\par
+}
+\endgroup
+}%11
+{%For journal Toxins:
+\begingroup
+\leftskip0.2cm
+\ifthenelse{\equal{\@keycontribution}{\@empty}}{}{
+\noindent\textbf{Key Contribution:\space}\@keycontribution
+\vspace{12pt}
+\par
+}
+\endgroup
+}%11
+{%12
+\ifthenelse{\equal{\@pacs}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{PACS:\space}\@pacs
+\vspace{12pt}
+\par
+\endgroup}
+}%12
+{%13
+\ifthenelse{\equal{\@msc}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{MSC:\space}\@msc
+\vspace{12pt}
+\par
+\endgroup}
+}%13
+{%14
+\ifthenelse{\equal{\@jel}{\@empty}}{}{
+\begingroup
+\leftskip0.2cm
+\noindent\textbf{JEL Classification:\space}\@jel
+\vspace{12pt}
+\par
+\endgroup}
+}%14
+\vspace{4pt}
+\hrule
+\vspace{12pt}
 }
 
 
 %%%% Print maketitle and abstractkeywords
 \ifthenelse{\equal{\@arttype}{Supfile}}{
 	\AfterEndPreamble{
-		\maketitle
-		\let\maketitle\relax
-		\ifthenelse{\equal{\@status}{submit}}{\linenumbers}{}
-		}%
+	\maketitle
+	\let\maketitle\relax
+	\ifthenelse{\equal{\@status}{submit}}{\linenumbers}{}
+	}%
 	}{
 	\AfterEndPreamble{
-		\maketitle
-		\let\maketitle\relax
-		\maketitlen
-		\let\maketitlen\relax
-		\ifthenelse{\equal{\@status}{submit}}{\linenumbers}{}
-		\abstractkeywords
+	\maketitle
+	\let\maketitle\relax
+	\maketitlen
+	\let\maketitlen\relax
+	\ifthenelse{\equal{\@status}{submit}}{\linenumbers}{}
+	\abstractkeywords
 	}%
-}
-	
+	}
 \AtBeginDocument{
-	\calculateMyLen
 	\DeclareSymbolFont{AMSb}{U}{msb}{m}{n}
 	\DeclareSymbolFontAlphabet{\mathbb}{AMSb}
-}
+	}
 
-
-%%%% Font size in Tables and watermark in arttype retraction
+%%%% Font size in Tables
 \AtEndPreamble{
 	\def\@tablesize{}
 	\newcommand{\tablesize}[1]{\gdef\@tablesize{#1}}
-	\let\oldtabularx\tabularx
-	\renewcommand{\tabularx}{\ifthenelse{\equal{\@tablesize}{\@empty}}{\small}{\@tablesize}\oldtabularx}
-	\printretraction
+	\let\oldtabular\tabular
+	\renewcommand{\tabular}{\ifthenelse{\equal{\@tablesize}{\@empty}}{\small}{\@tablesize}\oldtabular}
 }
 
-
-%%%% Table of contents
-\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} % Dots between section title and page number
-\renewcommand{\numberline}[1]{#1.~\space} % Increase space between number and title
-
-
 %%%% Section headings
-\setcounter{secnumdepth}{4} % Default: 3 in the article class. To get paragraphs numbered and counted, increase the default value of secnumdepth to 4
+\setcounter{secnumdepth}{4} %i.e., section numbering depth, which defaults to 3 in the article class. To get paragraphs numbered and counted, increase the default value of secnumdepth to 4
 
 \titleformat {\section} [block] {\raggedright \fontsize{10}{10}\selectfont\bfseries} {\thesection.\space} {0pt} {}
-\titlespacing {\section} {0pt} {12pt} {3pt}
+\titlespacing {\section} {0pt} {12pt} {6pt}
 
 \titleformat {\subsection} [block] {\raggedright \fontsize{10}{10}\selectfont\itshape} {\thesubsection.\space} {0pt} {}
-\titlespacing {\subsection} {0pt} {12pt} {3pt}
+\titlespacing {\subsection} {0pt} {12pt} {6pt}
 
 \titleformat {\subsubsection} [block] {\raggedright \fontsize{10}{10}\selectfont} {\thesubsubsection.\space} {0pt} {}
-\titlespacing {\subsubsection} {0pt} {12pt} {3pt}
+\titlespacing {\subsubsection} {0pt} {12pt} {6pt}
 
 \titleformat {\paragraph} [block] {\raggedright \fontsize{10}{10}\selectfont} {} {0pt} {}
-\titlespacing {\paragraph} {0pt} {12pt} {3pt}
-
+\titlespacing {\paragraph} {0pt} {12pt} {6pt}
 
 %%%% Special section title style for back matter
 \newcommand{\supplementary}[1]{
-\par\vspace{6pt}\noindent{\fontsize{9}{11.5}\selectfont\textbf{Supplementary Materials:} {#1}\par}}
-
-\newcommand{\authorcontributions}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Author Contributions:} {#1}\par}}
-
-\newcommand{\funding}[1]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Funding:} {#1}\par}}
-
-\newcommand{\institutionalreview}[1]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Institutional Review Board Statement:} {#1}\par}}
-
-\newcommand{\informedconsent}[1]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Informed Consent Statement:} {#1}\par}}
-
-\newcommand{\dataavailability}[1]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Data Availability Statement:} {#1}\par}}
+\par\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Supplementary Materials:} {#1}\par}}
 
 \newcommand{\acknowledgments}[1]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Acknowledgments:} {#1}\par}}
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Acknowledgments:} {#1}\par}}
+
+\newcommand{\authorcontributions}[1]{%
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Author Contributions:} {#1}\par}}
+
+\newcommand{\funding}[1]{
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Funding:} {#1}\par}}
 
 \newcommand{\conflictsofinterest}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Conflicts of Interest:} {#1}\par}}
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Conflicts of Interest:} {#1}\par}}
+
+\newcommand{\conflictofinterest}[1]{% Backwards compatibility for book prodcution
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Conflicts of Interest:} {#1}\par}}
+
+\newcommand{\conflictofinterests}[1]{% Backwards compatibility for book prodcution
+\vspace{6pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Conflicts of Interest:} {#1}\par}}
 
 \newcommand{\sampleavailability}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Sample Availability:} {#1}\par}}
-
-\newcommand{\entrylink}[1]{% For journal Encyclopedia
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Entry Link:} {#1}\par}}
+\vspace{12pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Sample Availability:} {#1}\par}}
 
 \newcommand{\reviewreports}[1]{%
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{Review Reports:} {#1}\par}}
+\vspace{12pt}\noindent{\fontsize{9}{9}\selectfont\textbf{Review Reports:} {#1}\par}}
 
-\newcommand{\abbreviations}[2]{\vspace{12pt}\noindent{\selectfont\textbf{#1}}{%
-\par\vspace{3pt}\hspace{-0.85cm}{\fontsize{9}{11.2}\selectfont #2}\par}}
-
-% Standby command for adding paragraph in back matter part
-\newcommand{\specialsection}[2]{%
-\vspace{12pt}\noindent{\selectfont\textbf{#1}\par\vspace{6pt}\noindent {\fontsize{9}{9}\selectfont #2}\par}}
-
-% Command for author's biography
-\newcommand{\bio}[2]{%
-\noindent{#1}\hspace{1.1cm}\noindent {\fontsize{9}{11.2}\selectfont \pbox[b]{13.86cm}{#2}}\par\vspace{6pt}}
-
-% Use for special paragraph requirement in back matter
-\newcommand{\backnotes}[2]{
-\vspace{6pt}\noindent{\fontsize{9}{11.2}\selectfont\textbf{#1:} {#2}\par}}
-
+\newcommand{\abbreviations}[1]{%
+\vspace{12pt}\noindent{\selectfont\textbf{Abbreviations}\par\vspace{6pt}\noindent {\fontsize{9}{9}\selectfont #1}\par}}
 
 %%%%% Defines the appendix
 \def\@appendixtitles{}
@@ -1218,163 +900,110 @@
 \def\@appendixsections{}
 \newcommand{\appendixsections}[1]{\gdef\@appendixsections{#1}}
 
-\def\@appendixstart{}
-\newcommand{\appendixstart}[1]{\gdef\@appendixstart{#1}}
-
-\renewcommand{\appendixstart}{%
+\renewcommand{\appendix}{%
 \setcounter{section}{0}%
 \setcounter{subsection}{0}%
 \setcounter{subsubsection}{0}%
-\setcounter{figure}{0}
-\setcounter{table}{0}
-\setcounter{scheme}{0}
-\setcounter{chart}{0}
-\setcounter{boxenv}{0}
-\setcounter{equation}{0}
-\setcounter{theorem}{0}
-\setcounter{lemma}{0}
-\setcounter{corollary}{0}
-\setcounter{proposition}{0} 
-\setcounter{characterization}{0} 
-\setcounter{property}{0} 
-\setcounter{problem}{0} 
-\setcounter{example}{0} 
-\setcounter{examplesanddefinitions}{0} 
-\setcounter{remark}{0} 
-\setcounter{definition}{0} 
-\setcounter{hypothesis}{0}
-\setcounter{notation}{0}
-\setcounter{algorithm}{0}
-}
-
-\renewcommand{\appendix}{%
 %
 \gdef\thesection{\@Alph\c@section}%
 \gdef\thesubsection{\@Alph\c@section.\@arabic\c@subsection}%
 %	
-\titleformat {\section} [block] {\raggedright\bfseries} {%
+\titleformat {\section} [block] {\raggedright \fontsize{10}{10}\selectfont\bfseries} {%
 	\ifthenelse{\equal{\@appendixtitles}{yes}}{%
-		\appendixname~\thesection.%
-		}{%
-		\appendixname~\thesection~%
+		\ifthenelse{\equal{\@appendixsections}{multiple}}{%
+			\appendixname~\thesection.%
+			}{%
+			\appendixname.}
+			}{%
+		\ifthenelse{\equal{\@appendixsections}{multiple}}{%
+			\appendixname~\thesection~%
+			}{%
+			\appendixname~}
 		}
 	} {0pt} {}
-\titlespacing {\section} {0pt} {12pt} {3pt}
+\titlespacing {\section} {0pt} {12pt} {6pt}
 %
-\titleformat {\subsection} [block] {\raggedright\itshape} {%
+\titleformat {\subsection} [block] {\raggedright \fontsize{10}{10}\selectfont\itshape} {%
 	\ifthenelse{\equal{\@appendixtitles}{yes}}{%
 		\appendixname~\thesubsection.%
 		}{%
 		\appendixname~\thesubsection%
 		}
 	} {0pt} {}
-\titlespacing {\section} {0pt} {12pt} {3pt}
+\titlespacing {\subsection} {0pt} {12pt} {6pt}
 %
-\titleformat {\subsubsection} [block] {\raggedright\selectfont} {%
+\titleformat {\subsubsection} [block] {\raggedright \fontsize{10}{10}\selectfont} {%
 	\ifthenelse{\equal{\@appendixtitles}{yes}}{%
 		\appendixname~\thesubsubsection.%
 		}{%
 		\appendixname~\thesubsubsection%
 		}
 	} {0pt} {}
-\titlespacing {\section} {0pt} {12pt} {3pt}
+\titlespacing {\subsubsection} {0pt} {12pt} {6pt}
 %
 \gdef\theHsection{\@Alph\c@section.}% for hyperref
 \gdef\theHsubsection{\@Alph\c@section.\@arabic\c@subsection}% for hyperref
 \csname appendixmore\endcsname
 \renewcommand{\thefigure}{A\arabic{figure}}
+\setcounter{figure}{0}
 \renewcommand{\thetable}{A\arabic{table}}
+\setcounter{table}{0}
 \renewcommand{\thescheme}{A\arabic{scheme}}
+\setcounter{scheme}{0}
 \renewcommand{\thechart}{A\arabic{chart}}
+\setcounter{chart}{0}
 \renewcommand{\theboxenv}{A\arabic{boxenv}}
+\setcounter{boxenv}{0}
 \renewcommand{\theequation}{A\arabic{equation}}
+\setcounter{equation}{0}
 \renewcommand{\thetheorem}{A\arabic{theorem}}
+\setcounter{theorem}{0}
 \renewcommand{\thelemma}{A\arabic{lemma}}
+\setcounter{lemma}{0}
 \renewcommand{\thecorollary}{A\arabic{corollary}}
+\setcounter{corollary}{0}
 \renewcommand{\theproposition}{A\arabic{proposition}} 
+\setcounter{proposition}{0} 
 \renewcommand{\thecharacterization}{A\arabic{characterization}}
+\setcounter{characterization}{0} 
 \renewcommand{\theproperty}{A\arabic{property}}
+\setcounter{property}{0} 
 \renewcommand{\theproblem}{A\arabic{problem}}
+\setcounter{problem}{0} 
 \renewcommand{\theexample}{A\arabic{example}}
+\setcounter{example}{0} 
 \renewcommand{\theexamplesanddefinitions}{A\arabic{examplesanddefinitions}}
+\setcounter{examplesanddefinitions}{0} 
 \renewcommand{\theremark}{A\arabic{remark}}
+\setcounter{remark}{0} 
 \renewcommand{\thedefinition}{A\arabic{definition}}
+\setcounter{definition}{0} 
 \renewcommand{\thehypothesis}{A\arabic{hypothesis}}
+\setcounter{hypothesis}{0}
 \renewcommand{\thenotation}{A\arabic{notation}}
-\renewcommand{\thealgorithm}{A\arabic{algorithm}}
+\setcounter{notation}{0}
 }
-
-
-%%%% Dimensions
-%% Width of left column = marginparwidth
-\newlength{\leftcolumnlength}
-\setlength{\leftcolumnlength}{4.1cm}
-
-%% Width of left column plus marginsep
-\newlength{\extralength}
-\setlength{\extralength}{4.61cm} % = 0.51 cm + 4.1 cm (= marginparwidth + marginparsep)
-
-%% Width of the page minus the margins
-\newlength{\fulllength}
-\setlength{\fulllength}{21 cm - 1.27 cm - 1.27 cm}
 
 %%%% Layout
 \ifthenelse{\equal{\@arttype}{Book}}{%%
 	\RequirePackage[left=2.05cm,
 					right=2.05cm,
-					top=1.8cm,
+					top=2.05cm,
 					bottom=2.05cm,
 					paperwidth=170mm,
 					paperheight=244mm,
-					footskip=20pt,
-					headsep=24pt,
-					includehead, 
 					includefoot]{geometry}
 	}{
-	\RequirePackage[left=5.87cm, %1.27 cm + 0.51 cm + 4.1 cm = 5.87 cm (= 1.27 cm + marginparwidth + marginparsep)
-				marginparwidth=4.1cm,
-				marginparsep=0.51cm,
-				right=1.27cm,
+	\RequirePackage[left=2.7cm,
+				right=2.7cm,
 				top=1.8cm,
-				bottom=0.75cm,
-				footskip=48pt,
-				headsep=24pt,
+				bottom=1.5cm,
 				includehead,
 				includefoot]{geometry}
-}
-
-\fancyheadoffset[L]{\extralength} % Header into the margin
-\ifthenelse{\equal{\@arttype}{Book}}{%
-	}{%
-	\fancyfootoffset[L]{\extralength}%
-} % Footer into the margin
-
-\linespread{1.05} 
-\setlength{\parindent}{0.75cm}
-
-%%%% Commands for landscape page
-\newcommand{\startlandscape}{
-	\clearpage
-	\paperwidth=\pdfpageheight
-	\paperheight=\pdfpagewidth
-	\pdfpageheight=\paperheight
-	\pdfpagewidth=\paperwidth
-	\newgeometry{layoutwidth=297mm, layoutheight=210 mm, left=1.27cm, right=1.27cm, top=1.8cm, bottom=0.6cm, includehead, includefoot}
-	\fancyheadoffset{0pt}
-	\captionsetup{margin={4.6cm,0cm}}
 	}
 
-\newcommand{\finishlandscape}{
-	\clearpage
-	\paperwidth=\pdfpageheight
-	\paperheight=\pdfpagewidth
-	\pdfpageheight=\paperheight
-	\pdfpagewidth=\paperwidth
-	\restoregeometry
-	\fancyheadoffset[L]{\extralength}
-	\captionsetup{margin={0cm,0cm}}
-}
-
+\linespread{1.13} 
+\setlength{\parindent}{0.75cm}
 
 %%%% Figures and tables
 \RequirePackage{newfloat}
@@ -1382,20 +1011,20 @@
 \DeclareFloatingEnvironment[name=Box]{boxenv}	
 \DeclareFloatingEnvironment[]{chart}
 \DeclareFloatingEnvironment[]{scheme}
-\DeclareFloatingEnvironment[]{figurewide}
 
 \RequirePackage{caption} 
-\captionsetup[figure]{position=bottom, 	labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, singlelinecheck=off, justification=justified}
+\captionsetup[figure]{position=bottom, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, justification=justified}
 
-\captionsetup[scheme]{position=bottom,	labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, singlelinecheck=off, justification=justified}
+\captionsetup[scheme]{position=bottom, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, justification=justified}
 
-\captionsetup[listing]{position=top, 		labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, singlelinecheck=off, justification=justified}
+\captionsetup[listing]{position=top, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17},  aboveskip=6pt, justification=justified}
 
-\captionsetup[chart]{position=bottom, 	labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, singlelinecheck=off, justification=justified}
+\captionsetup[chart]{position=bottom, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, belowskip=-6pt, justification=justified}
 
-\captionsetup[table]{position=top, 		labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, singlelinecheck=off, justification=justified}
+\captionsetup[table]{position=top, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, justification=justified}
 
-\captionsetup[boxenv]{position=top, 		labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt, singlelinecheck=off, justification=justified}
+\captionsetup[boxenv]{position=top, margin=0.75cm, labelfont={bf, small, stretch=1.17}, labelsep=period, textfont={small, stretch=1.17}, aboveskip=6pt,justification=justified}
+
 
 
 %% For table footnotes
@@ -1406,29 +1035,15 @@
 \else \centerline{#1} \fi
 }
 
-%% For text alignment in tables
-\renewcommand\tabularxcolumn[1]{m{#1}} % vertical centering
-\newcolumntype{C}{>{\centering\arraybackslash}X} % centered text in C columns
-
-
 %%%% Bullet lists
-\setitemize{topsep=3pt,parsep=0pt,itemsep=0pt,leftmargin=*,labelsep=5.5mm,align=parleft}
-\setenumerate{topsep=3pt,parsep=0pt,itemsep=0pt,leftmargin=*,labelsep=5.5mm,align=parleft}
-\setlist[description]{itemsep=0mm}
-
+\newlength{\wideitemsep}
+\setlength{\wideitemsep}{.5\itemsep}
+\addtolength{\wideitemsep}{-7pt}
+\let\olditem\item
+\renewcommand{\item}{\setlength{\itemsep}{\wideitemsep}\olditem}
 
 %%%% Quote environment
-\renewenvironment{quote}{
-	\list{}{
-		\listparindent=0pt
-		\leftmargin=0.75cm
-		\rightmargin=0.75cm
-		\topsep=3pt
-		\parsep=3pt
-	}%
-	\item\relax
-	}
-	{\endlist}
+\patchcmd{\quote}{\rightmargin}{\leftmargin 0.75cm \rightmargin}{}{}
 
 %%%% Supplementary file
 \ifthenelse{\equal{\@arttype}{Supfile}}{
@@ -1437,12 +1052,10 @@
 	}{}%
 
 %% Link to supplementary material: www.mdpi.com/ISSN-number/volume-number/issue-number/article-number	
-\newcommand{\linksupplementary}[1]{\url{https://www.mdpi.com/article/\@doinum/#1}}
-
+\newcommand{\linksupplementary}[1]{\url{http://www.mdpi.com/\@ISSN/\@pubvolume/\@issuenum/\@articlenumber/#1}}
 
 %%%% Header and footer (all pages except the first)
 \renewcommand\headrule{} %% set line (from fancyhdr) in header to nothing
-
 \pagestyle{fancy}
 \lhead{
 	\ifthenelse{\equal{\@journal}{preprints}%
@@ -1453,106 +1066,89 @@
 			Version {\@ \today} submitted to {\em \journalname}%
 			}{%
 			\ifthenelse{\equal{\@arttype}{Supfile}}{%
-			{\em \journalname} {\bfseries \@pubyear}, {\em \@pubvolume}, %
-			\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-				\@articlenumber. %
-				}{%
-				S\@firstpage\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{--S\pageref*{LastPage}}. %
-				}%
-			{\changeurlcolor{black}%
-        			\url{https://doi.org/\@doinum}}%
+			{\em \journalname} {\bfseries \@pubyear}, {\em \@pubvolume} %
+			%\ifthenelse{\equal{\@articlenumber}{}}{%
+			%\@firstpage --\pageref*{LastPage}%
+			%}{\@articlenumber}%
+			; doi:{\changeurlcolor{black}%
+        					\href{http://dx.doi.org/\@doinum}%
+        					{\@doinum}}%
 			}{%
-			{\null\vspace{2pt}\em\journalname\ }{\bfseries\@pubyear}, {\em \@pubvolume}%
+			{\em\journalname\ }{\bfseries\@pubyear}, {\em \@pubvolume}%
 			\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-				, \@articlenumber%
-				}{}%
+			, \@articlenumber%
+			}{%
 			}%
-			}\\%
-			\rule{\fulllength}{0.4pt}%
+			}%
+			}%
 		}%
 	}
-	
 \rhead{%
-\ifthenelse{\equal{\@arttype}{Book}}{}{%
-	\ifthenelse{\equal{\@arttype}{Supfile}}{%
-		\fontsize{8}{8}\selectfont S\thepage{} of S\pageref*{LastPage}%
-		}{%
-		\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-			\fontsize{8}{8}\selectfont\thepage{} of \pageref*{LastPage}%
-			}{%
-			\fontsize{8}{8}\selectfont\thepage%
+\ifthenelse{\equal{\@arttype}{Reprint} \OR \equal{\@arttype}{Book}}{}{%
+%	\ifthenelse{\equal{\@journal}{recycling}
+%		\OR \equal{\@journal}{philosophies}
+%		\OR \equal{\@journal}{sinusitis}
+%		\OR \equal{\@journal}{fishes}
+%		\OR \equal{\@journal}{scipharm}
+%		\OR \equal{\@journal}{jfmk}}{
+%			\ifthenelse{\equal{\@arttype}{Supfile}}{
+%				\fontsize{8}{8}\selectfont S\thepage{}
+%				}{
+%				\ifthenelse{\equal{\@status}{submit}}{
+%					\fontsize{8}{8}\selectfont\thepage
+%					}{
+%					\fontsize{8}{8}\selectfont\thepage{}%
+%					}%
+%				}%
+%			}{
+			\ifthenelse{\equal{\@arttype}{Supfile}}{%
+				\fontsize{8}{8}\selectfont S\thepage{} of S\pageref*{LastPage}%
+				}{%
+				\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
+					\fontsize{8}{8}\selectfont\thepage{} of \pageref*{LastPage}%
+					}{%
+					\fontsize{8}{8}\selectfont\thepage%{} of \pageref*{LastPage}%
+				}%
+				}%
+%			}%
 		}%
-		}\\%
-		\rule{\fulllength}{0.4pt}%
-	}%
-}
+	}
 
 \cfoot{
-	\ifthenelse{\equal{\@arttype}{Book}}{%
+	\ifthenelse{\equal{\@arttype}{Reprint}
+		\OR \equal{\@arttype}{Book}}{%
 		\fontsize{8}{8}\selectfont\thepage
-		}{%
+		}{}
 	}
-}
 
-
-%%%% Article type "Retraction"
-\def\@retractiondate{}% Date that the retraction notice was published
-\newcommand{\retractiondate}[1]{\gdef\@retractiondate{#1}}
-\def\@retractionnoticeyear{}% Year in which the retraction notice was published
-\newcommand{\retractionnoticeyear}[1]{\gdef\@retractionnoticeyear{#1}}
-\def\@retractionnoticevolume{} % Volume in which the retraction notice was published
-\newcommand{\retractionnoticevolume}[1]{\gdef\@retractionnoticevolume{#1}}
-\def\@retractionnoticeidnumber{}% Article Number in which the retraction notice was published
-\newcommand{\retractionnoticeidnumber}[1]{\gdef\@retractionnoticeidnumber{#1}}
-\def\@retractionnoticedoi{}  % DOI published retraction notice
-\newcommand{\retractionnoticedoi}[1]{\gdef\@retractionnoticedoi{#1}}
-\newcommand{\printretraction}{
-\ifthenelse{\equal{\@retractiondate}{\@empty}}{}{%
-	\RequirePackage{draftwatermark}
-	\SetWatermarkText{RETRACTED}
-	\SetWatermarkScale{0.8}
-	\fancypagestyle{plain}{
-	\fancyhf{}
-	\fancyfoot[L]{
-		\footnotesize%
-		\st{\mbox{\textit{\journalname} \textbf{\@pubyear}, \textit\@pubvolume, }}%
-		\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
-			\st{\@articlenumber}%
-			}{%
-			\st{\@firstpage}\ifnumcomp{\totvalue{page}-1}{=}{\@firstpage}{}{\st{--\mbox{\pageref*{LastPage}}}}%
-			}%
-		\st{. {\changeurlcolor{black}%
-		\href{https://doi.org/\@doinum}%
-		{https://doi.org/\@doinum}}}%
-		\\This paper has been retracted. A retraction notice was published on \@retractiondate{} %
-		in \textit{\@journalfull} \textbf{\@retractionnoticeyear}, \textit{\@retractionnoticevolume}, \@retractionnoticeidnumber. https://doi.org/\@retractionnoticedoi
-	}%
-	\fancyfoot[R]{
-		\footnotesize%
-		{\changeurlcolor{black}%
-		\href{https://www.mdpi.com/journal/\@journal}%
-		{www.mdpi.com/journal/\@journal}}%
-	}%
-	\renewcommand{\footrulewidth}{0.4pt}%
-	}
-   }
-}
 
 %%%% Bibliography
 \renewcommand\bibname{References} % Backwards compatibility for book production
 \renewcommand\@biblabel[1]{#1.\hfill}
 \def\thebibliography#1{
-\emergencystretch 2em
+\linespread{1.44} 
 \section*{\@reftitle}
 \addcontentsline{toc}{section}{References}
-\fontsize{9}{11}\selectfont
+\fontsize{9}{9}\selectfont
 \list{{\arabic{enumi}}}{\def\makelabel##1{\hss{##1}}
 \topsep=0\p@
-\parsep=0\p@
+\parsep=5\p@
 \partopsep=0\p@
 \itemsep=0\p@
 \labelsep=1.5mm
-\chicagostylejournals{%
+\ifthenelse{\equal{\@journal}{admsci}
+\OR \equal{\@journal}{arts}
+\OR \equal{\@journal}{econometrics}
+\OR \equal{\@journal}{economies}
+\OR \equal{\@journal}{genealogy}
+\OR \equal{\@journal}{humanities}
+\OR \equal{\@journal}{ijfs}
+\OR \equal{\@journal}{jrfm}
+\OR \equal{\@journal}{languages}
+\OR \equal{\@journal}{laws}
+\OR \equal{\@journal}{religions}
+\OR \equal{\@journal}{risks}
+\OR \equal{\@journal}{socsci}}{%
 	\ifthenelse{\equal{\@externalbibliography}{\@empty}}{%
 		\itemindent=-7.7mm
 		}{%
@@ -1570,108 +1166,82 @@
 }
 \let\endthebibliography=\endlist
 
-
 %%%% Copyright info
 \newcommand{\cright}{%
-        \ifthenelse{\equal{\@arttype}{Supfile}}{%
+        \ifthenelse{\equal{\@arttype}{Supfile} \OR \equal{\@journal}{preprints}}{%
 		}{%
-		\ifthenelse{\equal{\@status}{submit}}{%
-		\fontdimen2\font=1.2pt
-			\textbf{Copyright: }\copyright{} {\@ \the\year} by the \@authornum.\linebreak%
-			Submitted to {\em\journalname} for %
+		\vspace{12pt}
+		\noindent
+		\linespread{1.44} 
+		\fontsize{9}{9}\selectfont 
+		\ifthenelse{\equal{\@status}{submit}}{
+			\noindent \copyright{} {\@ \the\year} by the \@authornum. %
+			Submitted to {\em \journalname} for %
 			possible open access publication %
-			under the terms and conditions of the Creative Commons Attri- bution %
-			\ifthenelse{\equal{\@journal}{ijtpp}}{(CC BY-NC-ND)}{(CC BY)} %
+			under the terms and conditions of the Creative Commons Attribution %
+			\ifthenelse{\equal{\@journal}{ijtpp}}{NonCommercial NoDerivatives (CC BY-NC-ND)}{(CC BY)} %
 			license %
-			\ifthenelse{\equal{\@journal}{ijtpp}}{%
-			\changeurlcolor{black}%
-			(\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{https://creative}\linebreak\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{commons.org/licenses/by-nc-nd/4.0/).}%
+			\ifthenelse{\equal{\@journal}{ijtpp}}{
+			(\changeurlcolor{black}%
+			\href{https://creativecommons.org/licenses/by-nc-nd/4.0/.}%
+			{https://creativecommons.org/licenses/by-nc-nd/4.0/}).%
 			}{%
-			\changeurlcolor{black}%
-			(\href{https://creativecommons.org/licenses/by/4.0/}{https://}\linebreak\href{https://creativecommons.org/licenses/by/4.0/}{creativecommons.org/licenses/by/}\linebreak 4.0/).%
-			}
-			}{%
-			\href{https://creativecommons.org/}{%
+			(\changeurlcolor{black}%
+			\href{http://creativecommons.org/licenses/by/4.0/.}%
+			{http://creativecommons.org/licenses/by/4.0/}).}
+			}{
+			\begin{minipage}{.2\textwidth}
+				\hspace{-1.2mm}%
+				\vspace{2mm}%
+				\href{http://creativecommons.org/}{%
 				\ifthenelse{\equal{\@journal}{ijtpp}}{%
-					\includegraphics[width=2 cm]{Definitions/logo-ccby-nc-nd.eps}%
+					\includegraphics[width=0.94\textwidth]{Definitions/logo-ccby-nc-nd.eps}%
 					}{%
-					\includegraphics[width=2 cm]{Definitions/logo-ccby.eps}
+					\includegraphics[width=0.94\textwidth]{Definitions/logo-ccby.eps}
 					}
-				}\\
-				{\justifying\textbf{Copyright:} \copyright \ {\@copyrightyear} by the \@authornum.\linebreak%
-				Licensee MDPI, Basel, Switzerland.\linebreak%
-				This article is an open access article %
-				distributed under the terms and \linebreak% 
-				conditions of the Creative Commons Attribution %
-				\ifthenelse{\equal{\@journal}{ijtpp}}{(CC BY-NC-ND)}{(CC BY)} %
-				license %
-				\ifthenelse{\equal{\@journal}{ijtpp}}{%
-				\changeurlcolor{black}%
-				\linebreak
-				\href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{(https://creativecommons.org/}\linebreak \href{https://creativecommons.org/licenses/by-nc-nd/4.0/}{licenses/by-nc-nd/4.0/}).%
-				}{%
-				\changeurlcolor{black}%
-				(\href{https://creativecommons.org/licenses/by/4.0/}{https://} \href{https://creativecommons.org/licenses/by/4.0/}{creativecommons.org/licenses/by/}\linebreak 4.0/).}%
 				}
+			\end{minipage}%
+			\begin{minipage}{.79\textwidth}
+				\copyright \ {\@copyrightyear} by the \@authornum. %
+				Licensee MDPI, Basel, Switzerland. %
+				This article is an open access article %
+				distributed under the terms and conditions %
+				of the Creative Commons Attribution %
+				\ifthenelse{\equal{\@journal}{ijtpp}}{NonCommercial NoDerivatives (CC BY-NC-ND)}{(CC BY)} %
+				license %
+				\ifthenelse{\equal{\@journal}{ijtpp}}{
+				(\changeurlcolor{black}%
+				\href{https://creativecommons.org/licenses/by-nc-nd/4.0/.}%
+				{https://creativecommons.org/licenses/by-nc-nd/4.0/}).%
+				}{%
+				(\changeurlcolor{black}%
+				\href{http://creativecommons.org/licenses/by/4.0/.}%
+				{http://creativecommons.org/licenses/by/4.0/}).}
+				\end{minipage}
 			}
 		}
 	}
+	
+%BOOK%
+\newcommand{\Authorbox}[1]{\gdef\@Authorbox{#1}} %
+\newcommand{\Titlebox}[1]{\gdef\@Titlebox{#1}}%
+\newcommand{\Seriestitlebox}[1]{\gdef\@Seriestitlebox{#1}}%
+\newcommand{\Editorbox}[1]{\gdef\@Editorbox{#1}} %
+\newcommand{\Seriesnamebox}[1]{\gdef\@Seriesnamebox{#1}}%
+\newcommand{\Serienumberbox}[1]{\gdef\@Seriesnumberbox{#1}}%
+\newcommand{\Volumeumberbox}[1]{\gdef\@Volumenumberbox{#1}}%
+\newcommand{\firstpagebox}[1]{\gdef\@firstpagebox{#1}}
+\newcommand{\lastpagebox}[1]{\gdef\@lastpagebox{#1}} %
 
 	
-%%%% For tables XML2PDF
-\RequirePackage{seqsplit} % Use for split table column
-  \newlength{\cellWidtha}
-  \newlength{\cellWidthb}
-  \newlength{\cellWidthc}
-  \newlength{\cellWidthd}
-  \newlength{\cellWidthe}
-  \newlength{\cellWidthf}
-  \newlength{\cellWidthg}
-  \newlength{\cellWidthh}
-  \newlength{\cellWidthi}
-  \newlength{\cellWidthj}
-  \newlength{\cellWidthk}
-  \newlength{\cellWidthl}
-  \newlength{\cellWidthm}
-  \newlength{\cellWidthn}
-  \newlength{\cellWidtho}
-  \newlength{\cellWidthp}
-  \newlength{\cellWidthq}
-  \newlength{\cellWidthr}
-  \newlength{\cellWidths}
-  \newlength{\cellWidtht}
-  \newlength{\cellWidthu}
-  \newlength{\cellWidthv}
-  \newlength{\cellWidthw}
-  \newlength{\cellWidthx}
-  \newlength{\cellWidthy}
-  \newlength{\cellWidthz}
-  \newlength{\cellWidthA}
-  \newlength{\cellWidthB}
-  \newlength{\cellWidthC}
-  \newlength{\cellWidthD}
-  \newlength{\cellWidthE}
-  \newlength{\cellWidthF}
-  \newlength{\cellWidthG}
-  \newlength{\cellWidthH}
-  \newlength{\cellWidthI}
-  \newlength{\cellWidthJ}
-  \newlength{\cellWidthK}
-  \newlength{\cellWidthL}
-  \newlength{\cellWidthM}
-  \newlength{\cellWidthN}
-  \newlength{\cellWidthO}
-  \newlength{\cellWidthP}
-  \newlength{\cellWidthQ}
-  \newlength{\cellWidthR}
-  \newlength{\cellWidthS}
-  \newlength{\cellWidthT}
-  \newlength{\cellWidthU}
-  \newlength{\cellWidthV}
-  \newlength{\cellWidthW}
-  \newlength{\cellWidthX}
-  \newlength{\cellWidthY}
-  \newlength{\cellWidthZ}
- \newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp} % For table column setting in XML2PDF
-
+\newcommand{\citebox}{
+\ifthenelse{\equal{\@arttype}{Book}}{
+	\centerline{	
+		\fbox{	
+		\begin{minipage}[t][][t]{1.001\linewidth}
+		\@Authorbox{} \@Titlebox. In \textit{\@Seriestitlebox}; \@Editorbox; \@Seriesnamebox{} \@Seriesnumberbox; MDPI: Basel, Switzerland, 2018; Vol. \@Volumenumberbox, pp. \@firstpagebox{} -- \@lastpagebox.
+		\end{minipage}
+		}
+	}
+}}{}
 \endinput

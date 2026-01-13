@@ -1,5 +1,5 @@
 %% =============================================
-%% pasj01.cls - version 2.0
+%% pasj01.cls - version 1.0
 %% (Based on pasj00.cls)
 %%
 %% Aptara Inc., dated 25th Nov. 2014
@@ -11,19 +11,9 @@
 %% 2) Used the Times for normal text and 
 %%    Helvetica for display heads.
 %%
-%% Version 1.1 (2018 Feb 6) 
-%% ---------------------
-%% 1) Deleted dvips option   
-%% 2) Deleted unnecessary commands 
-%% 
-%% Version 1.2 (2018 May 15) 
-%% ---------------------
-%% 1) Change default font to "Computer Modern" 
-%%    for normal text  
-%% 
 %% =============================================
 %%
-%% This is file `pasj01.cls',
+%% This is file `pasj00.cls',
 %% generated with the docstrip utility.
 %%
 %% The original source files were:
@@ -39,11 +29,12 @@
 %% 
 %% You must not distribute this generated file without written permission
 %% of the Astronomical Society of Japan and of GlobalTeX Co., Ltd.
+%% 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 %% \ProvidesClass{pasj00}[2013/12/04 v.5.1 Simplified document class for PASJ^^J%
 %% \@spaces\@spaces\@spaces(C) 2008 Astronomical Society of Japan]
-\ProvidesClass{pasj01}[2018/05/15 v.1.2 Simplified document class for PASJ^^J%
-\@spaces\@spaces\@spaces(C) 2018 Astronomical Society of Japan]
+\ProvidesClass{pasj01}[2014/11/25 v.1.0 Simplified document class for PASJ^^J%
+\@spaces\@spaces\@spaces(C) 2014 Astronomical Society of Japan]
 \DeclareOption{draft}{\setlength\overfullrule{5pt}}
 \DeclareOption{final}{\setlength\overfullrule{0pt}}
 \newif\if@restonecol
@@ -92,13 +83,6 @@
 \def\@affil{}
 \def\affil#1{\xdef\@affil{\ifx\@affil\@empty#1\else\@affil\par#1\fi}}
 %%%
-%%
-\typeout{ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
-\typeout{  For LETTER article, be sure to compile with  "Computer Modern (defalt font)".  }
-\typeout{  fonts to estimate page numbers. Do NOT use "Times" font. }
-\typeout{  (defalt font setting in pasj01.cls: Computer Modern)  } 
-\typeout{ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! } 
-%%
 \newcount\aucnt
 \newcount\tempcount
 \newcount\@tempcnta
@@ -249,7 +233,7 @@
 %%% page size/margins etc.
 \paperwidth     210mm
 \paperheight    276mm
-\textheight     55.0pc %%% previous value: 655.5pt, 55.5pc
+\textheight     55.5pc %%% previous value: 655.5pt
 \textwidth      40.5pc
 \columnsep       18pt
 \columnseprule    \z@
@@ -1510,11 +1494,11 @@
    \let\@mkboth\@gobbletwo}
 \def\@sidelabelsep{13pt}
 \def\ps@firstpage{%
-   \def\@oddhead{\hbox to \textwidth{\hphantom{\fboxsep=0pt\fbox{\vbox to 54pt{\hbox to 46pt{}}}}\hfill\hspace*{-6pt}\vbox to 54pt{\hsize250pt{\raggedleft\rhfont{\itshape arXiv math}%
-\par}\vfill}\hspace*{6pt}\hspace*{1.5pc}\hphantom{\fboxsep=0pt\fbox{\vbox to 54pt{\hbox to 46pt{}}}}}\rlap{\hspace*{10pt}\vbox to 54pt{\foliofont\thepage}}}%
+   \def\@oddhead{\hbox to \textwidth{\hphantom{\fboxsep=0pt\fbox{\vbox to 54pt{\hbox to 46pt{}}}}\hfill\hspace*{-6pt}\vbox to 54pt{\hsize250pt{\raggedleft\rhfont{\itshape Publ. Astron. Soc. Japan}\ (\@jyear)\ \@jvol(\@Issue),\ \thepage--\@endpage\par%
+\@doi\par}\vfill}\hspace*{6pt}\hspace*{1.5pc}\hphantom{\fboxsep=0pt\fbox{\vbox to 54pt{\hbox to 46pt{}}}}}\rlap{\hspace*{10pt}\vbox to 54pt{\foliofont\thepage}}}%
    \let\@evenhead\@oddhead
    \def\@oddfoot{\hbox to \textwidth{%
-     \vbox to 5pt{{\hsize\textwidth{\rffont\copyright\ \@jyear.\ \par}}}}}%
+     \vbox to 5pt{{\hsize\textwidth{\rffont\copyright\ \@jyear.\ Astronomical Society of Japan.\par}}}}}%
    \def\@evenfoot{}%
    \let\@mkboth\@gobbletwo}
 %%
@@ -1523,10 +1507,10 @@
 %%
 \def\ps@headings{%
    \def\@evenhead{\vbox{\hsize\textwidth%
-{\evenfolio}\hfill{\rhhfont{\itshape Learning Mathematics through incorrect Problems},\ (\@jyear)}\par\vspace*{5.5pt}
+{\evenfolio}\hfill{\rhhfont{\itshape Publications of the Astronomical Society of Japan},\ (\@jyear),\ Vol.\ \@jvol,\ No.\ \@Issue}\par\vspace*{5.5pt}
 {\vrule width\textwidth height1pt}}}%
    \def\@oddhead{\vbox{\hsize\textwidth%
-{\rhhfont{\itshape Learning Mathematics through incorrect Problems},\ (\@jyear)}\hfill{\oddfolio}\par\vspace*{5.5pt}
+{\rhhfont{\itshape Publications of the Astronomical Society of Japan},\ (\@jyear),\ Vol.\ \@jvol,\ No.\ \@Issue}\hfill{\oddfolio}\par\vspace*{5.5pt}
 {\vrule width\textwidth height1pt}}}%%%
    \def\@oddfoot{%
       \hfill
@@ -1960,8 +1944,8 @@
 {\corfont\@email\par\vspace*{6pt}}%
 \endgroup
 \begingroup\historyfont
-  \@make@formatted@date\rdate
- \@make@formatted@date\adate\par\vspace*{8.5pt}%
+Received   \@make@formatted@date\rdate
+ ; Accepted  \@make@formatted@date\adate\par\vspace*{8.5pt}%
 \endgroup
       \smallskip
       \if@skip@abstract\else
@@ -3752,8 +3736,6 @@
 \DeclareMathSymbol\fixedsqrtsign\mathord{largesymbols}{'163}
 %
 %%% some abbreviations
-\def\LETTERLABEL{{\LARGE  Letter} \\ [8pt] }
-\def\REVIEWLABEL{{\LARGE  Review} \\ [8pt]}
 \def\arcdeg{\ensuremath{{}^{\circ}}}
 \let\degree\arcdeg
 \def\arcmin{\ensuremath{{}^{\prime}}}
@@ -4164,7 +4146,6 @@ The use of ambiguous command `\@backslashchar#1' is not recommended.^^J%
 \DeclareAbbreviation\pasp{PASP}
 \DeclareAbbreviation\pasj{PASJ}
 \DeclareAbbreviation\qjras{QJRAS}
-\DeclareAbbreviation\raa{Res.\ Astron.\ Astronphys.}
 \DeclareAbbreviation\skytel{S\&T}
 \DeclareAbbreviation\solphys{Sol.\ Phys.}
 \DeclareAbbreviation\sovast{Soviet\ Ast.}
@@ -4240,12 +4221,12 @@ The use of ambiguous command `\@backslashchar#1' is not recommended.^^J%
    \vtop{\kern.5\baselineskip\hbox{\@tempa}}%
    \endgroup}
 \if@pasj@usefigure
-\RequirePackage[]{graphicx,color}
+\RequirePackage[dvips]{graphicx,color}
 \let\@saved@includegraphics\includegraphics
-%\def\includegraphics{%
-%   \typeout{Do not use \string\includegraphics\space directly.
-%            Use \string\FigureFile\space for graphics.}%
-%   \@saved@includegraphics}
+\def\includegraphics{%
+   \typeout{Do not use \string\includegraphics\space directly.
+            Use \string\FigureFile\space for graphics.}%
+   \@saved@includegraphics}
 \else
 \let\@saved@includegraphics\relax
 \fi
@@ -4324,20 +4305,20 @@ The use of ambiguous command `\@backslashchar#1' is not recommended.^^J%
 %%
 \newenvironment{tabnote}{\par\vskip3pt\tabnotefont}{\par}
 %%%
-\def\jyear#1{\gdef\@jyear{#1}}\jyear{2019}
+\def\jyear#1{\gdef\@jyear{#1}}\jyear{2014}
 \def\endpage#1{\gdef\@endpage{#1}}\endpage{0}
-\def\doi#1{\gdef\@doi{/#1}}\doi{}
-\def\volume#1{\gdef\@jvol{#1}}\volume{}
-\def\Issue#1{\gdef\@Issue{#1}}\Issue{}
+\def\doi#1{\gdef\@doi{doi:\ 10.1093/pasj/#1}}\doi{xxx000}
+\def\volume#1{\gdef\@jvol{#1}}\volume{00}
+\def\Issue#1{\gdef\@Issue{#1}}\Issue{0}
 \AtEndDocument{\immediate\write\@mainaux{\string\endpage{\thepage}}}%
 \setlength\footskip{20pt}%{24pt}
 \setlength{\skip\footins}{12\p@ \@plus 6\p@ \@minus 6\p@}% change + based on FN font height
 \newenvironment{ack}{\section*{Acknowledgments}\fontsize{8}{11}\selectfont}{\par}
-%%% typeset with Computer Modern for estimating page in length.
-\renewcommand{\sfdefault}{phv}%{cmss} %
-\renewcommand{\rmdefault}{cmr} %{ptm}
+%%%
+\renewcommand{\sfdefault}{phv}
+\renewcommand{\rmdefault}{ptm}
 %%\usepackage{txfonts}
-\renewcommand{\ttdefault}{cmtt}
+%%\renewcommand{\ttdefault}{cmtt}
 
 %%\raggedbottom
 %% ===========================
@@ -4352,13 +4333,6 @@ The use of ambiguous command `\@backslashchar#1' is not recommended.^^J%
   \renewcommand\NAT@yrsep{,\space}
   \renewcommand\NAT@aysep{}
 }{}}
-%%
-\typeout{ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
-\typeout{  For LETTER article, be sure to compile with  "Computer Modern (defalt font)".  }
-\typeout{  fonts to estimate page numbers. Do NOT use "Times" font. }
-\typeout{  (defalt font setting in pasj01.cls: Computer Modern)  } 
-\typeout{ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! } 
-%%
 \endinput
 %%
 %% End of file `pasj01.cls'.

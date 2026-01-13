@@ -1006,8 +1006,6 @@ FUNCTION {article}
     }
   if$
 %  new.block
-  format.url output
-%  new.block
   format.note output
   fin.entry
 }
@@ -1158,8 +1156,6 @@ FUNCTION {inproceedings}
     }
   if$
 %  new.block
-  format.url output
-%  new.block
   format.note output
   fin.entry
 }
@@ -1196,8 +1192,6 @@ FUNCTION {manual}
   if$
   format.edition output
   format.date output
-%  new.block
-  format.url output
 %  new.block
   format.note output
   fin.entry
@@ -1293,8 +1287,6 @@ FUNCTION {proceedings}
      }
   if$
       format.date "year" output.check
-%  new.block
-  format.url output
 %  new.block
   format.note output
   fin.entry

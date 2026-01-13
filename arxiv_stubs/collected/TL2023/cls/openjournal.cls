@@ -155,8 +155,6 @@
  \def\@eapj@ApJLetters{ApJL}
 \fi
 
-
-
 % Restore natbib package without sorting. 
 \def\NAT@sort{0}
 \def\NAT@cmprs{0}
@@ -950,9 +948,8 @@ This paper was built using the Open Journal of Astrophysics \LaTeX\ template. Th
    %% otherwise minipage + parindent does not fit into the line and spurious
    %% vertical skip appear after caption
    \if\csname ftype@\@captype\endcsname 2 
-   \vskip 2ex\noindent
-   \@table@type@size{\@eapj@cap@font  #1}\par
-    \if@chicago\normalfont\fi #2\par\medskip
+   \vskip 2ex\noindent \centering\@table@type@size{\@eapj@cap@font  #1}\par
+    \if@chicago\@eapj@cap@font\fi #2\par\medskip
    \else
    \vspace*{\abovecaptionskip}\noindent\footnotesize #1 #2\par\vskip \belowcaptionskip
    \fi

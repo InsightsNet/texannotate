@@ -6,7 +6,7 @@
 
 
 % Layout
-\RequirePackage[top=12mm,bottom=12mm,left=30mm,right=30mm,head=12mm,includeheadfoot,a4paper]{geometry}
+\RequirePackage[top=12mm,bottom=12mm,left=30mm,right=30mm,head=12mm,includeheadfoot]{geometry}
 \bigskipamount 6mm
 
 % For table of contents: remove trailing dots
@@ -20,8 +20,6 @@
 \RequirePackage{titlesec}
 \titlespacing*{\section}{0pt}{1.8\baselineskip}{\baselineskip}
 
-%include hyperref
-\RequirePackage{hyperref}
 
 % Unicode characters
 \RequirePackage[utf8]{inputenc}
@@ -33,12 +31,14 @@
 %\RequirePackage{amsmath,amssymb} % Redundant (clashes with mathdesign)
 \RequirePackage{amsmath}
 
+% Hyperrefs
+\RequirePackage{hyperref}
+
 % Include line numbers in submissions
 \RequirePackage{lineno}
 
 % SciPost BiBTeX style
-\bibliographystyle{tepml}
-%\bibliographystyle{unsrt}
+\bibliographystyle{SciPost_bibstyle}
 
 % SciPost header and footer
 \RequirePackage{fancyhdr}

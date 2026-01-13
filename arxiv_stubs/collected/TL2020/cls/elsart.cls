@@ -5,9 +5,9 @@
 %% The original source files were:
 %%
 %% esl.dtx  (with options: `package,elsart,ONECOL,DEEPLIST')
-%%
+%% 
 %% elsart.cls Copyright (C) 1994-2001 Elsevier Science
-%%
+%% 
 %% This file may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either version 1.2
 %% of this license or (at your option) any later version.
@@ -15,18 +15,18 @@
 %%    http://www.latex-project.org/lppl.txt
 %% and version 1.2 or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
-%%
+%% 
 \def\readRCS$#1: #2 #3 #4 #5${%
  \def\RCSfile{#2}%
  \def\RCSversion{#3}%
  \def\RCSdate{#4}%
 }
 \readRCS
-$Header: /home/cvs/ISEPD/product/awg/source/htdocs/latex/elsart.cls,v 1.1 2004/03/18 15:18:54 iowen Exp $
+$Header: /source/repository/eslatex/src/texmf/source/latex/elsevier/esl.dtx,v 1.6 2000/10/09 10:45:59 dabeyko Exp $
 \def\@shortjnl{\relax}
  \def\esp@fileversion{2.18}
  \def\esp@filedate{2001/01/05}
-\def\@journal{Journal's name} \def\@company{Elsevier Science}
+ \def\@journal{Elsevier Science} \def\@company{Elsevier Science}
   \def\@issn{000-0000}
   \def\@shortjid{elsart}
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
@@ -150,8 +150,8 @@ $Header: /home/cvs/ISEPD/product/awg/source/htdocs/latex/elsart.cls,v 1.1 2004/0
    \evensidemargin  20\p@    %   Left margin on even-numbered pages.
    \marginparwidth  10\p@    %   \@Width of marginal notes.
 \else                       % Values for one-sided printing:
-   \oddsidemargin   -20\p@    %   Left margin on odd-numbered pages.
-   \evensidemargin  -20\p@    %   Left margin on even-numbered pages.
+   \oddsidemargin   20\p@    %   Left margin on odd-numbered pages.
+   \evensidemargin  20\p@    %   Left margin on even-numbered pages.
    \marginparwidth   2pc
 \fi
 \marginparsep 20\p@          % Horizontal space between outer margin and
@@ -169,7 +169,7 @@ $Header: /home/cvs/ISEPD/product/awg/source/htdocs/latex/elsart.cls,v 1.1 2004/0
 \divide\@tempcnta\@tempcntb
 \textheight\@tempdimb \multiply\textheight\@tempcnta
 \advance\textheight\topskip
-\textwidth 40pc              % \@Width of text line.
+\textwidth 33pc              % \@Width of text line.
                              % For two-column mode:
 \columnsep 2pc               %   Space between columns
 \columnseprule \z@           %   \@Width of rule between columns.
@@ -1333,7 +1333,7 @@ et\or eu\or ew\or ex\or ey\or ez\else\@ctrerr\fi}
 \def\ps@plain{\let\@mkboth\@gobbletwo
  \def\@oddhead{}%
  \def\@evenhead{}%
- \def\@oddfoot{\hfil {\rmfamily\thepage\; of\; \pageref{LastPage}} \hfil}%
+ \def\@oddfoot{\hfil {\rmfamily\thepage} \hfil}%
  \let\@evenfoot\@oddfoot}
 \def\@copyright{\@issn/\@shortyear/\$\@price\ $\copyright$\ \the\@pubyear\
   \@company{} All  rights reserved}

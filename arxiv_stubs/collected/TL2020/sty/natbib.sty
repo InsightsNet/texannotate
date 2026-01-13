@@ -19,7 +19,7 @@
 %% Full documentation can be obtained by LaTeXing that original file.
 %% Only a few abbreviated comments remain here to describe the usage.
 %% =============================================
-%% Copyright 1993-2009 Patrick W Daly
+%% Copyright 1993-2010 Patrick W Daly
 %% Max-Planck-Institut f\"ur Sonnensystemforschung
 %% Max-Planck-Str. 2
 %% D-37191 Katlenburg-Lindau
@@ -27,7 +27,7 @@
 %% E-mail: daly@mps.mpg.de
 \NeedsTeXFormat{LaTeX2e}[1995/06/01]
 \ProvidesPackage{natbib}
-        [2009/07/16 8.31 (PWD, AO)]
+        [2010/09/13 8.31b (PWD, AO)]
 
  % This package reimplements the LaTeX \cite command to be used for various
  % citation styles, both author-year and numerical. It accepts BibTeX
@@ -884,22 +884,32 @@
  \let\@bibstop\@undefined
 }%
 \def\NAT@bibitem@cont{%
- \let\bibitem@Stop\bibitemStop
+ \let\bibitem@Stop\bibitemContinue
  \let\bibitem@NoStop\bibitemContinue
 }%
 \def\BibitemOpen{%
  \bibitemOpen
 }%
 \def\BibitemShut#1{%
- \bibitemShut
  \def\@bibstop{#1}%
  \let\bibitem@Stop\bibitemStop
  \let\bibitem@NoStop\bibitemNoStop
+ \@ifx{\bibitemShut\relax}{\let\@bibitemShut\@empty}{%
+  \expandafter\def\expandafter\@bibitemShut\expandafter{\bibitemShut}%
+ }%
 }%
-\def\bibitemStop{}%
-\def\bibitemNoStop{.\spacefactor\@mmm\space}%
-\def\bibitemContinue{\spacefactor\@mmm\space}%
+\def\@bibitemShut{}%
+\def\bibitemStop{\@bibitemShut}%
+\def\bibitemNoStop{%
+ \@ifx{\@empty\@bibitemShut}{.\spacefactor\@mmm\space}{\@bibitemShut}%
+}%
+\def\bibitemContinue{%
+ \@ifx{\@empty\@bibitemShut}{;\spacefactor\@mmm\space}{\@bibitemShut}%
+}%
 \mathchardef\@mmm=3000 %
+\let\bibitemOpen\relax
+\let\bibitemShut\relax
+\@ifnum{\NAT@merge>\@ne}{%
 \providecommand{\bibAnnote}[3]{%
   \BibitemShut{#1}%
   \def\@tempa{#3}\@ifx{\@tempa\@empty}{}{%
@@ -907,6 +917,7 @@
     \textsc{Key:}\ #2\\\textsc{Annotation:}\ \@tempa
    \end{quotation}%
   }%
+  \ignorespaces
 }%
 \providecommand{\bibAnnoteFile}[2]{%
   \IfFileExists{#2}{%
@@ -915,8 +926,7 @@
     \bibAnnote{#1}{#2}{}%
   }%
 }%
-\let\bibitemOpen\relax
-\let\bibitemShut\relax
+}{}%
 \def\bibfield{\@ifnum{\NAT@merge>\tw@}{\@bibfield}{\@secondoftwo}}%
 \def\@bibfield#1#2{%
  \begingroup

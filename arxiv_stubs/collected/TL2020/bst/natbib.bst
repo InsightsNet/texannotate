@@ -1,14 +1,18 @@
+%% 2017/04/15: Updated by Overleaf to truncate 
+%% authors list to only First Author et al. when
+%% there are more than 2 authors.
 %%
-%% This is file `natbib.bst', generated
+%% 
+%% This is file `natbib.bst', generated 
 %% on <1994/9/16> with the docstrip utility (2.2h).
-%%
+%% 
 %% The original source files were:
-%%
+%% 
 %% genbst.mbs  (with options: `ay,nat,seq-lab,nm-rev,dt-beg,yr-par,vol-bf,
 %%                             volp-com,etal-it')
-%% ----------------------------------------
-%% *** Personal bib style, PWD ***
-%%
+%% ---------------------------------------- 
+%% *** Personal bib style, PWD *** 
+%% 
 %% (Here are the specifications of the source file)
 %% \ProvidesFile{genbst.mbs}[1994/09/16 1.5 (PWD)]
 %%   For use with BibTeX version 0.99a or later
@@ -239,12 +243,21 @@ FUNCTION {format.names}
     { s nameptr
       "{vv~}{ll}{, jj}{, f.}" format.name$ 't :=
       nameptr #1 >
-        {
+         {
+          nameptr #1
+          #1 + =
+          numnames #2
+          > and
+            { "others" 't :=
+              #1 'namesleft := }
+            'skip$
+          if$
           namesleft #1 >
-            { ", " * t * }
+          { ", " * t * }
             {
               numnames #2 >
-                { "," * }
+                % { "," * }
+                { " " * }
                 'skip$
               if$
               t "others" =
@@ -1285,4 +1298,3 @@ FUNCTION {end.bib}
 
 EXECUTE {end.bib}
 %% End of customized bst file
-

@@ -27,7 +27,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}[1996/12/01]%
 \ProvidesClass{revtex4-1}
- [2020/09/30 4.1s (http://publish.aps.org/revtex4/ for documentation)]% \fileversion
+ [2010/07/25/20:33:00 4.1r (http://publish.aps.org/revtex4/ for documentation)]% \fileversion
 \let\class@name\@gtempa
 \GenericInfo{}{\space
  Copyright (c) 2009 The American Physical Society.^^J
@@ -47,7 +47,7 @@
 \fi
 \typeout{%
 ltxutil%
- [2020/09/30 4.1s utilities package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
+ [2010/07/25/20:33:00 4.1r utilities package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
 }%
 \def\class@err#1{\ClassError{\class@name}{#1}\@eha}%
 \def\class@warn#1{\ClassWarningNoLine{\class@name}{#1}}%
@@ -149,11 +149,6 @@ ltxutil%
 \long\def\@argswap#1#2{#2#1}%
 \long\def\@argswap@val#1#2{#2{#1}}%
 \def\@ifxundefined@cs#1{\expandafter\@ifx\expandafter{\csname#1\endcsname\relax}}%
-\ifx\IfFormatAtLeastTF\undefined
-  \def\rvtx@ifformat@geq{\@ifl@t@r\fmtversion}%
-\else
-  \let\rvtx@ifformat@geq\IfFormatAtLeastTF
-\fi
 \def\@boolean#1#2{%
   \long\def#1{%
     #2% \if<something>
@@ -189,16 +184,11 @@ ltxutil%
  \@ifx{\undefined#1}{\true@sw}{\@ifx{\relax#1}{\true@sw}{\false@sw}}%
  {\def#1}{\def\j@nk}%
 }%
-\rvtx@ifformat@geq{2020-10-01}%
-  {%
-    \AddToHook{begindocument/before}{\document@inithook}%
-  }{%
-    \prepdef\document{%
-     \endgroup
-     \document@inithook
-     \true@sw{}%
-    }%
-  }
+\prepdef\document{%
+ \endgroup
+ \document@inithook
+ \true@sw{}%
+}%
 \let\document@inithook\@empty
 \appdef\document@inithook{%
  \AtBeginDocument{\class@documenthook}%
@@ -208,10 +198,6 @@ ltxutil%
 }%
 \let\class@documenthook\@empty
 \let\class@enddocumenthook\@empty
-\rvtx@ifformat@geq{2020-10-01}{%
-  % <definitions for newer LaTeX later>
-}{%
-  % <definitions for older LaTeX>
 \def\enddocument{%
  \let\AtEndDocument\@firstofone
  \@enddocumenthook
@@ -245,7 +231,7 @@ ltxutil%
    \@if@sw\if@tempswa\fi{%
     \@latex@warning@no@line{%
      Label(s) may have changed.
-     Rerun to get cross-references right%
+     Rerun to get cross-references right
     }%
    }{}%
   }{%
@@ -253,30 +239,6 @@ ltxutil%
   }%
  }{}%
 }%
-}
-\rvtx@ifformat@geq{2020-10-01}{%
-  \AddToHook{enddocument}{\rvtx@enddocument@patch{}}%
-}{}
-\protected\long\def\rvtx@enddocument@patch#1#2\@checkend#3{%
-  \begingroup
-    \edef\x{\detokenize{#3}}%
-    \edef\y{\detokenize{document}}%
-  \expandafter\endgroup
-  \ifx\x\y
-    \expandafter\rvtx@enddocument@patch@end
-  \else
-    \expandafter\rvtx@enddocument@patch@more
-  \fi
-    {#1#2}{#3}}
-\def\rvtx@enddocument@patch@more#1#2{%
-  \rvtx@enddocument@patch{#1\@checkend{#2}}}
-\long\def\rvtx@enddocument@patch@end#1#2\clearpage#3\endgroup{%
-  \def\do@check@aux{#3\endgroup}%
-  #1%
-  \@checkend{#2}%
-  \clear@document
-  \check@aux}
-\def\check@aux{\do@check@aux}%
 \def\clear@document{%
  \clearpage
  \do@output@cclv{%
@@ -2079,17 +2041,12 @@ ltxutil%
  \endgroup
 }%
 \@ifx{\typeout\typeout@org}{%
+ \class@info{Making \string\typeout\space \string\long}%
  \let\typeout\typeout@ltx
- \true@sw
-}{%
- \rvtx@ifformat@geq{2020-10-01}%
-   {\true@sw}{\false@sw}%
-}%
- {\class@info{Making \string\typeout\space \string\long}}%
- {}%
+}{}%
 \typeout{%
 ltxfront%
- [2020/09/30 4.1s frontmatter package (AO,DPC)]% \fileversion
+ [2010/07/25/20:33:00 4.1r frontmatter package (AO,DPC)]% \fileversion
 }%
 \appdef\class@documenthook{\frontmatter@init}%
 \let\frontmatter@init\@empty
@@ -3125,7 +3082,7 @@ ltxfront%
 }%
 \typeout{%
 ltxgrid%
- [2020/09/30 4.1s page grid package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
+ [2010/07/25/20:33:00 4.1r page grid package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
 }%
 \newcounter{linecount}
 \def\loop@line#1#2{%
@@ -4945,22 +4902,12 @@ ltxgrid%
 \def\recover@column@null#1#2#3#4{%
  \unvcopy#1%
 }%
-\rvtx@ifformat@geq{2020-10-01}%
-  {%
-    \AddToHook{begindocument}{%
-      \open@column@one\@ne
-      \set@colht
-      \@floatplacement
-      \@dblfloatplacement
-    }%
-  }{%
-    \prepdef\@begindocumenthook{%
-     \open@column@one\@ne
-     \set@colht
-     \@floatplacement
-     \@dblfloatplacement
-    }%
-  }
+\prepdef\@begindocumenthook{%
+ \open@column@one\@ne
+ \set@colht
+ \@floatplacement
+ \@dblfloatplacement
+}%
 \def\longtable@longtable{%
  \par
  \ifx\multicols\@undefined\else\ifnum\col@number>\@ne\@twocolumntrue\fi\fi
@@ -5493,41 +5440,38 @@ ltxgrid%
 \let\nopagebreak@ltx\nopagebreak
 \let\endline@ltx\\
 \let\@arrayparboxrestore@ltx\@arrayparboxrestore
-\def\@tempa#1{%
-\def\@vspace@org ##1{%
+\def\@vspace@org #1{%
   \ifvmode
-    #1% \vskip #1
+    \vskip #1
     \vskip\z@skip
    \else
      \@bsphack
      \vadjust{\@restorepar
-              #1% \vskip #1
+              \vskip #1
               \vskip\z@skip
               }%
      \@esphack
    \fi
 }%
-\def\@vspace@ltx##1{%
+\def\@vspace@ltx#1{%
  \@ifvmode{%
-  #1% \vskip #1
-  \vskip\z@skip
+  \vskip#1\vskip\z@skip
  }{%
   \@bsphack
   \ex@vadjust@ltx{%
    \@restorepar
    \nobreak
-   #1% \vskip #1
-   \vskip\z@skip
+   \vskip#1\vskip\z@skip
   }%
   \@esphack
  }%
 }%
-\def\@vspacer@org##1{%
+\def\@vspacer@org#1{%
   \ifvmode
     \dimen@\prevdepth
     \hrule \@height\z@
     \nobreak
-    #1%\vskip #1
+    \vskip #1
     \vskip\z@skip
     \prevdepth\dimen@
   \else
@@ -5535,18 +5479,17 @@ ltxgrid%
     \vadjust{\@restorepar
              \hrule \@height\z@
              \nobreak
-             #1%\vskip #1
+             \vskip #1
              \vskip\z@skip}%
     \@esphack
 \fi
 }%
-\def\@vspacer@ltx##1{%
+\def\@vspacer@ltx#1{%
  \@ifvmode{%
   \dimen@\prevdepth
   \hrule\@height\z@
   \nobreak
-  #1%\vskip#1
-  \vskip\z@skip
+  \vskip#1\vskip\z@skip
   \prevdepth\dimen@
  }{%
   \@bsphack
@@ -5554,16 +5497,11 @@ ltxgrid%
    \@restorepar
    \hrule\@height\z@
    \nobreak
-   #1%\vskip#1
-   \vskip\z@skip
+   \vskip#1\vskip\z@skip
   }%
   \@esphack
  }%
 }%
-}
-\rvtx@ifformat@geq{2020/10/01}%
-  {\@tempa{\@vspace@calcify{#1}}}%
-  {\@tempa{\vskip #1 }}%
 \def\@no@pgbk@org #1[#2]{%
   \ifvmode
     \penalty #1\@getpen{#2}%
@@ -5584,8 +5522,7 @@ ltxgrid%
   \@esphack
  }%
 }%
-\rvtx@ifformat@geq{2020/02/02}%
-{\protected}{\long}\def\end@line@org{%
+\long\def\end@line@org{%
  \let\reserved@e\relax
  \let\reserved@f\relax
  \@ifstar{%
@@ -5595,8 +5532,7 @@ ltxgrid%
  }%
  \@xnewline
 }%
-\rvtx@ifformat@geq{2020/02/02}%
-{\protected}{\long}\def\end@line@ltx{%
+\long\def\end@line@ltx{%
  \let\reserved@e\relax
  \let\reserved@f\relax
  \@ifstar{%
@@ -5607,30 +5543,20 @@ ltxgrid%
   \@xnewline
  }%
 }%
-\def\@tempa#1{%
-  \def\@newline@org[##1]{%
-   \let\reserved@e\vadjust
-   \@gnewline{#1}% \vskip#1
-  }%
-  \def\@newline@ltx[##1]{%
-   \let\reserved@e\ex@vadjust@ltx
-   \@gnewline{#1}% \vskip#1
-  }%
-}
-\rvtx@ifformat@geq{2020/10/01}%
-  {\@tempa{\@vspace@calcify{#1}}}%
-  {\@tempa{\vskip #1}}%
+\def\@newline@org[#1]{%
+ \let\reserved@e\vadjust
+ \@gnewline{\vskip#1}%
+}%
+\def\@newline@ltx[#1]{%
+ \let\reserved@e\ex@vadjust@ltx
+ \@gnewline{\vskip#1}%
+}%
  \@ifx{\@vspace\@vspace@org}{%
   \@ifx{\@vspacer\@vspacer@org}{%
    \@ifx{\@no@pgbk\@no@pgbk@org}{%
     \@ifx{\@newline\@newline@org}{%
-     \expandafter\@ifx\expandafter{%
-       \csname\rvtx@ifformat@geq{2020/02/02}%
-         {\expandafter\@gobble\string\\}%
-         {\expandafter\@gobble\string\\ }\endcsname
-       \end@line@org
-     }{%
-       \true@sw
+     \expandafter\@ifx\expandafter{\csname\expandafter\@gobble\string\\ \endcsname\end@line@org}{%
+      \true@sw
      }{\false@sw}%
     }{\false@sw}%
    }{\false@sw}%
@@ -5639,10 +5565,7 @@ ltxgrid%
  {%
   \class@info{Overriding \string\@vspace, \string\@vspacer, \string\@no@pgbk, \string\@newline, and \string\\ }%
   \let\@normalcr\end@line@ltx
-  \expandafter\let
-    \csname\rvtx@ifformat@geq{2020/02/02}%
-      {\expandafter\@gobble\string\\}%
-      {\expandafter\@gobble\string\\ }\endcsname\@normalcr
+  \expandafter\let\csname\expandafter\@gobble\string\\ \endcsname\@normalcr
   \let\@newline\@newline@ltx
   \let\@vspace\@vspace@ltx
   \let\@vspacer\@vspacer@ltx
@@ -6288,8 +6211,10 @@ ltxgrid%
 }%
 %%%  @LaTeX-file{
 %%%     filename        = "revtex4-1.dtx",
-%%%     version         = "4.1s",
-%%%     date            = "2020/09/30",
+%%%     version         = "4.1r",
+%%%     date            = "2010/07/25",
+%%%     time            = "20:33:00 UT-8",
+%%%     checksum        = "7177",
 %%%     author          = "Arthur Ogawa (mailto:arthur_ogawa at sbcglobal.net),
 %%%                        commissioned by the American Physical Society.
 %%%                        ",
@@ -6307,6 +6232,7 @@ ltxgrid%
 %%%     keywords        = "latex, page grid, main vertical list",
 %%%     supported       = "yes",
 %%%     abstract        = "package to change page grid, MVL",
+%%%     docstring       = "The checksum field above generated by ltxdoc",
 %%%  }
 \def\substyle@post{4-1}%
 \def\substyle@ext{rtx}%

@@ -417,6 +417,15 @@
   \vskip 0.3in plus 2fil minus 0.1in
 }}
 
+
+
+
+
+  
+
+% \renewenvironment{tldr}{\centerline{\large\bf  
+% Abstract}\vspace{0.5ex}\begin{quote}}{\par\end{quote}\vskip 1ex}
+
 % margins and font size for abstract
 \renewenvironment{abstract}%
 		 {\centerline{\large\bf Abstract}%
@@ -428,8 +437,23 @@
 		   }%
 		 {\unskip\end{list}}
   
-%\renewenvironment{abstract}{\centerline{\large\bf  
-% Abstract}\vspace{0.5ex}\begin{quote}}{\par\end{quote}\vskip 1ex}
+  
+
+
+
+
+% margins and font size for abstract
+% \renewenvironment{tldr}%
+% 		 {\centerline{\large\bf TL;QR}%
+% 		  \begin{list}{}%
+% 		     {\setlength{\rightmargin}{0.6cm}%
+% 		      \setlength{\leftmargin}{0.6cm}}%
+% 		   \item[]\ignorespaces%
+% 		   \@setsize\normalsize{12pt}\xpt\@xpt
+% 		   }%
+% 		 {\unskip\end{list}} 
+  
+
 
 % Resizing figure and table captions - SL
 \newcommand{\figcapfont}{\rm}

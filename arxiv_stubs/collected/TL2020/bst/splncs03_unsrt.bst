@@ -354,6 +354,26 @@ MACRO {nov} {"Nov."}
 
 MACRO {dec} {"Dec."}
 
+MACRO {ieee_m_com} {"{IEEE} Commun. Magazine"}
+
+MACRO {ieee_o_csto} {"{IEEE} Commun. Surveys Tuts."}
+
+MACRO {ieee_m_net} {"{IEEE} Netw."}
+
+MACRO {ieee_j_iot} {"{IEEE}  IEEE Internet Things J."}
+
+MACRO {ieee_m_itp} {"{IEEE} {IT} Prof."}.
+
+MACRO {ieee_m_comm} {"{IEEE} Commun. Magazine"}
+
+MACRO {ieee_m_wc} {"{IEEE} Wireless Commun. Mag."}
+
+MACRO {mdpi_sensor} {"{MDPI} Sensors"}
+
+MACRO {ieee_wowmom} {"{IEEE} Int'l Symp. on A World of Wireless, Mobile and Multimedia Networks"}
+
+MACRO {ieee_s_net} {"{ACM} Trans. Sensor Netw."}
+
 MACRO {acmcs} {"ACM Comput. Surv."}
 
 MACRO {acta} {"Acta Inf."}

@@ -534,22 +534,22 @@
 
 \def\subsection{%
   \@startsection{subsection}{2}{\z@}
-  {4\p@ plus 2\p@}{2\p@} 
+  {2\p@ plus -1\p@}{2\p@}
   {\reset@font\raggedright\mathversion{bold}\helveticabold\fontsize{11.5}{12}}}
 
 \def\subsubsection{%
   \@startsection{subsubsection}{3}{\z@}
-  {2\p@ plus 2\p@}{1\p@}
+  {1\p@ plus -1\p@}{1\p@}
   {\reset@font\raggedright\mathversion{bold}\helvetica\fontsize{11.5}{12}}}
 
  \def\paragraph{%
    \@startsection{paragraph}{4}{\z@}
-   {2\p@ plus 1\p@}{1\p@}
+  {1\p@ plus -1\p@}{1\p@}
    {\reset@font\itshape\helveticabold\fontsize{11.5}{12}}}
 
  \def\subparagraph{%
    \@startsection{subparagraph}{5}{\z@}
-   {2\p@ plus 1\p@}{1\p@}
+  {1\p@ plus -1\p@}{1\p@}
    {\reset@font\itshape\helvetica\fontsize{11.5}{12}}}
 
 \def\textcolon{\text{\rm :}}

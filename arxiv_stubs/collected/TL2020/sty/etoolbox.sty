@@ -1,5 +1,5 @@
 % Copyright (c) 2007-2011 Philipp Lehman.
-%           (c) 2015-2020 Joseph Wright
+%           (c) 2015 Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
@@ -12,7 +12,7 @@
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{etoolbox}
-  [2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)]
+  [2015/08/02 v2.2a e-TeX tools for LaTeX (JAW)]
 
 \begingroup
 \@ifundefined{eTeXversion}
@@ -238,14 +238,7 @@
 
 \newrobustcmd{\ifdefltxprotect}[1]{%
   \begingroup
-  \edef\etb@resrvda{\string#1}%
-  \def\etb@resrvdb{#1}%
-  \edef\etb@resrvdb{\expandafter\strip@prefix\meaning\etb@resrvdb}%
   \edef\etb@resrvda{%
-    \ifx\etb@resrvda\etb@resrvdb
-      \noexpand\x@protect
-      \noexpand#1%
-    \fi
     \noexpand\protect\expandafter\noexpand
     \csname\expandafter\@gobble\string#1 \endcsname}%
   \expandafter\endgroup\ifx#1\etb@resrvda
@@ -268,13 +261,13 @@
     {\@secondoftwo}
     {\ifdefmacro{#1}
        {\ifdefparam{#1}
-          {\@secondoftwo}
-          {\etb@ifdefempty{#1}}}
+	  {\@secondoftwo}
+	  {\etb@ifdefempty{#1}}}
        {\@secondoftwo}}}
 
 \def\etb@ifdefempty#1{%
   \expandafter\expandafter
-  \expandafter\ifstrempty
+  \expandafter\ifblank
   \expandafter\expandafter
   \expandafter{%
   \expandafter\strip@prefix\meaning#1}}
@@ -295,8 +288,8 @@
     {\@firstoftwo}
     {\ifdefmacro{#1}
        {\ifdefparam{#1}
-          {\@secondoftwo}
-          {\etb@ifdefempty{#1}}}
+	  {\@secondoftwo}
+	  {\etb@ifdefempty{#1}}}
        {\@secondoftwo}}}
 
 % {<csname>}{<true>}{<false>}
@@ -342,14 +335,14 @@
   \ifdefmacro{#1}
     {\ifdefmacro{#2}
        {\begingroup
-        \edef\etb@tempa{\expandafter\strip@prefix\meaning#1}%
-        \edef\etb@tempb{\expandafter\strip@prefix\meaning#2}%
-        \ifx\etb@tempa\etb@tempb
-          \aftergroup\@firstoftwo
-        \else
-          \aftergroup\@secondoftwo
-        \fi
-        \endgroup}
+	\edef\etb@tempa{\expandafter\strip@prefix\meaning#1}%
+	\edef\etb@tempb{\expandafter\strip@prefix\meaning#2}%
+	\ifx\etb@tempa\etb@tempb
+	  \aftergroup\@firstoftwo
+	\else
+	  \aftergroup\@secondoftwo
+	\fi
+	\endgroup}
        {\@secondoftwo}}
     {\@secondoftwo}}
 
@@ -362,7 +355,7 @@
        {\@secondoftwo}
        {\expandafter\ifdefstrequal
         \csname#1\expandafter\endcsname
-        \csname#2\endcsname}}}
+	\csname#2\endcsname}}}
 
 % {<cstoken>}{<string>}{<true>}{<false>}
 
@@ -878,45 +871,6 @@
      \csname#2\endcsname}
     {\csundef{#1}}}
 
-\ifdef\NewCommandCopy
-  {%
-    \long\def\etb@carsquare#1#2#3\@nil{#1#2}
-    %
-    % {<cstoken>}{<true>}{<false>}
-    %
-    \newrobustcmd*{\etb@if@robustcmd}[1]{%
-      \begingroup
-        \escapechar=`\\
-        \edef\etb@tempa{%
-      \endgroup
-      \def\noexpand\etb@tempa{\noexpand\@testopt
-        \expandafter\noexpand\csname\string#1\endcsname}%
-      \def\noexpand\etb@tempb{\unexpanded\expandafter\expandafter\expandafter
-        {\expandafter\etb@carsquare#1{}{}\@nil}}%
-      }\etb@tempa
-      \ifx\etb@tempa\etb@tempb
-        \expandafter\@firstoftwo
-      \else
-        \expandafter\@secondoftwo
-      \fi}
-    %
-    % {<cstoken>}{<cstoken>}
-    %
-    \newrobustcmd*{\etb@copy@robustcmd}[2]{%
-      \begingroup
-        \escapechar=`\\
-        \edef\etb@tempa{%
-      \endgroup
-      \protected\def\noexpand#1{\noexpand\@testopt
-        \expandafter\noexpand\csname\string#1\endcsname
-        \unexpanded\expandafter\expandafter\expandafter
-          {\expandafter\@gobbletwo#2}}%
-      \let\expandafter\noexpand\csname\string#1\endcsname
-          \expandafter\noexpand\csname\string#2\endcsname
-      }\etb@tempa}
-    \g@addto@macro\@declarecommandcopylisthook
-      {{\etb@if@robustcmd\etb@copy@robustcmd}}
-  }{}
 % {<csname>}
 
 \newcommand*{\csuse}[1]{%
@@ -927,12 +881,10 @@
 % {<cstoken>}
 
 \newrobustcmd{\undef}[1]{\let#1\etb@undefined}
-\newrobustcmd{\gundef}[1]{\global\let#1\etb@undefined}
 
 % {<csname>}
 
 \newrobustcmd*{\csundef}[1]{\cslet{#1}\etb@undefined}
-\newrobustcmd*{\csgundef}[1]{\global\cslet{#1}\etb@undefined}
 
 % {<cstoken>}{<code>}
 
@@ -1224,7 +1176,6 @@
   \etb@resrvda
   \makeatletter
   \endlinechar\m@ne
-  \newlinechar\m@ne
   \scantokens\expandafter{\etb@resrvda}%
   \expandafter\endgroup\ifx#1\etb@resrvda
     \expandafter\@firstoftwo
@@ -1282,7 +1233,9 @@
               \@tempswafalse}}
           {\protected\edef#1{\expandonce\etb@resrvda}}%
         \if@tempswa
-          \csundef{\expandafter\@gobble\string#1 }%
+          \ifcsdef{\string#1 }
+            {}
+            {\csundef{\expandafter\@gobble\string#1 }}%
         \fi
         \undef\etb@resrvda}
        {\etb@error{\string#1 not a macro}\@eha}}}
@@ -1537,85 +1490,42 @@
   \@ifdefinable#2{#1{#2}{#3}}}
 
 \def\etb@defparser@do#1#2{%
-  \ifblank{#2}{\long\def#1##1{%
-    \etb@lst@@notoken@do##1\etb@lst@q@end&}}
-    {\etb@defparser@do@aux{#1}{#2}}}
-
-\def\etb@defparser@do@aux#1#2{%
   \begingroup
   \edef\@tempa{\endgroup
     \long\def\noexpand#1####1{%
       \expandafter\noexpand
       \csname etb@lst@\expandafter\@gobble\string#1\endcsname
-      \noexpand\@nil####1\noexpand#2\noexpand\etb@lst@q@end\noexpand#2&}%
-    \long\csdef{etb@lst@\expandafter\@gobble\string#1}%
-      ####1\noexpand#2{%
-      \noexpand\expandafter\noexpand\ifx\noexpand\expandafter
-      \noexpand\etb@lst@q@end\noexpand\@gobble####1\noexpand\@empty
-        \noexpand\expandafter\noexpand\@firstoftwo
-      \noexpand\else
-        \noexpand\expandafter\noexpand\@secondoftwo
-      \noexpand\fi
+      \space####1\noexpand#2&}%
+    \long\csdef{etb@lst@\expandafter\@gobble\string#1}####1\noexpand#2####2&{%
+      \noexpand\etb@listitem\noexpand\do{####1}%
+      \noexpand\ifblank{####2}
         {\noexpand\listbreak}
-        {\noexpand\etb@listitem\noexpand\do{####1}%
-         \expandafter\noexpand
+        {\expandafter\noexpand
          \csname etb@lst@\expandafter\@gobble\string#1\endcsname
-         \noexpand\@nil}}}%
+	 \space####2}&}}%
   \@tempa}
 
-\long\def\etb@lst@@notoken@do#1{%
-  \ifx\etb@lst@q@end#1\@empty
-    \expandafter\@firstoftwo
-  \else
-    \expandafter\@secondoftwo
-  \fi
-    {\listbreak}
-    {\do{#1}%
-    \etb@lst@@notoken@do}}
-
-\def\etb@lst@q@end{\etb@lst@q@end}
-
 \def\etb@defparser@arg#1#2{%
-  \ifblank{#2}{\long\def#1##1##2{%
-    \etb@lst@@notoken@arg{##1}##2\etb@lst@q@end&}}
-    {\etb@defparser@arg@aux{#1}{#2}}}
-
-\def\etb@defparser@arg@aux#1#2{%
   \begingroup
   \edef\@tempa{\endgroup
     \long\def\noexpand#1####1####2{%
       \expandafter\noexpand
       \csname etb@lst@\expandafter\@gobble\string#1\endcsname
-      {####1}\noexpand\@nil####2\noexpand#2\noexpand\etb@lst@q@end\noexpand#2&}%
-    \long\csdef{etb@lst@\expandafter\@gobble\string#1}####1####2\noexpand#2{%
-      \noexpand\expandafter\noexpand\ifx\noexpand\expandafter
-      \noexpand\etb@lst@q@end\noexpand\@gobble####2\noexpand\@empty
-        \noexpand\expandafter\noexpand\@firstoftwo
-      \noexpand\else
-        \noexpand\expandafter\noexpand\@secondoftwo
-      \noexpand\fi
+      {####1}\space####2\noexpand#2&}%
+    \long\csdef{etb@lst@\expandafter\@gobble\string#1}####1####2\noexpand#2####3&{%
+      \noexpand\etb@listitem{####1}{####2}%
+      \noexpand\ifblank{####3}
         {\noexpand\listbreak}
-        {\noexpand\etb@listitem{####1}{####2}%
-         \expandafter\noexpand
+        {\expandafter\noexpand
          \csname etb@lst@\expandafter\@gobble\string#1\endcsname
-                {####1}\noexpand\@nil}}}%
+	 {####1}\space####3}&}}%
   \@tempa}
 
-\long\def\etb@lst@@notoken@arg#1#2{%
-  \ifx\etb@lst@q@end#2\@empty
-    \expandafter\@firstoftwo
-  \else
-    \expandafter\@secondoftwo
-  \fi
-    {\listbreak}
-    {#1{#2}%
-    \etb@lst@@notoken@arg{#1}}}
-
 \long\def\etb@listitem#1#2{%
-  \expandafter\ifblank\expandafter{\@gobble#2}
+  \ifblank{#2}
     {}
     {\expandafter\etb@listitem@i
-     \expandafter{\@secondoftwo#2}{#1}}}
+     \expandafter{\@firstofone#2}{#1}}}
 \long\def\etb@listitem@i#1#2{#2{#1}}
 
 \newcommand*{\listbreak}{}
@@ -1655,30 +1565,6 @@
 \newrobustcmd{\listcsxadd}[1]{%
   \expandafter\listxadd\csname#1\endcsname}
 
-% {<listmacro>}{<string>}
-
-\newrobustcmd{\listremove}[2]{%
-  \etb@listremove{#1}{#2}\def}
-\newrobustcmd{\listgremove}[2]{%
-  \etb@listremove{#1}{#2}\gdef}
-
-\protected\long\def\etb@listremove#1#2#3{%
-  \ifblank{#2}
-    {}
-    {\ifinlist{#2}{#1}{%
-     \begingroup
-     \def\etb@tempa##1|#2|##2&{\endgroup
-       \expandafter#3\expandafter#1\expandafter{\@gobble##1|##2}}%
-    \expandafter\etb@tempa\expandafter|#1&}{}}%
-}
-
-% {<listcsname>}{<string>}
-
-\newrobustcmd{\listcsremove}[1]{%
-  \expandafter\listremove\csname#1\endcsname}
-\newrobustcmd{\listcsgremove}[1]{%
-  \expandafter\listgremove\csname#1\endcsname}
-
 % {<string>}{<listmacro>}{<true>}{<false>}
 
 \newrobustcmd{\ifinlist}[2]{%
@@ -1708,19 +1594,16 @@
 \newcommand*{\forlistloop}[2]{%
   \expandafter\etb@forlistloop\expandafter{#2}{#1}}
 
-\long\def\etb@forlistloop#1#2{\etb@forlistloop@i{#2}#1|\etb@lst@q@end|&}
+\long\def\etb@forlistloop#1#2{\etb@forlistloop@i{#2}#1|&}
 
-\long\def\etb@forlistloop@i#1#2|{%
-  \ifx\etb@lst@q@end#2\@empty
-    \expandafter\@firstoftwo
-  \else
-    \expandafter\@secondoftwo
-  \fi
+\long\def\etb@forlistloop@i#1#2|#3&{%
+  \ifblank{#2}
+    {}
+    {#1{#2}}%
+  \ifblank{#3}
     {\listbreak}
-    {\ifblank{#2}
-      {}
-      {#1{#2}}%
-      \etb@forlistloop@i{#1}}}
+    {\etb@forlistloop@i{#1}#3}%
+  &}
 
 % {<handler>}{<listcsname>} => <handler>{<item1>}<handler>{<item2>}...
 
@@ -1735,17 +1618,6 @@
 % {<listcsname>} => \do{<item1>}\do{<item2>}...
 
 \newcommand*{\dolistcsloop}{\forlistcsloop\do}
-
-\providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
-\IfFormatAtLeastTF{2020-10-01}
-  {%
-    \newrobustcmd*{\AtEndPreamble}{\AddToHook{begindocument/before}}%
-    \let\AfterPreamble\AtBeginDocument
-    \newrobustcmd*{\AfterEndPreamble}{\AddToHook{begindocument/end}}%
-    \newrobustcmd*{\AfterEndDocument}{\AddToHook{enddocument/end}}%
-    \endinput
-  }
-  {}
 
 % {<code>}
 
@@ -1802,41 +1674,20 @@
 \newrobustcmd{\AtBeginEnvironment}[1]{%
   \csgappto{@begin@#1@hook}}
 
-\ifcsname begin \endcsname
-  \expandafter\patchcmd\csname begin \endcsname
-    {\csname #1\endcsname}
-    {\csuse{@begin@#1@hook}%
-     \csname #1\endcsname}
-    {}
-    {\etb@warning{%
-       Patching '\string\begin' failed!\MessageBreak
-       '\string\AtBeginEnvironment' will not work\@gobble}}
-\else
-  \patchcmd\begin
-    {\csname #1\endcsname}
-    {\csuse{@begin@#1@hook}%
-     \csname #1\endcsname}
-    {}
-    {\etb@warning{%
-       Patching '\string\begin' failed!\MessageBreak
-       '\string\AtBeginEnvironment' will not work\@gobble}}
-\fi
+\patchcmd\begin
+  {\csname #1\endcsname}
+  {\csuse{@begin@#1@hook}%
+   \csname #1\endcsname}
+  {}
+  {\etb@warning{%
+     Patching '\string\begin' failed!\MessageBreak
+     '\string\AtBeginEnvironment' will not work\@gobble}}
 
 % {<environment>}{<code>}
 
 \newrobustcmd{\AtEndEnvironment}[1]{%
   \csgappto{@end@#1@hook}}
 
-\ifcsname end \endcsname
-\expandafter\patchcmd\csname end \endcsname
-  {\csname end#1\endcsname}
-  {\csuse{@end@#1@hook}%
-   \csname end#1\endcsname}
-  {}
-  {\etb@warning{%
-     Patching '\string\end' failed!\MessageBreak
-     '\string\AtEndEnvironment' will not work\@gobble}}
-\else
 \patchcmd\end
   {\csname end#1\endcsname}
   {\csuse{@end@#1@hook}%
@@ -1845,54 +1696,31 @@
   {\etb@warning{%
      Patching '\string\end' failed!\MessageBreak
      '\string\AtEndEnvironment' will not work\@gobble}}
-\fi
 
 % {<environment>}{<code>}
 
 \newrobustcmd{\BeforeBeginEnvironment}[1]{%
   \csgappto{@beforebegin@#1@hook}}
 
-\ifcsname begin \endcsname
-  \expandafter\pretocmd\csname begin \endcsname
-    {\csuse{@beforebegin@#1@hook}}
-    {}
-    {\etb@warning{%
-       Patching '\string\begin' failed!\MessageBreak
-       '\string\BeforeBeginEnvironment' will not work\@gobble}}
-\else
-  \pretocmd\begin
-    {\csuse{@beforebegin@#1@hook}}
-    {}
-    {\etb@warning{%
-       Patching '\string\begin' failed!\MessageBreak
-       '\string\BeforeBeginEnvironment' will not work\@gobble}}
-\fi
+\pretocmd\begin
+  {\csuse{@beforebegin@#1@hook}}
+  {}
+  {\etb@warning{%
+     Patching '\string\begin' failed!\MessageBreak
+     '\string\BeforeBeginEnvironment' will not work\@gobble}}
 
 % {<environment>}{<code>}
 
 \newrobustcmd{\AfterEndEnvironment}[1]{%
   \csgappto{@afterend@#1@hook}}
 
-\let\if@ignore\relax
-\ifcsname end \endcsname
-  \expandafter\patchcmd\csname end \endcsname
-    {\if@ignore}
-    {\csuse{@afterend@#1@hook}%
-     \if@ignore}
-    {}
-    {\etb@warning{%
-       Patching '\string\end' failed!\MessageBreak
-       '\string\AfterEndEnvironment' will not work\@gobble}}
-\else
-  \patchcmd\end
-    {\if@ignore}
-    {\csuse{@afterend@#1@hook}%
-     \if@ignore}
-    {}
-    {\etb@warning{%
-       Patching '\string\end' failed!\MessageBreak
-       '\string\AfterEndEnvironment' will not work\@gobble}}
-\fi
-\let\if@ignore\iffalse
+\patchcmd\end
+  {\if@ignore}
+  {\csuse{@afterend@#1@hook}%
+   \if@ignore}
+  {}
+  {\etb@warning{%
+     Patching '\string\end' failed!\MessageBreak
+     '\string\AfterEndEnvironment' will not work\@gobble}}
 
 \endinput

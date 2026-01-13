@@ -16,7 +16,7 @@
 %
 % This work consists of the file jcappub.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{jcappub}[2012/08/02 r764]
+\ProvidesPackage{jcappub}[2018/12/04 v.1.1227]
 
 
 \gdef\@fpheader{Prepared for submission to JCAP}
@@ -29,18 +29,17 @@
 \RequirePackage{epsfig}
 \RequirePackage{graphicx}
 \RequirePackage[numbers,sort&compress]{natbib}
-\RequirePackage{color}
 \RequirePackage[colorlinks=true
-,urlcolor=blue
-,anchorcolor=blue
-,citecolor=blue
-,filecolor=blue
-,linkcolor=blue
-,menucolor=blue
-,pagecolor=blue
-,linktocpage=true
-,pdfproducer=medialab
-,pdfa=true
+  ,urlcolor=blue
+  ,anchorcolor=blue
+  ,citecolor=blue
+  ,filecolor=blue
+  ,linkcolor=blue
+  ,menucolor=blue
+  ,pagecolor=blue
+  ,linktocpage=true
+  ,pdfproducer=medialab
+  ,pdfa=true
 ]{hyperref}
 
 \newif\ifnotoc\notocfalse
@@ -210,7 +209,7 @@ E-mail: \the\email@toks
 % Keywords
 \if!\@keywords!\else\noindent{\bfseries\large\sffamily{Keywords:}} {\@keywords}\afterKeywordsSpace\fi
 % Arxivnumber
-\if!\@arxivnumber!\else\noindent{\bfseries\large\sffamily{ArXiv ePrint:}} \href{http://arxiv.org/abs/\@arxivnumber}{\@arxivnumber}\afterArxivSpace\fi
+\if!\@arxivnumber!\else\noindent{\bfseries\large\sffamily{ArXiv ePrint:}} \href{https://arxiv.org/abs/\@arxivnumber}{\@arxivnumber}\afterArxivSpace\fi
 % Dedication
 \if!\@dedicated!\else\vbox{\small\it\raggedleft\@dedicated}\goodbreak\afterDedicatedSpace\fi
 %
@@ -257,7 +256,7 @@ E-mail: \the\email@toks
 \renewcommand\bottomfraction{.6}
 \setcounter{totalnumber}{5}
 \renewcommand\textfraction{0}
-\renewcommand\floatpagefraction{1}
+\renewcommand\floatpagefraction{0.8}
 \setlength{\floatsep}{14pt plus 8pt minus 6pt}
 
 \setlength\arraycolsep{2\p@}            % TO MATCH eqnarrays<->equations
@@ -310,10 +309,10 @@ E-mail: \the\email@toks
                                    {1.75ex \@plus1ex \@minus.2ex}%
                                    {-1em}%
                                    {\normalfont\normalsize\bfseries}}
-\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\z@}%
                                    {1.75ex \@plus1ex \@minus .2ex}%
                                    {-1em}%
-                                   {\normalfont\normalsize\bfseries}}
+                                   {\normalfont\normalsize\itshape}}
 
 
 %Caption of figure and table

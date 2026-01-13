@@ -15,11 +15,11 @@
 %% given in the file `manifest.txt'.
 %% 
 
-%% $Id: cas-dc.cls 49 2020-03-14 09:05:10Z rishi $
+%% $Id: cas-dc.cls 66 2021-05-11 14:17:42Z rishi $
 
  \def\RCSfile{cas-dc}%
- \def\RCSversion{2.1}%
- \def\RCSdate{2020/03/14}%
+ \def\RCSversion{2.3}%
+ \def\RCSdate{2021/05/11}%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{\RCSfile}[\RCSdate, \RCSversion: Formatting class
    for CAS double column articles]

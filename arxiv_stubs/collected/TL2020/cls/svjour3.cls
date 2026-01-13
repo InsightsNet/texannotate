@@ -533,8 +533,8 @@ later}
 \def\makeheadbox{{%
 \hbox to0pt{\vbox{\baselineskip=10dd\hrule\hbox
 to\hsize{\vrule\kern3pt\vbox{\kern3pt
-\hbox{This is a post-peer-review, pre-copyedit version of an article published in Autonomous Robots.}
-\hbox{The final authenticated version is available online at: http://dx.doi.org/10.1007/s10514-017-9682-5}
+\hbox{\bfseries\@journalname\ manuscript No.}
+\hbox{(will be inserted by the editor)}
 \kern3pt}\hfil\kern3pt\vrule}\hrule}%
 \hss}}}
 %

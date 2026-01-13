@@ -63,7 +63,7 @@
 % hyperref is used to ensure author names 
 % do not appear in PDF metadata
 \RequirePackage[pdfauthor={Author name(s) withheld},
-                pdftitle={Submitted to SSW},
+                pdftitle={Submitted to INTERSPEECH},
                 colorlinks=false,
                ]{hyperref}
 
@@ -171,7 +171,7 @@
 	\ifinterspeechfinal
 	     \@name
     \else
-         Anonymous submission to SSW 2023
+         Anonymous submission to INTERSPEECH 2023
     \fi
 }
 

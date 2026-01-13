@@ -21,11 +21,11 @@
 %%%                        class, which is intended to meet the requirements
 %%%                        for University of California Master thesis.
 %%%			   It is a direct port to LaTeX2e from UCTHESIS
-%%%			   v2.7 by Ethan V. Munson, with no changes other
+%%%			   v2.7 by Ethan V. Munson, with no changes other 
 %%%			   than those for compatibility.  The major modifictions
 %%%			   are in the font selection commands in the option
 %%%			   files uct1x.clo.
-%%%			
+%%%			   
 %%%			   UCTHESIS.STY v2.7 is based on the standard
 %%%			   report.sty as modified by Mittelbach and Schopf in
 %%%			   Jan 1992.  The primary differences are (1) the use
@@ -41,13 +41,13 @@
 %%%                        that arise with it.
 %%%
 %%%			   Version 2.x fixes a bug in the previous
-%%%			   version of 20 Jun 1988.  The bug was that
+%%%			   version of 20 Jun 1988.  The bug was that 
 %%%			   "draft" optional mode didn't work because of
 %%%			   problems in handling optional arguments.
-%%%                        This file does not seem to work with earlier
+%%%                        This file does not seem to work with earlier 
 %%%                        versions of LaTeX (pre-Jan 1992).
 %%%
-%%%			   Version 2.3 includes a single-spaced
+%%%			   Version 2.3 includes a single-spaced 
 %%%			   tabular* environment.
 %%%			
 %%%			   Version 2.4 sets \evensidemargin correctly
@@ -72,25 +72,25 @@
 %%%
 %%%			   Version 3.0 is a direct port of version 2.7
 %%%			   to LaTeX2e.  The major revisions in ucthesis.cls
-%%%			   are converting option processing to LaTeX2e
+%%%			   are converting option processing to LaTeX2e 
 %%%			   conventions.  The uct1x files have been revised
 %%%			   to use the new font selection commands.
 %%%
-%%%			   Version 3.1 makes the following changes:
+%%%			   Version 3.1 makes the following changes:   
 %%%				``U of C at CAMPUS'' is now ``U of C, CAMPUS''
 %%%				new degreesemester variable
 %%%				roman numeral frontmatter begins with page i,
 %%%					not iii
 %%%				``acknowledgments'' not ``acknowledgements''
 %%%
-%%%			   Some users have had problems with the
+%%%			   Some users have had problems with the 
 %%%			   margins ending up too small on one side.
 %%%			   This appears to be a DVI-to-PostScript
 %%%			   driver or printer-adjustment problem.
 %%%			   If you have such trouble, make small adjustments
 %%%			   to the \textwidth and \oddsidemargin
 %%%			   settings in your document preamble.
-%%%			
+%%%			   
 %%%			   Another problem some people have had is
 %%%			   that you can't use \pagestyle{headings}
 %%%			   and \markboth if you use \part.  The solution
@@ -116,9 +116,6 @@
 
 % type of manuscript submitted
 \newcommand\@workType{}
-
-% string describing the role of committee members
-\newcommand\@committeeRole{}
 
 \DeclareOption{10pt}{\renewcommand\@ptsize{0}}
 \DeclareOption{11pt}{\renewcommand\@ptsize{1}}
@@ -152,7 +149,7 @@
 % version.  To break this dependency, I have made \ds@draft set a marker
 % which is later tested to determine whether to actually do the draft
 % mode actions.
-%
+% 
 % Ethan Munson (October 16, 1992)
 
 % FMi 91/03/30: made twocolum.sty a file and twocolumn an option.
@@ -166,22 +163,20 @@
 
 % The \ProcessOptions command causes the execution of every option command
 % FOO which is declared and for which the user typed the FOO option in his
-% \documentclass.  For every undeclared option BAR there will be a warning
+% \documentclass.  For every undeclared option BAR there will be a warning 
 % message. (BBF 10/31/94)
 
 \ProcessOptions\relax
 
-% define work type based on passed option
+% define work type based on passed option 
 \if@isDissertation
 \renewcommand\@workType{Dissertation}
-\renewcommand\@committeeRole{Committee Member}
 \else
 \renewcommand\@workType{Thesis}
-\renewcommand\@committeeRole{Committee Member}
 \fi
 
-% make hyperref happy and define the page height
-% assuming letter paper
+% make hyperref happy and define the page height 
+% assuming letter paper 
 \setlength{\paperheight}{11in}
 
 \input macro/uct1\@ptsize.clo\relax
@@ -258,7 +253,7 @@
 \def\partname{Part}
 %             ~~~~
 % abstract environment:
-\def\abstractname{Abstract of the \expandafter{\@workType}}
+\def\abstractname{Abstract}
 %                 ~~~~~~~~
 %
 % acknowledge environment:
@@ -276,7 +271,7 @@
 % DECLARATIONS
 %
 % These macro are used to declare arguments needed for the
-% construction of the front matter.
+% construction of the front matter.  
 
 % The year the degree will be officially conferred
 \def\degreeyear#1{\gdef\@degreeyear{#1}}
@@ -324,7 +319,7 @@
 
 % \alwayssingle and \endalwayssingle
 %
-% These macro define an environment for front matter that is always
+% These macro define an environment for front matter that is always 
 % single column even in a double-column document.
 
 \def\alwayssingle{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
@@ -333,14 +328,12 @@
 \def\endalwayssingle{\if@restonecol\twocolumn \else \newpage \fi}
 
 % \maketitle outputs the complete titlepage.  It requires all the
-% above macro except \campuscap.  It is probably not correct for
+% above macro except \campuscap.  It is probably not correct for 
 % joint (e.g. UCSD/SDSU) degrees.
 
 % Set the font that will be used in the front matter headings
 \def\fmfont{\fontsize\@xiipt{14.5}\selectfont}
 \def\fmsmallfont{\fontsize\@xiipt{14pt}\selectfont}
-
-\def\nuid#1{\gdef\@nuid{#1}}
 
 % copied from neu-ths2002.cls
 \def\dept#1{\gdef\@dept{#1}}
@@ -348,7 +341,7 @@
 \def\fieldname#1{\gdef\@fieldname{#1}}
 \def\principaladviser#1{\gdef\@principaladviser{#1}}
 \def\dean#1{\gdef\@dean{#1}}
-\def\advis@r{Advisor}
+\def\advis@r{Advisor} 
 \def\principaladvisor#1{\gdef\@principaladviser{#1}\gdef\advis@r{Advisor}}
 \def\firstreader#1{\gdef\@firstreader{#1}}
 \def\secondreader#1{\gdef\@secondreader{#1}}
@@ -359,7 +352,8 @@
 \def\submitdate#1{\gdef\@submitdate{#1}}
 \def\copyrightyear#1{\gdef\@copyrightyear{#1}} % \author, \title in report
 
-% define references so we can use them in the document
+
+% define references so we can use them in the document 
 \gdef\titleRef{\@title}
 \gdef\authorRef{\@author}
 \gdef\degreeRef{\@degree}
@@ -426,17 +420,17 @@
     UNIVERSITY OF CALIFORNIA, \\
     {\expandafter\uppercase\expandafter{\@campus}} \\
     \bigskip \bigskip \bigskip
-
-    \textbf{{%% \normalsize
-    {\@title}
+    
+    \textbf{{%% \normalsize 
+    {\@title} 
     }}\\
 
-    \bigskip
+    \bigskip 
     THESIS\\
     \bigskip \bigskip \bigskip
-    submitted in partial fullfilment of the requirements \\
+    submitted in partial satisfaction of the requirements \\
     for the degree of \\
-    \bigskip \bigskip \bigskip
+    \bigskip \bigskip \bigskip   
     {\expandafter\uppercase\expandafter{\@degree}} \\
     \bigskip
     in {\@field} \\
@@ -475,76 +469,57 @@
 	\begin{minipage}{6.5in}
 	% \parindent=0.5in
 	\begin{tabular}{lc}
-	\hbox {\shortstack{\vrule width 4in height 0.4pt}} & \hbox
-	{\shortstack{\vrule width 1in height 0.4pt}} \hfil \\ % [-15pt]
+	\hbox {\shortstack{\vrule width 3.5in height 0.4pt}} & \hbox
+	{\shortstack{\vrule width 1.5in height 0.4pt}} \hfil \\ % [-15pt]
 	#1 & Date \hfil
 	\end{tabular}
 	\end{minipage}
 }
-
-\newcommand{\signatureB}[2]{%
-	\begin{minipage}{6.5in}
-	% \parindent=0.5in
-	\begin{tabular}{p{0.44\textwidth}cc}
-	#1 &~&\\
-	#2 & \hbox {\shortstack{\vrule width 1.4in height 0.4pt}} & \hbox
-	{\shortstack{\vrule width 0.8in height 0.4pt}} \hfil \\ [-6pt]
-	& {\scriptsize Signature}& {\scriptsize  Date}
-	\end{tabular}
-	\end{minipage}
-}
-
 
 \def\signaturepage{%
 	\thispagestyle{empty}
 	\vspace*{-2cm}
 	\begin{center}
 	{\Large NORTHEASTERN UNIVERSITY}\\
-	{\bf Graduate School of Engineering}\\
-	{\bf \expandafter{\@workType} Signature Page}
+	{\bf Graduate School of Engineering}
 	\end{center}
-	\vspace{20pt}
-	\begin{minipage}{6.5in}
-		\begin{tabular}{p{0.18\textwidth}p{0.7\textwidth}}
-			%GS note the 4pt glue after newline, creates space between rows
-			{\bf \expandafter{\@workType} Title:} & \expandafter{\@title} \\[4pt]
-			%{\bf Author:} & \expandafter{\@author} \hspace{1.5cm} \\[4pt]
-			%{\bf NUID:} & \@nuid \\[4pt]
-			{\bf Author:} & \expandafter{\@author}% \hspace{1.5cm} \hfil {\bf NUID:} \hspace{6pt} \@nuid \\[4pt]
-            \hfill {\bf NUID:} \hspace{6pt} \@nuid \\[4pt]
-			{\bf Department:} & \@dept \\[4pt]
-		\end{tabular}
-  \end{minipage}      	
+	\vfill
+	{\bf \expandafter{\@workType} Title:} \expandafter{\@title}.
+       	\\ [10pt] 
+	{\bf Author:} \@author.
+	\\ [10pt] 
+	{\bf Department:} \@dept.
 	\vfill
 	\noindent
 	Approved for \expandafter{\@workType} Requirements of the \expandafter{\@degree} Degree
 	\\ [20pt]
-  	\signatureB{\expandafter{\@workType} Advisor}{\@principaladviser}
+  	\signature{\expandafter{\@workType} Primary Adviser: \@principaladviser}
 	\\ [10pt]
-	\signatureB{\expandafter{\@workType} \@committeeRole}{\@firstreader}
-	\\ [10pt]
-	\signatureB{\expandafter{\@workType} \@committeeRole}{\@secondreader}
-	\\ [10pt]
+	\signature{\expandafter{\@workType} Secondary Adviser: \@firstreader}
+	\\ [10pt] 
+	%\signature{\expandafter{\@workType} Reader: \@secondreader}
+	%\\ [10pt]
 	% ... sorry don't know how to make a loop yet
 	% if more than 3 members
   \ifnum \@numberofmembers > 3
-		\signatureB{\expandafter{\@workType} \@committeeRole}{\@thirdreader}
+		\signature{\expandafter{\@workType} Reader: \@thirdreader}
 		\\ [10pt]
   \fi
 	% if more than 4 members
   \ifnum \@numberofmembers > 4
-		\signatureB{\expandafter{\@workType} \@committeeRole}{\@fourthreader}
+		\signature{\expandafter{\@workType} Reader: \@fourthreader}
 		\\ [10pt]
   \fi
 	% if more than 5 members
   \ifnum \@numberofmembers > 5
-		\signatureB{\expandafter{\@workType} \@committeeRole}{\@fifthreader}
+		\signature{\expandafter{\@workType} Reader: \@fifthreader}
 		\\ [10pt]
   \fi
-	\signatureB{Department Chair}{\@chairman}
+	\signature{Department Chair: \@chairman}
 	\\ % [-10pt]
-	\\ [15pt]
-  \signatureB{Senior Associate Dean for Academic Affairs}{\@dean}
+% 	Director of the Graduate School: 
+% 	\\ [20pt] 
+% 	\signature{Dean: \@dean}
 	\newpage
 
 }
@@ -552,7 +527,7 @@
 % APPROVALPAGE
 %
 % The \approvalpage macro emits a UC-approved approval page ready for
-% your committee's signature.  It is not an automatic part of the
+% your committee's signature.  It is not an automatic part of the 
 % output because there's really no point in printing it until you are
 % ready to get signatures.  It requires the the \year, \author, and
 % \campus macro have been defined.  It uses lots of tricky spacing
@@ -614,7 +589,7 @@
         \noindent\rule{\linewidth}{0pt}
         \vfill
 \begin{center}
-
+  
 }
 \def\endcopyrightpage{
 %\par\vfil\null
@@ -645,13 +620,13 @@ by \\
 \@author \\
 {\@degree} in {\@field} \\
 Northeastern University, {\@submitdate} \\
-{\@principaladviser}, Advisor} \\
+{\@principaladviser}, Adviser} \\
 \end{center}
 \medskip}}
 
 \def\endabstract{\vfil\null\end{alwayssingle}
 }
-
+ 
 \def\abstractsignature{
 \hspace*{\fill}
 \begin{minipage}[t]{3.25in}
@@ -668,13 +643,13 @@ Northeastern University, {\@submitdate} \\
 % own page.
 
 \newenvironment{dedication}
-{\cleardoublepage %% \thispagestyle{empty}
+{\cleardoublepage %% \thispagestyle{empty} 
  \vspace*{\stretch{1}} \begin{center} \em}
 {\end{center} \vspace*{\stretch{3}} \clearpage}
 
 % ACKNOWLEDGEMENTS
 %
-% The acknowledgements environment puts a large, bold, centered
+% The acknowledgements environment puts a large, bold, centered 
 % "Acknowledgements" label at the top of the page.
 
 \newenvironment{acknowledgements}
@@ -687,7 +662,7 @@ Northeastern University, {\@submitdate} \\
 \newenvironment{cv}
 {\begin{alwayssingle}
 \chapter*{\cvname}
-\addcontentsline{toc}{chapter}{\cvname}}
+\addcontentsline{toc}{chapter}{\cvname}} 
 {\end{alwayssingle}}
 
 % FRONTMATTER environment
@@ -833,9 +808,9 @@ Northeastern University, {\@submitdate} \\
 {\par\ssp\def\@halignto{to#1}\@tabular}
 
 % \smalltabular and \smalltabular* are alternative tabular styles
-% in the \small font.  They are required because single-spacing implies a
+% in the \small font.  They are required because single-spacing implies a 
 % change of font to a particular size.
-% EVM, 7/20/93
+% EVM, 7/20/93 
 \def\smalltabular{\par\smallssp\let\@halignto\@empty\@tabular}
 \def\endsmalltabular{\endtabular}
 \expandafter \def\csname smalltabular*\endcsname #1%
@@ -1240,7 +1215,7 @@ Northeastern University, {\@submitdate} \\
    \edef\@currentlabel{\csname p@footnote\endcsname\@thefnmark}\@makefntext
     {\rule{\z@}{\footnotesep}\ignorespaces
       #1\strut}}}
-
+ 
 %    ****************************************
 %    *         FIGURES AND TABLES           *
 %    ****************************************
@@ -1276,7 +1251,7 @@ Northeastern University, {\@submitdate} \\
 
 \long\def\@makecaption#1#2{% Add space only if something is ...
    \par\ifdim\prevdepth>-\p@ \vskip 10\p@\relax \fi % above the caption
-   \setbox\@tempboxa\hbox{\vbox to\topskip{}#1: #2\unskip\strut}%
+   \setbox\@tempboxa\hbox{\vbox to\topskip{}#1: #2\unskip\strut}% 
    \ifdim \wd\@tempboxa >\hsize      % IF longer than one line:
        {\ssp#1: #2\unskip\strut\par} %   THEN set as ordinary paragraph.
      \else                           %   ELSE  center.

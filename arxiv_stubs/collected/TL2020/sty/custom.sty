@@ -1,112 +1,99 @@
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{custom}
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{custom}[2013/01/13 Custom Package]
 
-%%%% MATHS
+\RequirePackage{amsmath}
 
-%% Provide dcases (better display of fractions than cases from AMS), definition of new delimiters with \DeclarePairedDelimiter, fine math adjustments
-\usepackage{mathtools} 
-
-%% Provides mathscr command
-\usepackage{mathrsfs}  
-
-%% Non built-in functions
-\newcommand{\sgn}{\mbox{sgn}} 
-
-%% Dimensionless groups: Italic font
-\let\Ree=\Re % rename builtin command \Re to \Ree
-\let\Prr=\Pr % rename builtin command \Pr to \Prr
-\renewcommand{\Re}{\mbox{\textit{Re}}}
-\newcommand{\Fr}{\mbox{\textit{Fr}}}
-\newcommand{\We}{\mbox{\textit{We}}}
-\newcommand{\Ar}{\mbox{\textit{Ar}}}
-\newcommand{\Eo}{\mbox{\textit{Eo}}}
-\newcommand{\Bo}{\mbox{\textit{Bo}}}
-\newcommand{\Mo}{\mbox{\textit{Mo}}}
-\newcommand{\Ga}{\mbox{\textit{Ga}}}
-\newcommand{\Ca}{\mbox{\textit{Ca}}}
-\newcommand{\Pe}{\mbox{\textit{Pe}}}
-\newcommand{\Sh}{\mbox{\textit{Sh}}}
-\newcommand{\St}{\mbox{\textit{St}}}
-\newcommand{\Sr}{\mbox{\textit{Sr}}}
-\renewcommand{\Pr}{\mbox{\textit{Pr}}}
-\newcommand{\Sc}{\mbox{\textit{Sc}}}
-
-%% Constants: Upright Roman font
-\let\dotlessi=\i % rename builtin command \i{} to \dotlessi{}
-\renewcommand{\i}{\mathrm{i}}
-
-%% Orders: Italic font
-\let\OO=\O % rename builtin command \O to \OO
-\let\oo=\o % rename builtin command \o to \oo
-\renewcommand{\O}{\textit{O}}
-\renewcommand{\o}{\textit{o}}
-
-%% Vectors: Bold italic font
-\let\vaccent=\v % rename builtin command \v{} to \vaccent{}
-\let\divsymb=\div % rename builtin command \div to \divsymb
-\renewcommand*{\v}[1]{\boldsymbol{#1}}
-\newcommand{\grad}{\bnabla} % gradient
-\renewcommand{\div}{\bnabla\bcdot} % divergence
-\newcommand{\curl}{\bnabla\times} % curl
-
-%% Tensors and matrices: Bold sloping sans serif font
-\newcommand{\m}[1]{\mathsfbi{#1}}
-
-%% Differential and derivatives
-\let\underdot=\d
-\renewcommand{\d}{\mathrm{d}}
-\newcommand{\id}{\, \d} % integral upright d
-\newcommand{\pd}[3][]{\frac{\partial^{#1} #2}{\partial #3^{#1}}} % multiple partial derivatives \pd[order(optional)]{top}{bottom}
-
-%% Delimiters
-\usepackage{ifthen}
-\newcommand{\autodelimiters}[3][-1]{
-% arg1: control the size (optional)
-% arg2: inside
-% arg3: type of delimiter
-\ifthenelse{\equal{#1}{-1}}{ % if
-#3*{#2}}{}
-\ifthenelse{\equal{#1}{0}}{ % if
-#3{#2}}{}
-\ifthenelse{\equal{#1}{1}}{ % if
-#3[\big]{#2}}{}
-\ifthenelse{\equal{#1}{2}}{ % if
-#3[\Big]{#2}}{}
-\ifthenelse{\equal{#1}{3}}{ % if
-#3[\bigg]{#2}}{}
-\ifthenelse{\equal{#1}{4}}{ % if
-#3[\Bigg]{#2}}{}
-}
-
-\DeclarePairedDelimiter\delimparen{(}{)}
-\DeclarePairedDelimiter\delimsquare{[}{]}
-\DeclarePairedDelimiter\delimcurly{\{}{\}}
-\DeclarePairedDelimiter\delimvert{\lvert}{\rvert}
-\DeclarePairedDelimiter\delimVert{\lVert}{\rVert}
-\DeclarePairedDelimiter\delimangle{\langle}{\rangle}
-
-\newcommand{\pa}[2][-1]{\autodelimiters[#1]{#2}{\delimparen}}
-\newcommand{\sq}[2][-1]{\autodelimiters[#1]{#2}{\delimsquare}}
-\newcommand{\cb}[2][-1]{\autodelimiters[#1]{#2}{\delimcurly}}
-
-\newcommand{\abs}[2][-1]{\autodelimiters[#1]{#2}{\delimvert}}
-\newcommand{\norm}[2][-1]{\autodelimiters[#1]{#2}{\delimvert}}
-\newcommand{\normtwo}[2][-1]{\autodelimiters[#1]{#2}{\delimVert}}
-\newcommand{\avg}[2][0]{\autodelimiters[#1]{#2}{\delimangle}}
+\ProcessOptions\relax
 
 
-%%%% MISC
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\Var}{\textrm{Var}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\nibf}{\noindent \textbf}
+\newcommand{\niit}{\noindent \textit}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\I}{\mathbb{I}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{R}\mathrm{P}}
+\newcommand{\Sph}{\mathbb{S}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\Tstd}{\mathcal{T}_\textrm{std}}
+\newcommand{\Rstd}{\mathbb{R}_\textrm{std}}
+\newcommand{\Rll}{\mathbb{R}_\textrm{LL}}
+\newcommand{\Rdh}{\mathbb{R}_{+00}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\B}{\mathbb{B}}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\wt}{\widetilde}
+\newcommand{\bs}{\backslash}
+\newcommand{\beq}{\begin{equation}}
+\newcommand{\eeq}{\end{equation}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\bi}{\begin{itemize}}
+	\newcommand{\ei}{\end{itemize}}
+\newcommand{\be}{\begin{enumerate}}
+	\newcommand{\ee}{\end{enumerate}}
+%\renewcommand{\baselinestretch}{2}
+\renewcommand{\arraystretch}{1}
+\newcommand{\no}{\noindent}
+\newcommand{\ol}{\overline}
+\newcommand{\ul}{\underline}
+\newcommand{\al}{\alpha}
+\newcommand{\Hbub}{\mathbb{H}_{\mathrm{bub}}}
+\newcommand{\degr}{^\circ}
+\newcommand{\tm}{\texttrademark}
+\newcommand{\tms}{\texttrademark\ }
+\newcommand{\im}{\mbox{Im}}
+\newcommand{\pre}{\mbox{Preim}}
+\newcommand{\Ker}{\mbox{Ker}}
+%\newcommand{\deg}{\mbox{deg}}
 
-% Tables
-\usepackage{multicol, multirow}
+\def\scriptP{\mathscr{P}}
+\def\scriptM{\mathcal{M}}
+\def\scriptA{\mathscr{A}}
+\def\scriptH{\mathcal{H}}
+\def\scriptW{\mathcal{W}}
+\def\scriptG{\mathcal{G}}
+\def\scriptF{\mathcal{F}}
+\def\scriptA{\mathcal{A}}
+\def\scriptX{\mathcal{X}}
+\def\scriptR{\mathcal{R}}
+\def\scriptT{\mathcal{T}}
+\def\scriptC{\mathcal{C}}
+\def\scriptL{\mathcal{Lą}}
 
-% Smart cross-referencing: automatically includes ``Figure'', ``Equation'', etc. when referencing. Command is \cref
-\usepackage[noabbrev]{cleveref}
 
-% Do not write ``Equation'' (X) but just (X)
-\crefformat{equation}{(#2#1#3)} % for simple equation
-\crefrangeformat{equation}{(#3#1#4) to~(#5#2#6)} % for range
-\crefmultiformat{equation}{(#2#1#3)}{ and~(#2#1#3)}{, (#2#1#3)}{ and~(#2#1#3)} % for list with ``and''
+\def\setZ{\mathsf{Z}}
+\def\setX{\mathsf{X}}
+\def\P{\mathbb{P}}
+\def\fI{\mathcal{I}}
+\def\dim{\mathop{\rm dim}\nolimits}
+\def\image{\mathop{\rm Im}\nolimits}  
+\def\interior{\mathop{\rm Int}\nolimits}
+\def\kernel{\mathop{\rm Ker}\nolimits}
+\def\bd{\mathop{\rm Bd}\nolimits}
+\def\ext{\mathop{\rm Ext}\nolimits}
+\def\num{\mathop{\#}\limits}
+\def\cl{\mathop{\rm Cl}\nolimits}
+\def\lub{\mathop{\rm lub}\nolimits}
+
+\newcommand{\relation}{\mathcal R}
+\newcommand{\cantor}{X_{C}}
+\newcommand{\varep}{\varepsilon}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\np}{\vfill\eject} 
+\newcommand{\vup}{\vspace{-.08in}}
+\newcommand{\cas}{\overset{a.s.}{\rightarrow}} 
+\newcommand{\cip}{\overset{p.}{\rightarrow}} 
+\newcommand{\cid}{\overset{d.}{\rightarrow}} 
+
 
 \endinput
-

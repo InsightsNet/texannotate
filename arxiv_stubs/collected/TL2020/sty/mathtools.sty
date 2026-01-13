@@ -9,29 +9,81 @@
 %% This is a generated file.
 %% 
 %% Copyright (C) 2002-2011 by Morten Hoegholm
+%% Copyright (C) 2012-2019 by Lars Madsen
+%% Copyright (C) 2020-     by Lars Madsen, the LaTeX3 project
+%% 
 %% 
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either
-%% version 1.3 of this license or (at your option) any later
+%% version 1.3c of this license or (at your option) any later
 %% version. The latest version of this license is in
 %%    http://www.latex-project.org/lppl.txt
-%% and version 1.3 or later is part of all distributions of
-%% LaTeX version 2005/12/01 or later.
+%% and version 1.3c or later is part of all distributions of
+%% LaTeX version 2008/05/04 or later.
 %% 
 %% This work has the LPPL maintenance status "maintained".
 %% 
 %% This Current Maintainer of this work is
-%% Lars Madsen, Will Robertson and Joseph Wright.
+%% Lars Madsen and the LaTeX3 project
 %% 
 %% This work consists of the main source file mathtools.dtx
 %% and the derived files
 %%    mathtools.sty, mathtools.pdf, mathtools.ins, mathtools.drv.
 %% 
 \ProvidesPackage{mathtools}%
-  [2012/04/24 v1.12 mathematical typesetting tools]
+  [2022/06/29 v1.29 mathematical typesetting tools]
 \RequirePackage{keyval,calc}
-\RequirePackage{mhsetup}[2010/01/21]
+\RequirePackage{mhsetup}[2021/03/18]
 \MHInternalSyntaxOn
+ % borrowed from fixltx2e
+\def\EQ_MakeRobust#1{%
+  \@ifundefined{\expandafter\@gobble\string#1}{%
+    \@latex@error{The~control~sequence~`\string#1'~is~undefined!%
+      \MessageBreak There~is~nothing~here~to~make~robust}%
+    \@eha
+  }%
+  {%
+    \@ifundefined{\expandafter\@gobble\string#1\space}%
+    {%
+      \expandafter\let\csname
+      \expandafter\@gobble\string#1\space\endcsname=#1%
+      \edef\reserved@a{\string#1}%
+      \def\reserved@b{#1}%
+      \edef\reserved@b{\expandafter\strip@prefix\meaning\reserved@b}%
+      \edef#1{%
+        \ifx\reserved@a\reserved@b
+          \noexpand\x@protect\noexpand#1%
+        \fi
+        \noexpand\protect\expandafter\noexpand
+        \csname\expandafter\@gobble\string#1\space\endcsname}%
+    }%
+    {\@latex@info{The~control~sequence~`\string#1'~is~already~robust}}%
+   }%
+}
+\def\forced_EQ_MakeRobust#1{%
+  \@ifundefined{\expandafter\@gobble\string#1}{%
+    \@latex@error{The~control~sequence~`\string#1'~is~undefined!%
+      \MessageBreak There~is~nothing~here~to~make~robust}%
+    \@eha
+  }%
+  {%
+    % \@ifundefined{\expandafter\@gobble\string#1\space}%
+    % {%
+      \expandafter\let\csname
+      \expandafter\@gobble\string#1\space\endcsname=#1%
+      \edef\reserved@a{\string#1}%
+      \def\reserved@b{#1}%
+      \edef\reserved@b{\expandafter\strip@prefix\meaning\reserved@b}%
+      \edef#1{%
+        \ifx\reserved@a\reserved@b
+          \noexpand\x@protect\noexpand#1%
+        \fi
+        \noexpand\protect\expandafter\noexpand
+        \csname\expandafter\@gobble\string#1\space\endcsname}%
+ %    }%
+ %    {\@latex@info{The control sequence `\string#1' is already robust}}%
+   }%
+}
 \def\MT_options_name:{mathtools}
 \newcommand*\mathtoolsset[1]{\setkeys{\MT_options_name:}{#1}}
 \MH_new_boolean:n {fixamsmath}
@@ -51,13 +103,27 @@
               \MHPrecedingSpacesOff
   \MH_let:NwN \MH_maybe_nospace_ifnextchar:Nnn \MH_nospace_ifnextchar:Nnn
 }
+\MH_new_boolean:n {robustify}
+\MH_set_boolean_T:n {robustify}
+\DeclareOption{nonrobust}{
+  \MH_set_boolean_F:n {robustify}
+}
+\MH_new_boolean:n {legacycolonsymbols}
+\MH_set_boolean_F:n {legacycolonsymbols}
+\DeclareOption{legacycolonsymbols}{
+  \MH_set_boolean_T:n {legacycolonsymbols}
+}
 \DeclareOption*{
   \PassOptionsToPackage{\CurrentOption}{amsmath}
 }
 \ExecuteOptions{fixamsmath,disallowspaces}
 \ProcessOptions\relax
 \MHInternalSyntaxOff
-\RequirePackage{amsmath}[2000/07/18]
+\RequirePackage{amsmath}[2016/11/05]
+\@ifpackageloaded{unicode-math}{
+  \PackageWarning{mathtools}{For best results, please load mathtools
+    *before* \MessageBreak unicode-math}
+}{}
 \MHInternalSyntaxOn
 \AtEndOfPackage{\MHInternalSyntaxOff}
 \def\MT_true_false_error:{
@@ -121,19 +187,19 @@
 }
 \def\MT_extended_tagform:n #1{
   \MH_set_boolean_F:n {raw_maketag}
-  \if_meaning:NN \df@label\@empty
+  \MH_if_meaning:NN \df@label\@empty
     \MH_if_boolean:nTF {manual_tag}% this was \MH_if_boolean:nT before
     { \MH_if_boolean:nTF {show_manual_tags}
       { \MT_prev_tagform:n {#1} }
       { \stepcounter{equation}  }
     }{\kern1sp}% this last {\kern1sp} is new.
-  \else:
+  \MH_else:
     \MH_if_boolean:nTF {manual_tag}
       { \MH_if_boolean:nTF {show_manual_tags}
           { \MT_prev_tagform:n {#1} }
           { \@safe@activestrue
             \@ifundefined{MT_r_\df@label}
-              { \global\MH_set_boolean_F:n {manual_tag} }
+              { \global\MH_set_boolean_F:n {manual_tag} \kern1sp } % kern added 2020
               { \MT_prev_tagform:n {#1} }
               \@safe@activesfalse
           }
@@ -141,17 +207,17 @@
       {
         \@safe@activestrue
         \@ifundefined{MT_r_\df@label}
-          { }
+          { \kern1sp }% kern added 2020
           { \refstepcounter{equation}\MT_prev_tagform:n {#1} }
         \@safe@activesfalse
       }
-  \fi:
+  \MH_fi:
   \global\MH_set_boolean_T:n {raw_maketag}
 }
 \def\MT_extended_maketag:n #1{
   \ifx\df@label\@empty
     \MT_maketag:n {#1}
-  \else:
+  \MH_else:
     \MH_if_boolean:nTF {raw_maketag}
       {
         \MH_if_boolean:nTF {show_manual_tags}
@@ -164,14 +230,15 @@
           }
       }
       { \MT_maketag:n {#1} }
-  \fi:
+  \MH_fi:
   \global\MH_set_boolean_F:n {manual_tag}
 }
 \def\MT_extended_eqref:n #1{
   \protected@write\@auxout{}
     {\string\MT@newlabel{#1}}
-  \textup{\MT_prev_tagform:n {\ref{#1}}}
+  \textup{\let\df@label\@empty\MT_prev_tagform:n {\ref{#1}}}
 }
+\EQ_MakeRobust\MT_extended_eqref:n
 \newcommand*\refeq[1]{
   \textup{\ref{#1}}
 }
@@ -184,11 +251,11 @@
 \MH_new_boolean:n {show_only_refs}
 \MH_new_boolean:n {show_manual_tags}
 \define@key{\MT_options_name:}{showmanualtags}[true]{
-  \@ifundefined{boolean_show_manual_tags_#1:}
+  \@ifundefined{MH_boolean_show_manual_tags_#1:}
     { \MT_true_false_error:
-      \@nameuse{boolean_show_manual_tags_false:}
+      \@nameuse{MH_boolean_show_manual_tags_false:}
     }
-    { \@nameuse{boolean_show_manual_tags_#1:} }
+    { \@nameuse{MH_boolean_show_manual_tags_#1:} }
 }
 \newcommand*\MT_showonlyrefs_true:{
   \MH_if_boolean:nF {show_only_refs}{
@@ -225,16 +292,16 @@
 }
 \renewcommand\nonumber{
   \if@eqnsw
-    \if_meaning:NN \incr@eqnum\@empty
+    \MH_if_meaning:NN \incr@eqnum\@empty
       \MH_if_boolean:nF {show_only_refs}
         {\addtocounter{equation}\m@ne}
-    \fi:
-  \fi:
+    \MH_fi:
+  \MH_fi:
   \MH_let:NwN \print@eqnum\@empty \MH_let:NwN \incr@eqnum\@empty
   \global\@eqnswfalse
 }
 \MHInternalSyntaxOff
-\newcommand\noeqref[1]{\@bsphack
+\newcommand\noeqref[1]{\@bsphack%
   \@for\@tempa:=#1\do{%
     \@safe@activestrue%
     \edef\@tempa{\expandafter\@firstofone\@tempa}%
@@ -245,7 +312,7 @@
     }{}%
     \if@filesw\protected@write\@auxout{}%
     {\string\MT@newlabel{\@tempa}}\fi%
-  \@safe@activesfalse}
+  \@safe@activesfalse}%
   \@esphack}
 
 \providecommand\@safe@activestrue{}%
@@ -257,11 +324,11 @@
 \def\MT_leftrightarrow_fill:{%
   \arrowfill@\leftarrow\relbar\rightarrow}
 \providecommand*\xLeftarrow[2][]{%
-  \ext@arrow 0055{\Leftarrowfill@}{#1}{#2}}
+  \ext@arrow 0055{\Leftarrowfill@}{\ #1}{\ #2}}
 \providecommand*\xRightarrow[2][]{%
-  \ext@arrow 0055{\Rightarrowfill@}{#1}{#2}}
+  \ext@arrow 0055{\Rightarrowfill@}{#1\ }{#2\ }}
 \providecommand*\xLeftrightarrow[2][]{%
-  \ext@arrow 0055{\Leftrightarrowfill@}{#1}{#2}}
+  \ext@arrow 0055{\Leftrightarrowfill@}{\ #1\ }{\ #2\ }}
 \def\MT_rightharpoondown_fill:{%
   \arrowfill@\relbar\relbar\rightharpoondown}
 \def\MT_rightharpoonup_fill:{%
@@ -270,6 +337,10 @@
   \arrowfill@\leftharpoondown\relbar\relbar}
 \def\MT_leftharpoonup_fill:{%
   \arrowfill@\leftharpoonup\relbar\relbar}
+\def\MT_longrightarrow_fill:{%
+  \arrowfill@\relbar\relbar\longrightarrow}
+\def\MT_longleftarrow_fill:{%
+  \arrowfill@\longleftarrow\relbar\relbar}
 \providecommand*\xrightharpoondown[2][]{%
   \ext@arrow 0359\MT_rightharpoondown_fill:{#1}{#2}}
 \providecommand*\xrightharpoonup[2][]{%
@@ -290,6 +361,10 @@
   \setbox0=\hbox{%
     $\ext@arrow 3095\MT_leftharpoondown_fill:{#1}{\phantom{#2}}$}%
   \kern-\wd0 \lower.22ex\box0}}
+\providecommand*\xlongrightarrow[2][]{%
+  \ext@arrow 0359\MT_longrightarrow_fill:{#1}{#2}}
+\providecommand*\xlongleftarrow[2][]{%
+  \ext@arrow 3095\MT_longleftarrow_fill:{#1}{#2}}
 \providecommand*\xhookleftarrow[2][]{%
   \ext@arrow 3095\MT_hookleft_fill:{#1}{#2}}
 \def\MT_hookleft_fill:{%
@@ -396,20 +471,73 @@
     \mathcode`\:=32768
   }
 }
-\AtBeginDocument{
-  \providecommand*\dblcolon{\mathrel{\vcentcolon\mkern-.9mu\vcentcolon}}
-  \providecommand*\coloneqq{\mathrel{\vcentcolon\mkern-1.2mu=}}
-  \providecommand*\Coloneqq{\mathrel{\dblcolon\mkern-1.2mu=}}
-  \providecommand*\coloneq{\mathrel{\vcentcolon\mkern-1.2mu\mathrel{-}}}
-  \providecommand*\Coloneq{\mathrel{\dblcolon\mkern-1.2mu\mathrel{-}}}
-  \providecommand*\eqqcolon{\mathrel{=\mkern-1.2mu\vcentcolon}}
-  \providecommand*\Eqqcolon{\mathrel{=\mkern-1.2mu\dblcolon}}
-  \providecommand*\eqcolon{\mathrel{\mathrel{-}\mkern-1.2mu\vcentcolon}}
-  \providecommand*\Eqcolon{\mathrel{\mathrel{-}\mkern-1.2mu\dblcolon}}
-  \providecommand*\colonapprox{\mathrel{\vcentcolon\mkern-1.2mu\approx}}
-  \providecommand*\Colonapprox{\mathrel{\dblcolon\mkern-1.2mu\approx}}
-  \providecommand*\colonsim{\mathrel{\vcentcolon\mkern-1.2mu\sim}}
-  \providecommand*\Colonsim{\mathrel{\dblcolon\mkern-1.2mu\sim}}
+\newcommand*\MATHT@dblcolon{\vcentcolon\mathrel{\mkern-.9mu}\vcentcolon}
+\newcommand*\MATHT@coloneq{\vcentcolon\mathrel{\mkern-1.2mu}=}
+\newcommand*\MATHT@dblcoloneq{\dblcolon\mathrel{\mkern-1.2mu}=}
+\newcommand*\MATHT@colondash{\vcentcolon\mathrel{\mkern-1.2mu}\mathrel{-}}
+\newcommand*\MATHT@dblcolondash{\dblcolon\mathrel{\mkern-1.2mu}\mathrel{-}}
+\newcommand*\MATHT@eqcolon{=\mathrel{\mkern-1.2mu}\vcentcolon}
+\newcommand*\MATHT@eqdblcolon{=\mathrel{\mkern-1.2mu}\dblcolon}
+\newcommand*\MATHT@dashcolon{\mathrel{-}\mathrel{\mkern-1.2mu}\vcentcolon}
+\newcommand*\MATHT@dashdblcolon{\mathrel{-}\mathrel{\mkern-1.2mu}\dblcolon}
+\newcommand*\MATHT@colonapprox{\vcentcolon\mathrel{\mkern-1.2mu}\approx}
+\newcommand*\MATHT@dblcolonapprox{\dblcolon\mathrel{\mkern-1.2mu}\approx}
+\newcommand*\MATHT@approxcolon{\approx\mathrel{\mkern-1.2mu}\vcentcolon}
+\newcommand*\MATHT@approxdblcolon{\approx\mathrel{\mkern-1.2mu}\dblcolon}
+\newcommand*\MATHT@colonsim{\vcentcolon\mathrel{\mkern-1.2mu}\sim}
+\newcommand*\MATHT@dblcolonsim{\dblcolon\mathrel{\mkern-1.2mu}\sim}
+\newcommand*\MATHT@simcolon{\sim\mathrel{\mkern-1.2mu}\vcentcolon}
+\newcommand*\MATHT@simdblcolon{\sim\mathrel{\mkern-1.2mu}\dblcolon}
+\MH_if_boolean:nTF {legacycolonsymbols}{
+  \AtBeginDocument{
+    \providecommand*\dblcolon{\MATHT@dblcolon}
+    \providecommand*\coloneqq{\MATHT@coloneq}
+    \providecommand*\Coloneqq{\MATHT@dblcoloneq}
+    \providecommand*\coloneq{\MATHT@colondash}
+    \providecommand*\Coloneq{\MATHT@dblcolondash}
+    \providecommand*\eqqcolon{\MATHT@eqcolon}
+    \providecommand*\Eqqcolon{\MATHT@eqdblcolon}
+    \providecommand*\eqcolon{\MATHT@dashcolon}
+    \providecommand*\Eqcolon{\MATHT@dashdblcolon}
+    \providecommand*\colonapprox{\MATHT@colonapprox}
+    \providecommand*\Colonapprox{\MATHT@dblcolonapprox}
+    \providecommand*\colonsim{\MATHT@colonsim}
+    \providecommand*\Colonsim{\MATHT@dblcolonsim}
+    % new
+    \providecommand*\approxcolon{\MATHT@approxcolon}
+    \providecommand*\Approxcolon{\MATHT@approxdblcolon}
+    \providecommand*\simcolon{\MATHT@simcolon}
+    \providecommand*\Simcolon{\MATHT@simdblcolon}
+    \providecommand*\colondash{\MATHT@colondash}
+    \providecommand*\Colondash{\MATHT@dblcolondash}
+    \providecommand*\dashcolon{\MATHT@dashcolon}
+    \providecommand*\Dashcolon{\MATHT@dashdblcolon}
+  }
+}{
+  \AtBeginDocument{
+    \providecommand*\dblcolon{\MATHT@dblcolon}
+    \providecommand*\coloneqq{\MATHT@coloneq}   % duplet
+    \providecommand*\Coloneqq{\MATHT@dblcoloneq}% duplet
+    \providecommand*\coloneq{\MATHT@coloneq}    % changed
+    \providecommand*\Coloneq{\MATHT@dblcoloneq} % changed
+    \providecommand*\eqqcolon{\MATHT@eqcolon}   % duplet
+    \providecommand*\Eqqcolon{\MATHT@eqdblcolon}% duplet
+    \providecommand*\eqcolon{\MATHT@eqcolon}    % changed
+    \providecommand*\Eqcolon{\MATHT@eqdblcolon} % changed
+    \providecommand*\colonapprox{\MATHT@colonapprox}
+    \providecommand*\Colonapprox{\MATHT@dblcolonapprox}
+    \providecommand*\colonsim{\MATHT@colonsim}
+    \providecommand*\Colonsim{\MATHT@dblcolonsim}
+    % new
+    \providecommand*\approxcolon{\MATHT@approxcolon}
+    \providecommand*\Approxcolon{\MATHT@approxdblcolon}
+    \providecommand*\simcolon{\MATHT@simcolon}
+    \providecommand*\Simcolon{\MATHT@simdblcolon}
+    \providecommand*\colondash{\MATHT@colondash}
+    \providecommand*\Colondash{\MATHT@dblcolondash}
+    \providecommand*\dashcolon{\MATHT@dashcolon}
+    \providecommand*\Dashcolon{\MATHT@dashdblcolon}
+  }
 }
 \let \AMS@math@cr@@ \math@cr@@
 \MH_new_boolean:n {mult_firstline}
@@ -417,23 +545,23 @@
 \newcount\g_MT_multlinerow_int
 \newdimen\l_MT_multwidth_dim
 \newcommand*\MT_test_for_tcb_other:nnnnn [1]{
-  \if:w t#1\relax
+  \MH_if:w t#1\relax
     \expandafter\MH_use_choice_i:nnnn
-  \else:
-    \if:w c#1\relax
+  \MH_else:
+    \MH_if:w c#1\relax
       \expandafter\expandafter\expandafter\MH_use_choice_ii:nnnn
-    \else:
-      \if:w b#1\relax
+    \MH_else:
+      \MH_if:w b#1\relax
         \expandafter\expandafter\expandafter
         \expandafter\expandafter\expandafter\expandafter
         \MH_use_choice_iii:nnnn
-      \else:
+      \MH_else:
         \expandafter\expandafter\expandafter
         \expandafter\expandafter\expandafter\expandafter
         \MH_use_choice_iv:nnnn
-      \fi:
-    \fi:
-  \fi:
+      \MH_fi:
+    \MH_fi:
+  \MH_fi:
 }
 \def\MT_mult_invisible_line: {
   \crcr
@@ -442,7 +570,7 @@
   \noalign{\vskip-\baselineskip \vskip-\normallineskip}
 }
 \def\MT_mult_mathcr_atat:w [#1]{%
-  \if_num:w 0=`{\fi: \iffalse}\fi:
+  \MH_if_num:w 0=`{\MH_fi: \iffalse}\MH_fi:
   \MH_if_boolean:nT {mult_firstline}{
     \kern\l_MT_mult_left_fdim
     \MT_mult_invisible_line:
@@ -450,19 +578,19 @@
   \crcr
   \noalign{\vskip#1\relax}
   \global\advance\g_MT_multlinerow_int\@ne
-  \if_num:w \g_MT_multlinerow_int=\l_MT_multline_lastline_fint
+  \MH_if_num:w \g_MT_multlinerow_int=\l_MT_multline_lastline_fint
     \MH_let:NwN \math@cr@@\MT_mult_last_mathcr:w
-  \fi:
+  \MH_fi:
 }
 \def\MT_mult_firstandlast_mathcr:w [#1]{%
-  \if_num:w 0=`{\fi: \iffalse}\fi:
+  \MH_if_num:w 0=`{\MH_fi: \iffalse}\MH_fi:
   \kern\l_MT_mult_left_fdim
   \MT_mult_invisible_line:
   \noalign{\vskip#1\relax}
   \kern\l_MT_mult_right_fdim
 }
 \def\MT_mult_last_mathcr:w [#1]{
-  \if_num:w 0=`{\fi: \iffalse}\fi:\math@cr@@@
+  \MH_if_num:w 0=`{\MH_fi: \iffalse}\MH_fi:\math@cr@@@
   \noalign{\vskip#1\relax}
   \kern\l_MT_mult_right_fdim}
 \newcommand\MT_start_mult:N [1]{
@@ -489,7 +617,7 @@
   #2
 }
 \newcommand*\MT_mult_internal:n [1]{
- \MH_if_boolean:nF {outer_mult}{\null\,}
+ \MH_if_boolean:nF {outer_mult}{\alignedspace@left} %<-- requires amsmath 2016/11/05
   \MT_next:
   \bgroup
     \Let@
@@ -501,13 +629,13 @@
     \spread@equation
     \MH_set_boolean_F:n {mult_firstline}
     \MT_measure_mult:n {#1}
-    \if_dim:w \l_MT_multwidth_dim<\l_MT_multline_measure_fdim
+    \MH_if_dim:w \l_MT_multwidth_dim<\l_MT_multline_measure_fdim
       \MH_setlength:dn \l_MT_multwidth_dim{\l_MT_multline_measure_fdim}
     \fi
     \MH_set_boolean_T:n {mult_firstline}
-    \if_num:w \l_MT_multline_lastline_fint=\@ne
+    \MH_if_num:w \l_MT_multline_lastline_fint=\@ne
       \MH_let:NwN \math@cr@@ \MT_mult_firstandlast_mathcr:w
-    \fi:
+    \MH_fi:
     \ialign\bgroup
       \hfil\strut@$\m@th\displaystyle{}##$\hfil
       \crcr
@@ -516,6 +644,7 @@
 }
 \newcommand\MT_measure_mult:n [1]{
   \begingroup
+    \measuring@true
     \g_MT_multlinerow_int\@ne
     \MH_let:NwN \label\MT_gobblelabel:w
     \MH_let:NwN \tag\gobble@tag
@@ -539,24 +668,130 @@
     {\def\MT_mult_default_pos:{#1}}
     {\def\MT_mult_default_pos:{#1}}
     {
-      \if_meaning:NN \@empty#1\@empty
-      \else:
+      \MH_if_meaning:NN \@empty#1\@empty
+      \MH_else:
         \setlength \l_MT_multwidth_dim{#1}
-      \fi:
+      \MH_fi:
     }
   \MT_start_mult:N \MT_mult_default_pos:
 }
+\ifx\directlua\@undefined
+  % THIS IS NORMAL
+  \newcommand\MultlinedHook{
+    \renewenvironment{subarray}[1]{%
+      \vcenter\bgroup
+      \Let@ \restore@math@cr \default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip\fontdimen10 \scriptfont\tw@
+      \advance\baselineskip\fontdimen12 \scriptfont\tw@
+      \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
+      \lineskiplimit\lineskip
+      \ialign\bgroup\ifx c##1\hfil\fi
+      $\m@th\scriptstyle####$\hfil\crcr
+    }{%
+      \crcr\egroup\egroup
+    }
+    \renewenvironment{crampedsubarray}[1]{%
+      \vcenter\bgroup
+      \Let@ \restore@math@cr \default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip\fontdimen10 \scriptfont\tw@
+      \advance\baselineskip\fontdimen12 \scriptfont\tw@
+      \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
+      \lineskiplimit\lineskip
+      \ialign\bgroup\ifx c##1\hfil\fi
+      \span\MT_cramped_internal:Nn \scriptstyle {####}%
+      \hfil\crcr
+    }{%
+      \crcr\egroup\egroup
+    }
+    % from mathtools
+    \def\MT_smallmatrix_begin:N ##1{%
+      \Let@\restore@math@cr\default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip6\ex@ \lineskip1.5\ex@ \lineskiplimit\lineskip
+      \csname MT_smallmatrix_##1_begin:\endcsname
+    }
+    % from amsmath
+    \renewenvironment{smallmatrix}{\null\,\vcenter\bgroup
+      \Let@\restore@math@cr\default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip6\ex@ \lineskip1.5\ex@ \lineskiplimit\lineskip
+      \ialign\bgroup\hfil$\m@th\scriptstyle####$\hfil&&\thickspace\hfil
+      $\m@th\scriptstyle####$\hfil\crcr
+    }{%
+      \crcr\egroup\egroup\,%
+    }
+  }
+\else
+  % THIS IS LUALATEX
+  \newcommand\MultlinedHook{
+    % from amsmath
+    \renewenvironment{subarray}[1]{%
+      \vcenter\bgroup
+      \Let@ \restore@math@cr \default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip \Umathstacknumup \scriptstyle
+      \advance\baselineskip \Umathstackdenomdown \scriptstyle
+      \lineskip \Umathstackvgap \scriptstyle
+      \lineskiplimit \lineskip
+      \ialign\bgroup\ifx c##1\hfil\fi
+      \Ustartmath
+      \m@th\scriptstyle####
+      \Ustopmath
+      \hfil\crcr
+    }{%
+      \crcr\egroup\egroup
+    }
+    % from mathtools
+    \renewenvironment{crampedsubarray}[1]{%
+      \vcenter\bgroup
+      \Let@ \restore@math@cr \default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip \Umathstacknumup \scriptstyle
+      \advance\baselineskip \Umathstackdenomdown \scriptstyle
+      \lineskip \Umathstackvgap \scriptstyle
+      \lineskiplimit \lineskip
+      \ialign\bgroup\ifx c##1\hfil\fi
+      \Ustartmath
+        \crampedscriptstyle{####}
+      \Ustopmath
+      \hfil\crcr
+    }{%
+      \crcr\egroup\egroup
+    }
+    % from mathtools
+    \def\MT_smallmatrix_begin:N ##1{%
+      \Let@\restore@math@cr\default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip6\ex@ \lineskip1.5\ex@ \lineskiplimit\lineskip
+      \csname MT_smallmatrix_##1_begin:\endcsname
+    }
+    % from amsmath
+    \renewenvironment{smallmatrix}{\null\,\vcenter\bgroup
+      \Let@\restore@math@cr\default@tag
+      \let\math@cr@@\AMS@math@cr@@  % <--- the fix
+      \baselineskip6\ex@ \lineskip1.5\ex@ \lineskiplimit\lineskip
+      \ialign\bgroup\hfil$\m@th\scriptstyle####$\hfil&&\thickspace\hfil
+      $\m@th\scriptstyle####$\hfil\crcr
+    }{%
+      \crcr\egroup\egroup\,%
+    }
+  }
+\fi
+
 \newenvironment{multlined}[1][]
   {\MH_group_align_safe_begin:
+    \MultlinedHook
   \MT_test_for_tcb_other:nnnnn {#1}
     {\def\MT_mult_default_pos:{#1}}
     {\def\MT_mult_default_pos:{#1}}
     {\def\MT_mult_default_pos:{#1}}
     {
-      \if_meaning:NN \@empty#1\@empty
-      \else:
+      \MH_if_meaning:NN \@empty#1\@empty
+      \MH_else:
         \setlength \l_MT_multwidth_dim{#1}
-      \fi:
+      \MH_fi:
     }
     \MT_multlined_second_arg:w
   }
@@ -583,22 +818,50 @@
    \@namedef{MT_delim_\MH_cs_to_str:N #1 _star_wrapper:nnn}##1##2##3{
       \mathopen{}\mathclose\bgroup ##1 ##2 \aftergroup\egroup ##3
     }
-    \@namedef{MT_delim_\MH_cs_to_str:N #1 _nostar_wrapper:nnn}##1##2##3{
+    \@namedef{MT_delim_\MH_cs_to_str:N #1 _nostarscaled_wrapper:nnn}##1##2##3{
       \mathopen{##1}##2\mathclose{##3}
+    }
+    \@namedef{MT_delim_\MH_cs_to_str:N #1 _nostarnonscaled_wrapper:nnn}##1##2##3{
+      \mathopen##1##2\mathclose##3
     }
   }
 
 \newcommand\reDeclarePairedDelimiterInnerWrapper[3]{
-  \@namedef{MT_delim_\MH_cs_to_str:N #1 _ #2 _wrapper:nnn}##1##2##3{
-    #3
+  \@ifundefined{MT_delim_\MH_cs_to_str:N #1 _ #2 _wrapper:nnn}{
+    \PackageError{mathtools}{
+      Wrapper~not~found~for~\string#1~and~option~'#2'.\MessageBreak
+      Either~\string#1~is~ not~ defined,~or~ you~ are~using~ the~
+      \MessageBreak
+      'nostar'~ option,~which~ is~ no~ longer~ supported.~
+      \MessageBreak
+      Please~ use~ 'nostarnonscaled'~ or~ 'nostarscaled~
+      \MessageBreak instead.~
+    }{See the manual}
+  }{
+    \@namedef{MT_delim_\MH_cs_to_str:N #1 _ #2 _wrapper:nnn}##1##2##3{
+      #3
+    }
   }
+}
+
+\def\MT_etb_ifdefempty_x:nnn #1{
+  \expandafter\expandafter\expandafter
+  \MT_etb_ifblank:nnn
+  \expandafter\expandafter\expandafter{%
+    \expandafter\strip@prefix\meaning#1}
+}
+\def\MT_etb_ifblank:nnn #1{
+  \expandafter\ifx\expandafter\relax\detokenize\expandafter{\@gobble#1?}\relax
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
 }
 
 \newcommand*\DeclarePairedDelimiter[3]{%
   \@ifdefinable{#1}{
-    \MT_delim_default_inner_wrappers:n{#1}
+    \MT_delim_default_inner_wrappers:n{#1} % define the wrappers
     \@namedef{MT_delim_\MH_cs_to_str:N #1 _star:}##1
-      %{\mathopen{}\mathclose\bgroup\left#2 ##1 \aftergroup\egroup\right #3}%
       { \@nameuse{MT_delim_\MH_cs_to_str:N #1 _star_wrapper:nnn}%
            {\left#2}{##1}{\right#3} }%
     \@xp\@xp\@xp
@@ -606,12 +869,26 @@
         \@xp\csname MT_delim_\MH_cs_to_str:N #1 _nostar:\endcsname
         [2][\\@gobble]
         {
-          %\mathopen{\@nameuse {\MH_cs_to_str:N ##1 l} #2} ##2
-          %\mathclose{\@nameuse {\MH_cs_to_str:N ##1 r} #3}}
-          \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostar_wrapper:nnn}%
-             {\@nameuse {\MH_cs_to_str:N ##1 l} #2}
-             {##2}
-             {\@nameuse {\MH_cs_to_str:N ##1 r} #3}
+          \def\@tempa{\\@gobble}
+          \def\@tempb{##1}
+          \ifx\@tempa\@tempb
+            \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarnonscaled_wrapper:nnn}%
+               {#2}
+               {##2}
+               {#3}
+          \else
+            \MT_etb_ifblank:nnn {##1}{
+              \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarnonscaled_wrapper:nnn}%
+                {#2}
+                {##2}
+                {#3}
+            }{
+              \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarscaled_wrapper:nnn}%
+                {\@nameuse {\MH_cs_to_str:N ##1 l} #2}
+                {##2}
+                {\@nameuse {\MH_cs_to_str:N ##1 r} #3}
+            }
+          \fi
         }
     \DeclareRobustCommand{#1}{
       \@ifstar
@@ -620,16 +897,53 @@
     }
   }
 }
-\def\MHempty{}
-\def\DeclarePairedDelimiterX#1[#2]#3#4#5{%
-  \@ifdefinable{#1}{
-    \ifnum#2>9\relax
-      \PackageError{mathtools}{No~ more~ than~ 9~ arguments}{}
-    \else
-      \ifnum#2<1\relax
-        \PackageError{mathtools}{Macro~ need~ 1~ or~ more~ arguments}{}
-      \fi
+\def\MT_paired_delimx_arg_test:n #1{
+  \ifnum#1>9\relax
+    \PackageError{mathtools}{No~ more~ than~ 9~ arguments}{}
+  \else
+    \ifnum#1<1\relax
+      \PackageError{mathtools}{Macro~ need~ 1~ or~ more~
+        arguments.\MessageBreak Please~ change~ [#1]~ to~ [1]~ ... [9]}{}
     \fi
+  \fi
+ }
+
+\def\@MHempty{}
+\newcommand\MT_delim_inner_generator:nnnnnnn [7]{
+    \@xp\@xp\@xp
+      \newcommand
+        \@xp\csname MT_delim_\MH_cs_to_str:N #1 _nostar_inner:\endcsname
+        [#2]
+        {
+          #3
+          \def\@tempa{\@MHempty}
+          \@xp\def\@xp\@tempb\@xp{\delimsize}
+          \ifx\@tempa\@tempb
+            \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarnonscaled_wrapper:nnn}
+              {#4}{#7}{#5}
+          \else
+            \MT_etb_ifdefempty_x:nnn {\delimsize}{
+              \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarnonscaled_wrapper:nnn}
+                {#4}{#7}{#5}
+            }{
+              \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostarscaled_wrapper:nnn}
+              {
+                \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize l\endcsname #4
+              }
+              {#7}
+              {
+                \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize r\endcsname #5
+              }
+            }
+          \fi
+          #6
+          \endgroup
+        }
+}
+
+\def\DeclarePairedDelimiterXPP#1[#2]#3#4#5#6#7{%
+  \@ifdefinable{#1}{
+    \MT_paired_delimx_arg_test:n{#2}
     \MT_delim_default_inner_wrappers:n{#1}
     \@xp\@xp\@xp
       \newcommand
@@ -638,44 +952,22 @@
         {
           \begingroup
             \def\delimsize{\middle}
-            %\mathopen{}\mathclose\bgroup\left#3 #5 \aftergroup\egroup\right#4
+            #3
             \@nameuse{MT_delim_\MH_cs_to_str:N #1 _star_wrapper:nnn}
-              {\left#3}{#5}{\right#4}
+              {\left#4}{#7}{\right#5}
+            #6
           \endgroup
         }
     \@xp\@xp\@xp
       \newcommand
         \@xp\csname MT_delim_\MH_cs_to_str:N #1 _nostar:\endcsname
-        [1][\MHempty]
+        [1][\@MHempty]
       {
         \begingroup
         \def\delimsize{##1}
         \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostar_inner:}
       }
-    \@xp\@xp\@xp
-      \newcommand
-        \@xp\csname MT_delim_\MH_cs_to_str:N #1 _nostar_inner:\endcsname
-        [#2]
-        {
-          %\mathopen{%
-          %  \let\MHempty\@gobble
-          %  \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize l\endcsname #3}
-          %#5
-          %\mathclose{%
-          %  \let\MHempty\@gobble
-          %  \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize r\endcsname #4}
-          \@nameuse{MT_delim_\MH_cs_to_str:N #1 _nostar_wrapper:nnn}
-          {
-            \let\MHempty\@gobble
-            \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize l\endcsname #3
-          }
-          {#5}
-          {
-            \let\MHempty\@gobble
-            \@xp\@xp\@xp\csname\@xp\MH_cs_to_str:N \delimsize r\endcsname #4
-          }
-          \endgroup
-        }
+      \MT_delim_inner_generator:nnnnnnn {#1}{#2}{#3}{#4}{#5}{#6}{#7}
     \DeclareRobustCommand{#1}{
       \@ifstar
         {\@nameuse{MT_delim_\MH_cs_to_str:N #1 _star:}}
@@ -683,6 +975,11 @@
     }
   }
 }
+
+\def\DeclarePairedDelimiterX#1[#2]#3#4#5{
+  \DeclarePairedDelimiterXPP{#1}[#2]{}{#3}{#4}{}{#5}
+}
+
 \def\MT_start_cases:nnnn #1#2#3#4{ % #1=sep,#2=lpreamble,#3=rpreamble,#4=delim
  \RIfM@\else
    \nonmatherr@{\begin{\@currenvir}}
@@ -714,19 +1011,19 @@
    {\MH_end_cases:\right#6}
 }
 \newcases{dcases}{\quad}{%
-  $\m@th\displaystyle{##}$\hfil}{$\m@th\displaystyle{##}$\hfil}{\lbrace}{.}
+  $\m@th\displaystyle##$\hfil}{$\m@th\displaystyle##$\hfil}{\lbrace}{.}
 \newcases{dcases*}{\quad}{%
-  $\m@th\displaystyle{##}$\hfil}{{##}\hfil}{\lbrace}{.}
+  $\m@th\displaystyle##$\hfil}{##\hfil}{\lbrace}{.}
 \newcases{rcases}{\quad}{%
-  $\m@th{##}$\hfil}{$\m@th{##}$\hfil}{.}{\rbrace}
+  $\m@th##$\hfil}{$\m@th##$\hfil}{.}{\rbrace}
 \newcases{rcases*}{\quad}{%
-  $\m@th{##}$\hfil}{{##}\hfil}{.}{\rbrace}
+  $\m@th##$\hfil}{##\hfil}{.}{\rbrace}
 \newcases{drcases}{\quad}{%
-  $\m@th\displaystyle{##}$\hfil}{$\m@th\displaystyle{##}$\hfil}{.}{\rbrace}
+  $\m@th\displaystyle##$\hfil}{$\m@th\displaystyle##$\hfil}{.}{\rbrace}
 \newcases{drcases*}{\quad}{%
-  $\m@th\displaystyle{##}$\hfil}{{##}\hfil}{.}{\rbrace}
+  $\m@th\displaystyle##$\hfil}{##\hfil}{.}{\rbrace}
 \newcases{cases*}{\quad}{%
-  $\m@th{##}$\hfil}{{##}\hfil}{\lbrace}{.}
+  $\m@th##$\hfil}{##\hfil}{\lbrace}{.}
 \def\MT_matrix_begin:N #1{%
   \hskip -\arraycolsep
   \MH_let:NwN \@ifnextchar \MH_nospace_ifnextchar:Nnn
@@ -800,10 +1097,15 @@
 
 \MHPrecedingSpacesOn
 \newcommand*\smashoperator[2][lr]{
-  \def\MT_smop_use:NNNNN {\@nameuse{MT_smop_smash_#1:NNNNN}}
-  \toks@{#2}
-  \expandafter\MT_smop_get_args:wwwNnNn
+  \@ifundefined{MT_smop_smash_#1:NNNNN}{
+    \PackageError{mathtools}{Opt~ arg~ '#1'~ for~ \@backslashchar smashoperator~
+      is~ not~ supported.\MessageBreak Use~ l,~r~or~lr~ (default)}{}
+  }{
+    \def\MT_smop_use:NNNNN {\@nameuse{MT_smop_smash_#1:NNNNN}}
+    \toks@{#2}
+    \expandafter\MT_smop_get_args:wwwNnNn
     \the\toks@\@nil\@nil\@nil\@nil\@nil\@nil\@@nil
+  }
 }
 \def\MT_smop_remove_nil_vi:N #1\@nil\@nil\@nil\@nil\@nil\@nil{#1}
 \def\MT_smop_mathop:n {\mathop}
@@ -816,68 +1118,68 @@
     \def\MT_smop_arg_C: {#3} \def\MT_smop_arg_D: {#4}
     \def\MT_smop_arg_E: {#5} \def\MT_smop_arg_F: {#6}
     \def\MT_smop_arg_G: {#7}
-    \if_meaning:NN \MT_smop_arg_A: \MT_smop_mathop:n
-      \if_meaning:NN \MT_smop_arg_C:\MT_smop_limits:
+    \MH_if_meaning:NN \MT_smop_arg_A: \MT_smop_mathop:n
+      \MH_if_meaning:NN \MT_smop_arg_C:\MT_smop_limits:
         \def\MT_smop_final_arg_A:{#1{#2}}%
-        \if_meaning:NN \MT_smop_arg_D: \@nnil
-        \else:
+        \MH_if_meaning:NN \MT_smop_arg_D: \@nnil
+        \MH_else:
           \MH_set_boolean_T:n {smop_one}
           \MH_let:NwN \MT_smop_final_arg_B: \MT_smop_arg_D:
           \MH_let:NwN \MT_smop_final_arg_C: \MT_smop_arg_E:
-          \if_meaning:NN \MT_smop_arg_F: \@nnil
-          \else:
+          \MH_if_meaning:NN \MT_smop_arg_F: \@nnil
+          \MH_else:
             \MH_set_boolean_T:n {smop_two}
             \MH_let:NwN \MT_smop_final_arg_D: \MT_smop_arg_F:
             \edef\MT_smop_final_arg_E:
               {\expandafter\MT_smop_remove_nil_vi:N \MT_smop_arg_G: }
-          \fi:
-        \fi:
-      \else:
+          \MH_fi:
+        \MH_fi:
+      \MH_else:
         \def\MT_smop_final_arg_A:{#1{#2}}%
-        \if_meaning:NN \MT_smop_arg_D: \@nnil
-        \else:
+        \MH_if_meaning:NN \MT_smop_arg_D: \@nnil
+        \MH_else:
           \MH_set_boolean_T:n {smop_one}
           \MH_let:NwN \MT_smop_final_arg_B: \MT_smop_arg_C:
           \MH_let:NwN \MT_smop_final_arg_C: \MT_smop_arg_D:
-          \if_meaning:NN \MT_smop_arg_F: \@nnil
-          \else:
+          \MH_if_meaning:NN \MT_smop_arg_F: \@nnil
+          \MH_else:
             \MH_set_boolean_T:n {smop_two}
             \MH_let:NwN \MT_smop_final_arg_D: \MT_smop_arg_E:
             \MH_let:NwN \MT_smop_final_arg_E: \MT_smop_arg_F:
-          \fi:
-        \fi:
-      \fi:
-    \else:
-      \if_meaning:NN \MT_smop_arg_B:\MT_smop_limits:
+          \MH_fi:
+        \MH_fi:
+      \MH_fi:
+    \MH_else:
+      \MH_if_meaning:NN \MT_smop_arg_B:\MT_smop_limits:
         \def\MT_smop_final_arg_A:{#1}%
-        \if_meaning:NN \MT_smop_arg_D: \@nnil
-        \else:
+        \MH_if_meaning:NN \MT_smop_arg_D: \@nnil
+        \MH_else:
           \MH_set_boolean_T:n {smop_one}
           \MH_let:NwN \MT_smop_final_arg_B: \MT_smop_arg_C:
           \MH_let:NwN \MT_smop_final_arg_C: \MT_smop_arg_D:
-          \if_meaning:NN \MT_smop_arg_F: \@nnil
-          \else:
+          \MH_if_meaning:NN \MT_smop_arg_F: \@nnil
+          \MH_else:
             \MH_set_boolean_T:n {smop_two}
             \MH_let:NwN \MT_smop_final_arg_D: \MT_smop_arg_E:
             \MH_let:NwN \MT_smop_final_arg_E: \MT_smop_arg_F:
-          \fi:
-        \fi:
-      \else:
+          \MH_fi:
+        \MH_fi:
+      \MH_else:
         \def\MT_smop_final_arg_A:{#1}%
-        \if_meaning:NN \MT_smop_arg_C: \@nnil
-        \else:
+        \MH_if_meaning:NN \MT_smop_arg_C: \@nnil
+        \MH_else:
           \MH_set_boolean_T:n {smop_one}
           \MH_let:NwN \MT_smop_final_arg_B: \MT_smop_arg_B:
           \MH_let:NwN \MT_smop_final_arg_C: \MT_smop_arg_C:
-          \if_meaning:NN \MT_smop_arg_D: \@nnil
-          \else:
+          \MH_if_meaning:NN \MT_smop_arg_D: \@nnil
+          \MH_else:
             \MH_set_boolean_T:n {smop_two}
             \MH_let:NwN \MT_smop_final_arg_D: \MT_smop_arg_D:
             \MH_let:NwN \MT_smop_final_arg_E: \MT_smop_arg_E:
-          \fi:
-        \fi:
-      \fi:
-    \fi:
+          \MH_fi:
+        \MH_fi:
+      \MH_fi:
+    \MH_fi:
     \MH_if_boolean:nT {smop_one}{
       \MT_smop_measure:NNNNN
       \MT_smop_final_arg_A: \MT_smop_final_arg_B: \MT_smop_final_arg_C:
@@ -915,6 +1217,7 @@
 \def\MT_smop_smash_lr:NNNNN #1#2#3#4#5{
   \MT_smop_needed_args:NNNNN #1#2#3#4#5
 }
+\MH_let:NwN \MT_smop_smash_rl:NNNNN \MT_smop_smash_lr:NNNNN
 \def\MT_vphantom:Nn {\v@true\h@false\MT_internal_phantom:N}
 \def\MT_hphantom:Nn {\v@false\h@true\MT_internal_phantom:N}
 \def\MT_phantom:Nn {\v@true\h@true\MT_internal_phantom:N}
@@ -929,9 +1232,9 @@
   \sbox\z@{$\m@th \displaystyle #1$}
   \sbox\tw@{$\m@th \displaystyle #4$}
   \@tempdima=\dp\z@ \advance\@tempdima-\dp\tw@
-  \if_dim:w \@tempdima>\z@
+  \MH_if_dim:w \@tempdima>\z@
     \mathop{#1}\limits#2{#3}
-  \else:
+  \MH_else:
     \mathop{#1\MT_vphantom:Nn \displaystyle{#4}}\limits
     #2{
         \def\finsm@sh{\ht\z@\z@ \box\z@}
@@ -939,8 +1242,8 @@
         \MT_vphantom:Nn \scriptstyle
           {\MT_cramped_internal:Nn \scriptstyle{#6}}
     }
-  \fi:
-  \if_dim:w \@tempdima>\z@
+  \MH_fi:
+  \MH_if_dim:w \@tempdima>\z@
     \mathop{#4\MT_vphantom:Nn \displaystyle{#1}}\limits
     #5
     {
@@ -949,9 +1252,9 @@
       \def\finsm@sh{\ht\z@\z@ \box\z@}
       \mathsm@sh\scriptstyle{\MT_cramped_internal:Nn \scriptstyle{#6}}
     }
-  \else:
+  \MH_else:
     \mathop{#4}\limits#5{#6}
-  \fi:
+  \MH_fi:
 }
 \newcommand\SwapAboveDisplaySkip{%
   \noalign{\vskip-\abovedisplayskip\vskip\abovedisplayshortskip}
@@ -962,9 +1265,25 @@
 \def\@Aboxed#1&#2&#3\ENDDNE{%
   \ifnum0=`{}\fi \setbox \z@
     \hbox{$\displaystyle#1{}\m@th$\kern\fboxsep \kern\fboxrule }%
-    \edef\@tempa {\kern  \wd\z@ &\kern -\the\wd\z@ \fboxsep
-        \the\fboxsep \fboxrule \the\fboxrule }\@tempa \boxed {#1#2}%
+    \edef\@tempa {\kern  \wd\z@ &\kern -\the\wd\z@
+     \fboxsep\the\fboxsep \fboxrule \the\fboxrule }\@tempa \boxed {#1#2}%
 }
+\newcommand\MakeAboxedCommand[2]{
+  % #1: command to create
+  % #2: box command to use
+  \newcommand#1[1]{\let\bgroup{\romannumeral-`}%
+    \@nameuse{@@\MH_cs_to_str:N #1}##1&&\ENDDNE}
+  \@namedef{@@\MH_cs_to_str:N #1}##1&##2&##3\ENDDNE{%
+    \settowidth\@tempdimc{#2{}}%
+    \ifnum0=`{}\fi \setbox \z@
+    \hbox{$\displaystyle##1{}\m@th$\kern0.5\@tempdimc}%
+    \edef\@tempa{\kern\wd\z@&\kern-\the\wd\z@%
+       \fboxsep\the\fboxsep \fboxrule \the\fboxrule}%
+    \@tempa%
+    #2{\m@th$\displaystyle ##1##2$}%
+  }
+}
+
 \MHInternalSyntaxOff
 \def\ArrowBetweenLines{\relax
   \iffalse{\fi\ifnum0=`}\fi
@@ -1016,6 +1335,7 @@
   \def\etb@tempa##1|#1|##2\MT@END{\endgroup
     \ifx\@empty##2\@empty\notag\fi}%
   \expandafter\etb@tempa\expandafter|alignedat|aligned|split|#1|\MT@END}
+  %| emacs
 \newcommand\MTFlushSpaceAbove{
   \expandafter\MT_remove_tag_unless_inner:n\expandafter{\@currenvir}
   \\
@@ -1075,12 +1395,20 @@
   \providecommand\bigtimes{\MH_csym_bigtimes:}
 }
 \MH_let:NwN \MT_orig_intertext: \intertext@
-\newdimen\l_MT_above_intertext_dim
-\newdimen\l_MT_below_intertext_dim
+\newdimen\l_MT_above_intertext_sep
+\newdimen\l_MT_below_intertext_sep
 \define@key{\MT_options_name:}
-  {aboveintertextdim}{\setlength\l_MT_above_interetext_dim{#1}}
+  {aboveintertextdim}{\setlength\l_MT_above_intertext_sep{#1}}
 \define@key{\MT_options_name:}
-  {belowintertextdim}{\setlength\l_MT_below_intertext_dim{#1}}
+  {belowintertextdim}{\setlength\l_MT_below_intertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {above-intertext-dim}{\setlength\l_MT_above_intertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {below-intertext-dim}{\setlength\l_MT_below_intertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {above-intertext-sep}{\setlength\l_MT_above_intertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {below-intertext-sep}{\setlength\l_MT_below_intertext_sep{#1}}
 \def\MT_intertext: {%
   \def\intertext##1{%
     \ifvmode\else\\\@empty\fi
@@ -1088,19 +1416,32 @@
       \penalty\postdisplaypenalty\vskip\belowdisplayskip
       \vskip-\lineskiplimit      % CCS
       \vskip\normallineskiplimit % CCS
-      \vskip\l_MT_above_intertext_dim
+      \vskip\l_MT_above_intertext_sep
        \vbox{\normalbaselines
-        \ifdim\linewidth=\columnwidth
+         \ifdim
+           \ifdim\@totalleftmargin=\z@
+             \linewidth
+           \else
+             -\maxdimen
+           \fi
+         =\columnwidth
         \else \parshape\@ne \@totalleftmargin \linewidth
         \fi
-        \noindent##1\par}%
+        \noindent\ignorespaces##1\par}%
       \penalty\predisplaypenalty\vskip\abovedisplayskip%
       \vskip-\lineskiplimit      % CCS
       \vskip\normallineskiplimit % CCS
-      \vskip\l_MT_above_intertext_dim
+      \vskip\l_MT_below_intertext_sep
    }%
-}}
-\def\MT_orig_intertext_true:  { \MH_let:NwN \intertext@ \MT_orig_intertext: }
+ }%
+ % also activate \shortintertext, such that is is only available when
+ % \intertext is
+ \MH_let:NwN \shortintertext \shortintertext@
+}
+\def\MT_orig_intertext_true:  {
+  \MH_let:NwN \intertext@ \MT_orig_intertext:
+  \MH_let:NwN \shortintertext \shortintertext@
+}
 \def\MT_orig_intertext_false: { \MH_let:NwN \intertext@ \MT_intertext: }
 \define@key{\MT_options_name:}{original-intertext}[true]{
   \@nameuse{MT_orig_intertext_#1:}
@@ -1113,20 +1454,38 @@
   \noalign{%
     \penalty\postdisplaypenalty\vskip\abovedisplayshortskip
     \vbox{\normalbaselines
-      \if_dim:w \linewidth=\columnwidth
-      \else:
+      \MH_if_dim:w
+        \MH_if_dim:w \@totalleftmargin=\z@
+          \linewidth
+        \MH_else:
+          -\maxdimen
+        \MH_fi:
+        =\columnwidth
+      \MH_else:
         \parshape\@ne \@totalleftmargin \linewidth
-      \fi:
-      \noindent#1\par}%
+      \MH_fi:
+      \noindent\ignorespaces#1\par}%
     \penalty\predisplaypenalty\vskip\abovedisplayshortskip%
   }%
 }
-\newdimen\l_MT_above_shortintertext_dim
-\newdimen\l_MT_below_shortintertext_dim
+\newdimen\l_MT_above_shortintertext_sep
+\newdimen\l_MT_below_shortintertext_sep
 \define@key{\MT_options_name:}
-  {aboveshortintertextdim}{\setlength \l_MT_above_shortintertext_dim{#1}}
+  {aboveshortintertextdim}{\setlength \l_MT_above_shortintertext_sep{#1}}
 \define@key{\MT_options_name:}
-  {belowshortintertextdim}{\setlength \l_MT_below_shortintertext_dim{#1}}
+  {belowshortintertextdim}{\setlength \l_MT_below_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {above-short-intertext-dim}{\setlength \l_MT_above_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {below-short-intertext-dim}{\setlength \l_MT_below_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {above-short-intertext-sep}{\setlength \l_MT_above_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {below-short-intertext-sep}{\setlength \l_MT_below_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {above-shortintertext-sep}{\setlength \l_MT_above_shortintertext_sep{#1}}
+\define@key{\MT_options_name:}
+  {below-shortintertext-sep}{\setlength \l_MT_below_shortintertext_sep{#1}}
 \setkeys{\MT_options_name:}{
   aboveshortintertextdim=3pt,
   belowshortintertextdim=3pt
@@ -1137,21 +1496,28 @@
     \penalty\postdisplaypenalty\vskip\abovedisplayshortskip
     \vskip-\lineskiplimit
     \vskip\normallineskiplimit
-    \vskip\l_MT_above_shortintertext_dim
+    \vskip\l_MT_above_shortintertext_sep
     \vbox{\normalbaselines
-      \if_dim:w \linewidth=\columnwidth
-      \else:
+      \MH_if_dim:w
+        \MH_if_dim:w \@totalleftmargin=\z@
+          \linewidth
+        \MH_else:
+          -\maxdimen
+        \MH_fi:
+        =\columnwidth
+      \MH_else:
         \parshape\@ne \@totalleftmargin \linewidth
-      \fi:
-      \noindent#1\par}%
+      \MH_fi:
+      \noindent\ignorespaces#1\par}%
     \penalty\predisplaypenalty\vskip\abovedisplayshortskip%
     \vskip-\lineskiplimit
     \vskip\normallineskiplimit
-    \vskip\l_MT_below_shortintertext_dim
+    \vskip\l_MT_below_shortintertext_sep
   }%
 }
-\def\MT_orig_shortintertext_true:  { \MH_let:NwN \shortintertext \MT_orig_shortintertext:n }
-\def\MT_orig_shortintertext_false: { \MH_let:NwN \shortintertext \MT_shortintertext:n }
+\def\MT_orig_shortintertext_true:  { \MH_let:NwN \shortintertext@ \MT_orig_shortintertext:n }
+\def\MT_orig_shortintertext_false: { \MH_let:NwN \shortintertext@ \MT_shortintertext:n }
+\newcommand{\shortintertext}{\@amsmath@err{\Invalid@@\shortintertext}\@eha}
 \define@key{\MT_options_name:}{original-shortintertext}[true]{
   \@nameuse{MT_orig_shortintertext_#1:}
 }
@@ -1160,21 +1526,21 @@
 }
 \providecommand*\clap[1]{\hb@xt@\z@{\hss#1\hss}}
 \providecommand*\mathllap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_mathllap:Nn
   \else
     \expandafter \MT_mathllap:Nn \expandafter #1
   \fi
 }
 \providecommand*\mathrlap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_mathrlap:Nn
   \else
     \expandafter \MT_mathrlap:Nn \expandafter #1
   \fi
 }
 \providecommand*\mathclap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_mathclap:Nn
   \else
     \expandafter \MT_mathclap:Nn \expandafter #1
@@ -1201,14 +1567,15 @@
 \def\mathsm@sh#1#2{%
   \setbox\z@\hbox{$\m@th#1{#2}$}{}\finsm@sh}
 \providecommand*\cramped[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_cramped_internal:Nn
   \else
     \expandafter \MT_cramped_internal:Nn \expandafter #1
   \fi
 }
 \def\MT_cramped_internal:Nn #1#2{
-  \sbox\z@{$\m@th#1\nulldelimiterspace=\z@\radical\z@{#2}$}
+  %% \sbox\z@{$\m@th#1\kern-\nulldelimiterspace\radical\z@{#2}$}
+  \setbox\z@\hbox{$\m@th#1\kern-\nulldelimiterspace\radical\z@{#2}$}
     \ifx#1\displaystyle
       \dimen@=\fontdimen8\textfont3
       \advance\dimen@ .25\fontdimen5\textfont2
@@ -1225,10 +1592,21 @@
       3
     \fi
     \advance\dimen@-\ht\z@ \ht\z@=-\dimen@
-    \box\z@
+    \ifvmode\leavevmode\fi
+    {}\box\z@
 }
+\ifx\directlua\@undefined\else
+  \def\MT_cramped_internal:Nn #1#2{
+    {
+      \ensuremath {
+        \use:c { cramped \cs_to_str:N #1 } #2
+      }
+    }
+  }
+\fi
+
 \providecommand*\crampedllap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_cramped_llap_internal:Nn
   \else
     \expandafter \MT_cramped_llap_internal:Nn \expandafter #1
@@ -1238,7 +1616,7 @@
   {}\llap{\MT_cramped_internal:Nn #1{#2}}
 }
 \providecommand*\crampedclap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_cramped_clap_internal:Nn
   \else
     \expandafter \MT_cramped_clap_internal:Nn \expandafter #1
@@ -1248,7 +1626,7 @@
   {}\clap{\MT_cramped_internal:Nn #1{#2}}
 }
 \providecommand*\crampedrlap[1][\@empty]{
-  \ifx\@empty#1\@empty
+  \relax\ifx\@empty#1\@empty
     \expandafter \mathpalette \expandafter \MT_cramped_rlap_internal:Nn
   \else
     \expandafter \MT_cramped_rlap_internal:Nn \expandafter #1
@@ -1257,14 +1635,47 @@
 \def\MT_cramped_rlap_internal:Nn #1#2{
   {}\rlap{\MT_cramped_internal:Nn #1{#2}}
 }
+\ifx\directlua\@undefined
+\newenvironment{crampedsubarray}[1]{%
+  \vcenter\bgroup
+  \Let@ \restore@math@cr \default@tag
+  \baselineskip\fontdimen10 \scriptfont\tw@
+  \advance\baselineskip\fontdimen12 \scriptfont\tw@
+  \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
+  \lineskiplimit\lineskip
+  \ialign\bgroup\ifx c#1\hfil\fi
+     %%$\m@th\scriptstyle\kern-\nulldelimiterspace\radical\z@{##}$% <-- changed line
+    \span\MT_cramped_internal:Nn \scriptstyle {##}%
+  \hfil\crcr
+}{%
+  \crcr\egroup\egroup
+}
+\else
+\newenvironment{crampedsubarray}[1]{%
+  \vcenter\bgroup
+  \Let@ \restore@math@cr \default@tag
+  \baselineskip \Umathstacknumup \scriptstyle
+  \advance\baselineskip \Umathstackdenomdown \scriptstyle
+  \lineskip \Umathstackvgap \scriptstyle
+  \lineskiplimit \lineskip
+  \ialign\bgroup\ifx c#1\hfil\fi
+  \Ustartmath
+    \crampedscriptstyle{##}
+  \Ustopmath
+  \hfil\crcr
+}{%
+  \crcr\egroup\egroup
+}
+\fi
+\newcommand{\crampedsubstack}[1]{\crampedsubarray{c}#1\endcrampedsubarray}
 \newcommand{\MT_prescript_inner:}[4]{
   \@mathmeasure\z@#4{\MT_prescript_sup:{#1}}
   \@mathmeasure\tw@#4{\MT_prescript_sub:{#2}}
-  \if_dim:w \wd\tw@>\wd\z@
+  \MH_if_dim:w \wd\tw@>\wd\z@
     \setbox\z@\hbox to\wd\tw@{\hfil\unhbox\z@}
-  \else:
+  \MH_else:
     \setbox\tw@\hbox to\wd\z@{\hfil\unhbox\tw@}
-  \fi:
+  \MH_fi:
   \mathop{}
   \mathopen{\vphantom{\MT_prescript_arg:{#3}}}^{\box\z@}\sb{\box\tw@}
   \MT_prescript_arg:{#3}
@@ -1287,47 +1698,67 @@
   prescript-sub-format={},
   prescript-arg-format={},
 }
-\def\@DeclareMathSizes #1#2#3#4#5{%
-  \@defaultunits\dimen@ #2pt\relax\@nnil
-  \if:w $#3$%
-    \MH_let:cN {S@\strip@pt\dimen@}\math@fontsfalse
-  \else:
-    \@defaultunits\dimen@ii #3pt\relax\@nnil
-    \@defaultunits\@tempdima #4pt\relax\@nnil
-    \@defaultunits\@tempdimb #5pt\relax\@nnil
-    \toks@{#1}%
-    \expandafter\xdef\csname S@\strip@pt\dimen@\endcsname{%
-      \gdef\noexpand\tf@size{\strip@pt\dimen@ii}%
-      \gdef\noexpand\sf@size{\strip@pt\@tempdima}%
-      \gdef\noexpand\ssf@size{\strip@pt\@tempdimb}%
-      \the\toks@
-    }%
-  \fi:
-}
+\ifx\e@alloc\@undefined% kernel thus older than 2015
+  \def\@DeclareMathSizes #1#2#3#4#5{%
+    \@defaultunits\dimen@ #2pt\relax\@nnil
+    \MH_if:w $#3$%
+      \MH_let:cN {S@\strip@pt\dimen@}\math@fontsfalse
+    \MH_else:
+      \@defaultunits\dimen@ii #3pt\relax\@nnil
+      \@defaultunits\@tempdima #4pt\relax\@nnil
+      \@defaultunits\@tempdimb #5pt\relax\@nnil
+      \toks@{#1}%
+      \expandafter\xdef\csname S@\strip@pt\dimen@\endcsname{%
+        \gdef\noexpand\tf@size{\strip@pt\dimen@ii}%
+        \gdef\noexpand\sf@size{\strip@pt\@tempdima}%
+        \gdef\noexpand\ssf@size{\strip@pt\@tempdimb}%
+        \the\toks@
+      }%
+    \MH_fi:
+  }
+\fi
 \def\MT_mathic_true: {
   \MH_if_boolean:nF {math_italic_corr}{
     \MH_set_boolean_T:n {math_italic_corr}
+    \MH_if_boolean:nTF {robustify}{
+      \MH_let:NwN \MT_mathic_redeffer: \DeclareRobustCommand
+    }{
+      \MH_let:NwN \MT_mathic_redeffer: \renewcommand
+    }
     \MH_let:NwN \MT_begin_inlinemath: \(
-    \renewcommand*\({\relax\ifmmode\@badmath\else
+    %\renewcommand*\({
+    \MT_mathic_redeffer:*\({
+      \relax\ifmmode\@badmath\else
       \ifhmode
-        \if_dim:w \fontdimen\@ne\font>\z@
-          \if_dim:w \lastskip>\z@
+        \MH_if_dim:w \fontdimen\@ne\font>\z@
+          \MH_if_dim:w \lastskip>\z@
             \skip@\lastskip\unskip
+            \MH_if_num:w \lastpenalty>\z@
+              \count@\lastpenalty\unpenalty
+            \MH_fi:
             \@@italiccorr
+            \MH_if_num:w \count@>\z@
+              \penalty\count@
+            \MH_fi:
             \hskip\skip@
-          \else:
+          \MH_else:
             \@@italiccorr
-          \fi:
-        \fi:
-      \fi:
-      $\fi:
+          \MH_fi:
+        \MH_fi:
+      \MH_fi:
+      $\MH_fi:
     }
   }
 }
 \def\MT_mathic_false: {
   \MH_if_boolean:nT {math_italic_corr}{
     \MH_set_boolean_F:n {math_italic_corr}
-    \MH_let:NwN \( \MT_begin_inlinemath:
+    \MH_if_boolean:nTF {robustify}{
+      \edef\({\MT_begin_inlinemath:}%
+      \forced_EQ_MakeRobust\(%
+    }{
+      \MH_let:NwN \( \MT_begin_inlinemath:
+    }
   }
 }
 \MH_new_boolean:n {math_italic_corr}
@@ -1347,7 +1778,8 @@
     \RIfM@\else
         \nonmatherr@{\begin{\@currenvir}}%
     \fi
-    \null\,%
+    %\null\,%
+    \alignedspace@left%
     \if #1t\vtop \else \if#1b\vbox \else \vcenter \fi\fi \bgroup
         \Let@ \chardef\dspbrk@context\@ne \restore@math@cr
         \spread@equation
@@ -1393,24 +1825,24 @@
   \iftagsleft@
     \kern-\tagshift@
     \if@fleqn
-      \if_num:w \xatlevel@=\tw@
+      \MH_if_num:w \xatlevel@=\tw@
         \kern-\@mathmargin
-      \fi:
-    \fi:
-    \if:w 1\shift@tag\row@\relax
+      \MH_fi:
+    \MH_fi:
+    \MH_if:w 1\shift@tag\row@\relax
       \rlap{\vbox{%
         \normalbaselines
         \boxz@
         \vbox to\lineht@{}%
         \raise@tag
       }}%
-    \else:
+    \MH_else:
       \rlap{\boxz@}%
-    \fi:
+    \MH_fi:
     \kern\displaywidth@
-  \else:
+  \MH_else:
     \kern-\tagshift@
-    \if:w 1\shift@tag\row@\relax
+    \MH_if:w 1\shift@tag\row@\relax
       \llap{\vtop{%
         \raise@tag
         \normalbaselines
@@ -1419,33 +1851,51 @@
         \box\@ne
         \boxz@
       }}%
-    \else:
+    \MH_else:
       \llap{\boxz@}%
-    \fi:
-  \fi:
+    \MH_fi:
+  \MH_fi:
 }
 \def\x@calc@shift@lf{%
-  \if_dim:w \eqnshift@=\z@
+  \MH_if_dim:w \eqnshift@=\z@
     \global\eqnshift@\@mathmargin\relax
       \alignsep@\displaywidth
       \advance\alignsep@-\totwidth@
-      \if_num:w \@tempcntb=0
-      \else:
+      \MH_if_num:w \@tempcntb=0
+      \MH_else:
         \global\divide\alignsep@\@tempcntb % original line
-      \fi:
-      \if_dim:w \alignsep@<\minalignsep\relax
+      \MH_fi:
+      \MH_if_dim:w \alignsep@<\minalignsep\relax
         \global\alignsep@\minalignsep\relax
-      \fi:
-  \fi:
-  \if_dim:w \tag@width\row@>\@tempdima
+      \MH_fi:
+  \MH_fi:
+  \MH_if_dim:w \tag@width\row@>\@tempdima
     \saveshift@1%
-  \else:
+  \MH_else:
     \saveshift@0%
-  \fi:}%
+  \MH_fi:}%
 }
 \MaybeMHPrecedingSpacesOff
 \renewcommand\aligned@a[1][c]{\start@aligned{#1}\m@ne}
 \MHPrecedingSpacesOn
+\newbox\xmathstrut@box
+\newdimen\xmathstrut@dim
+\def\xmathstrut{\@dblarg\xmathstrut@}
+\def\xmathstrut@[#1]#2{%
+  \def\xmathstrut@dp{#1}%
+  \vphantom{\mathpalette\xmathstrut@do{#2}}%
+}
+\def\xmathstrut@do#1#2{%
+  \setbox\xmathstrut@box\hbox{$#1($}%)%emacs
+   \xmathstrut@dim\dimexpr\ht\xmathstrut@box+\dp\xmathstrut@box\relax
+   \ht\xmathstrut@box\dimexpr\ht\xmathstrut@box
+           +#2\xmathstrut@dim
+           \relax
+   \dp\xmathstrut@box\dimexpr\dp\xmathstrut@box
+         +\xmathstrut@dp\xmathstrut@dim
+         \relax
+   \box\xmathstrut@box}
+
 \endinput
 %%
 %% End of file `mathtools.sty'.

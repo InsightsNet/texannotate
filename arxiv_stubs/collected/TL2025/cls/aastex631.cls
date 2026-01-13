@@ -1057,7 +1057,7 @@ footnote\the\fncount\endcsname{\if@two@col\hsize=.5\textwidth
 \skip\footins 36pt
 \else
 \footnotesep 12pt
-\skip\footins 24pt
+\skip\footins 12pt
 \fi
 
 \let\footnoterule\relax
@@ -1539,8 +1539,8 @@ APPENDIX}\hfill\mbox{}\par
 \renewcommand{\topfraction}{1.0}
 \renewcommand{\bottomfraction}{1.0}
 \renewcommand{\textfraction}{0.0}
-\renewcommand{\dbltopfraction}{0.85}
-\renewcommand{\dblfloatpagefraction}{0.85}
+\renewcommand{\dbltopfraction}{0.999}
+\renewcommand{\dblfloatpagefraction}{0.999}
 \setcounter{topnumber}{9}
 \setcounter{bottomnumber}{9}
 \setcounter{totalnumber}{20}
@@ -5933,7 +5933,8 @@ to 20pt{\hfill}}\vskip12pt}%
 %% Change Feb 2016, to allow optional argument for time/date, and/or editor initials, etc.
 
 
-\providecolor{trackchange}{cmyk}{0,0,0,1}
+\providecolor{trackchange1}{rgb}{0,0,1}
+\providecolor{trackchange2}{rgb}{1,0,0}
 \providecolor{explain}{cmyk}{0,0,0,1}
 
 \newif\ifsilent
@@ -5950,14 +5951,14 @@ to 20pt{\hfill}}\vskip12pt}%
 \ifabstract\else%
 \xdef\doit{\noexpand\linelabel{\the\refchangenumber}}\doit\fi\else%
 \xdef\doit{\noexpand\label{\the\refchangenumber}{}{}{}}\doit\fi}%
-{\color{trackchange}\bf(Added: [#1] #2)}%%
+{\color{trackchange1}[#1] #2}%%
 \ifabstract\label{\the\refchangenumber}%
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{\bf Added: [#1]
-\textcolor{trackchange}\bf\relax{#2}\global\silenttrue}%
+\textcolor{trackchange1}\bf\relax{#2}\global\silenttrue}%
 \else\expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{\bf\relax Added: [#1]
-\textcolor{trackchange}\bf\relax{\let\bibitem\specialbibitem #2}\global\silentfalse}\fi%
+\textcolor{trackchange1}\bf\relax{\let\bibitem\specialbibitem #2}\global\silentfalse}\fi%
 \else#2\fi}
 
 
@@ -5971,16 +5972,16 @@ changenum\the\refchangenumber\endcsname{\bf\relax Added: [#1]
 \xdef\doit{\noexpand\linelabel{\the\refchangenumber}}\doit\fi\else%
 \xdef\doit{\noexpand\label{\the\refchangenumber}{}{}{}}\doit%
 \fi}%
-{\color{trackchange}\bf(Added: #1)}%%
+{\color{trackchange1}#1}%%
 \ifabstract%
 \label{\the\refchangenumber}%
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{\bf Added:
-\textcolor{trackchange}\bf\relax{#1},
+\textcolor{trackchange1}\bf\relax{#1},
 \global\silenttrue}\else
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{\bf Added:
-\textcolor{trackchange}{\bf\relax\let\bibitem\specialbibitem #1},%
+\textcolor{trackchange1}{\bf\relax\let\bibitem\specialbibitem #1},%
 \global\silentfalse}\fi%
 \else#1\fi}
 
@@ -5998,19 +5999,19 @@ changenum\the\refchangenumber\endcsname{\bf Added:
 \else%
 \xdef\doit{\noexpand\label{\the\refchangenumber}}\doit\fi%
 }%
-{\color{trackchange}\bf%
+{\color{trackchange2}%
 \ifbib\let\sout\relax\fi%
-(Deleted: [#1] \sout{#2})
+[#1] \sout{#2}
 }%
 \ifabstract\label{\the\refchangenumber}%
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{Deleted: [#1]
-{\color{trackchange}\bf%
+{\color{trackchange2}\bf%
 \sout{#2}}\global\silenttrue}%
 \else
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{Deleted: [#1] 
-{\color{trackchange}%
+{\color{trackchange2}%
 \let\bibitem\specialbibitem%
 \sout{#2}
 }\global\silentfalse}\fi%
@@ -6026,16 +6027,16 @@ changenum\the\refchangenumber\endcsname{Deleted: [#1]
 \xdef\doit{\noexpand\label{\the\refchangenumber}{}{}{}}\doit%
 \fi}%
 %%
-{\color{trackchange}\bf%
+{\color{trackchange2}%
 \ifbib\let\sout\relax\fi%
-(Deleted: \sout{#1})}%
+\sout{#1}}%
 \ifabstract\label{\the\refchangenumber}%
 \expandafter\gdef\csname changenum\the\refchangenumber\endcsname{Deleted:
-{\color{trackchange}\bf
+{\color{trackchange2}\bf
 \sout{#1}}\global\silenttrue}%
 \else
 \expandafter\gdef\csname changenum\the\refchangenumber\endcsname{Deleted:
-{\color{trackchange}\bf%
+{\color{trackchange2}\bf%
 \sout{#1}}\global\silentfalse}\fi%
 \fi}
 
@@ -6050,21 +6051,20 @@ changenum\the\refchangenumber\endcsname{Deleted: [#1]
 \ifnumlines\ifabstract\else\xdef\doit{\noexpand\linelabel{\the\refchangenumber}}\doit\fi\else%
 \xdef\doit{\noexpand\label{\the\refchangenumber}}\doit\fi%
 {\ifbib\let\sout\relax\fi
-\color{trackchange}\bf(Replaced: [#1] \sout{#2}}%
-{\color{black}replaced with:} {
-\color{trackchange}\bf\relax #3)}%
+\color{trackchange2}[#1] \sout{#2}}%
+{\color{trackchange1}\relax #3}%
 \ifabstract\label{\the\refchangenumber}%
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{Replaced: [#1]
-{\color{trackchange}\bf\relax\sout{#2}} {\color{black} replaced with:}
-{\color{trackchange}\bf\relax#3}, \global\silenttrue}%
+{\color{trackchange2}\bf\relax\sout{#2}} {\color{black} replaced with:}
+{\color{trackchange1}\bf\relax#3}, \global\silenttrue}%
 \else
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{Replaced: [#1]
 {\ifbib\let\sout\relax\fi
-\color{trackchange}\bf\relax\sout{#2}
+\color{trackchange2}\bf\relax\sout{#2}
 } {\color{black} replaced with:}
-{\color{trackchange}\bf\relax#3}, \global\silentfalse}\fi%
+{\color{trackchange1}\bf\relax#3}, \global\silentfalse}\fi%
 \else#3\fi}
 
 \long\def\yreplaced#1#2{%
@@ -6075,23 +6075,22 @@ changenum\the\refchangenumber\endcsname{Replaced: [#1]
 \ifnumlines\ifabstract\else\xdef\doit{\noexpand\linelabel{\the\refchangenumber}}\doit\fi\else%
 \xdef\doit{\noexpand\label{\the\refchangenumber}}\doit\fi%
 {\ifbib\let\sout\relax\fi
-\color{trackchange}\bf\relax(Replaced: 
+\color{trackchange2}\relax
 \sout{#1}
 }%
-{\color{black}replaced with:}
-{\color{trackchange}\bf\relax #2)}%
+{\color{trackchange1}\relax #2}%
 \ifabstract\label{\the\refchangenumber}%
 \expandafter\gdef\csname changenum\the\refchangenumber\endcsname{Replaced:
-{\color{trackchange}\bf\relax
+{\color{trackchange2}\bf\relax
 \sout{#1}} {\color{black} replaced with:}
-{\color{trackchange}\bf\relax#2},\global\silenttrue}%
+{\color{trackchange1}\bf\relax#2},\global\silenttrue}%
 \else
 \expandafter\gdef\csname
 changenum\the\refchangenumber\endcsname{Replaced:
 {\ifbib\let\sout\relax\fi
-\color{trackchange}\bf\relax\sout{#1}
+\color{trackchange2}\bf\relax\sout{#1}
 } {\color{black} replaced with:}
-{\let\bibitem\specialbibitem\color{trackchange}\bf\relax#2}, \global\silentfalse}\fi%
+{\let\bibitem\specialbibitem\color{trackchange1}\bf\relax#2}, \global\silentfalse}\fi%
 \else#2\fi}
 
 \def\explain{\@ifnextchar[{\xexplain}{\yexplain}}
@@ -7323,8 +7322,8 @@ by-18pt\relax#1}}
 \def\suppressAffiliations{\global\suppressAffiliationstrue}
 
 %% new definition to be used in trackchanges:
-\def\sout#1{\raise5pt\hbox{\underline{\vbox to
-0pt{\vskip-4pt\hbox{#1\vrule height 8.5pt depth 3.5pt width0pt}\vss}}}} 
+%\def\sout#1{\raise5pt\hbox{\underline{\vbox to
+%0pt{\vskip-4pt\hbox{#1\vrule height 8.5pt depth 3.5pt width0pt}\vss}}}} 
 
 %% changes for affiliations when anonymous option is used:
 \ifanonymous

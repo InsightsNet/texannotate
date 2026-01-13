@@ -628,6 +628,63 @@ FUNCTION {format.date}
     }
   if$
 }
+
+FUNCTION {output.year.check}
+{ year empty$
+     { "empty year in " cite$ * warning$ }
+     { write$
+        " (" year * extra.label *
+       month empty$
+          { ")" * }
+          { ", " * month * ")" * }
+       if$
+       mid.sentence 'output.state :=
+     }
+  if$
+}
+
+
+FUNCTION {format.date.month.2}
+{ year empty$
+     { "empty year in " cite$ * warning$ }
+     { write$
+       month empty$
+          { " (" year * ")" * }
+          { " (" month * ", " * year * ")" * }
+       if$
+       mid.sentence 'output.state :=
+     }
+  if$
+}
+
+FUNCTION {format.date.month}
+{
+  ""
+  duplicate$ empty$
+  month "month" year "year" bibinfo.check duplicate$ empty$
+    { swap$ 'skip$
+        { "there's a month but no year in " cite$ * warning$ }
+      if$
+      *
+    }
+    { swap$ 'skip$
+        {
+          swap$
+          " " * swap$
+        }
+      if$
+      *
+    }
+  if$
+  duplicate$ empty$
+    'skip$
+    {
+      before.all 'output.state :=
+    " (" swap$ * ")" *
+    }
+  if$
+}
+
 FUNCTION {format.btitle}
 { title "title" bibinfo.check
   duplicate$ empty$ 'skip$
@@ -1216,7 +1273,7 @@ FUNCTION {misc}
   format.title output
   howpublished new.block.checka
   howpublished "howpublished" bibinfo.check output
-  format.date output
+  format.date.month.2 output
   format.doi output
   new.block
   format.url output
@@ -1510,4 +1567,3 @@ EXECUTE {end.bib}
 %% End of customized bst file
 %%
 %% End of file `spmpsci.bst'.
-

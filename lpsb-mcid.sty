@@ -256,7 +256,12 @@
 \gdef\lpsb@reopen@id{}
 
 \AtBeginShipout{%
-  \global\@lpsb@in@shipouttrue  % Disable tagging during shipout
+  % CRITICAL FIX: Reset shipout flag from previous page first.
+  % AtBeginShipoutNext only runs once (page 2), so without this reset,
+  % @lpsb@in@shipout stays true forever after page 2, causing para hook
+  % to be skipped and potentially contributing to infinite loop issues.
+  \global\@lpsb@in@shipoutfalse
+  \global\@lpsb@in@shipouttrue  % Now set it true for this shipout
   \if@lpsb@active
     \stepcounter{lpsb@currentPage}%  % Increment page counter at each shipout
     \if@lpsb@in@tag
@@ -470,37 +475,47 @@
 % Patch standard pagestyles to wrap headers/footers after they are defined
 % This is necessary because \thispagestyle{plain} etc. redefine \@oddfoot,
 % overwriting any previous wrapping done at \AtBeginDocument.
+%
+% NOTE: When fancyhdr is loaded, we SKIP pagestyle patching because:
+% 1. fancyhdr uses complex \@oddhead definitions that cannot be safely wrapped with \edef
+% 2. The \@outputpage wrapper already handles artifact marking at output time
+% 3. Attempting to wrap fancyhdr's \@oddhead causes infinite expansion (page explosion)
 \newcommand{\lpsb@patch@pagestyles}{%
-  % Patch \ps@plain
-  \@ifundefined{ps@plain}{}{%
-    \let\lpsb@orig@ps@plain\ps@plain
-    \def\ps@plain{%
-      \lpsb@orig@ps@plain
-      \lpsb@wrap@current@headfoot
+  % Skip if fancyhdr is loaded - it uses complex macros that break with \edef wrapping
+  \@ifpackageloaded{fancyhdr}{%
+    \typeout{LPSB-MCID Info: fancyhdr detected - skipping pagestyle patches (outputpage wrapper handles artifacts)}%
+  }{%
+    % Patch \ps@plain
+    \@ifundefined{ps@plain}{}{%
+      \let\lpsb@orig@ps@plain\ps@plain
+      \def\ps@plain{%
+        \lpsb@orig@ps@plain
+        \lpsb@wrap@current@headfoot
+      }%
     }%
-  }%
-  % Patch \ps@empty
-  \@ifundefined{ps@empty}{}{%
-    \let\lpsb@orig@ps@empty\ps@empty
-    \def\ps@empty{%
-      \lpsb@orig@ps@empty
-      \lpsb@wrap@current@headfoot
+    % Patch \ps@empty
+    \@ifundefined{ps@empty}{}{%
+      \let\lpsb@orig@ps@empty\ps@empty
+      \def\ps@empty{%
+        \lpsb@orig@ps@empty
+        \lpsb@wrap@current@headfoot
+      }%
     }%
-  }%
-  % Patch \ps@headings
-  \@ifundefined{ps@headings}{}{%
-    \let\lpsb@orig@ps@headings\ps@headings
-    \def\ps@headings{%
-      \lpsb@orig@ps@headings
-      \lpsb@wrap@current@headfoot
+    % Patch \ps@headings
+    \@ifundefined{ps@headings}{}{%
+      \let\lpsb@orig@ps@headings\ps@headings
+      \def\ps@headings{%
+        \lpsb@orig@ps@headings
+        \lpsb@wrap@current@headfoot
+      }%
     }%
-  }%
-  % Patch \ps@myheadings
-  \@ifundefined{ps@myheadings}{}{%
-    \let\lpsb@orig@ps@myheadings\ps@myheadings
-    \def\ps@myheadings{%
-      \lpsb@orig@ps@myheadings
-      \lpsb@wrap@current@headfoot
+    % Patch \ps@myheadings
+    \@ifundefined{ps@myheadings}{}{%
+      \let\lpsb@orig@ps@myheadings\ps@myheadings
+      \def\ps@myheadings{%
+        \lpsb@orig@ps@myheadings
+        \lpsb@wrap@current@headfoot
+      }%
     }%
   }%
 }
@@ -680,6 +695,7 @@
 }
 
 % Hook \maketitle to suppress normal P tags and inline tags during title area
+% Also provides TitleArea semantic tag for templates without fine-grained hooks
 \AtBeginDocument{%
   \lpsb@detect@template
   \@ifundefined{maketitle}{}{%
@@ -690,8 +706,15 @@
       % End any active P tag before title area
       \if@lpsb@active
         \lpsbTagEnd
+        % Start TitleArea tag to wrap entire title block
+        % This provides semantic marking even for complex templates
+        \lpsbTagBegin{TitleArea}%
       \fi
       \lpsb@orig@maketitle
+      \if@lpsb@active
+        % Close TitleArea tag
+        \lpsbTagEnd
+      \fi
       \global\@lpsb@suppress@inlinefalse
       \global\@lpsb@in@maketitlefalse
       % Start P for content after title
@@ -705,126 +728,280 @@
 
 % Hook \@maketitle for standard article class and similar templates
 % This wraps \@title, \@author, \@date with semantic tags
+%
+% Strategy for different template families:
+% 1. Complex frontmatter (revtex, aastex, acmart, amsart): passthrough (too complex to hook safely)
+% 2. NeurIPS family: hook \@toptitlebar/\@bottomtitlebar for Title, wrap \@author for Author
+% 3. ICLR/CVPR/ICML/ACL/AAAI/ICCV family: wrap \@title/\@author directly (simple structure)
+% 4. Standard article: wrap \@title/\@author/\@date in \@maketitle
+%
+% All templates get TitleArea wrapper from \maketitle hook above.
+
+% Helper: Wrap \@title and \@author for conference templates
+% These templates use simple {\LARGE\bf \@title\par} ... \@author patterns
+\newcommand{\lpsb@wrap@title@author@simple}{%
+  \@ifundefined{@title}{}{%
+    \let\lpsb@saved@title@conf\@title
+    \def\@title{%
+      \lpsbTagBegin{Title}%
+      \lpsb@saved@title@conf
+      \lpsbTagEnd
+    }%
+  }%
+  \@ifundefined{@author}{}{%
+    \let\lpsb@saved@author@conf\@author
+    \def\@author{%
+      \lpsbTagBegin{Author}%
+      \lpsb@saved@author@conf
+      \lpsbTagEnd
+    }%
+  }%
+}
+
+% Helper: Standard article class hook (wraps in \@maketitle with group)
+\newcommand{\lpsb@hook@maketitle@standard}{%
+  \let\lpsb@orig@@maketitle\@maketitle
+  \def\@maketitle{%
+    % Create a group to localize changes
+    \begingroup
+      % Wrap \@title with Title tag
+      \@ifundefined{@title}{}{%
+        \let\lpsb@saved@title\@title
+        \def\@title{%
+          \lpsbTagBegin{Title}%
+          \lpsb@saved@title
+          \lpsbTagEnd
+        }%
+      }%
+      % Wrap \@author with Author tag (check if it's not empty)
+      \@ifundefined{@author}{}{%
+        \let\lpsb@saved@author\@author
+        \def\@author{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@author
+          \lpsbTagEnd
+        }%
+      }%
+      % Wrap \@date with Date tag
+      \@ifundefined{@date}{}{%
+        \let\lpsb@saved@date\@date
+        \def\@date{%
+          \lpsbTagBegin{Date}%
+          \lpsb@saved@date
+          \lpsbTagEnd
+        }%
+      }%
+      % For Elsevier: wrap \elsauthors if present
+      \@ifundefined{elsauthors}{}{%
+        \let\lpsb@saved@elsauthors\elsauthors
+        \def\elsauthors{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@elsauthors
+          \lpsbTagEnd
+        }%
+      }%
+      % For AMS: wrap \authors if present (different from \@author)
+      \@ifundefined{authors}{}{%
+        \let\lpsb@saved@authors\authors
+        \def\authors{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@authors
+          \lpsbTagEnd
+        }%
+      }%
+      % For Springer: wrap \@institute if present
+      \@ifundefined{@institute}{}{%
+        \let\lpsb@saved@institute\@institute
+        \def\@institute{%
+          \lpsbTagBegin{Affiliation}%
+          \lpsb@saved@institute
+          \lpsbTagEnd
+        }%
+      }%
+      % For templates with institutename (llncs)
+      \@ifundefined{institutename}{}{%
+        \let\lpsb@saved@institutename\institutename
+        \def\institutename{%
+          \lpsbTagBegin{Affiliation}%
+          \lpsb@saved@institutename
+          \lpsbTagEnd
+        }%
+      }%
+      % For templates with \@subtitle
+      \@ifundefined{@subtitle}{}{%
+        \let\lpsb@saved@subtitle\@subtitle
+        \def\@subtitle{%
+          \lpsbTagBegin{Subtitle}%
+          \lpsb@saved@subtitle
+          \lpsbTagEnd
+        }%
+      }%
+      \lpsb@orig@@maketitle
+    \endgroup
+  }%
+}
+
+% Helper: NeurIPS-style hook using \@toptitlebar/\@bottomtitlebar
+% Structure: \@toptitlebar ... {\LARGE\bf \@title\par} ... \@bottomtitlebar ... \@author
+\newcommand{\lpsb@hook@maketitle@neurips}{%
+  % Hook \@toptitlebar to start Title tag after it
+  \@ifundefined{@toptitlebar}{}{%
+    \let\lpsb@orig@toptitlebar\@toptitlebar
+    \def\@toptitlebar{%
+      \lpsb@orig@toptitlebar
+      \if@lpsb@active
+        \lpsbTagBegin{Title}%
+      \fi
+    }%
+  }%
+  % Hook \@bottomtitlebar to end Title tag and start Author tag
+  \@ifundefined{@bottomtitlebar}{}{%
+    \let\lpsb@orig@bottomtitlebar\@bottomtitlebar
+    \def\@bottomtitlebar{%
+      \if@lpsb@active
+        \lpsbTagEnd  % End Title
+        \lpsbTagBegin{Author}%  % Start Author (will be closed by TitleArea end)
+      \fi
+      \lpsb@orig@bottomtitlebar
+    }%
+  }%
+  \typeout{LPSB-MCID Info: neurips template - hooked @toptitlebar/@bottomtitlebar for Title/Author}%
+}
+
+% Helper: Conference template hook (ICLR, CVPR, ICML, etc.)
+% These templates use simple \@maketitle with direct \@title and \@author usage
+\newcommand{\lpsb@hook@maketitle@conference}{%
+  \@ifundefined{@maketitle}{}{%
+    \let\lpsb@orig@@maketitle@conf\@maketitle
+    \def\@maketitle{%
+      \begingroup
+        \lpsb@wrap@title@author@simple
+        \lpsb@orig@@maketitle@conf
+      \endgroup
+    }%
+  }%
+}
+
 \AtBeginDocument{%
   \@ifundefined{@maketitle}{%
     % No @maketitle - check for alternative patterns
     \typeout{LPSB-MCID Info: @maketitle not found, checking alternatives}%
   }{%
-    % Check if this is a complex frontmatter system that shouldn't be hooked
+    % Template-specific hooks
     \def\lpsb@tmp@revtex{revtex}%
     \def\lpsb@tmp@aastex{aastex}%
     \def\lpsb@tmp@acmart{acmart}%
     \def\lpsb@tmp@amsart{amsart}%
+    \def\lpsb@tmp@llncs{llncs}%
+    \def\lpsb@tmp@iclr{iclr}%
+    \def\lpsb@tmp@neurips{neurips}%
+    \def\lpsb@tmp@cvpr{cvpr}%
+    \def\lpsb@tmp@icml{icml}%
+    \def\lpsb@tmp@acl{acl}%
+    \def\lpsb@tmp@aaai{aaai}%
+    \def\lpsb@tmp@iccv{iccv}%
+    \def\lpsb@tmp@tmlr{tmlr}%
+    \def\lpsb@tmp@wacv{wacv}%
+    \def\lpsb@tmp@aistats{aistats}%
+    %
+    % Complex frontmatter systems - passthrough (TitleArea from \maketitle still applies)
     \ifx\lpsb@detected@template\lpsb@tmp@revtex
-      \typeout{LPSB-MCID Info: revtex detected - using passthrough for @maketitle}%
+      \typeout{LPSB-MCID Info: revtex detected - using TitleArea only (complex frontmatter)}%
     \else\ifx\lpsb@detected@template\lpsb@tmp@aastex
-      \typeout{LPSB-MCID Info: aastex detected - using passthrough for @maketitle}%
+      \typeout{LPSB-MCID Info: aastex detected - using TitleArea only (complex frontmatter)}%
     \else\ifx\lpsb@detected@template\lpsb@tmp@acmart
-      \typeout{LPSB-MCID Info: acmart detected - using passthrough for @maketitle}%
+      \typeout{LPSB-MCID Info: acmart detected - using TitleArea only (complex frontmatter)}%
     \else\ifx\lpsb@detected@template\lpsb@tmp@amsart
-      \typeout{LPSB-MCID Info: amsart detected - using passthrough for @maketitle}%
+      \typeout{LPSB-MCID Info: amsart detected - using TitleArea only (complex frontmatter)}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@llncs
+      \typeout{LPSB-MCID Info: llncs detected - using TitleArea only (complex frontmatter)}%
+    %
+    % NeurIPS family - use titlebar hooks
+    \else\ifx\lpsb@detected@template\lpsb@tmp@neurips
+      \lpsb@hook@maketitle@neurips
+    \else\ifx\lpsb@detected@template\lpsb@tmp@tmlr
+      % TMLR uses similar structure to NeurIPS
+      \lpsb@hook@maketitle@neurips
+      \typeout{LPSB-MCID Info: tmlr detected - using neurips-style hooks}%
+    %
+    % Conference templates - wrap \@title/\@author directly
+    \else\ifx\lpsb@detected@template\lpsb@tmp@iclr
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: iclr detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@cvpr
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: cvpr detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@icml
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: icml detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@acl
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: acl detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aaai
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: aaai detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@iccv
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: iccv detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@wacv
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: wacv detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aistats
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: aistats detected - using conference-style @title/@author hooks}%
+    %
+    % Standard article class and others - use full \@maketitle hook
     \else
-      % Safe to hook @maketitle
-      \let\lpsb@orig@@maketitle\@maketitle
-      \def\@maketitle{%
-        % Create a group to localize changes
-        \begingroup
-          % Wrap \@title with Title tag
-          \@ifundefined{@title}{}{%
-            \let\lpsb@saved@title\@title
-            \def\@title{%
-              \lpsbTagBegin{Title}%
-              \lpsb@saved@title
-              \lpsbTagEnd
-            }%
-          }%
-          % Wrap \@author with Author tag (check if it's not empty)
-          \@ifundefined{@author}{}{%
-            \let\lpsb@saved@author\@author
-            \def\@author{%
-              \lpsbTagBegin{Author}%
-              \lpsb@saved@author
-              \lpsbTagEnd
-            }%
-          }%
-          % Wrap \@date with Date tag
-          \@ifundefined{@date}{}{%
-            \let\lpsb@saved@date\@date
-            \def\@date{%
-              \lpsbTagBegin{Date}%
-              \lpsb@saved@date
-              \lpsbTagEnd
-            }%
-          }%
-          % For Elsevier: wrap \elsauthors if present
-          \@ifundefined{elsauthors}{}{%
-            \let\lpsb@saved@elsauthors\elsauthors
-            \def\elsauthors{%
-              \lpsbTagBegin{Author}%
-              \lpsb@saved@elsauthors
-              \lpsbTagEnd
-            }%
-          }%
-          % For AMS: wrap \authors if present (different from \@author)
-          \@ifundefined{authors}{}{%
-            \let\lpsb@saved@authors\authors
-            \def\authors{%
-              \lpsbTagBegin{Author}%
-              \lpsb@saved@authors
-              \lpsbTagEnd
-            }%
-          }%
-          % For Springer: wrap \@institute if present
-          \@ifundefined{@institute}{}{%
-            \let\lpsb@saved@institute\@institute
-            \def\@institute{%
-              \lpsbTagBegin{Affiliation}%
-              \lpsb@saved@institute
-              \lpsbTagEnd
-            }%
-          }%
-          % For templates with institutename (llncs)
-          \@ifundefined{institutename}{}{%
-            \let\lpsb@saved@institutename\institutename
-            \def\institutename{%
-              \lpsbTagBegin{Affiliation}%
-              \lpsb@saved@institutename
-              \lpsbTagEnd
-            }%
-          }%
-          % For templates with \@subtitle
-          \@ifundefined{@subtitle}{}{%
-            \let\lpsb@saved@subtitle\@subtitle
-            \def\@subtitle{%
-              \lpsbTagBegin{Subtitle}%
-              \lpsb@saved@subtitle
-              \lpsbTagEnd
-            }%
-          }%
-          \lpsb@orig@@maketitle
-        \endgroup
-      }%
-    \fi\fi\fi\fi
+      \lpsb@hook@maketitle@standard
+      \typeout{LPSB-MCID Info: using standard @maketitle hooks for Title/Author/Date}%
+    \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
   }%
 }
 
 % Special hook for AAAI's \affiliations command (separate from author)
-\AtBeginDocument{%
-  \@ifundefined{affiliations}{}{%
-    \let\lpsb@orig@affiliations\affiliations
-    \renewcommand{\affiliations}[1]{%
-      \def\lpsb@affil@content{#1}%
-      \lpsb@orig@affiliations{#1}%
-    }%
-  }%
-}
+% DISABLED: This hook causes errors when \affiliations has optional arguments
+% or different syntax in various templates. The metadata capture is not
+% critical for PDF tagging, so we skip it to avoid compatibility issues.
+% \AtBeginDocument{%
+%   \@ifundefined{affiliations}{}{%
+%     \let\lpsb@orig@affiliations\affiliations
+%     \renewcommand{\affiliations}[1]{%
+%       \def\lpsb@affil@content{#1}%
+%       \lpsb@orig@affiliations{#1}%
+%     }%
+%   }%
+% }
 
 % Hook abstract environment to use Abstract tag
+% Hook abstract environment to use Abstract tag
 \AtBeginDocument{%
-  \@ifundefined{abstract}{}{%
-    \let\lpsb@orig@abstract\abstract
-    \let\lpsb@orig@endabstract\endabstract
-    \renewenvironment{abstract}{%
+  % Check for conflict templates
+  \def\lpsb@tmp@iclr{iclr}%
+  \def\lpsb@tmp@neurips{neurips}%
+  \def\lpsb@tmp@cvpr{cvpr}%
+  \def\lpsb@tmp@icml{icml}%
+  \def\lpsb@tmp@acl{acl}%
+  \def\lpsb@tmp@aaai{aaai}%
+  \def\lpsb@tmp@iccv{iccv}%
+  \def\lpsb@tmp@tmlr{tmlr}%
+  \newif\if@lpsb@skip@abstract \@lpsb@skip@abstractfalse
+  
+  \ifx\lpsb@detected@template\lpsb@tmp@iclr \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@neurips \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@cvpr \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@icml \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@acl \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@aaai \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@iccv \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@tmlr \global\@lpsb@skip@abstracttrue \fi
+
+  \if@lpsb@skip@abstract
+    \typeout{LPSB-MCID Info: Skipping Abstract hook for template '\lpsb@detected@template' (known conflict)}%
+  \else
+    \@ifundefined{abstract}{}{%
+      \let\lpsb@orig@abstract\abstract
+      \let\lpsb@orig@endabstract\endabstract
+      \renewenvironment{abstract}{%
       % End any active P tag
       \if@lpsb@active
         \lpsbTagEnd
@@ -836,6 +1013,7 @@
       \lpsbTagEnd
     }%
   }%
+  \fi
 }
 
 %% =========================================
@@ -882,6 +1060,16 @@
 
 % Flag to suppress inline tags (Strong, Em, etc.) inside certain environments
 \newif\if@lpsb@suppress@inline \@lpsb@suppress@inlinefalse
+
+% Pre-defined constants for atom type comparisons (avoid \def inside fragile macros)
+\def\lpsb@const@Caption{Caption}
+\def\lpsb@const@Strong{Strong}
+\def\lpsb@const@Em{Em}
+\def\lpsb@const@Link{Link}
+\def\lpsb@const@Lbl{Lbl}
+\def\lpsb@const@Note{Note}
+\def\lpsb@const@InlineMath{InlineMath}
+\def\lpsb@const@Reference{Reference}
 
 % algorithm2e package
 \AtBeginDocument{%
@@ -961,54 +1149,69 @@
 % Theorem-like environments (theorem, lemma, definition, etc.) should
 % suppress inline tags to avoid fragmentation. We use a generic approach
 % that hooks into amsthm's \@thm command.
+%
+% IMPORTANT: Skip these hooks when certain packages are loaded that have
+% incompatible theorem internals (smfthm, thmtools, etc.)
 \AtBeginDocument{%
-  \@ifpackageloaded{amsthm}{%
-    % Hook \@thm which is called for all theorem environments
-    \@ifundefined{@thm}{}{%
-      \let\lpsb@orig@@thm\@thm
-      \def\@thm#1#2#3{%
-        \if@lpsb@active
-          \lpsbTagEnd
-          \lpsbTagBegin{P}%  % Use P for theorem content (semantic role unclear in PDF/UA)
-          \global\@lpsb@suppress@inlinetrue
-        \fi
-        \lpsb@orig@@thm{#1}{#2}{#3}%
-      }%
-    }%
-    % Hook \@endtheorem to restore inline tagging
-    \@ifundefined{@endtheorem}{}{%
-      \let\lpsb@orig@@endtheorem\@endtheorem
-      \def\@endtheorem{%
-        \lpsb@orig@@endtheorem
-        \global\@lpsb@suppress@inlinefalse
-      }%
-    }%
-  }{}%
-  % Also handle old-style theorem package
-  \@ifpackageloaded{theorem}{%
-    \@ifundefined{@thm}{}{%
-      \@ifundefined{lpsb@orig@@thm}{%  % Don't double-hook if amsthm already did
+  % Check for incompatible theorem packages
+  \newif\if@lpsb@skip@thmhooks \@lpsb@skip@thmhooksfalse
+  \@ifpackageloaded{smfthm}{\global\@lpsb@skip@thmhookstrue}{}%
+  \@ifpackageloaded{thmtools}{\global\@lpsb@skip@thmhookstrue}{}%
+  % smf class also uses incompatible theorem handling
+  \def\lpsb@tmp@smf{smf}%
+  \ifx\lpsb@detected@template\lpsb@tmp@smf\global\@lpsb@skip@thmhookstrue\fi
+  %
+  \if@lpsb@skip@thmhooks
+    \typeout{LPSB-MCID Info: Skipping theorem hooks (incompatible package detected)}%
+  \else
+    \@ifpackageloaded{amsthm}{%
+      % Hook \@thm which is called for all theorem environments
+      \@ifundefined{@thm}{}{%
         \let\lpsb@orig@@thm\@thm
         \def\@thm#1#2#3{%
           \if@lpsb@active
             \lpsbTagEnd
-            \lpsbTagBegin{P}%
+            \lpsbTagBegin{P}%  % Use P for theorem content (semantic role unclear in PDF/UA)
             \global\@lpsb@suppress@inlinetrue
           \fi
           \lpsb@orig@@thm{#1}{#2}{#3}%
         }%
-      }{}%
-    }%
-    \@ifundefined{@endtheorem}{}{%
-      \@ifundefined{lpsb@orig@@endtheorem}{%
+      }%
+      % Hook \@endtheorem to restore inline tagging
+      \@ifundefined{@endtheorem}{}{%
         \let\lpsb@orig@@endtheorem\@endtheorem
         \def\@endtheorem{%
           \lpsb@orig@@endtheorem
           \global\@lpsb@suppress@inlinefalse
         }%
-      }{}%
-    }%
-  }{}%
+      }%
+    }{}%
+    % Also handle old-style theorem package
+    \@ifpackageloaded{theorem}{%
+      \@ifundefined{@thm}{}{%
+        \@ifundefined{lpsb@orig@@thm}{%  % Don't double-hook if amsthm already did
+          \let\lpsb@orig@@thm\@thm
+          \def\@thm#1#2#3{%
+            \if@lpsb@active
+              \lpsbTagEnd
+              \lpsbTagBegin{P}%
+              \global\@lpsb@suppress@inlinetrue
+            \fi
+            \lpsb@orig@@thm{#1}{#2}{#3}%
+          }%
+        }{}%
+      }%
+      \@ifundefined{@endtheorem}{}{%
+        \@ifundefined{lpsb@orig@@endtheorem}{%
+          \let\lpsb@orig@@endtheorem\@endtheorem
+          \def\@endtheorem{%
+            \lpsb@orig@@endtheorem
+            \global\@lpsb@suppress@inlinefalse
+          }%
+        }{}%
+      }%
+    }{}%
+  \fi
 }
 
 %% =========================================
@@ -1103,50 +1306,56 @@
 % Begin a new tagged element
 % #1 = tag type (P, H1, H2, Abstract, Figure, etc.)
 \newcommand{\lpsbTagBegin}[1]{%
-  \if@lpsb@active
-    % If already in a tag, save current state to stack
-    \if@lpsb@in@tag
-      \lpsb@push@tag{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
-      \lpsb@pdfliteralcmd{ EMC }%
-    \fi
-    %
-    % Start new element
-    \stepcounter{lpsb@logicalElemID}%
-    \stepcounter{lpsb@globalMCID}%
-    \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
-    \xdef\lpsb@current@tag@type{#1}%
-    \global\@lpsb@in@tagtrue
-    %
-    % Insert BDC into content stream
-    \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-    %
-    % Record to aux file
-    \immediate\write\@auxout{%
-      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-    }%
-  \fi % @lpsb@active
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      % If already in a tag, save current state to stack
+      \if@lpsb@in@tag
+        \lpsb@push@tag{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
+        \lpsb@pdfliteralcmd{ EMC }%
+      \fi
+      %
+      % Start new element
+      \stepcounter{lpsb@logicalElemID}%
+      \stepcounter{lpsb@globalMCID}%
+      \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
+      \xdef\lpsb@current@tag@type{#1}%
+      \global\@lpsb@in@tagtrue
+      %
+      % Insert BDC into content stream
+      \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
+      %
+      % Record to aux file
+      \immediate\write\@auxout{%
+        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+      }%
+    \fi % @lpsb@active
+  \fi % @typeset@protect
 }
 
 % End current tagged element
 \newcommand{\lpsbTagEnd}{%
-  \if@lpsb@active
-    \if@lpsb@in@tag
-      \lpsb@pdfliteralcmd{ EMC }%
-      %
-      % Record end
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
-      }%
-      %
-      % Restore parent from stack if any
-      \ifx\lpsb@tag@stack\empty
-        \global\@lpsb@in@tagfalse
-      \else
-        \lpsb@pop@tag
-        % Check if restoring a section heading that is now complete
-        % If @nobreak is false, the heading text has been output and we should
-        % NOT reopen the heading - start P instead.
-        \lpsb@maybe@close@heading@or@reopen
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@tag
+        \lpsb@pdfliteralcmd{ EMC }%
+        %
+        % Record end
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+        }%
+        %
+        % Restore parent from stack if any
+        \ifx\lpsb@tag@stack\empty
+          \global\@lpsb@in@tagfalse
+        \else
+          \lpsb@pop@tag
+          % Check if restoring a section heading that is now complete
+          % If @nobreak is false, the heading text has been output and we should
+          % NOT reopen the heading - start P instead.
+          \lpsb@maybe@close@heading@or@reopen
+        \fi
       \fi
     \fi
   \fi
@@ -1202,16 +1411,19 @@
 % This is because floats appear at different positions than their source location,
 % so restoring the parent P would cause it to incorrectly span the float's rendered content.
 \newcommand{\lpsbTagEndFloat}{%
-  \if@lpsb@active
-    \if@lpsb@in@tag
-      \lpsb@pdfliteralcmd{ EMC }%
-      % Record end
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
-      }%
-      % Clear stack and mark not in tag - parent should NOT continue after float
-      \gdef\lpsb@tag@stack{}%
-      \global\@lpsb@in@tagfalse
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@tag
+        \lpsb@pdfliteralcmd{ EMC }%
+        % Record end
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+        }%
+        % Clear stack and mark not in tag - parent should NOT continue after float
+        \gdef\lpsb@tag@stack{}%
+        \global\@lpsb@in@tagfalse
+      \fi
     \fi
   \fi
 }
@@ -1220,30 +1432,33 @@
 % Use this inside @xfloat because the float box is placed asynchronously.
 % We don't want to save/restore parent P since that would create incorrect nesting.
 \newcommand{\lpsbTagBeginFloat}[1]{%
-  \if@lpsb@active
-    % DON'T push current tag to stack - floats are self-contained
-    % Just close current if any (but don't save it)
-    \if@lpsb@in@tag
-      \lpsb@pdfliteralcmd{ EMC }%
-      % Record end of the parent tag that was open
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      % DON'T push current tag to stack - floats are self-contained
+      % Just close current if any (but don't save it)
+      \if@lpsb@in@tag
+        \lpsb@pdfliteralcmd{ EMC }%
+        % Record end of the parent tag that was open
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+        }%
+        % Clear stack since this P should not continue after float
+        \gdef\lpsb@tag@stack{}%
+      \fi
+      % Start new element for the float
+      \stepcounter{lpsb@logicalElemID}%
+      \stepcounter{lpsb@globalMCID}%
+      \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
+      \xdef\lpsb@current@tag@type{#1}%
+      \global\@lpsb@in@tagtrue
+      % Insert BDC
+      \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
+      % Record to aux file
       \immediate\write\@auxout{%
-        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
       }%
-      % Clear stack since this P should not continue after float
-      \gdef\lpsb@tag@stack{}%
     \fi
-    % Start new element for the float
-    \stepcounter{lpsb@logicalElemID}%
-    \stepcounter{lpsb@globalMCID}%
-    \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
-    \xdef\lpsb@current@tag@type{#1}%
-    \global\@lpsb@in@tagtrue
-    % Insert BDC
-    \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-    % Record to aux file
-    \immediate\write\@auxout{%
-      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-    }%
   \fi
 }
 
@@ -1252,33 +1467,38 @@
 % Records parent element ID for proper nesting in output
 % IMPORTANT: PDF MCIDs don't nest - must close parent, insert atom, reopen parent
 \newcommand{\lpsb@TagAtomImpl}[2]{%
-  \if@lpsb@active
-    \if@lpsb@in@tag
-      % Save parent info - use \protected@edef to avoid expansion issues in subfigure
-      \protected@edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
-      \protected@edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
-      % Close parent MCID temporarily
-      \lpsb@pdfliteralcmd{ EMC }%
-    \else
-      \def\lpsb@saved@parent@id{}%
-      \def\lpsb@saved@parent@type{}%
-    \fi
-    % Insert atom element
-    \stepcounter{lpsb@logicalElemID}%
-    \stepcounter{lpsb@globalMCID}%
-    \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-    \immediate\write\@auxout{%
-      \string\lpsb@tag@atom{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@saved@parent@id}%
-    }%
-    #2%
-    \lpsb@pdfliteralcmd{ EMC }%
-    % Reopen parent with continuation MCID
-    \if@lpsb@in@tag
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@tag
+        % Save parent info - use \protected@edef to avoid expansion issues in subfigure
+        \protected@edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
+        \protected@edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
+        % Close parent MCID temporarily
+        \lpsb@pdfliteralcmd{ EMC }%
+      \else
+        \def\lpsb@saved@parent@id{}%
+        \def\lpsb@saved@parent@type{}%
+      \fi
+      % Insert atom element
+      \stepcounter{lpsb@logicalElemID}%
       \stepcounter{lpsb@globalMCID}%
-      \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+      \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
       \immediate\write\@auxout{%
-        \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+        \string\lpsb@tag@atom{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@saved@parent@id}%
       }%
+      #2%
+      \lpsb@pdfliteralcmd{ EMC }%
+      % Reopen parent with continuation MCID
+      \if@lpsb@in@tag
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+        \immediate\write\@auxout{%
+          \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+        }%
+      \fi
+    \else
+      #2%
     \fi
   \else
     #2%
@@ -1291,15 +1511,19 @@
 % macro is not expanded in expansion-only contexts.
 \protected\def\lpsbTagAtom#1#2{%
   % Check if we're in a float and handle accordingly
-  \def\lpsb@Caption@const{Caption}%
-  \def\lpsb@atom@type{#1}%
+  % Use pre-defined constant to avoid \def inside fragile contexts
   \if@lpsb@in@float
     % In float: only tag Caption type, pass through others
-    \ifx\lpsb@atom@type\lpsb@Caption@const
-      \lpsb@TagAtomImpl{#1}{#2}%
-    \else
-      #2%
-    \fi
+    % Compare #1 directly with pre-defined constant using \ifx after \edef
+    \begingroup
+      \edef\lpsb@tmp@atomtype{#1}%
+      \ifx\lpsb@tmp@atomtype\lpsb@const@Caption
+        \endgroup
+        \lpsb@TagAtomImpl{#1}{#2}%
+      \else
+        \endgroup
+        #2%
+      \fi
   \else
     % Not in float: tag everything
     \lpsb@TagAtomImpl{#1}{#2}%
@@ -1340,53 +1564,58 @@
 % Reference atom that also records citation keys (for downstream parent/child structure).
 % #1 = cite key string (verbatim-ish), #2 = content (expands to printed citation)
 \newcommand{\lpsbTagReferenceAtom}[2]{%
-  \if@lpsb@active
-    \if@lpsb@in@tag
-      % Inside a parent tag: emit proper Reference atom with EMC/BDC
-      \edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
-      \edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
-      \lpsb@pdfliteralcmd{ EMC }%
-      \stepcounter{lpsb@logicalElemID}%
-      \stepcounter{lpsb@globalMCID}%
-      \lpsb@pdfliteralcmd{ /Reference << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@atom{\thelpsb@logicalElemID}{Reference}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@saved@parent@id}%
-      }%
-      % Record keys (detokenized to keep aux robust)
-      \begingroup
-        \edef\lpsb@tmp@keys{\detokenize{#1}}%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@tag
+        % Inside a parent tag: emit proper Reference atom with EMC/BDC
+        \edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
+        \edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
+        \lpsb@pdfliteralcmd{ EMC }%
+        \stepcounter{lpsb@logicalElemID}%
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /Reference << /MCID \thelpsb@globalMCID >> BDC }%
         \immediate\write\@auxout{%
-          \string\lpsb@refkey{\thelpsb@logicalElemID}{\lpsb@tmp@keys}%
+          \string\lpsb@tag@atom{\thelpsb@logicalElemID}{Reference}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@saved@parent@id}%
         }%
-      \endgroup
-      #2%
-      \lpsb@pdfliteralcmd{ EMC }%
-      % Reopen parent tag
-      \stepcounter{lpsb@globalMCID}%
-      \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-      }%
+        % Record keys (detokenized to keep aux robust)
+        \begingroup
+          \edef\lpsb@tmp@keys{\detokenize{#1}}%
+          \immediate\write\@auxout{%
+            \string\lpsb@refkey{\thelpsb@logicalElemID}{\lpsb@tmp@keys}%
+          }%
+        \endgroup
+        #2%
+        \lpsb@pdfliteralcmd{ EMC }%
+        % Reopen parent tag
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+        \immediate\write\@auxout{%
+          \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+        }%
+      \else
+        % NOT inside a parent tag: emit standalone Reference BDC/EMC
+        % After Reference ends, start a new P for subsequent text
+        \stepcounter{lpsb@logicalElemID}%
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /Reference << /MCID \thelpsb@globalMCID >> BDC }%
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@atom{\thelpsb@logicalElemID}{Reference}{\thelpsb@globalMCID}{\thelpsb@currentPage}{}%
+        }%
+        \begingroup
+          \edef\lpsb@tmp@keys{\detokenize{#1}}%
+          \immediate\write\@auxout{%
+            \string\lpsb@refkey{\thelpsb@logicalElemID}{\lpsb@tmp@keys}%
+          }%
+        \endgroup
+        #2%
+        \lpsb@pdfliteralcmd{ EMC }%
+        % Start new P for subsequent text (prevents untagged content after Reference)
+        \lpsbTagBegin{P}%
+        \global\@lpsb@first@paratrue
+      \fi
     \else
-      % NOT inside a parent tag: emit standalone Reference BDC/EMC
-      % After Reference ends, start a new P for subsequent text
-      \stepcounter{lpsb@logicalElemID}%
-      \stepcounter{lpsb@globalMCID}%
-      \lpsb@pdfliteralcmd{ /Reference << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@atom{\thelpsb@logicalElemID}{Reference}{\thelpsb@globalMCID}{\thelpsb@currentPage}{}%
-      }%
-      \begingroup
-        \edef\lpsb@tmp@keys{\detokenize{#1}}%
-        \immediate\write\@auxout{%
-          \string\lpsb@refkey{\thelpsb@logicalElemID}{\lpsb@tmp@keys}%
-        }%
-      \endgroup
       #2%
-      \lpsb@pdfliteralcmd{ EMC }%
-      % Start new P for subsequent text (prevents untagged content after Reference)
-      \lpsbTagBegin{P}%
-      \global\@lpsb@first@paratrue
     \fi
   \else
     #2%
@@ -1405,10 +1634,43 @@
     % Wrapping it has caused stack overflows in real papers.
     \typeout{LPSB-MCID Info: skipping maketitle hook}%
   }%
-  % Hook \author to capture author info
+  % Skip metadata hooks for templates with complex author/affiliation handling
+  % These templates use different argument patterns that break the standard hooks
+  \def\lpsb@tmp@acmart{acmart}%
+  \def\lpsb@tmp@elsarticle{elsarticle}%
+  \def\lpsb@tmp@amsart{amsart}%
+  \def\lpsb@tmp@revtex{revtex}%
+  \def\lpsb@tmp@aastex{aastex}%
+  \def\lpsb@tmp@llncs{llncs}%
+  \def\lpsb@tmp@svjour{svjour}%
+  \def\lpsb@tmp@ieeetran{ieeetran}%
+  \newif\if@lpsb@skip@metahooks \@lpsb@skip@metahooksfalse
+  \ifx\lpsb@detected@template\lpsb@tmp@acmart \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@elsarticle \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@amsart \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@revtex \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@aastex \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@llncs \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@svjour \global\@lpsb@skip@metahookstrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@ieeetran \global\@lpsb@skip@metahookstrue \fi
+  %
+  \if@lpsb@skip@metahooks
+    \typeout{LPSB-MCID Info: Skipping author/affiliation/institute hooks for template '\lpsb@detected@template'}%
+  \else
+  % Hook \author to capture author info (supports optional parameter)
   \@ifundefined{author}{}{%
     \let\lpsb@orig@author\author
-    \renewcommand{\author}[1]{%
+    \renewcommand{\author}{%
+      \@ifnextchar[\lpsb@author@opt\lpsb@author@noopt
+    }%
+    \def\lpsb@author@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@author[#1]{#2}%
+    }%
+    \def\lpsb@author@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
@@ -1416,10 +1678,20 @@
       \lpsb@orig@author{#1}%
     }%
   }%
-  % Hook \affiliation (common in many class files)
+  % Hook \affiliation (common in many class files, supports optional parameter)
   \@ifundefined{affiliation}{}{%
     \let\lpsb@orig@affiliation\affiliation
-    \renewcommand{\affiliation}[1]{%
+    \renewcommand{\affiliation}{%
+      \@ifnextchar[\lpsb@affiliation@opt\lpsb@affiliation@noopt
+    }%
+    \def\lpsb@affiliation@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@affiliation[#1]{#2}%
+    }%
+    \def\lpsb@affiliation@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
@@ -1427,10 +1699,20 @@
       \lpsb@orig@affiliation{#1}%
     }%
   }%
-  % Hook \institute (common in some classes like beamer, svjour)
+  % Hook \institute (common in some classes like beamer, svjour, supports optional parameter)
   \@ifundefined{institute}{}{%
     \let\lpsb@orig@institute\institute
-    \renewcommand{\institute}[1]{%
+    \renewcommand{\institute}{%
+      \@ifnextchar[\lpsb@institute@opt\lpsb@institute@noopt
+    }%
+    \def\lpsb@institute@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@institute[#1]{#2}%
+    }%
+    \def\lpsb@institute@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
@@ -1438,6 +1720,7 @@
       \lpsb@orig@institute{#1}%
     }%
   }%
+  \fi % @lpsb@skip@metahooks
 }
 
 % --- Sections → H1, H2, H3, etc. ---
@@ -1454,6 +1737,10 @@
 % 4. After the heading content, we close H1 and start P
 %
 % This ensures H1 wraps the actual heading text, even across page breaks.
+%
+% SKIP SECTION HOOKS for templates with incompatible section internals.
+% These templates use complex section formatting that breaks when LPSB
+% wraps \section/\subsection commands.
 
 \newif\if@lpsb@in@section \@lpsb@in@sectionfalse
 \newif\if@lpsb@section@pending \@lpsb@section@pendingfalse
@@ -1463,7 +1750,21 @@
 % Flag to track if we need to emit heading tag at next everypar
 \newif\if@lpsb@heading@deferred \@lpsb@heading@deferredfalse
 
+% Flag to skip section hooks for incompatible templates
+\newif\if@lpsb@skip@sectionhooks \@lpsb@skip@sectionhooksfalse
+
 \AtBeginDocument{%
+  % Check for incompatible section handling templates
+  % smf (Société Mathématique de France) uses complex \smf@sf and \smf@eebox
+  \def\lpsb@tmp@smf{smf}%
+  \ifx\lpsb@detected@template\lpsb@tmp@smf\global\@lpsb@skip@sectionhookstrue\fi
+  % smfart class files define \smf@sf
+  \@ifundefined{smf@sf}{}{\global\@lpsb@skip@sectionhookstrue}%
+  %
+  \if@lpsb@skip@sectionhooks
+    \typeout{LPSB-MCID Info: Skipping section hooks (incompatible template detected)}%
+  \else
+  %
   % Hook \@afterheading - this is called after \@xsect but BEFORE
   % the heading text is actually output (for display headings).
   % We use this to set up deferred heading tagging.
@@ -1776,6 +2077,7 @@
       \global\@lpsb@in@sectionfalse
     }%
   }%
+  \fi % @lpsb@skip@sectionhooks
 }
 
 % --- Paragraph → P ---
@@ -1910,8 +2212,37 @@
 % 1. Modern LaTeX hook system (AddToHook{para/begin}) - TL2020+
 % 2. Fallback to everyhook package if available - TL2016+
 % 3. Warning if neither is available
+%
+% NOTE: Some conference templates (ICLR, NeurIPS, CVPR, etc.) redefine paragraph
+% handling in ways that create infinite loops with para hooks. We detect these
+% templates and skip para hook installation - basic tagging still works via
+% explicit lpsbTagBegin calls.
 
 \newif\if@lpsb@parahook@installed \@lpsb@parahook@installedfalse
+\newif\if@lpsb@skip@parahook \@lpsb@skip@parahookfalse
+
+% Check if we should skip para hook based on detected template
+\AtBeginDocument{%
+  \def\lpsb@tmp@iclr{iclr}%
+  \def\lpsb@tmp@neurips{neurips}%
+  \def\lpsb@tmp@cvpr{cvpr}%
+  \def\lpsb@tmp@icml{icml}%
+  \def\lpsb@tmp@acl{acl}%
+  \def\lpsb@tmp@aaai{aaai}%
+  \def\lpsb@tmp@iccv{iccv}%
+  \def\lpsb@tmp@tmlr{tmlr}%
+  \ifx\lpsb@detected@template\lpsb@tmp@iclr \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@neurips \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@cvpr \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@icml \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@acl \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@aaai \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@iccv \global\@lpsb@skip@parahooktrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@tmlr \global\@lpsb@skip@parahooktrue \fi
+  \if@lpsb@skip@parahook
+    \typeout{LPSB-MCID Info: Skipping para hook for template '\lpsb@detected@template' (known conflict)}%
+  \fi
+}
 
 % Try modern LaTeX hook system first (available in TL2020+)
 \@ifundefined{AddToHook}{%
@@ -1919,21 +2250,37 @@
   \IfFileExists{everyhook.sty}{%
     \RequirePackage{everyhook}%
     \global\@lpsb@everyhook@availabletrue
-    \PushPostHook{par}{\lpsb@para@hook}%
-    \global\@lpsb@parahook@installedtrue
+    \AtBeginDocument{%
+      \if@lpsb@skip@parahook\else
+        \PushPostHook{par}{\lpsb@para@hook}%
+        \global\@lpsb@parahook@installedtrue
+      \fi
+    }%
   }{%
     \PackageWarning{lpsb-mcid}{Neither AddToHook nor everyhook.sty available. Paragraph detection disabled.}%
   }%
 }{%
   % Use modern AddToHook (more reliable, kernel-managed)
-  \AddToHook{para/begin}{\lpsb@para@hook}%
-  \global\@lpsb@parahook@installedtrue
+  % Delay installation to AtBeginDocument so template detection is complete
+  \AtBeginDocument{%
+    \if@lpsb@skip@parahook\else
+      \AddToHook{para/begin}{\lpsb@para@hook}%
+      \global\@lpsb@parahook@installedtrue
+    \fi
+  }%
 }
 
 \AtBeginDocument{%
   % Activate tagging, then start first P.
   \global\@lpsb@activetrue
-  \lpsbTagBegin{P}%
+  % Skip initial P tag for templates that conflict with para hooks
+  % These templates handle paragraph structure differently and lpsbTagBegin{P}
+  % at document start causes infinite loops with their internal handling.
+  \if@lpsb@skip@parahook
+    \typeout{LPSB-MCID Info: Skipping initial P tag for template with para hook conflict}%
+  \else
+    \lpsbTagBegin{P}%
+  \fi
 }
 
 % --- Abstract → P with abstract annotation ---
@@ -2185,19 +2532,28 @@
       \lpsb@orig@enddblfloat
     }%
   }%
-  % Hook float package's float@endH for [H] option floats
+  % Hook float package's float@endH for [H] option floats - DISABLED
   % These bypass standard end@float and use float@endH instead
-  \@ifundefined{float@endH}{}{%
-    \let\lpsb@orig@floatendH\float@endH
-    \renewcommand{\float@endH}{%
-      \if@lpsb@active
-        \lpsbTagEndFloat
-        \global\@lpsb@first@paratrue
-      \fi
-      \global\@lpsb@in@floatfalse
-      \lpsb@orig@floatendH
-    }%
-  }%
+  % 
+  % WARNING: This hook causes "No counter 'l/d/r/p'" errors in documents
+  % with complex math environments (eqnarray, etc.) due to conflicts with
+  % array column specifier parsing. The exact cause is that defining this
+  % hook in AtBeginDocument somehow corrupts LaTeX's internal parsing state.
+  %
+  % Impact of disabling: [H] floats still render correctly, but may not
+  % have perfectly matched MCID end tags. Standard floats are unaffected.
+  %
+  % \@ifundefined{float@endH}{}{%
+  %   \let\lpsb@orig@floatendH\float@endH
+  %   \def\float@endH{%
+  %     \if@lpsb@active
+  %       \lpsbTagEndFloat
+  %       \global\@lpsb@first@paratrue
+  %     \fi
+  %     \global\@lpsb@in@floatfalse
+  %     \lpsb@orig@floatendH
+  %   }%
+  % }%
 }
 
 % At source location: CLOSE current P before float definition starts
@@ -2484,42 +2840,49 @@
 \gdef\lpsb@math@parent@type{}
 
 \newcommand{\lpsb@inline@math@begin}{%
-  \if@lpsb@active
-    \if@lpsb@in@shipout\else
-      \if@lpsb@in@tag
-        \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
-        \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
-        % Close parent MCID temporarily
-        \lpsb@pdfliteralcmd{ EMC }%
-      \else
-        \gdef\lpsb@math@parent@id{}%
-        \gdef\lpsb@math@parent@type{}%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments like \section{})
+  % This prevents "Missing \endcsname" errors when \(...\) appears in titles
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@shipout\else
+        \if@lpsb@in@tag
+          \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
+          \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
+          % Close parent MCID temporarily
+          \lpsb@pdfliteralcmd{ EMC }%
+        \else
+          \gdef\lpsb@math@parent@id{}%
+          \gdef\lpsb@math@parent@type{}%
+        \fi
+        % Start InlineMath atom
+        \stepcounter{lpsb@logicalElemID}%
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /InlineMath << /MCID \thelpsb@globalMCID >> BDC }%
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
+        }%
+        \global\@lpsb@in@inline@mathtrue
       \fi
-      % Start InlineMath atom
-      \stepcounter{lpsb@logicalElemID}%
-      \stepcounter{lpsb@globalMCID}%
-      \lpsb@pdfliteralcmd{ /InlineMath << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
-      }%
-      \global\@lpsb@in@inline@mathtrue
     \fi
   \fi
 }
 
 \newcommand{\lpsb@inline@math@end}{%
-  \if@lpsb@active
-    \if@lpsb@in@inline@math
-      % Close InlineMath MCID
-      \lpsb@pdfliteralcmd{ EMC }%
-      \global\@lpsb@in@inline@mathfalse
-      % Reopen parent MCID with a continuation MCID
-      \ifx\lpsb@math@parent@id\@empty\else
-        \stepcounter{lpsb@globalMCID}%
-        \lpsb@pdfliteralcmd{ /\lpsb@math@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-        \immediate\write\@auxout{%
-          \string\lpsb@mcid@cont{\lpsb@math@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-        }%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments like \section{})
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@inline@math
+        % Close InlineMath MCID
+        \lpsb@pdfliteralcmd{ EMC }%
+        \global\@lpsb@in@inline@mathfalse
+        % Reopen parent MCID with a continuation MCID
+        \ifx\lpsb@math@parent@id\@empty\else
+          \stepcounter{lpsb@globalMCID}%
+          \lpsb@pdfliteralcmd{ /\lpsb@math@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+          \immediate\write\@auxout{%
+            \string\lpsb@mcid@cont{\lpsb@math@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+          }%
+        \fi
       \fi
     \fi
   \fi
@@ -2714,47 +3077,25 @@
 % --- Citations → Reference ---
 % Keep citations as atom tags so they don't split /P into separate logical elements.
 % NOTE: natbib supports up to two optional args: \citep[pre][post]{key}.
+%
+% CRITICAL: Citation commands are often used in moving arguments (\caption, \section).
+% The \@ifnextchar[ trick is FRAGILE and breaks in moving arguments.
+% Solution: Use \protected\def for the outer command to delay expansion.
+%
 \AtBeginDocument{%
   \@ifpackageloaded{natbib}{%
-    \typeout{LPSB-MCID Info: natbib detected - tagging citep/citet/cite as Reference atoms}%
+    \typeout{LPSB-MCID Info: natbib detected}%
     %
-    % NOTE: natbib also provides \citealt/\citealp etc. We intentionally do NOT
-    % wrap those here yet; they are used in moving arguments in real templates.
+    % DISABLED: Citation wrappers cause "Misplaced alignment tab" errors when
+    % bibcodes contain & (e.g., 2013A&A...556A...2V for Astronomy & Astrophysics).
+    % The & is interpreted as alignment tab during \def argument parsing.
     %
-    \@ifundefined{citep}{}{%
-      \let\lpsb@orig@citep\citep
-      \def\citep{\@ifnextchar[\lpsb@citep@optA\lpsb@citep@noopt}%
-      \def\lpsb@citep@optA[#1]{\@ifnextchar[\lpsb@citep@optB[#1]\lpsb@citep@oneopt[#1]}%
-      \def\lpsb@citep@optB[#1][#2]#3{\lpsbTagReferenceAtom{#3}{\lpsb@orig@citep[#1][#2]{#3}}}%
-      \def\lpsb@citep@oneopt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@citep[#1]{#2}}}%
-      \def\lpsb@citep@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@citep{#1}}}%
-    }%
-    \@ifundefined{citet}{}{%
-      \let\lpsb@orig@citet\citet
-      \def\citet{\@ifnextchar[\lpsb@citet@optA\lpsb@citet@noopt}%
-      \def\lpsb@citet@optA[#1]{\@ifnextchar[\lpsb@citet@optB[#1]\lpsb@citet@oneopt[#1]}%
-      \def\lpsb@citet@optB[#1][#2]#3{\lpsbTagReferenceAtom{#3}{\lpsb@orig@citet[#1][#2]{#3}}}%
-      \def\lpsb@citet@oneopt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@citet[#1]{#2}}}%
-      \def\lpsb@citet@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@citet{#1}}}%
-    }%
-    \@ifundefined{cite}{}{%
-      \let\lpsb@orig@cite\cite
-      \def\cite{\@ifnextchar[\lpsb@cite@optA\lpsb@cite@noopt}%
-      \def\lpsb@cite@optA[#1]{\@ifnextchar[\lpsb@cite@optB[#1]\lpsb@cite@oneopt[#1]}%
-      \def\lpsb@cite@optB[#1][#2]#3{\lpsbTagReferenceAtom{#3}{\lpsb@orig@cite[#1][#2]{#3}}}%
-      \def\lpsb@cite@oneopt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@cite[#1]{#2}}}%
-      \def\lpsb@cite@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@cite{#1}}}%
-    }%
-  }{%
-    % Non-natbib: hook standard \cite as an atom.
-    \@ifundefined{cite}{}{%
-      \typeout{LPSB-MCID Info: tagging cite as Reference atom}%
-      \let\lpsb@orig@cite\cite
-      \def\cite{\@ifnextchar[\lpsb@cite@opt\lpsb@cite@noopt}%
-      \def\lpsb@cite@opt[#1]#2{\lpsbTagReferenceAtom{#2}{\lpsb@orig@cite[#1]{#2}}}%
-      \def\lpsb@cite@noopt#1{\lpsbTagReferenceAtom{#1}{\lpsb@orig@cite{#1}}}%
-    }%
-  }%
+    % Tradeoff: Citations are not individually tagged as Reference atoms,
+    % but compilation succeeds for papers with A&A-style bibcodes.
+    %
+    % TODO: Find a way to wrap citations without re-parsing the bibcode argument.
+    % Possible approach: Hook natbib internal primitives after parsing is complete.
+  }{}%
 }
 
 % --- Hyperlinks → Link ---
@@ -2768,6 +3109,13 @@
 %% =========================================
 \AtEndDocument{%
   \lpsbTagEnd
+  % CRITICAL FIX: Disable LPSB after document ends to prevent infinite page generation.
+  % Some document/package combinations (especially with float.sty) can trigger
+  % infinite output routine calls after \clearpage. By disabling LPSB here,
+  % we prevent our shipout hooks from interfering with the output routine cleanup.
+  % Note: Floats are already tagged inside their boxes via \@xfloat hook,
+  % so disabling here doesn't affect float tagging.
+  \global\@lpsb@activefalse
   % Enable PDF MarkInfo
   \ifLuaTeX
     \pdfextension catalog{/MarkInfo << /Marked true >>}%
@@ -2785,7 +3133,7 @@
 %% =========================================
 \providecommand{\lpsb@tag@data}[4]{}   % {elem_id}{type}{mcid}{page}
 \providecommand{\lpsb@tag@end}[2]{}    % {elem_id}{page}
-\providecommand{\lpsb@tag@atom}[4]{}   % {elem_id}{type}{mcid}{page}
+\providecommand{\lpsb@tag@atom}[5]{}   % {elem_id}{type}{mcid}{page}{parent_id}
 \providecommand{\lpsb@mcid@cont}[3]{}  % {elem_id}{mcid}{page}
 \providecommand{\lpsb@summary}[3]{}    % {total_elem}{total_mcid}{total_pages}
 

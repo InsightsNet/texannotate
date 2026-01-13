@@ -68,12 +68,12 @@
 \newif\if@remarkboxon\global\@remarkboxonfalse%
 
 \newif\if@Numbered@refstyle\global\@Numbered@refstylefalse% Namedate
+
 \newif\if@Spr@basic@refstyle\global\@Spr@basic@refstylefalse% 1.Basic Springer Nature Reference Style/Chemistry Reference Style -> sn-basic.bst
 \newif\if@Mathphys@numrefstyle\global\@Mathphys@numrefstylefalse% 2.Math and Physical Sciences Reference Style -> sn-mathphys.bst
 \newif\if@Mathphys@ayrefstyle\global\@Mathphys@ayrefstylefalse% 2.Math and Physical Sciences Reference Style -> sn-mathphys.bst
 \newif\if@APS@refstyle\global\@APS@refstylefalse% 3.American Physical Society (APS) Reference Style -> sn-APS.bst
-\newif\if@Vancouver@numrefstyle\global\@Vancouver@numrefstylefalse% 4.Vancouver Reference Style -> sn-vancouver.bst
-\newif\if@Vancouver@ayrefstyle\global\@Vancouver@ayrefstylefalse% 4.Vancouver Reference Style -> sn-vancouver.bst
+\newif\if@Vancouver@refstyle\global\@Vancouver@refstylefalse% 4.Vancouver Reference Style -> sn-vancouver.bst
 \newif\if@APA@refstyle\global\@APA@refstylefalse% 5.APA-based Social Sciences/Psychology Reference Style -> sn-apacite.bst
 \newif\if@Chicago@refstyle\global\@Chicago@refstylefalse% 6.Chicago-based Humanities Reference Style -> sn-chicago.bst
 \newif\if@Standard@Nature@refstyle\global\@Standard@Nature@refstylefalse% 7.Standard Nature Research Style -> sn-nature.bst
@@ -108,14 +108,13 @@
 \DeclareOption{sn-mathphys-num}{\global\@Mathphys@numrefstyletrue}%
 \DeclareOption{sn-mathphys-ay}{\global\@Mathphys@ayrefstyletrue}%
 \DeclareOption{sn-aps}{\global\@APS@refstyletrue}%
-\DeclareOption{sn-vancouver-num}{\global\@Vancouver@numrefstyletrue}%
-\DeclareOption{sn-vancouver-ay}{\global\@Vancouver@ayrefstyletrue}%
+\DeclareOption{sn-vancouver}{\global\@Vancouver@refstyletrue}%
 \DeclareOption{sn-apa}{\global\@APA@refstyletrue}%
 \DeclareOption{sn-chicago}{\global\@Chicago@refstyletrue}%
 \DeclareOption{sn-nature}{\global\@Standard@Nature@refstyletrue}%
 
 \DeclareOption{Numbered}{\global\@Numbered@refstyletrue}%
-%\DeclareOption{NameDate}{\global\@Numbered@refstylefalse}%
+\DeclareOption{NameDate}{\global\@Numbered@refstylefalse}%
 
 
 %%\ExecuteOptions{twosidecrop,crop,centre,info,croppage}
@@ -994,9 +993,7 @@
   \csname leftmargin#1\endcsname\@tempdimb}
 \def\@listI{\leftmargin\leftmargini
   \labelwidth\labelwidthi \labelsep\normal@labelsep
-%  \topsep \z@ 
-  \topsep\baselineskip %%updated
-  \partopsep\z@ \parsep\z@ \itemsep\z@
+  \topsep \z@ \partopsep\z@ \parsep\z@ \itemsep\z@
   \listparindent 1em}
 \def\@listii{\leftmargin\leftmarginii
   \labelwidth\labelwidthii \labelsep\normal@labelsep
@@ -1532,9 +1529,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Theorem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %
-\usepackage{amsthm}
-\usepackage{fix-cm}
-
 \@ifpackageloaded{amsthm}{%
 %
 %\let\proof\relax%
@@ -1650,7 +1644,6 @@
   \gdef\NumBib{YES}%
 \else%
  \usepackage[authoryear]{natbib}%
-  \setcitestyle{aysep={}}
   \gdef\NumBib{NO}%
 \fi%
   \bibliographystyle{sn-basic}%
@@ -1668,7 +1661,6 @@
 \if@Mathphys@ayrefstyle%
  \usepackage[authoryear]{natbib}%
   \gdef\NumBib{NO}%
-  \setcitestyle{aysep={}}
   \bibliographystyle{sn-mathphys-ay}%
   \setlength{\bibsep}{1em}%
   \def\bibfont{\reset@font\fontfamily{\rmdefault}\normalsize\selectfont}%
@@ -1680,21 +1672,18 @@
   \setlength{\bibsep}{1em}%
   \def\bibfont{\reset@font\fontfamily{\rmdefault}\normalsize\selectfont}%
 \fi%
-\if@Vancouver@numrefstyle%
+\if@Vancouver@refstyle%
+\if@Numbered@refstyle%
   \usepackage[numbers,sort&compress]{natbib}%
   \gdef\NumBib{YES}%
-  \bibliographystyle{sn-vancouver-num}%
-  \setlength{\bibsep}{1em}%
-  \def\bibfont{\reset@font\fontfamily{\rmdefault}\normalsize\selectfont}%
 \else%
-\if@Vancouver@ayrefstyle%
  \usepackage[authoryear]{natbib}%
   \gdef\NumBib{NO}%
-  \setcitestyle{aysep={}}
-  \bibliographystyle{sn-vancouver-ay}%
+\fi%
+  \bibliographystyle{sn-vancouver}%
   \setlength{\bibsep}{1em}%
   \def\bibfont{\reset@font\fontfamily{\rmdefault}\normalsize\selectfont}%
-\fi\fi%
+\fi%
 \if@APA@refstyle%
 \if@Numbered@refstyle%
   \usepackage[natbibapa]{apacite}%
@@ -1719,7 +1708,6 @@
 \else%
  \usepackage[authoryear]{natbib}%
   \gdef\NumBib{NO}%
-  \setcitestyle{aysep={}}
 \fi%
   \bibliographystyle{sn-chicago}%
   \hypersetup{urlcolor=black,colorlinks=false,pdfborder={0 0 0}}\urlstyle{same}%

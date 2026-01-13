@@ -1,5 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{jpaper}[ASPLOS 2023 Submission template]
+% \ProvidesClass{jpaper}[ASPLOS 2014 Submission template]
+\ProvidesClass{jpaper}[2012/08/02 ISCA Submission template]
 
 % jpaper provides two modes:
 % In addition to the usual options leqno and fleqn, jpaper also provides the
@@ -36,7 +37,7 @@
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{verbatim}
-%\RequirePackage{fixltx2e}
+\RequirePackage{fixltx2e}
 \RequirePackage[usenames,dvipsnames,svgnames,table]{xcolor}
 
 % Basic text typesetting options.
@@ -54,7 +55,7 @@
 % Page margins:
 % 3/4" left and right, 1" top, 1 1/8" bottom.
 \RequirePackage{geometry}
-\geometry{lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in}
+\geometry{lmargin=0.75in,rmargin=0.75in,tmargin=1in,bmargin=1in}
 
 % 1/4" space between columns.
 \setlength{\columnsep}{0.25in}
@@ -64,7 +65,7 @@
 \setlength{\droptitle}{-3.5em}
 
 \pretitle{\begin{center}\vspace{-.5in}
-ASPLOS'23 Accepted Paper -- Confidential Draft -- Do Not Distribute!!\\
+ASPLOS Submission \#\asplossubmissionnumber -- Confidential Draft -- Do Not Distribute!!\\
 \vspace{.35in}
 \normalfont\Large\bfseries}
 \posttitle{\par\end{center}}
@@ -198,7 +199,6 @@ ASPLOS'23 Accepted Paper -- Confidential Draft -- Do Not Distribute!!\\
     %linkcolor=black,%
     %urlcolor=black
 }}{}
-
 \RequirePackage{url}
 
 % Scientific units.

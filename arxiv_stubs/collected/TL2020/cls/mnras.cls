@@ -115,10 +115,6 @@
 
 % Before we do anything else with layout, ensure that the paper is A4
 \usepackage[a4paper]{geometry}
-%%
-\setlength\paperwidth{210mm}%
-\setlength\paperheight{276mm}%
-%%
 
 % Fix several errors with LaTeX2e, including 2-column floats out of order
 % \usepackage{fixltx2e}  %% Unnecessary since TL2015
@@ -126,6 +122,7 @@
 % Include hyperref, so we can have clickable links
 \usepackage[pdfpagelabels=false]{hyperref}	% Hyperlinks
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=blue,urlcolor=blue,}
+
 %
 %  ****************************************
 %  *              Font sizes              *
@@ -187,22 +184,14 @@
 \newcommand\scriptsize{\@setfontsize\scriptsize\@vipt{8}}
 \newcommand\tiny{\@setfontsize\tiny\@vpt{6}}
 %
-%%new font for            abstract/keywords
-\def\@xivpt{14}
-\def\@xiipt{12}
-\def\@xvipt{16}
-\newcommand\abslarge{\@setfontsize\abslarge\@xpt{12.5}}
-%%
 \if@twocolumn
    \newcommand\large{\@setfontsize\large\@xpt{11}}
  \else
   \newcommand\large{\@setfontsize\large\@xpt{12}}
  \fi
 \newcommand\Large{\@setfontsize\Large\@xiipt{14}}
-%%\newcommand\LARGE{\@setfontsize\LARGE\@xivpt{17}}
-\newcommand\LARGE{\@setfontsize\LARGE\@xiipt{15}}
-%%\newcommand\huge{\@setfontsize\huge\@xviipt{20}}
-\newcommand\huge{\@setfontsize\huge\@xvipt{18}}
+\newcommand\LARGE{\@setfontsize\LARGE\@xivpt{17}}
+\newcommand\huge{\@setfontsize\huge\@xviipt{20}}
 \newcommand\Huge{\@setfontsize\Huge\@xxpt{25}}
 %
 \newcommand\sevensize{\@setfontsize\sevensize\@viipt{8}}
@@ -594,7 +583,7 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 %\if@twocolumn
   \setlength\topmargin{-2pc}
 %\else
-  \setlength\topmargin{-4pc}
+  \setlength\topmargin{\z@}
 %\fi
 \setlength{\headheight}{14pt}
 \setlength{\headsep}   {15pt}
@@ -604,7 +593,7 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 % DIMENSION OF TEXT: % SFB 0.1.01
 %
 \newdimen\SFB@measure
-\SFB@measure 508pt%42pc
+\SFB@measure 42pc
 %
 \setlength\textheight{682pt}
 \setlength\textwidth{\SFB@measure}
@@ -616,7 +605,7 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 \ifSFB@referee
  \setlength\textwidth{39pc}
 \fi
-\setlength\columnsep{20pt}%{2pc}
+\setlength\columnsep{2pc}
 \setlength\columnseprule{0pt}
 
 % FOOTNOTES:
@@ -643,7 +632,7 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 %
 \newlength{\realparindent} % needed for abstract
 \setlength\parskip{ \z@ plus .1pt }
-\setlength\parindent{9pt}
+\setlength\parindent{ 18pt }
 \setlength{\realparindent}{\parindent}
 \setlength\partopsep{ 0pt plus 1pt }
 \@lowpenalty   51
@@ -760,10 +749,10 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
       \ifSFB@appendix
         \edef\@svsec{}%
       \else
-        \edef\@svsec{\csname the#1\endcsname\hskip .5em}%
+        \edef\@svsec{\csname the#1\endcsname\hskip 1em}%
       \fi
     \else
-      \edef\@svsec{\csname the#1\endcsname\hskip .5em}%
+      \edef\@svsec{\csname the#1\endcsname\hskip 1em}%
     \fi
   \fi
   \@tempskipa #5\relax
@@ -1081,9 +1070,9 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
  \vspace*{7pt}
  {\raggedright \sloppy
   {\reset@font\huge \bf \@title \par}
-  \vskip 16pt
+  \vskip 23pt
   {\reset@font\LARGE
-   \begin{tabular}[t]{@{}l@{}}\let\\=\author@nextline\@author%
+   \begin{tabular}[t]{@{}l@{}}\let\\=\author@nextline\@author
    \end{tabular}
    \par}
   \vskip 22pt
@@ -1093,9 +1082,9 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
  \vskip 22pt
 }
 
-\def\author@nextline{%          %DE's definition
-\tabularnewline[-5pt]\reset@font\small\it\ignorespaces\unskip\unskip\unskip%
-\let\\=\author@nextline}%       %let command added by NT to bring
+\def\author@nextline{          %DE's definition
+\tabularnewline[-7pt]\reset@font\small\it\ignorespaces
+\let\\=\author@nextline}       %let command added by NT to bring
                                % subsequent lines into correct format
 
 %
@@ -1113,9 +1102,9 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
     \listparindent\realparindent
     \itemindent\z@
     \labelwidth\z@ \labelsep\z@
-    \leftmargin\z@\rightmargin\z@%%was 11pc left
+    \leftmargin 11pc\rightmargin\z@
     \parsep 0pt plus 1pt}\item[]%
-    \reset@font\normalsize{\bf ABSTRACT}\\\reset@font\abslarge
+    \reset@font\normalsize{\bf ABSTRACT}\\\reset@font\large
 } % SFB 0.1.01
 %
 \newif\ifSFB@keywords
@@ -1127,8 +1116,8 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 }
 \def\@keywords{\list{}{%
     \labelwidth\z@ \labelsep\z@
-    \leftmargin\z@\rightmargin\z@  %was 11pc left was 11pc\right....
-    \parsep 0pt plus 1pt}\item[]\reset@font\abslarge{\bf Key words: }%
+    \leftmargin 11pc\rightmargin\z@  % was 11pc\right....
+    \parsep 0pt plus 1pt}\item[]\reset@font\large{\bf Key words: }%
 }
 \def\endkeywords{\if@twocolumn
   \endlist\addvspace{37pt plus 0.5\baselineskip}\finish@SFBbox
@@ -1222,9 +1211,9 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
 \def\ps@headings{\let\@mkboth\markboth
  \def\@oddhead{\Large\hfill{\it\@shorttitle}\hspace{1.5em}%
    \rm\@ddell\thepage}
- \def\@oddfoot{\hfill\small MNRAS {\bf \@volume}, \@pagerange\ (\@pubyear)}
+ \def\@oddfoot{\small MNRAS {\bf \@volume}, \@pagerange\ (\@pubyear)\hfil}
  \def\@evenhead{\Large\@ddell\thepage\hspace{1.5em}\it\@shortauthor\hfill}
- \def\@evenfoot{\small MNRAS {\bf \@volume}, \@pagerange\ (\@pubyear)\hfil}
+ \def\@evenfoot{\hfil\small MNRAS {\bf \@volume}, \@pagerange\ (\@pubyear)}
  \def\sectionmark##1{\markboth{##1}{}}
  \def\subsectionmark##1{\markright{##1}}}
 
@@ -1304,6 +1293,7 @@ $\reset@font\displaystyle##$\hfil\cr>\cr\approx\cr}}}
  \section*{LIST OF TABLES\@mkboth{LIST OF TABLES}{LIST OF TABLES}}
  \@starttoc{lot} \if@restonecol\twocolumn\fi}
 \let\l@table\l@figure
+
 %  ****************************************
 %  *             BIBLIOGRAPHY             *
 %  ****************************************
@@ -1816,4 +1806,5 @@ has been typeset from a \TeX/\LaTeX\ file prepared by the author.}
 %         Package renamed from 'mn2e' to 'mnras' after
 %           discussion with the TeX Users Group
 %         Numerous small tweaks and improvements following testing
+
 % end of mnras.cls

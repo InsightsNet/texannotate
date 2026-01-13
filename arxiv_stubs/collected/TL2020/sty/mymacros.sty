@@ -1,157 +1,81 @@
+% Absolute values.
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\inlineabs}[1]{\lvert #1 \rvert}
 
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{mymacros}[2017/10/11 v1.0 My own macros]
+% Norms.
+\providecommand{\norm}{}
+\renewcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\inlinenorm}[1]{\lVert #1 \rVert}
 
-%Required Packages!
-\RequirePackage{amsfonts}
-\RequirePackage{amsmath}
-\RequirePackage{amssymb}
-\RequirePackage{mathrsfs}
-\RequirePackage{enumitem}
-\RequirePackage{amsthm}
-\RequirePackage{multicol}
-\RequirePackage{tikz}
-\RequirePackage{verbatim}
-\RequirePackage[all, cmtip]{xy}
-\RequirePackage{ dsfont }
-\RequirePackage{ stmaryrd }
-\RequirePackage[nopar]{lipsum}
-\RequirePackage{imakeidx}
-\RequirePackage{graphicx}
-\RequirePackage{mathtools}
-
-
-
-\DeclareMathOperator{\lcm}{lcm}
-%
-%New Commands!
-%
-%Hexbrace!
-\def\rlwd{.4pt}% \rule width
-\def\lhexbrace{\kern1pt%
-\setstackgap{S}{0pt}\def\stackalignment{l}
-\ThisStyle{\scalerel*{%
-  \stackunder[-\rlwd]{%
-    \stackon[-\rlwd]{\roundrule{\rlwd}{4pt}}{\rotatebox{45}{\roundrule{4pt}{\rlwd}}}%
-  }{\rotatebox{-45}{\roundrule{4pt}{\rlwd}}}%
-}{\SavedStyle[}}}
-\def\rhexbrace{%
-\setstackgap{S}{0pt}\def\stackalignment{r}
-\ThisStyle{\scalerel*{%
-  \stackunder[-\rlwd]{%
-    \stackon[-\rlwd]{\roundrule{\rlwd}{4pt}}{\rotatebox{-45}{\roundrule{4pt}{\rlwd}}}%
-  }{\rotatebox{45}{\roundrule{4pt}{\rlwd}}}%
-}{\SavedStyle[}}\kern1pt}
-
-
-%%Generally Useful
-%Next Paragraph
-\newcommand{\nextpar}{\par\vspace{0.15cm}}
-\newcommand{\boxit}[1]{\[ \boxed{\textrm{#1}} \]}
-\newcommand{\scr}[1]{\mathscr{#1}}
-\renewcommand{\cal}[1]{\mathcal{#1}}
-\newcommand{\bb}[1]{\mathbb{#1}}
-\newcommand{\st}{\ \middle| \ }
-
-\renewcommand{\implies}{\rightarrow}
-\renewcommand{\iff}{\leftrightarrow}
-%% %%%%%
-%Set Theory
-%%%%%%%
-
-%Braces
-\newcommand{\set}[1]{\left\{ #1 \right\}}
-\newcommand{\of}[1]{\left(#1\right)}
-\newcommand{\bof}[1]{\left[#1\right]}
-\newcommand{\sof}[1]{\left\langle#1\right\rangle}
-\newcommand{\hof}[1]{\lhexbrace#1\rhexbrace}
-\newcommand{\abs}[1]{\left|#1\right|}
-\newcommand{\norm}[1]{\left|\left|#1\right|\right|}
-\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+% Floor and ceiling.
 \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\inlinefloor}[1]{\lfloor #1 \rfloor}
+\newcommand{\inlineceil}[1]{\lceil #1 \rceil}
 
-%Functions
-\newcommand{\inj}{\hookrightarrow}
-\newcommand{\surj}{\twoheadrightarrow}
-\newcommand{\restrict}[2]{\left. #1 \right|_{#2}\!}
+% Metric and vector notation.
+\renewcommand{\matrix}[1]{\ensuremath{\bm{#1}}}
+\newcommand{\matrixid}{\ensuremath{\matrix{I}}}
+\renewcommand{\vec}[1]{\ensuremath{\bm{#1}}}
+\newcommand{\vecid}[1]{\ensuremath{\vec{1}_{#1}}}
+
+% Notation for regression.
+\newcommand{\X}{\ensuremath{\matrix{X}}}
+\newcommand{\Xt}{\ensuremath{\X^{\mathsf{T}}}}
+\newcommand{\XtX}{\ensuremath{\X^{\mathsf{T}}\X}}
+\newcommand{\maxnoise}{
+  \ensuremath{\norm{\frac{1}{n} \Xt \vec{\xi}}_{\infty}}}
+\newcommand{\inlinemaxnoise}{
+  \ensuremath{\inlinenorm{\Xt \vec{\xi}}_{\infty} / n}}
 
 
-%Cardinality
-\newcommand{\card}[1]{\left|#1\right|}
+\newcommand{\wstar}{\ensuremath{\vec{w}^{\star}}}
+\newcommand{\wmax}{\ensuremath{w^{\star}_{\max}}}
+\newcommand{\wmin}{\ensuremath{w^{\star}_{\min}}}
 
 
-%Set Operations
-\newcommand{\symdiff}{\vartriangle}
-\newcommand{\wout}{\operatorname{\backslash}}
-\newcommand{\inv}[1]{#1^{-1}\! }
-\newcommand{\power}{\mathcal{P}}
-\newcommand{\im}{\operatorname{im}}
-\newcommand{\dom}{\operatorname{dom}}
-\newcommand{\codom}{\operatorname{codom}}
-\newcommand{\lcoset}[2]{\raise1ex\hbox{$#1$}\Big/ \lower1ex\hbox{$#2$}}
-\newcommand{\rel}[1]{ #1 /\hspace{-0.3em} \sim}
+% Notation shorthand for real numbers.
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
 
-%%%%%%%%%%%%%%%%%%
-%Important Mathematical Objects
-%%%%%%%%%%%%%%%%%%
-\newcommand{\N}{\mathbb{N}}
-\newcommand{\Z}{\mathbb{Z}}
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\C}{\mathbb{C}}
-\newcommand{\Q}{\mathbb{Q}}
-\newcommand{\F}{\mathbb{F}}
-\renewcommand{\P}{\mathbb{P}}
+% For writing the nullspace.
+\newcommand{\nullspace}{\ensuremath{\operatorname{null}}}
 
-%%%%%%%%%%%%%%%%%%
-%Group Theory
-%%%%%%%%%%%%%%%%%%
-\newcommand{\normal}{\hspace{-1pt} \unlhd}
-\newcommand{\tr}{\operatorname{tr}}
-\newcommand{\sgn}{\operatorname{sgn}}
-\newcommand{\id}{\operatorname{id}}
-\newcommand{\GL}{\operatorname{GL}}
-\newcommand{\PGL}{\operatorname{PGL}}
-\newcommand{\PSL}{\operatorname{PSL}}
-\newcommand{\SL}{\operatorname{SL}}
-\newcommand{\End}{\operatorname{End}}
-\newcommand{\spn}{\operatorname{span}}
+% Probability operator.
+\newcommand{\pr}[1]{\ensuremath{\mathbb{P}\!\left({#1}\right)}}
+\newcommand{\cpr}[2]{\ensuremath{\mathbb{P}\!\left({#1} \mid {#2}\right)}}
 
-\newcommand{\Hom}{\operatorname{Hom}}
-\newcommand{\Ob}{\operatorname{Ob}}
+% Expectation operator.
+\newcommand{\ex}[1]{\ensuremath{\mathbb{E}{[#1]}}}
+\newcommand{\exd}[2]
+  {\ensuremath{\mathbb{E}_{#1}\!\left[\,{#2}\right]}}
+\newcommand{\cex}[2]
+  {\ensuremath{\mathbb{E}\!\left[{#1} \mid {#2}\right]}}
 
-%%%%%%%%%%%%%%%%%%
-%Analysis
-%%%%%%%%%%%%%%%%%%
-\newcommand{\out}{\operatorname{m}^*}
-\newcommand{\meas}{\operatorname{m}}
-\newcommand{\conv}{\operatorname{Conv}}
+% Variance, co-variance and correlation operators.
+\providecommand{\var}{}
+\renewcommand{\var}[1]{\ensuremath{\mathrm{Var}\!\left[{#1}\right]}}
+\newcommand{\vard}[2]{\ensuremath{\mathrm{Var}_{{#1}}\!\left[{#2}\right]}}
+\newcommand{\cvar}[2]
+  {\ensuremath{\mathrm{Var}\!\left[{#1} \mid {#2}\right]}}
+\providecommand{\cov}{}
+\renewcommand{\cov}[2]
+  {\ensuremath{\mathrm{Cov}\!\left[{#1}, {#2}\right]}}
+\newcommand{\covd}[3]
+  {\ensuremath{\mathrm{Cov}_{{#1}}\!\left[{#2}, {#3}\right]}}
+\newcommand{\corr}[2]
+  {\ensuremath{\mathrm{Corr}\!\left[{#1}, {#2}\right]}}
 
-%%New Environments
-\newtheorem{thm}{Theorem}[section]
-\newtheorem{lem}[thm]{Lemma}
-\newtheorem{prop}[thm]{Proposition}
-\newtheorem{pb}[thm]{Problem Statement}
-\newtheorem{cor}[thm]{Corollary}
-\newtheorem{defn}[thm]{Definition}
-\newtheorem{rmk}[thm]{Remark}
-\newtheorem{axiom}[thm]{Axiom}
-\newtheorem{eg}[thm]{Example}
-\newtheorem{exer}[thm]{Exercise}
-\newtheorem{nota}[thm]{Notation}
-\newtheorem{q}[thm]{Question}
-\newtheorem{paradox}[thm]{Paradox}
-\newenvironment{boxcomment}
-    {
-    \begin{center}
-    \begin{tabular}{|p{0.9\textwidth}|}
-    \hline\\
-    }
-    { 
-    \\\\\hline
-    \end{tabular} 
-    \end{center}
-    }
+% Integration.
+\newcommand{\myint}[3]
+  {\ensuremath{\int_{{#1}}^{{#2}} {#3}}}
 
-\newenvironment{tmatrix}
-  {\left(\begin{smallmatrix}}
-  {\end{smallmatrix}\right)}    
+% Arg min operator.
+\newcommand{\argmin}[1]
+  {\underset{#1}{\operatorname{arg}\!\operatorname{min}}}
+
+
+% Optimal point.
+\newcommand{\xstar}{\ensuremath{\vec{x}^{\star}}}
+% Inner products.
+\newcommand{\ip}[2]{\ensuremath{\left\langle {#1}, {#2} \right\rangle}}
+\newcommand{\inlineip}[2]{\ensuremath{\langle {#1}, {#2} \rangle}}

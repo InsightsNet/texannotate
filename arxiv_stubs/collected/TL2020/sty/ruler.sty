@@ -59,15 +59,15 @@
 \advance\cvprruleroffset by -3.7pt
   \cvprcolor
   \AtTextUpperLeft{%
-	\cvprrulercounttmp=\cvprrulercount
-	\put(\LenToUnit{-30pt},\LenToUnit{-\cvprruleroffset}){%left ruler
-		\cvprruler{\cvprrulercount}}
-	%right ruler
-	\put(\LenToUnit{\dimexpr\textwidth+15pt\relax},\LenToUnit{-\cvprruleroffset}){ \cvprruler{\cvprrulercounttmp}}
-}
+    \cvprrulercounttmp=\cvprrulercount
+    \put(\LenToUnit{-30pt},\LenToUnit{-\cvprruleroffset}){%left ruler
+      \cvprruler{\cvprrulercount}}
+%right ruler
+    \put(\LenToUnit{\textwidth\kern 17pt}, \LenToUnit{-\cvprruleroffset}){ \cvprruler{\cvprrulercounttmp}}
+  }
   \AtTextUpperLeft{%paperID in corners
     \put(\LenToUnit{-65pt},\LenToUnit{45pt}){\ConferenceHeader}
-    \put(\LenToUnit{\dimexpr\textwidth-8pt\relax},\LenToUnit{45pt}){\ConferenceHeader}
+    \put(\LenToUnit{\textwidth\kern-8pt},\LenToUnit{45pt}){\ConferenceHeader}
   }
   \AtTextUpperLeft{%confidential
     \put(0,\LenToUnit{1cm}){\parbox{\textwidth}{\centering\cvprtenhv

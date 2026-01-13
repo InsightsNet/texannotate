@@ -27,7 +27,11 @@
 %%
 %%  2   "methods" environment for the Methods section
 %%
-%%  3   "addendum" environment for the Acknowledgements, etc. at the end
+%%  3   "extended" environment for the Extended Data section (Chen Edit)
+%%
+%%  4   "supplementary" environment for the Supplementary section (Chen Edit)
+%%
+%%  5   "addendum" environment for the Acknowledgements, etc. at the end
 %%
 %% In addition, the abstract, figure and table environments are redefined. See below.
 %%
@@ -37,11 +41,14 @@
 \typeout{Written by Peter Czoschke}
 \typeout{ }
 
+%Use 10pt to get correct font size with extended tables
+%\LoadClass[12pt]{article}
 \LoadClass[12pt]{article}
-\RequirePackage{cite}
+\RequirePackage[noadjust]{cite}
 \RequirePackage{times}
 \RequirePackage{fullpage}
 \RequirePackage{ifthen}
+\RequirePackage[labelfont=bf]{caption}
 
 %% make labels in bibliobraphy be #.
 \renewcommand\@biblabel[1]{#1.}
@@ -53,7 +60,9 @@
 \setlength{\parindent}{0.39in}
 \setlength{\parskip}{18pt}
 \newcommand{\spacing}[1]{\renewcommand{\baselinestretch}{#1}\large\normalsize}
+% Use spacing 1 to convert to word doc
 \spacing{2}
+%\spacing{1}
 
 %% Redefine \maketitle for Nature style
 \def\@maketitle{%
@@ -103,6 +112,23 @@
     \setlength{\parskip}{12pt}%
     }{}
 
+%% Define the extended data environment
+\newenvironment{extended}{%
+    \setlength{\parskip}{12pt}%
+    \renewcommand{\figurename}{Extended Data Figure}%
+    \setcounter{figure}{0}%
+    \renewcommand{\tablename}{Extended Data Table}%
+    \setcounter{table}{0}%
+    }{}
+
+%% Define the supplementary environment
+\newenvironment{supplementary}{%
+    \section*{Supplementary Information}%
+    \setlength{\parskip}{12pt}%
+    \renewcommand{\figurename}{Supplemental Figure}%
+    \setcounter{figure}{0}%
+    }{}
+
 %% No heading for References section, but eat up the extra space from \section command
 \renewcommand\refname{\vspace{-48pt}\setlength{\parskip}{12pt}}
 
@@ -122,6 +148,12 @@
 
 \newcommand*{\addendumlabel}[1]{\textbf{#1}\hspace{1em}}
 
+% Copied from IEEEauthorefmark{} command
+\DeclareRobustCommand*{\authorrefmark}[1]{\raisebox{0pt}[0pt][0pt]{\textsuperscript{\footnotesize\ensuremath{\ifcase#1\or *\or \dagger\or \ddagger\or%
+    \mathsection\or \mathparagraph\or \|\or **\or \dagger\dagger%
+    \or \ddagger\ddagger \else\textsuperscript{\expandafter\romannumeral#1}\fi}}}}
+    
+
 %% Redefine the figure and table environments.
 %% The new figure environment defers printing of all figure captions
 %% until the end of the document and prints them in sans serif font.
@@ -131,22 +163,28 @@
 %% sans serif font.  Tables should all be moved to the end of the document
 %% manually.  
 
-%%\renewenvironment{figure}{\let\caption\NAT@figcaption}{}
+% Comment out until final version
+
+% \renewenvironment{figure}{\let\caption\NAT@figcaption}{}
     
-%\newcommand{\NAT@figcaption}[2][]{\AtEndDocument{%
+%newcommand{\NAT@figcaption}[2][]{
+    % \AtEndDocument{%
 %    \refstepcounter{figure}
- %   \ifthenelse{\value{figure}=1}{
-  %      \newpage\noindent%
+%    \ifthenelse{\value{figure}=1}{
+%        \newpage\noindent%
 %        \rule{\textwidth}{1pt}
-  %  }{
-  %      \par\vfill
-   % }
-    %\sffamily\noindent\textbf{Figure %\arabic{figure}}\hspace{1em}#2}
-    %}
+%    }{
+%        \par\vfill
+%    }
+%    \noindent\textbf{Figure \arabic{figure}}\hspace{1em}#2
+    % \sffamily\noindent\textbf{Figure \arabic{figure}}\hspace{1em}#2
+    % }
+%    }
 
-%%\renewenvironment{table}{\@float{table}[p]\sffamily}{\end@float}
-\renewenvironment{table}{\@float{table}[p]}{\end@float}
+% % \renewenvironment{table}{\@float{table}[p]\sffamily}{\end@float}
+
 %% ignore all \includegraphics commands in the document
-%%\AtBeginDocument{\let\includegraphics\NAT@ignore}
+%% This one should be commented out finally since Nature requires figures separately [Sajjad]
+%\AtBeginDocument{\let\includegraphics\NAT@ignore}
 
-\newcommand{\NAT@ignore}[2][]{}
+%\newcommand{\NAT@ignore}[2][]{}

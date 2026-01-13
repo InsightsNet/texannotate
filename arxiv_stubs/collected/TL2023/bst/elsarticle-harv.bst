@@ -1,19 +1,19 @@
 %%
 %% This is file `elsarticle-harv.bst'  (Version 2.1),
 %% 
-%% Copyright 2009-2020 Elsevier Ltd
+%% Copyright 2009-2024 Elsevier Ltd
 %% 
 %% This file is part of the 'Elsarticle Bundle'.
 %% ---------------------------------------------
 %% 
 %% It may be distributed under the conditions of the LaTeX Project Public
-%% License, either version 1.2 of this license or (at your option) any
+%% License, either version 1.3 of this license or (at your option) any
 %% later version.  The latest version of this license is in
 %%    http://www.latex-project.org/lppl.txt
-%% and version 1.2 or later is part of all distributions of LaTeX
+%% and version 1.3 or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
 %%
-%% $Id: elsarticle-harv.bst 194 2020-11-23 11:29:27Z rishi $
+%% $Id: elsarticle-harv.bst 255 2024-04-06 10:58:47Z rishi $
 %%
 %% $URL: https://lenova.river-valley.com/svn/elsarticle/trunk/elsarticle-harv.bst $
 %% 

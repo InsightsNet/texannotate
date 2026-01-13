@@ -25,13 +25,14 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{geometry}
-  [2010/03/13 v5.3 Page Geometry]
+  [2010/09/12 v5.6 Page Geometry]
 \RequirePackage{keyval}%
 \RequirePackage{ifpdf}%
 \RequirePackage{ifvtex}%
+\RequirePackage{ifxetex}%
 \newif\ifGm@verbose
 \newif\ifGm@landscape
-\newif\ifGm@swap@papersize\Gm@swap@papersizefalse
+\newif\ifGm@swap@papersize
 \newif\ifGm@includehead
 \newif\ifGm@includefoot
 \newif\ifGm@includemp
@@ -40,7 +41,7 @@
 \newif\ifGm@heightrounded
 \newif\ifGm@showframe
 \newif\ifGm@showcrop
-\newif\ifGm@pass\Gm@passfalse
+\newif\ifGm@pass
 \newif\ifGm@resetpaper
 \newif\ifGm@layout
 \newif\ifGm@newgm
@@ -79,7 +80,7 @@
 \edef\Gm@orgph{\the\paperheight}%
 \def\Gm@savelength#1{%
   \g@addto@macro\Gm@restore{\expandafter\noexpand\expandafter\csname
-  #1\endcsname\expandafter=\expandafter\the\csname #1\endcsname\relax}}
+  #1\endcsname\expandafter=\expandafter\the\csname #1\endcsname\relax}}%
 \def\Gm@saveboolean#1{%
   \csname if#1\endcsname
     \g@addto@macro\Gm@restore{\expandafter\noexpand\csname #1true\endcsname}%
@@ -105,6 +106,8 @@
   \Gm@savelength{columnsep}%
   \Gm@savelength{hoffset}%
   \Gm@savelength{voffset}
+  \Gm@savelength{Gm@layoutwidth}%
+  \Gm@savelength{Gm@layoutheight}%
   \Gm@savelength{Gm@layouthoffset}%
   \Gm@savelength{Gm@layoutvoffset}%
   \Gm@saveboolean{@twocolumn}%
@@ -112,6 +115,8 @@
   \Gm@saveboolean{@mparswitch}%
   \Gm@saveboolean{@reversemargin}}%
 \def\Gm@initnewgm{%
+  \Gm@passfalse
+  \Gm@swap@papersizefalse
   \Gm@dimlist={}
   \Gm@hbodyfalse
   \Gm@vbodyfalse
@@ -179,11 +184,11 @@
   \csname ifGm@#1\endcsname
   \csname Gm@#1false\endcsname\else\csname Gm@#1true\endcsname\fi}%
 \def\Gm@defbylen#1#2{%
-  \setlength\@tempdima{#2}%
-  \expandafter\edef\csname Gm@#1\endcsname{\the\@tempdima}}%
+  \begingroup\setlength\@tempdima{#2}%
+  \expandafter\xdef\csname Gm@#1\endcsname{\the\@tempdima}\endgroup}%
 \def\Gm@defbycnt#1#2{%
-  \setcounter{Gm@tempcnt}{#2}%
-  \expandafter\edef\csname Gm@#1\endcsname{\the\value{Gm@tempcnt}}}%
+  \begingroup\setcounter{Gm@tempcnt}{#2}%
+  \expandafter\xdef\csname Gm@#1\endcsname{\the\value{Gm@tempcnt}}\endgroup}%
 \def\Gm@sep@ratio#1:#2{\@tempcnta=#1\@tempcntb=#2}%
 \def\Gm@setbyratio[#1]#2#3#4{% determine #4 by ratio
   \expandafter\Gm@sep@ratio\Gm@mratio\relax
@@ -261,22 +266,22 @@
   \fi
   \ifcase\@tempcnta
     \if#1h
-      \edef\Gm@width{\Gm@Dhscale\Gm@layoutwidth}%
+      \Gm@defbylen{width}{\Gm@Dhscale\Gm@layoutwidth}%
     \else
-      \edef\Gm@height{\Gm@Dvscale\Gm@layoutheight}%
+      \Gm@defbylen{height}{\Gm@Dvscale\Gm@layoutheight}%
     \fi
     \Gm@detiiandiii{#2}{#3}{#4}%
   \or
     \ifx\Gm@mratio\@undefined
       \if#1h
-        \edef\Gm@width{\Gm@Dhscale\Gm@layoutwidth}%
+        \Gm@defbylen{width}{\Gm@Dhscale\Gm@layoutwidth}%
       \else
-        \edef\Gm@height{\Gm@Dvscale\Gm@layoutheight}%
+        \Gm@defbylen{height}{\Gm@Dvscale\Gm@layoutheight}%
       \fi
       \setlength\@tempdimc{\@nameuse{Gm@#4}}%
       \Gm@detiiandiii{#2}{#3}{#4}%
       \expandafter\let\csname Gm@#2\endcsname\@undefined
-      \expandafter\edef\csname Gm@#4\endcsname{\the\@tempdimc}%
+      \Gm@defbylen{#4}{\@tempdimc}%
     \else
       \Gm@setbyratio[f]{#1}{#4}{#3}%
     \fi
@@ -286,14 +291,14 @@
   \or
     \ifx\Gm@mratio\@undefined
       \if#1h
-        \edef\Gm@width{\Gm@Dhscale\Gm@layoutwidth}%
+        \Gm@defbylen{width}{\Gm@Dhscale\Gm@layoutwidth}%
       \else
-        \edef\Gm@height{\Gm@Dvscale\Gm@layoutheight}%
+        \Gm@defbylen{height}{\Gm@Dvscale\Gm@layoutheight}%
       \fi
       \setlength\@tempdimc{\@nameuse{Gm@#3}}%
       \Gm@detiiandiii{#2}{#4}{#3}%
       \expandafter\let\csname Gm@#2\endcsname\@undefined
-      \expandafter\edef\csname Gm@#3\endcsname{\the\@tempdimc}%
+      \Gm@defbylen{#3}{\@tempdimc}%
     \else
       \Gm@setbyratio[b]{#1}{#3}{#4}%
     \fi
@@ -389,6 +394,13 @@
 \@namedef{Gm@b4paper}#1{\Gm@setsize{#1}(250,353){mm}}% ISO B4
 \@namedef{Gm@b5paper}#1{\Gm@setsize{#1}(176,250){mm}}% ISO B5
 \@namedef{Gm@b6paper}#1{\Gm@setsize{#1}(125,176){mm}}% ISO B6
+\@namedef{Gm@c0paper}#1{\Gm@setsize{#1}(917,1297){mm}}% ISO C0
+\@namedef{Gm@c1paper}#1{\Gm@setsize{#1}(648,917){mm}}% ISO C1
+\@namedef{Gm@c2paper}#1{\Gm@setsize{#1}(458,648){mm}}% ISO C2
+\@namedef{Gm@c3paper}#1{\Gm@setsize{#1}(324,458){mm}}% ISO C3
+\@namedef{Gm@c4paper}#1{\Gm@setsize{#1}(229,324){mm}}% ISO C4
+\@namedef{Gm@c5paper}#1{\Gm@setsize{#1}(162,229){mm}}% ISO C5
+\@namedef{Gm@c6paper}#1{\Gm@setsize{#1}(114,162){mm}}% ISO C6
 \@namedef{Gm@b0j}#1{\Gm@setsize{#1}(1030,1456){mm}}% JIS B0
 \@namedef{Gm@b1j}#1{\Gm@setsize{#1}(728,1030){mm}}% JIS B1
 \@namedef{Gm@b2j}#1{\Gm@setsize{#1}(515,728){mm}}% JIS B2
@@ -421,6 +433,13 @@
 \define@key{Gm}{b4paper}[true]{\Gm@setpaper@ifpre{b4paper}}%
 \define@key{Gm}{b5paper}[true]{\Gm@setpaper@ifpre{b5paper}}%
 \define@key{Gm}{b6paper}[true]{\Gm@setpaper@ifpre{b6paper}}%
+\define@key{Gm}{c0paper}[true]{\Gm@setpaper@ifpre{c0paper}}%
+\define@key{Gm}{c1paper}[true]{\Gm@setpaper@ifpre{c1paper}}%
+\define@key{Gm}{c2paper}[true]{\Gm@setpaper@ifpre{c2paper}}%
+\define@key{Gm}{c3paper}[true]{\Gm@setpaper@ifpre{c3paper}}%
+\define@key{Gm}{c4paper}[true]{\Gm@setpaper@ifpre{c4paper}}%
+\define@key{Gm}{c5paper}[true]{\Gm@setpaper@ifpre{c5paper}}%
+\define@key{Gm}{c6paper}[true]{\Gm@setpaper@ifpre{c6paper}}%
 \define@key{Gm}{b0j}[true]{\Gm@setpaper@ifpre{b0j}}%
 \define@key{Gm}{b1j}[true]{\Gm@setpaper@ifpre{b1j}}%
 \define@key{Gm}{b2j}[true]{\Gm@setpaper@ifpre{b2j}}%
@@ -438,11 +457,11 @@
 \define@key{Gm}{executivepaper}[true]{\Gm@setpaper@ifpre{executivepaper}}%
 \define@key{Gm}{screen}[true]{\Gm@setpaper@ifpre{screen}}%
 \define@key{Gm}{paperwidth}{\ifGm@preamble{paperwidth}{%
-  \Gm@setlength\paperwidth{#1}}}%
+  \def\Gm@paper{custom}\Gm@setlength\paperwidth{#1}}}%
 \define@key{Gm}{paperheight}{\ifGm@preamble{paperheight}{%
-  \Gm@setlength\paperheight{#1}}}%
+  \def\Gm@paper{custom}\Gm@setlength\paperheight{#1}}}%
 \define@key{Gm}{papersize}{\ifGm@preamble{papersize}{%
-  \Gm@branch{#1}{paperwidth}{paperheight}}}%
+  \def\Gm@paper{custom}\Gm@branch{#1}{paperwidth}{paperheight}}}%
 \define@key{Gm}{layout}{\Gm@layouttrue\@nameuse{Gm@#1}{Gm@layout}}%
 \let\KV@Gm@layoutname\KV@Gm@layout
 \define@key{Gm}{layoutwidth}{\Gm@layouttrue\Gm@setlength\Gm@layoutwidth{#1}}%
@@ -613,8 +632,8 @@
     \setlength\paperheight{\@tempdima}%
   \fi
   \ifGm@layout\else
-    \let\Gm@layoutwidth\paperwidth
-    \let\Gm@layoutheight\paperheight
+    \setlength\Gm@layoutwidth{\paperwidth}%
+    \setlength\Gm@layoutheight{\paperheight}%
   \fi}%
 \def\Gm@checkmp{%
   \ifGm@includemp\else
@@ -675,9 +694,9 @@
   \ifGm@hbody
     \ifx\Gm@width\@undefined
       \ifx\Gm@hscale\@undefined
-        \edef\Gm@width{\Gm@Dhscale\Gm@layoutwidth}%
+        \Gm@defbylen{width}{\Gm@Dhscale\Gm@layoutwidth}%
       \else
-        \edef\Gm@width{\Gm@hscale\Gm@layoutwidth}%
+        \Gm@defbylen{width}{\Gm@hscale\Gm@layoutwidth}%
       \fi
     \fi
     \ifx\Gm@textwidth\@undefined\else
@@ -691,9 +710,9 @@
   \ifGm@vbody
     \ifx\Gm@height\@undefined
       \ifx\Gm@vscale\@undefined
-        \edef\Gm@height{\Gm@Dvscale\Gm@layoutheight}%
+        \Gm@defbylen{height}{\Gm@Dvscale\Gm@layoutheight}%
       \else
-        \edef\Gm@height{\Gm@vscale\Gm@layoutheight}%
+        \Gm@defbylen{height}{\Gm@vscale\Gm@layoutheight}%
       \fi
     \fi
     \ifx\Gm@lines\@undefined\else
@@ -797,12 +816,15 @@
     \ifvtex
       \Gm@setdriver{vtex}%
     \fi
-    \@ifundefined{XeTeXversion}{}{\Gm@setdriver{xetex}}%
+    \ifxetex
+      \Gm@setdriver{xetex}
+    \fi
   \else
     \ifx\Gm@driver\Gm@xetex %%
-      \@ifundefined{XeTeXversion}{\Gm@warning{%
-            Wrong driver setting: `xetex'; trying `pdftex' driver}%
-            \Gm@setdriver{pdftex}}{}%
+      \ifxetex\else
+        \Gm@warning{Wrong driver setting: `xetex'; trying `pdftex' driver}%
+        \Gm@setdriver{pdftex}
+      \fi
     \fi
     \ifx\Gm@driver\Gm@vtex
       \ifvtex\else
@@ -817,30 +839,27 @@
     \typeout{*geometry* detected driver: \Gm@driver}%
   \fi}%
 \def\Gm@showparams#1{%
-  \ifGm@pass\else
-   \setlength\@tempdima{\Gm@width}\edef\Gm@width{\the\@tempdima}%
-   \setlength\@tempdima{\Gm@height}\edef\Gm@height{\the\@tempdima}%
-  \fi
   \ifGm@verbose\expandafter\typeout\else\expandafter\wlog\fi
   {\Gm@logcontent{#1}}}%
 \def\Gm@showdim#1{* \string#1=\the#1^^J}%
 \def\Gm@showbool#1{\@nameuse{ifGm@#1}#1\space\fi}%
 \def\Gm@logcontent#1{%
   *geometry* verbose mode - [ #1 ] result:^^J%
-  \ifGm@pass * pass (ignores the geometry layout)^^J%
+  \ifGm@pass * pass: disregarded the geometry package!^^J%
   \else
-  * driver: \if\Gm@driver\relax <none>\else\Gm@driver\fi^^J%
-  * paper: \ifx\Gm@paper\@undefined\the\paperwidth,
-    \the\paperheight\space(class default)\else\Gm@paper\fi^^J%
-  * layout: \ifGm@layout \the\Gm@layoutwidth, \the\Gm@layoutheight
-  \else\ifx\Gm@paper\@undefined\the\paperwidth,
-     \the\paperheight\else\Gm@paper\fi\fi^^J%
+  * driver: \if\Gm@driver<none>\else\Gm@driver\fi^^J%
+  * paper: \ifx\Gm@paper\@undefined<default>\else\Gm@paper\fi^^J%
+  * layout: \ifGm@layout<custom>\else<same size as paper>\fi^^J%
+  \ifGm@layout
+  * layout(width,height): (\the\Gm@layoutwidth,\the\Gm@layoutheight)^^J%
+  \fi
+  * layoutoffset:(h,v)=(\the\Gm@layouthoffset,\the\Gm@layoutvoffset)^^J%
   \@ifundefined{Gm@lines}{}{* lines: \Gm@lines^^J}%
   \@ifundefined{Gm@hmarginratio}{}{* hratio: \Gm@hmarginratio^^J}%
   \@ifundefined{Gm@vmarginratio}{}{* vratio: \Gm@vmarginratio^^J}%
   \ifdim\Gm@bindingoffset=\z@\else
   * bindingoffset: \the\Gm@bindingoffset^^J\fi
-  * switch(es): %
+  * modes: %
    \Gm@showbool{landscape}%
    \Gm@showbool{includehead}%
    \Gm@showbool{includefoot}%
@@ -849,6 +868,8 @@
    \if@mparswitch\else\if@twoside asymmetric\space\fi\fi%
    \Gm@showbool{heightrounded}%
    \ifx\Gm@truedimen\@empty\else truedimen\space\fi%
+   \Gm@showbool{showframe}%
+   \Gm@showbool{showcrop}%
   ^^J%
   * h-part:(L,W,R)=(\Gm@lmargin, \Gm@width, \Gm@rmargin)^^J%
   * v-part:(T,H,B)=(\Gm@tmargin, \Gm@height, \Gm@bmargin)^^J%
@@ -862,6 +883,7 @@
   \Gm@showdim{\topmargin}%
   \Gm@showdim{\headheight}%
   \Gm@showdim{\headsep}%
+  \Gm@showdim{\topskip}%
   \Gm@showdim{\footskip}%
   \Gm@showdim{\marginparwidth}%
   \Gm@showdim{\marginparsep}%
@@ -874,33 +896,37 @@
   * \string\@twoside\if@twoside true\else false\fi^^J%
   * \string\@mparswitch\if@mparswitch true\else false\fi^^J%
   * \string\@reversemargin\if@reversemargin true\else false\fi^^J%
-  * (1in=72.27pt, 1cm=28.453pt)^^J}%
+  * (1in=72.27pt=25.4mm, 1cm=28.453pt)^^J}%
 \def\Gm@cropmark(#1,#2,#3,#4){%
   \begin{picture}(0,0)
-    \setlength\unitlength{1truemm}\thinlines
-    \put(0,0){\line(#1,#2){5}}
-    \put(0,0){\line(#3,#4){5}}
+    \setlength\unitlength{1truemm}%
+    \linethickness{0.25pt}%
+    \put(#3,0){\line(#1,0){17}}%
+    \put(0,#4){\line(0,#2){17}}%
   \end{picture}}%
+\providecommand*\vb@xt@{\vbox to}%
+\def\Gm@vrule{\vrule width 0.2pt height\textheight depth\z@}%
+\def\Gm@hrule{\hrule height 0.2pt depth\z@ width\textwidth}%
+\def\Gm@hruled{\hrule height\z@ depth0.2pt width\textwidth}%
 \newcommand*{\Gm@vrules@mpi}{%
-  \hb@xt@\@tempdima{\llap{\vrule height\textheight}\ignorespaces
-  \hskip \textwidth\vrule height\textheight\hskip \marginparsep
-  \llap{\vrule height\textheight}\hfil\vrule height\textheight}}%
+  \hb@xt@\@tempdima{\llap{\Gm@vrule}\ignorespaces
+  \hskip \textwidth\Gm@vrule\hskip \marginparsep
+  \llap{\Gm@vrule}\hfil\Gm@vrule}}%
 \newcommand*{\Gm@vrules@mpii}{%
   \hb@xt@\@tempdima{\hskip-\marginparwidth\hskip-\marginparsep
-  \llap{\vrule height\textheight}\ignorespaces
-  \hskip \marginparwidth\rlap{\vrule height\textheight}\hskip \marginparsep
-  \llap{\vrule height\textheight}\hskip\textwidth\rlap{\vrule height\textheight}\hss}}%
-\providecommand*\vb@xt@{\vbox to}%
+  \llap{\Gm@vrule}\ignorespaces
+  \hskip \marginparwidth\rlap{\Gm@vrule}\hskip \marginparsep
+  \llap{\Gm@vrule}\hskip\textwidth\rlap{\Gm@vrule}\hss}}%
 \newcommand*{\Gm@pageframes}{%
-  \vb@xt@\z@{\baselineskip\z@skip\lineskip\z@skip\lineskiplimit\z@%
+  \vb@xt@\z@{%
    \ifGm@showcrop
     \vb@xt@\z@{\vskip-1\Gm@truedimen in\vskip\Gm@layoutvoffset%
      \hb@xt@\z@{\hskip-1\Gm@truedimen in\hskip\Gm@layouthoffset%
       \vb@xt@\Gm@layoutheight{%
        \let\protect\relax
-       \hb@xt@\Gm@layoutwidth{\Gm@cropmark(1,0,0,-1)\hfil\Gm@cropmark(-1,0,0,-1)}%
+       \hb@xt@\Gm@layoutwidth{\Gm@cropmark(-1,1,-3,3)\hfil\Gm@cropmark(1,1,3,3)}%
        \vfil
-       \hb@xt@\Gm@layoutwidth{\Gm@cropmark(1,0,0,1)\hfil\Gm@cropmark(-1,0,0,1)}}%
+       \hb@xt@\Gm@layoutwidth{\Gm@cropmark(-1,-1,-3,-3)\hfil\Gm@cropmark(1,-1,3,-3)}}%
      \hss}%
     \vss}%
    \fi%
@@ -914,9 +940,9 @@
     \fi
     \moveright\@themargin%
     \vb@xt@\z@{%
-     \vskip\topmargin\vb@xt@\z@{\vss\hrule width\textwidth}%
-     \vskip\headheight\vb@xt@\z@{\vss\hrule width\textwidth}%
-     \vskip\headsep\vb@xt@\z@{\vss\hrule width\textwidth}
+     \vskip\topmargin\vb@xt@\z@{\vss\Gm@hrule}%
+     \vskip\headheight\vb@xt@\z@{\vss\Gm@hruled}%
+     \vskip\headsep\vb@xt@\z@{\vss\Gm@hrule}%
      \@tempdima\textwidth
      \advance\@tempdima by \marginparsep
      \advance\@tempdima by \marginparwidth
@@ -929,26 +955,11 @@
      \else
       \Gm@vrules@mpi
      \fi
-     \vb@xt@\z@{\vss\hrule width\textwidth}%
-     \vskip\footskip\vb@xt@\z@{\vss\hrule width\textwidth}%
+     \vb@xt@\z@{\vss\Gm@hrule}%
+     \vskip\footskip\vb@xt@\z@{\vss\Gm@hruled}%
      \vss}%
     \fi%
   }}%
-\let\Gm@shipout\shipout
-\newcommand*{\gm@shipi}{%
-  \ifvoid\@cclv\expandafter\aftergroup\fi\gm@shipii}%
-\newcommand*\gm@shipii{%
-  \ifvoid\@cclv
-    \Gm@shipout\box\@cclv
-  \else
-    \ifGm@showframe
-      \Gm@shipout\vbox{\Gm@pageframes\ifvbox\@cclv\unvbox\else\box\fi\@cclv}%
-    \else\ifGm@showcrop
-      \Gm@shipout\vbox{\Gm@pageframes\ifvbox\@cclv\unvbox\else\box\fi\@cclv}%
-    \else
-      \Gm@shipout\box\@cclv
-    \fi\fi
-  \fi}
 \def\ProcessOptionsKV{\@ifnextchar[%]
   {\@ProcessOptionsKV}{\@ProcessOptionsKV[]}}%
 \def\@ProcessOptionsKV[#1]#2{%
@@ -1052,11 +1063,18 @@
       \AtBeginDvi{\special{papersize=\the\paperwidth,\the\paperheight}}%
     \fi
   \fi\fi
+  \@tempswafalse
   \ifGm@showframe
-    \renewcommand*{\shipout}{\afterassignment\gm@shipi\setbox\@cclv=}
+    \@tempswatrue
   \else\ifGm@showcrop
-    \renewcommand*{\shipout}{\afterassignment\gm@shipi\setbox\@cclv=}
+    \@tempswatrue
   \fi\fi
+  \if@tempswa
+    \RequirePackage{atbegshi}%
+      \AtBeginShipout{\setbox\AtBeginShipoutBox=\vbox{%
+        \baselineskip\z@skip\lineskip\z@skip\lineskiplimit\z@
+        \Gm@pageframes\box\AtBeginShipoutBox}}%
+  \fi
   \Gm@save
   \edef\Gm@restore@pkg{\Gm@restore}%
   \ifGm@verbose\ifGm@pass\else\Gm@checkmp\fi\fi
@@ -1081,7 +1099,7 @@
   \fi%
   \setlength{\hsize}{\columnwidth}%
   \setlength{\linewidth}{\hsize}}%
-\newcommand\newgeometry[1]{%
+\newcommand{\newgeometry}[1]{%
   \clearpage
   \Gm@restore@org
   \Gm@initnewgm
@@ -1092,14 +1110,14 @@
   \ifnum\mag=\@m\else\Gm@magtooffset\fi
   \Gm@changelayout
   \Gm@showparams{newgeometry}}%
-\newcommand\restoregeometry{%
+\newcommand{\restoregeometry}{%
   \clearpage
   \Gm@restore@pkg
   \Gm@changelayout}%
-\newcommand*\savegeometry[1]{%
+\newcommand*{\savegeometry}[1]{%
   \Gm@save
   \expandafter\edef\csname Gm@restore@@#1\endcsname{\Gm@restore}}%
-\newcommand*\loadgeometry[1]{%
+\newcommand*{\loadgeometry}[1]{%
   \clearpage
   \@ifundefined{Gm@restore@@#1}{%
     \PackageError{geometry}{%

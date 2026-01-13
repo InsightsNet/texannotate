@@ -1,0 +1,689 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Latex Shortcuts and Redefinitions
+%%
+%%  Original by Jonathan Huggins, with thanks to Dan Roy and Ryan Adams for allowing the use many of their definitions.
+%%
+%%  Adapted by Trevor Campbell for personal use.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage{xifthen}
+\usepackage{xstring}
+\usepackage{xspace} % used at the end of macros to automatically determine whether spaces should be eaten or not
+\usepackage[mathscr]{eucal} % use euler script instead of mathcal
+\usepackage{dsfont} % doublestroke fonts (for things like reals, nats, complex numbers, etc)
+\usepackage[nice]{nicefrac} % nice fraction typesetting, compact symbols for 1/2, etc
+\usepackage[usenames,dvipsnames]{color} % for using colored text
+\usepackage{hyperref} % typical linking package
+\usepackage{amsmath,amssymb,amsthm,bm,bbm,amsfonts,mathtools,thmtools} % math
+\usepackage[capitalize,sort,compress]{cleveref} % nice reference package for automatically choosing names for references
+% ensure that crefs appear correctly in bookmarks 
+\usepackage{crossreftools} % may not be available when uploading to arXiv 
+\pdfstringdefDisableCommands{%
+    \let\Cref\crtCref
+    \let\cref\crtcref
+}
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+\usepackage{import, subfiles} % packages for using subfile/folder structure
+\usepackage{url} % nice URL typesetting
+\usepackage{algpseudocode, algorithm} % typical alg typesetting packages
+\usepackage{graphicx} % typical graphics package for figures
+\usepackage{multirow} % multirow tables
+\usepackage{wrapfig} % figures wrapped into the text
+\usepackage{caption,subcaption} % package for sub-environments (figs, tables, etc)
+\usepackage{microtype} % microtypesetting improvements for latex
+\usepackage{booktabs} % professional quality tables
+
+\usepackage{xargs}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Package Options Declarations %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%hyperref format/color/etc
+\DeclareOption{colorhypersetup}{\hypersetup{colorlinks=true, allcolors=SubtleColor, pdfborder={0 0 0}}}
+\DeclareOption{blackhypersetup}{\hypersetup{colorlinks=false, allcolors=black, pdfborder={0 0 0}}}
+\def\boldorbar{\bar}
+\DeclareOption{bbold}{\def\boldorbar{\bm}}
+\DeclareOption{bbar}{\def\boldorbar{\bar}}
+%autonum
+\newif\ifuseautonum
+\useautonumfalse
+\DeclareOption{autonum}{\useautonumtrue}
+
+\ProcessOptions
+
+\ifuseautonum \usepackage{autonum} \fi
+
+
+%%%%%%%%%%%%%%%%%%
+%%% Commenting %%%
+%%%%%%%%%%%%%%%%%%
+
+%% NA: needs attention (rough writing whose correctness needs to be verified)
+%% TBD: instructions for how to fix a gap ("Describe the propagation by ...")
+%% PROBLEM: bug or missing crucial bit
+
+%% use \fXXX versions of these macros to put additional explanation into a footnote (in the margin).
+%% The idea is that we don't want to interrupt the flow of the paper or make it
+%% impossible to read because there are a bunch of comments.
+
+%% NA's (and TBDs, those less crucially) should be written so
+%% that they flow with the text.
+
+\definecolor{WowColor}{rgb}{.75,0,.75}
+\definecolor{SubtleColor}{rgb}{0,0,.50}
+
+% inline
+\newcommand{\NA}[1]{\textcolor{SubtleColor}{ {\tiny \bf ($\star$)} #1}}
+\newcommand{\LATER}[1]{\textcolor{SubtleColor}{ {\tiny \bf ($\dagger$)} #1}}
+\newcommand{\TBD}[1]{\textcolor{SubtleColor}{ {\tiny \bf (!)} #1}}
+\newcommand{\PROBLEM}[1]{\textcolor{WowColor}{ {\bf (!!)} {\bf #1}}}
+
+% as margin notes
+\newcounter{margincounter}
+\newcommand{\displaycounter}{{\arabic{margincounter}}}
+\newcommand{\incdisplaycounter}{{\stepcounter{margincounter}\arabic{margincounter}}}
+
+\newcommand{\fTBD}[1]{\textcolor{SubtleColor}{$\,^{(\incdisplaycounter)}$}\marginpar{\tiny\textcolor{SubtleColor}{ {\tiny $(\displaycounter)$} #1}}}
+
+\newcommand{\fPROBLEM}[1]{\textcolor{WowColor}{$\,^{((\incdisplaycounter))}$}\marginpar{\tiny\textcolor{WowColor}{ {\bf $\mathbf{((\displaycounter))}$} {\bf #1}}}}
+
+\newcommand{\fLATER}[1]{\textcolor{SubtleColor}{$\,^{(\incdisplaycounter\dagger)}$}\marginpar{\tiny\textcolor{SubtleColor}{ {\tiny $(\displaycounter\dagger)$} #1}}}
+
+\DeclareRobustCommand{\suppresscomments}{
+% For submission, make all render blank.
+\renewcommand{\LATER}[1]{}
+\renewcommand{\fLATER}[1]{}
+\renewcommand{\TBD}[1]{}
+\renewcommand{\fTBD}[1]{}
+\renewcommand{\PROBLEM}[1]{}
+\renewcommand{\fPROBLEM}[1]{}
+\renewcommand{\NA}[1]{##1}  %% Note, NA's pass through!
+}
+
+% shorten paper -- the higher shortenval, the shorter the paper
+\newcommand{\setshortness}[1]{\def\shortnessval{#1}}
+\setshortness{0}
+\newcommand{\condcomment}[2][1]{\ifnum#1>\shortnessval #2\fi}
+
+%%%%%%%%%%%%%
+%%% Links %%%
+%%%%%%%%%%%%%
+\renewcommand*{\UrlFont}{\ttfamily\scriptsize\relax}
+
+
+% Stacked Relations
+%%%%%%%%%%%%%%%%%%%
+\newcommand{\stk}[2]{\ensuremath{\stackrel{\text{#2}}{#1}}}
+\newcommand{\stkm}[2]{\ensuremath{\stackrel{#2}{#1}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Bracket Shorthands %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\lcr}[3]{\left #1 #2 \right #3} % autosize
+\makeatletter
+\newcommand{\@lcrx}[4][{-1}]{
+          \IfEq{#1}{-1}{\left #2 {{{{#3}}}} \right #4}{
+   	\IfEq{#1}{0}{#2 {{{{#3}}}} #4}{
+	\IfEq{#1}{1}{\bigl #2 {{{{#3}}}} \bigr #4}{
+	\IfEq{#1}{2}{\Bigl #2 {{{{#3}}}} \Bigr #4}{
+	\IfEq{#1}{3}{\biggl #2 {{{{#3}}}} \biggr #4}{
+	\IfEq{#1}{4}{\Biggl #2 {{{{#3}}}} \Biggr #4}{
+    \GenericWarning{"4th argument to @lcrx must be -1, 0, 1, 2, 3, or 4"}
+    }}}}}}}  % specify size with {-1,...4} as optional argument
+\newcommand{\lcrx}[4][{-2}]{
+	\IfEq{#1}{-2}{\mathchoice{\@lcrx[-1]{#2}{#3}{#4}}
+				 {\@lcrx[0]{#2}{#3}{#4}}
+				 {\@lcrx[0]{#2}{#3}{#4}}
+				 {\@lcrx[0]{#2}{#3}{#4}}}
+		     {\@lcrx[#1]{#2}{#3}{#4}}}
+\makeatother    
+
+% Brackets and bracket-like functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\rbra}[2][{-2}]{\lcrx[#1] ( {#2} ) }
+\newcommand{\cbra}[2][{-2}]{\lcrx[#1] \{ {#2} \} }
+\newcommand{\sbra}[2][{-2}]{\lcrx[#1] [ {#2} ] }
+
+\newcommand{\abs}[2][{-2}]{\lcrx[#1] \vert {#2} \vert }
+\newcommand{\set}[2][{-2}]{\lcrx[#1] \{ {#2} \}}
+\newcommand{\floor}[2][{-2}]{\lcrx[#1] \lfloor {#2} \rfloor}
+\newcommand{\ceil}[2][{-2}]{\lcrx[#1] \lceil {#2} \rceil}
+\newcommand{\norm}[2][{-2}]{\lcrx[#1] \Vert {#2} \Vert}
+\newcommand{\inner}[3][{-2}]{\lcrx[#1] \langle {{#2},\ {#3}} \rangle}
+\newcommand{\card}[2][{-2}]{\lcrx[#1] \vert {#2} \vert }
+
+\newcommand{\normsub}[3][{-2}]{\lcrx[#1]{\Vert}{#2}{\Vert_{#3}}}
+\newcommand{\innersub}[4][{-2}]{\lcrx[#1]{\langle}{{#2},\ {#3}}{\rangle_{#4}}}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%% Align shortcuts %%%
+%%%%%%%%%%%%%%%%%%%%%%%
+\AtBeginDocument{ %necessary to stop clash with autonum package
+\def\[#1\]{\begin{align}#1\end{align}}		% numbered
+\def \<#1\>{\begin{aligned}#1\end{aligned}}
+\def\(#1\){\begin{align*}#1\end{align*}} 	% unnumbered
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%% Important Sets %%%
+%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\reals}{\ensuremath{\mathbb{R}}}
+\newcommand{\extReals}{\overline{\reals}}
+\newcommand{\posReals}{\reals_+}
+\newcommand{\posExtReals}{{\overline\reals}_+}
+\newcommand{\posPosReals}{\reals_{++}}
+\newcommand{\posPosExtReals}{{\overline\reals}_{++}}
+
+\newcommand{\ints}{\ensuremath{\mathbb{Z}}}
+\newcommand{\posInts}{\ints_+}
+
+\newcommand{\rats}{\ensuremath{\mathbb{Q}}}
+\newcommand{\posRats}{\rats_+}
+
+\newcommand{\nats}{\ensuremath{\mathbb{N}}}
+\newcommand{\natsO}{\nats_{0}}
+
+\newcommand{\comps}{\ensuremath{\mathbb{C}}}
+
+\newcommand{\measures}{\mathcal{M}}
+\newcommand{\probMeasures}{\mathcal{M}_1}
+
+
+% Set Operations
+%%%%%%%%%%%%%%%%
+\newcommand{\PowerSet}{\mathcal{P}}
+
+\newcommand{\union}{\cup}
+\newcommand{\Union}{\bigcup}
+\newcommand{\djunion}{\sqcup}
+\newcommand{\djUnion}{\bigsqcup}
+
+\newcommand{\intersect}{\cap}
+\newcommand{\Intersect}{\bigcap}
+
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\closure}{\operatorname{cl}}
+\newcommand{\spann}{\operatorname{span}}
+
+\newcommand{\boundary}{\partial}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Vectors & Matrices %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\bone}{\mathbf{1}}
+\newcommand{\bzero}{\mathbf{0}}
+\newcommand{\bell}{\mathbf{\ell}}
+\newcommand{\bpmat}{\begin{pmatrix}}
+\newcommand{\epmat}{\end{pmatrix}}
+\newcommand{\bbmat}{\begin{bmatrix}}
+\newcommand{\ebmat}{\end{bmatrix}}
+\newcommand{\bmat}{\begin{matrix}}
+\newcommand{\emat}{\end{matrix}}
+
+
+
+%%%%%%%%%%%%%%%%%%
+%%% Lp spaces and operators %%%
+%%%%%%%%%%%%%%%%%%
+\newcommand{\Lp}[1]{L_{#1}}
+\newcommand{\Lpmeas}[3][{-2}]{\Lp{#2}\rbra[#1]{#3}}
+\newcommand{\Lpnorm}[3][{-2}]{\normsub[#1]{#2}{\Lp{#3}}}
+\newcommand{\Lpmeasnorm}[4][{-2}]{\normsub[#1]{#2}{\Lpmeas{#3}{#4}}}
+\newcommand{\Lpinner}[4][{-2}]{\innersub[#1]{#2}{#3}{\Lp{#4}}}
+\newcommand{\Lpmeasinner}[5][{-2}]{\innersub[#1]{#2}{#3}{\Lpmeas{#4}{#5}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Linear Algebra %%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\kron}{\operatorname{\otimes}}
+\newcommand{\adjsym}{\dag} % adjoint symbol
+\newcommand{\adj}{^{\adjsym}} % adjoint
+\DeclareMathOperator{\spec}{\sigma} % spectrum
+\DeclareMathOperator{\diag}{diag} % diagonal
+\DeclareMathOperator{\rank}{rank} % rank
+
+\newcommand{\transposesym}{\top}
+\newcommand{\transpose}{^{\transposesym}}
+\newcommand{\invtranspose}{^{-\transposesym}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%% General Purpose %%%
+%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tuple}[1][]{\left\langle #1 \right\rangle}
+\newcommand{\emptystr}{\text{\o}}
+\newcommand{\ind}{\mathds{1}} % indicator function
+\newcommand{\sgn}{\operatorname{sgn}} % sign function
+\newcommand{\theset}[1]{\lbrace #1 \rbrace}
+\newcommand{\sn}[2]{\ensuremath{#1\!\times\!10^{#2}}}	% #1 x 10^{#2}
+
+\newcommand{\st}{\,:\,}
+\newcommand{\given}{\mid}
+
+% Words in math
+%%%%%%%%%%%%%%%
+\newcommand{\stT}{\ \text{s.t.}\ }
+\newcommand{\andT}{\ \text{and}\ }
+\newcommand{\orT}{\ \text{or}\ }
+\newcommand{\whereT}{\ \text{where}\ }
+\newcommand{\withT}{\ \text{with}\ }
+
+% Words with special characters
+%%%%%%%%%%%%%%%%
+\def\cadlag{c\`adl\`ag\@\xspace}
+\def\Gronwall{Gr\"onwall\xspace}
+\def\Renyi{R\'enyi\xspace}
+\def\Holder{H\"older\xspace}
+\def\Ito{It\^o\xspace}
+\def\Nystrom{Nystr\"om\xspace}
+\def\Schatten{Sch\"atten\xspace}
+\def\Matern{Mat\'ern\xspace}
+\def\Frechet{Fr\'echet\xspace}
+
+
+% New definition of square root:
+% it renames \sqrt as \oldsqrt
+\let\oldsqrt\sqrt
+% it defines the new \sqrt in terms of the old one
+\def\sqrt{\mathpalette\DHLhksqrt}
+\def\DHLhksqrt#1#2{%
+\setbox0=\hbox{$#1\oldsqrt{#2\,}$}\dimen0=\ht0
+\advance\dimen0-0.2\ht0
+\setbox2=\hbox{\vrule height\ht0 depth -\dimen0}%
+{\box0\lower0.4pt\box2}}
+
+% min and max
+\def\argmax{\operatornamewithlimits{arg\,max}}
+\def\argmin{\operatornamewithlimits{arg\,min}}
+\def\esssup{\operatornamewithlimits{ess\,sup}}
+\def\essinf{\operatornamewithlimits{ess\,inf}}
+
+% Equality operators
+\mathtoolsset{centercolon}
+\newcommand{\defas}{:=}
+\newcommand{\defines}{=:}
+\newcommand{\xapprox}[1]{\underset{#1}{\approx}}
+\newcommand{\medeq}{\!=\!}
+\newcommand{\shorteq}{\!\!=\!\!}
+
+% Other binary operators
+\newcommand{\sm}{\!-\!}
+\newcommand{\splus}{\!+\!}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Optimization               %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\prox}[2]{\ensuremath{\operatorname{prox}_{#1}\rbra{#2}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Convex Analysis %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DeclareMathOperator{\cone}{cone}
+\DeclareMathOperator{\conv}{conv}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Algorithms %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\algrenewcommand{\algorithmiccomment}[1]{\hfill$\triangleright$ #1} % fixes \Comment
+
+%properly indented comments
+%usage:
+%\LineComment{X}{Here is the comment},  where X = # additional indents. 
+%right after for / procedure / function calls, for whatever reason need to indent manually...
+\newdimen{\algindent}
+\setlength\algindent{1.5em}
+\makeatletter
+\newcommand{\LineComment}[2][0]{\Statex \hspace{#1\algindent} \hskip\ALG@thistlm $\triangleright$ #2}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Probability and Statistics %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% text shortcuts
+\newcommand{\iid}{\textrm{i.i.d.}\@\xspace}
+\newcommand{\as}{\textrm{a.s.}\@\xspace}
+\newcommand{\aev}{\textrm{a.e.}\@\xspace}
+
+% convergence
+\newcommand{\convas}{\overset{a.s.}{\to}}
+\newcommand{\convp}{\overset{p}{\to}}
+\newcommand{\convd}{\overset{d}{\to}}
+\newcommand{\eqd}{\overset{d}{=}}
+\newcommand{\eqas}{\overset{a.s.}{=}}
+
+% unary/functions
+\renewcommand{\Pr}{\mathbb{P}}  % probability
+\newcommand{\EE}{\mathbb{E}}	% expectation
+\newcommand{\Law}{\mcL} 
+\newcommand{\var}{\operatorname{Var}}	% variance
+\newcommand{\cov}{\operatorname{Cov}}	% covariance
+\newcommand{\corr}{\operatorname{Corr}}	% correlation
+\newcommand{\supp}{\operatorname{supp}} %support
+
+% binary operators
+\newcommand{\distiid}{\overset{\textrm{\tiny\iid}}{\distas}}
+\newcommand{\distind}{\overset{\textrm{\tiny\textrm{indep}}}{\distas}}
+% maybe use these instead? can keep others for backward compatibility 
+\newcommand{\distas}{\sim}
+\newcommand{\distiidas}{\stk{\distas}{iid}}
+\newcommand{\distindas}{\stk{\distas}{ind}}
+\newcommand{\pushfwdmeas}[2]{{{#1}_{\sharp} #2}}
+
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern4mu{#1#2}}}
+\newcommand\indep{\protect\mathpalette{\protect\independenT}{\perp}} % independent
+
+% parametric distributions
+\newcommand{\distNamed}[1]{{\sf{#1}}}
+\newcommand{\distNorm}{\mathcal{N}}
+\newcommand{\distT}{\mathcal{T}}
+\newcommand{\distLaplace}{\distNamed{Lap}}
+\newcommand{\distChiSq}{\chi^2}
+%\newcommand{\distUnif}{\mathscr{U}}
+\newcommand{\distUnif}{\distNamed{Unif}}
+%\newcommand{\distGam}{\mathscr{G}{\scriptstyle\mathscr{A}}}
+\newcommand{\distGam}{\distNamed{Gam}}
+\newcommand{\distGumbel}{\distNamed{Gumbel}}
+\newcommand{\distGEV}{\distNamed{GEV}}
+\newcommand{\distCat}{\distNamed{Categorical}}
+\newcommand{\distInvGam}{\distNamed{InvGam}}
+%\newcommand{\distPoiss}{\mathscr{P}{\scriptstyle\mathscr{O}}}
+\newcommand{\distPoiss}{\distNamed{Poiss}}
+\newcommand{\distExp}{\distNamed{Exp}}
+\newcommand{\distBeta}{\distNamed{Beta}}
+\newcommand{\distBetaPrime}{\distNamed{Beta}'}
+\newcommand{\distDir}{\distNamed{Dir}}
+\newcommand{\distBinom}{\distNamed{Binom}}
+\newcommand{\distMulti}{\distNamed{Multi}}
+\newcommand{\distBern}{\distNamed{Bern}}
+\newcommand{\distGeom}{\distNamed{Geom}}
+\newcommand{\distWish}{\mathpzc{W}}
+\newcommand{\distInvWish}{\mathpzc{IW}}
+\newcommand{\distCauchy}{\distNamed{Cauchy}}
+% non-parametric distributions
+\newcommand{\distBeP}{\mathrm{BeP}}
+\newcommand{\distDP}{\mathrm{DP}}
+\newcommand{\distCRP}{\mathrm{CRP}}
+\newcommand{\distPYP}{\mathrm{PY}}
+\newcommand{\distGP}{{\mathrm{GP}}} % Gaussian process
+\newcommand{\distPP}{\mathrm{PP}}
+\newcommand{\distBP}{\mathrm{BP}}
+\newcommand{\distBPP}{\mathrm{BPP}}
+\newcommand{\distGammaP}{\mathrm{\Gamma P}}
+\newcommand{\distNGammaP}{\mathrm{N\Gamma P}}
+\newcommand{\distLP}{\mathrm{LP}}
+\newcommand{\distObs}{\mathrm{Obs}}
+\newcommand{\distCRM}{\mathrm{CRM}}
+\newcommand{\distNCRM}{\mathrm{NCRM}}
+\newcommand{\distVMF}{\mathrm{vMF}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Information Theory %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\divergence}[4][]{\mathrm{D^{\ifthenelse{\isempty{#1}}{}{#1}}_{#2}}\rbra{#3 || #4}}
+\newcommand{\distance}[4][]{\mathrm{D^{\ifthenelse{\isempty{#1}}{}{#1}}_{#2}}\rbra{#3, #4}}
+\newcommand{\kl}[3][]{\divergence[#1]{KL}{#2}{#3}}
+\newcommand{\tvd}[3][]{\distance[#1]{TV}{#2}{#3}}
+\newcommand{\ent}[1]{\mathcal{H}\rbra{#1}}
+\newcommand{\hell}[3][]{\distance[#1]{H}{#2}{#3}}
+
+%%%%%%%%%%%%%%%%%%%%%
+%%% Special Funcs %%%
+%%%%%%%%%%%%%%%%%%%%%
+\newcommand*\pFq[2]{{}_{#1}F_{#2}}
+
+%%%%%%%%%%%%%%%%
+%%% Calculus %%%
+%%%%%%%%%%%%%%%%
+\newcommand{\dee}{\mathrm{d}}
+\newcommand{\grad}{\nabla}
+
+\newcommand{\der}[2]{\ensuremath{\frac{\dee #1}{\dee #2}}}
+\newcommand{\dder}[2]{\ensuremath{\frac{d^2 #1}{d #2^2}}}
+\newcommand{\D}[2]{\ensuremath{\frac{\partial #1}{\partial #2}}}
+\newcommand{\DD}[2]{\ensuremath{\frac{\partial^2 #1}{\partial #2^2}}}
+\newcommand{\Di}[2]{\ensuremath{\frac{\partial^i #1}{\partial #2^i}}}
+\newcommand{\prt}[1]{\ensuremath{\frac{\partial}{\partial #1}}}
+\newcommand{\hes}[2]{\ensuremath{\frac{\partial^2}{\partial #1 \partial #2}}}
+
+
+%%%%%%%%%%%%%
+%%% Logic %%%
+%%%%%%%%%%%%%
+\DeclareMathOperator{\notimplies}{\centernot\implies}
+
+
+%%%%%%%%%%%%%%%%%
+%%% Fractions %%%
+%%%%%%%%%%%%%%%%%
+\newcommand{\half}{\ensuremath{\nicefrac{1}{2}}\xspace}
+\newcommand{\third}{\ensuremath{\nicefrac{1}{3}}\xspace}
+\newcommand{\quarter}{\ensuremath{\nicefrac{1}{4}}\xspace}
+
+
+%%%%%%%%%%%%%%%%%
+%%% Shortcuts %%%
+%%%%%%%%%%%%%%%%%
+\newcommand{\eps}{\epsilon}
+\newcommand{\veps}{\varepsilon}
+\newcommand{\bitems}{\begin{itemize}}
+\newcommand{\eitems}{\end{itemize}}
+\newcommand{\benum}{\begin{enumerate}}
+\newcommand{\eenum}{\end{enumerate}}
+\newcommand{\bdesc}{\begin{description}}
+\newcommand{\edesc}{\end{description}}
+\newcommand{\angles}[1]{\langle #1 \rangle}
+\newcommand{\ip}[2]{\angles{#1, #2}}
+
+
+%%%%%%%%%%%%%%
+%%% Proofs %%%
+%%%%%%%%%%%%%%
+\newcommand{\bprf}{\begin{proof}}
+\newcommand{\eprf}{\end{proof}}
+\newenvironment{proofof}[1]{\renewcommand{\proofname}{Proof of #1}\proof}{\endproof}
+\newcommand{\bprfof}{\begin{proofof}}
+\newcommand{\eprfof}{\end{proofof}}
+
+%%%%%%%%%%%%%%%%%
+% Theorem-like environments
+
+% numbered
+\declaretheorem[name=Theorem,numberwithin=section]{theorem}
+\declaretheorem[name=Lemma,numberlike=theorem]{lemma}
+\declaretheorem[name=Proposition,numberlike=theorem]{proposition}
+\declaretheorem[name=Corollary,numberlike=theorem]{corollary}
+\declaretheorem[name=Conjecture,numberlike=theorem]{conjecture}
+\declaretheorem[name=Definition,numberlike=theorem]{definition}
+\declaretheorem[name=Assumption,numberlike=theorem]{assumption}
+\declaretheorem[qed=$\triangleleft$,name=Example,numberlike=theorem]{example}
+\declaretheorem[qed=$\triangleleft$,name=Remark,numberlike=theorem]{remark}
+\declaretheorem[qed=$\triangleleft$,name=Fact,numberlike=theorem]{fact}
+\declaretheorem[qed=$\square$,name=Exercise,numberwithin=section]{exercise}
+
+% unnumbered
+\declaretheorem[name=Theorem,numbered=no]{theorem*}
+\declaretheorem[name=Lemma,numbered=no]{lemma*}
+\declaretheorem[name=Proposition,numbered=no]{proposition*}
+\declaretheorem[name=Corollary,numbered=no]{corollary*}
+\declaretheorem[name=Conjecture,numbered=no]{conjecture*}
+\declaretheorem[name=Definition,numbered=no]{definition*}
+\declaretheorem[name=Assumption,numbered=no]{assumption*}
+\declaretheorem[qed=$\triangleleft$,name=Example,numbered=no]{example*}
+\declaretheorem[qed=$\triangleleft$,name=Remark,numbered=no]{remark*}
+\declaretheorem[qed=$\triangleleft$,name=Fact,numbered=no]{fact*}
+\declaretheorem[qed=$\square$,name=Exercise,numbered=no]{exercise*}
+
+% numbered shorthands
+\long\def\bthm#1\ethm{\begin{theorem}#1\end{theorem}}
+\long\def\blem#1\elem{\begin{lemma}#1\end{lemma}}
+\long\def\bprop#1\eprop{\begin{proposition}#1\end{proposition}}
+\long\def\bcor#1\ecor{\begin{corollary}#1\end{corollary}}
+\long\def\bconj#1\econj{\begin{conjecture}#1\end{conjecture}}
+\long\def\bdef#1\edef{\begin{definition}#1\end{definition}}
+\long\def\bassump#1\ebassump{\begin{assumption}#1\end{assumption}}
+\long\def\bexa#1\eexa{\begin{example}#1\end{example}}
+\long\def\brmk#1\ermk{\begin{remark}#1\end{remark}}
+\long\def\bfact#1\efact{\begin{fact}#1\end{fact}}
+\long\def\bexer#1\eexer{\begin{exercise}#1\end{exercise}}
+
+% unnumbered shorthands
+\def\bthmnn#1\ethmnn{\begin{theorem*}#1\end{theorem*}}
+\def\blemnn#1\elemnn{\begin{lemma*}#1\end{lemma*}}
+\def\bpropnn#1\epropnn{\begin{proposition*}#1\end{proposition*}}
+\def\bcornn#1\ecornn{\begin{corollary*}#1\end{corollary*}}
+\def\bconjnn#1\econjnn{\begin{conjecture*}#1\end{conjecture*}}
+\def\bdefnn#1\edefnn{\begin{definition*}#1\end{definition*}}
+\def\bassumpnn#1\ebassumpnn{\begin{assumption*}#1\end{assumption*}}
+\def\bexann#1\eexann{\begin{example*}#1\end{example*}}
+\def\brmknn#1\ermknn{\begin{remark*}#1\end{remark*}}
+\def\bfactnn#1\efactnn{\begin{fact*}#1\end{fact*}}
+\def\bexernn#1\eexernn{\begin{exercise*}#1\end{exercise*}}
+
+
+%Proof clever ref names
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{conjecture}{Conjecture}{Conjectures}
+\crefname{definition}{Definition}{Definitions}
+\crefname{assumption}{Assumption}{Assumptions}
+\crefname{example}{Example}{Examples}
+\crefname{remark}{Remark}{Remarks}
+\crefname{fact}{Fact}{Facts}
+\crefname{exercise}{Exercise}{Exercises}
+\crefformat{footnote}{#1\footnotemark[#2]#3}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Symbol shortcuts %%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\charalphabetmacro}[3]{
+% #1: annotation prefix
+% #2: annotation command (must be a single command!)
+% #3: characters to define annotations for
+% Create a macros of the form
+%   \newcommand{\#1##1}{#2{##1}} for each ##1 in #3
+    \def\mydeffoo##1{\expandafter\def\csname #1##1\endcsname{#2{##1}}}
+    \def\mydefallfoo##1{\ifx##1\mydefallfoo\else\mydeffoo##1\expandafter\mydefallfoo\fi}
+    \expandafter \mydefallfoo #3\mydefallfoo
+}
+
+\newcommand{\texalphabetmacro}[3]{
+% #1: annotation prefix
+% #2: annotation command (must be a single command!)
+% #3: latex symbol command text to define annotations for
+% Create a macros of the form
+%   \newcommand{\#1##1}{#2{\##1}} for each ##1 in #3
+    \def\mydeftex##1{\expandafter\def\csname #1##1\endcsname{#2{\csname ##1\endcsname}}}
+    \def\mydefalltex##1{\ifx\mydefalltex##1\else\mydeftex{##1}%
+       \lowercase{\mydeftex{##1}}\expandafter\mydefalltex\fi}
+    \expandafter \mydefalltex #3\mydefalltex
+}
+
+\newcommand{\upperCaseRomanLetters}{ABCDEFGHIJKLMNOPQRSTUVWXYZ}
+\newcommand{\lowerCaseRomanLetters}{abcdefghijklmnopqrstuvwxyz}
+\newcommand{\lowerCaseRomanLettersNoMHT}{abcdefgijklnopqrsuvwxyz}
+\newcommand{\lowerCaseRomanLettersNoG}{abcdefhijklmnopqrstuvwxyz}
+\newcommand{\lowerCaseRomanLettersNoMF}{abcdeghijklnopqrstuvwxyz}
+
+
+\newcommand{\lowerCaseGreekLetters}{{alpha}{beta}{gamma}{delta}{epsilon}{zeta}{eta}{theta}{iota}{kappa}{lambda}{mu}{nu}{xi}{omicron}{pi}{rho}{sigma}{tau}{upsilon}{phi}{chi}{psi}{omega}}
+\newcommand{\lowerCaseGreekLettersNoEta}{{alpha}{beta}{gamma}{delta}{epsilon}{zeta}{theta}{iota}{kappa}{lambda}{mu}{nu}{xi}{omicron}{pi}{rho}{sigma}{tau}{upsilon}{phi}{chi}{psi}{omega}}
+\newcommand{\upperCaseGreekLettersInLaTeX}{{Gamma}{Delta}{Theta}{Lambda}{Xi}{Pi}{Sigma}{Upsilon}{Phi}{Psi}{Omega}}
+
+% Bar everything shortcuts
+\charalphabetmacro{bar}{\bar}{\upperCaseRomanLetters}
+\charalphabetmacro{bar}{\bar}{\lowerCaseRomanLetters}
+
+\charalphabetmacro{b}{\boldorbar}{\upperCaseRomanLetters}
+\charalphabetmacro{b}{\boldorbar}{\lowerCaseRomanLettersNoMF} % avoid clash with \bm and \bf
+\newcommand{\boldf}{\bm{f}} % only need \boldf, since \barf already defined above
+
+\texalphabetmacro{b}{\boldorbar}{\lowerCaseGreekLettersNoEta} % avoid \beta <-> \bar{\eta} clash
+\newcommand{\bareta}{\bar{\eta}}
+\newcommand{\boldeta}{\bm{\eta}}
+\texalphabetmacro{b}{\boldorbar}{\upperCaseGreekLettersInLaTeX}
+
+% Mathcal shortcuts
+\charalphabetmacro{mc}{\mathcal}{\upperCaseRomanLetters}
+
+\newcommand{\hatmathcal}[1]{\hat{\mathcal{#1}}}
+\charalphabetmacro{hmc}{\hatmathcal}{\upperCaseRomanLetters}
+
+% Mathfrak shortcuts
+\charalphabetmacro{mf}{\mathfrak}{\upperCaseRomanLetters}
+\charalphabetmacro{mf}{\mathfrak}{\lowerCaseRomanLetters}
+
+
+% Bold Mathfrak shortcuts
+\newcommand{\boldmathfrak}[1]{\mathbf{\mathfrak{#1}}}
+\charalphabetmacro{bmf}{\boldmathfrak}{\upperCaseRomanLetters}
+\charalphabetmacro{bmf}{\boldmathfrak}{\lowerCaseRomanLetters}
+
+% Hatted shortcuts
+\charalphabetmacro{h}{\hat}{\upperCaseRomanLetters}
+\charalphabetmacro{h}{\hat}{\lowerCaseRomanLettersNoMHT}
+\texalphabetmacro{h}{\hat}{\lowerCaseGreekLetters}
+\texalphabetmacro{h}{\hat}{\upperCaseGreekLettersInLaTeX}
+
+% Bold hatted shortcuts
+\newcommand{\boldhat}[1]{\mathbf{\hat{#1}}}
+\charalphabetmacro{bh}{\boldhat}{\upperCaseRomanLetters}
+\charalphabetmacro{bh}{\boldhat}{\lowerCaseRomanLetters}
+\texalphabetmacro{bh}{\boldhat}{\lowerCaseGreekLetters}
+\texalphabetmacro{bh}{\boldhat}{\upperCaseGreekLettersInLaTeX}
+
+
+%Wide hatted shortcuts
+\charalphabetmacro{wh}{\widehat}{\upperCaseRomanLetters}
+\charalphabetmacro{wh}{\widehat}{\lowerCaseRomanLettersNoMHT}
+
+% Tilde shortcuts 
+\charalphabetmacro{td}{\tilde}{\upperCaseRomanLetters}
+\charalphabetmacro{td}{\tilde}{\lowerCaseRomanLetters}
+\texalphabetmacro{td}{\tilde}{\lowerCaseGreekLetters}
+\texalphabetmacro{td}{\tilde}{\upperCaseGreekLettersInLaTeX}
+
+% this had too many exceptions so i went with td instead of t :S
+
+% Bold tilde shortcuts
+\newcommand{\boldtilde}[1]{\mathbf{\tilde{#1}}}
+
+\charalphabetmacro{btd}{\boldtilde}{\upperCaseRomanLetters}
+\charalphabetmacro{btd}{\boldtilde}{\lowerCaseRomanLetters}
+\texalphabetmacro{btd}{\boldtilde}{\lowerCaseGreekLetters}
+\texalphabetmacro{btd}{\boldtilde}{\upperCaseGreekLettersInLaTeX}
+
+% bold italics
+\def\mathbbi#1{\textbf{\em #1}}
+\charalphabetmacro{bi}{\mathbbi}{\upperCaseRomanLetters}
+\charalphabetmacro{bi}{\mathbbi}{\lowerCaseRomanLettersNoG}
+
+% bold hatted italics
+\newcommand{\boldhatitalic}[1]{\hat{\mathbbi{#1}}}
+\charalphabetmacro{bhi}{\boldhatitalic}{\upperCaseRomanLetters}
+\charalphabetmacro{bhi}{\boldhatitalic}{\lowerCaseRomanLetters}
+
+
+
+
+

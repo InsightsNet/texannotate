@@ -7,7 +7,7 @@
 %% jmlr.dtx  (with options: `jmlrutils.sty,package')
 %% 
 %%  jmlr.dtx
-%%  Copyright 2020 Nicola Talbot
+%%  Copyright 2017 Nicola Talbot
 %% 
 %%  This work may be distributed and/or modified under the
 %%  conditions of the LaTeX Project Public License, either version 1.3
@@ -40,7 +40,7 @@
 %%   Right brace   \}     Tilde         \~}
 %% First editor:
 %% Second editor:
-\ProvidesPackage{jmlrutils}[2020/09/21 v1.28 (NLCT)]
+\ProvidesPackage{jmlrutils}[2017/08/01]
 \newif\ifjmlrutilsmaths
 \jmlrutilsmathstrue
 \DeclareOption{maths}{\jmlrutilsmathstrue}
@@ -216,24 +216,12 @@
   \newcommand*{\@p@subfigure}[1]{%
     \protect\@subfigurelabel{\thefigure}{\thesubfigure}%
   }
-  \@ifl@t@r\fmtversion{2019/08/22}%
-  {
-    \newcommand*\@subfigurelabel[3]{#1\subfigurelabel{#2}}
-    \newcommand*\@subfigref[1]{%
-      {%
-        \def\@subfigurelabel##1##2##3{\subfigurelabel{##2}}%
-        \ref{#1}%
-      }%
-    }
-  }%
-  {
-    \newcommand*\@subfigurelabel[2]{#1\subfigurelabel{#2}}
-    \newcommand*\@subfigref[1]{%
-      {%
-        \def\@subfigurelabel##1##2{\subfigurelabel{##2}}%
-        \ref{#1}%
-      }%
-    }
+  \newcommand*\@subfigurelabel[2]{#1\subfigurelabel{#2}}
+  \newcommand*\@subfigref[1]{%
+    {%
+      \def\@subfigurelabel##1##2{\subfigurelabel{##2}}%
+      \ref{#1}%
+    }%
   }
   \newcommand*{\subfigref}[1]{%
     \let\@objectname\@empty
@@ -292,25 +280,13 @@
   \newcommand*{\@p@subtable}[1]{%
     \protect\@subtablelabel{\thetable}{\thesubtable}%
   }
-  \@ifl@t@r\fmtversion{2019/08/22}%
-  {
-    \newcommand*\@subtablelabel[3]{#1\subtablelabel{#2}}
-    \newcommand*\@subtabref[1]{%
-      {%
-        \def\@subtablelabel##1##2##3{\subtablelabel{##2}}%
-        \ref{#1}%
-      }%
-    }
-  }%
-  {
-    \newcommand*\@subtablelabel[2]{#1\subtablelabel{#2}}
-    \newcommand*\@subtabref[1]{%
-      {%
-        \def\@subtablelabel##1##2{\subtablelabel{##2}}%
-        \ref{#1}%
-      }%
-    }
-  }%
+  \newcommand*\@subtablelabel[2]{#1\subtablelabel{#2}}
+  \newcommand*\@subtabref[1]{%
+    {%
+      \def\@subtablelabel##1##2{\subtablelabel{##2}}%
+      \ref{#1}%
+    }%
+  }
   \newcommand*{\subtabref}[1]{%
     \let\@objectname\@empty
     \def\@objectref{}%
@@ -398,10 +374,9 @@
   \newcommand{\jmlrBlackBox}{\rule{1.5ex}{1.5ex}}
   \providecommand{\BlackBox}{\jmlrBlackBox}
   \newcommand{\jmlrQED}{\hfill\jmlrBlackBox\par\bigskip}
-\providecommand{\proofname}{Proof}
   \newenvironment{proof}%
   {%
-   \par\noindent{\bfseries\upshape \proofname\ }%
+   \par\noindent{\bfseries\upshape Proof\ }%
   }%
   {\jmlrQED}
   \newcommand*{\theorembodyfont}[1]{%

@@ -9,11 +9,15 @@
 %%% Original headers follow...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% - fixed a bug with format.chapter - error given in chapter is empty
+%   with inbook.
+% Shay Cohen 2018/02/16
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% BibTeX style file acl_natbib_nourl.bst
+% BibTeX style file acl_natbib.bst
 %
 % intended as input to urlbst script
-% $ ./urlbst --hyperref --inlinelinks acl_natbib_nourl.bst > acl_natbib.bst
 %
 % adapted from compling.bst 
 % in order to mimic the style files for ACL conferences prior to 2017
@@ -24,14 +28,6 @@
 %	 not address of publisher.)
 % - for papers with three authors, use et al. in citation
 % Dan Gildea 2017/06/08
-%
-% - fixed a bug with format.chapter - error given if chapter is empty
-%   with inbook.
-% Shay Cohen 2018/02/16
-%
-% - sort "van Noord" under "v" not "N"
-%   this is what previous ACL style files did and is pretty standard
-% Dan Gildea 2019/04/12
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -1094,7 +1090,8 @@ FUNCTION {format.vol.num.pages}
 
 FUNCTION {format.chapter}
 { chapter empty$
-    'format.pages
+    %'skip$  %% SC
+    { "" }
     { type empty$
         { bbl.chapter }
         { type "l" change.case$
@@ -1801,7 +1798,7 @@ FUNCTION {sort.format.names}
   numnames 'namesleft :=
     { namesleft #0 > }
     { s nameptr
-      "{vv{ } }{ll{ }}{  ff{ }}{  jj{ }}"
+      "{ll{ }}{  ff{ }}{  jj{ }}"
       format.name$ 't :=
       nameptr #1 >
         {

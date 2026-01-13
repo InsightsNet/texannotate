@@ -1,7 +1,7 @@
 %%
-%% This is file `cas-model2-names.bst'  (Version 2.0),
+%% This is file `cas-model2-names.bst'  (Version 2.3),
 %% 
-%% Copyright 2009-2019 Elsevier Ltd
+%% Copyright 2009-2021 Elsevier Ltd
 %% 
 %% This file is part of the 'Elsarticle Bundle'.
 %% ---------------------------------------------
@@ -13,7 +13,7 @@
 %% and version 1.2 or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
 %%
-%% $Id: cas-model2-names.bst 23 2019-04-05 10:17:39Z rishi $
+%% $Id: cas-model2-names.bst$ 
 %%
 %% $URL: https://lenova.river-valley.com/svn/elscastemplates/trunk/cas-model2-names.bst $
 %% 
@@ -1641,16 +1641,4 @@ FUNCTION {end.bib}
 EXECUTE {end.bib}
 %% End of customized bst file
 %%
-%% End of file `model2-names.bst'.
-%%
-%% Change log:
-%% -----------
-%% 22.04.2011
-%%
-%% 10.08.2012
-%%   a. doi, url, eprint, pmid added
-%%   b. Bibtype `webpage' defined
-%%
-%% 30.08.2012
-%%   a. collaboration added.
-%%
+%% End of file `cas-model2-names.bst'.

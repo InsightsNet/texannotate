@@ -1,4 +1,4 @@
-% JHEP bibliography style ver. 2.10
+% JHEP bibliography style ver. 2.1
 %
 % The bibtex output produced by inSPIRE, while far from perfect, is pretty
 % suitable for use with this style. Indeed, this style was designed with
@@ -53,7 +53,6 @@ ENTRY
     eprint
     report
     collaboration
-    url
   }
   {}
   { label }
@@ -225,23 +224,15 @@ FUNCTION {emphasize}
 FUNCTION {format.doi}
 { doi empty$
   { ""  }
-  {"\href{https://doi.org/" doi * "}" * }
+  {"\href{http://dx.doi.org/" doi * "}" * }
   if$
 }
 
 FUNCTION {formatfull.doi}
 { doi empty$
   { ""  }
-  {"\href{https://doi.org/" doi *
+  {"\href{http://dx.doi.org/" doi *
    "}{DOI}" * }
-  if$
-}
-
-FUNCTION {format.url}
-{
-  url empty$
-  {""}
-  {"\href{" url * "}{" * url * "}" *}
   if$
 }
 
@@ -254,10 +245,6 @@ FUNCTION {format.names}
   s num.names$ 'numnames :=
   numnames 'namesleft :=
     { namesleft #0 > }
-    % the following removes space betwee author's initials
-    % but also removes "-" (as in composite names)
-    % so we do not use it
-    % { s nameptr "{f{.}. }{vv~}{ll}{, jj}" format.name$ 't :=
     { s nameptr "{f.~}{vv~}{ll}{, jj}" format.name$ 't :=
       nameptr #1 >
 	{ namesleft #1 >
@@ -299,10 +286,10 @@ FUNCTION {format.eprint}
 { eprint empty$
      { ""}
      { archive empty$
-          {"\href{https://arxiv.org/abs/" eprint * "}" *
-             "{{\ttfamily " * eprint * "}}" *}
-          {"\href{https://arxiv.org/abs/" archive *  "/" * eprint * "}" *
-             "{{\ttfamily " * archive * "/" * eprint * "}}" *}
+          {"\href{http://arxiv.org/abs/" eprint * "}" *
+             "{{\tt " * eprint * "}}" *}
+          {"\href{http://arxiv.org/abs/" archive *  "/" * eprint * "}" *
+             "{{\tt " * archive * "/" * eprint * "}}" *}
        if$
      }
      if$
@@ -412,13 +399,6 @@ FUNCTION {format.date.paren}
   if$
 }
 
-FUNCTION {format.date.paren.nomonth}
-{ year empty$
-  { "" }
-  {"(" year * ")" *}
-  if$
-}
-
 FUNCTION {format.collaboration}
 { collaboration empty$
     { "" }
@@ -519,31 +499,22 @@ FUNCTION {format.pages}
   if$
 }
 
-FUNCTION {first.page}
-{ 't :=
-  ""
-    {  t empty$ not t #1 #1 substring$ "-" = not and }
-    { t #1 #1 substring$ *
-      t #2 global.max$ substring$ 't :=
-    }
-  while$
-}
-
 FUNCTION {format.pages.nopp}
 { pages empty$
     { "" }
     { pages multi.page.check
-	{ pages first.page  }
+	{ pages n.dashify  }
 	{ pages }
       if$
     }
   if$
 }
 
+
 FUNCTION {format.volume}
 { volume empty$
     { "" }
-    { "{\bfseries " volume * "}" * }
+    { "{\bf " volume * "}" * }
   if$
 }
 
@@ -575,7 +546,7 @@ FUNCTION {format.in.ed.booktitle}
     { "in " booktitle emphasize *
       editor empty$
 	'skip$
-	{ ", " * format.editors * "" * }
+	{ " (" * format.editors * ")" * }
       if$
     }
   if$
@@ -702,60 +673,44 @@ FUNCTION {format.incoll.inproc.crossref}
   " \cite{" * crossref * "}" *
 }
 
-%% Output either the collaboration name and no authors
-%% or the authors (if there is no collaboration)
-FUNCTION {format.author.or.collaboration}
-{
-  collaboration empty$
-    { format.authors "author" output.check }
-    { format.collaboration output }
-  if$
-}
-
 FUNCTION {article}
-{
-  output.bibitem
-  format.author.or.collaboration
+{ output.bibitem
+  format.collaboration output
+  format.authors "author" output.check
   format.title "title" output.check
   blank.sep
-
   crossref missing$
-    {
-      journal missing$
-        { format.eprint output }
-        { journal empty$
-            { format.eprint output }
-            { format.doi * "{" * journal emphasize before.all 'output.state := "journal" output.check
-              blank.sep
-              format.volume output
-              blank.sep
-              format.date.paren.nomonth "year" output.check
-              blank.sep
-              format.pages.nopp "}" * output
-              blank.sep
-            }
-          if$
-        }
+  { journal missing$
+    { format.eprint output }
+    { journal empty$ { format.eprint output } {
+      format.doi * "{" * journal emphasize before.all 'output.state := "journal" output.check
+      % added \href{doi} and { before journal
+      % Slv
+      blank.sep
+      format.volume output
+      blank.sep
+      format.date.paren "year" output.check
+      %month empty$ { format.number output }
+      %  		  'skip$ if$
+      blank.sep
+      format.pages.nopp "}" * output }
+      %% closed parenthesis for href argument
       if$
-
-      report missing$
-        { journal empty$
-            {}
-            { format.eprint.paren output}
-          if$
-        }
-        { blank.sep format.report output format.eprint.paren output}
-      if$
+      }
+    if$
+    report missing$
+            { journal empty$ {} { format.eprint.paren output} if$ }
+            {blank.sep format.report output format.eprint.paren output}
+            if$
     }
-
-    {
-      format.article.crossref output.nonnull
-      format.pages.nopp output
+    { format.article.crossref output.nonnull
+      format.pages output
       format.eprint.paren output
     }
   if$
-
   new.sentence
+  % format.doi output
+  % note output
   fin.entry
 }
 
@@ -766,20 +721,23 @@ FUNCTION {book}
     { format.editors "author and editor" output.check }
     { format.authors output.nonnull
       crossref missing$
-	    { "author and editor" editor either.or.check }
-	    'skip$
+	{ "author and editor" editor either.or.check }
+	'skip$
       if$
     }
   if$
   format.btitle "title" output.check
   crossref missing$
     { format.bvolume output
+      new.block
       format.number.series output
       new.sentence
       publisher "publisher" output.check
       address output
     }
-    { format.book.crossref output.nonnull }
+    { new.block
+      format.book.crossref output.nonnull
+    }
   if$
   format.edition output
   format.date "year" output.check
@@ -787,13 +745,13 @@ FUNCTION {book}
     {}
     { format.doi "{" * doi * "}" * "DOI" output.check }
   if$
-  format.eprint.paren output
   fin.entry
 }
 
 FUNCTION {booklet}
 { output.bibitem
-  format.author.or.collaboration
+  format.collaboration output
+  format.authors output
   title empty$
     { "empty title in " cite$ * warning$
       howpublished new.sentence.checka
@@ -855,34 +813,37 @@ FUNCTION {inbook}
 
 FUNCTION {incollection}
 { output.bibitem
-  format.author.or.collaboration
+  format.collaboration output
+  format.authors "author" output.check
   format.title "title" output.check
   blank.sep
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
       format.bvolume output
       format.number.series output
-      format.paddress output
-      format.pages output
-      organization output
-      publisher output
-      format.date.paren "year" output.check
+      format.chapter.pages output
+      new.block
+      publisher "publisher" output.check
+      address output
+      format.edition output
+      format.date "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
-      format.pages output
+      format.chapter.pages output
     }
   if$
+  new.block
   format.eprint output
-  doi empty$
-    { format.url output }
-    { formatfull.doi output }
-  if$
+  new.block
+  % note output
+  formatfull.doi output
   fin.entry
 }
 
 FUNCTION {inproceedings}
 { output.bibitem
-  format.author.or.collaboration
+  format.collaboration output
+  format.authors "author" output.check
   format.title "title" output.check
   blank.sep
   crossref missing$
@@ -899,17 +860,11 @@ FUNCTION {inproceedings}
       format.pages output
     }
   if$
-
-  doi empty$
-    { format.url output }
-    { formatfull.doi output }
-  if$
-
-  doi empty$ url empty$ and
-    { format.eprint output }
-    { blank.sep format.eprint.paren output }
-  if$
-
+  new.block
+  format.eprint output
+  new.block
+  % note output
+  formatfull.doi output
   fin.entry
 }
 
@@ -995,7 +950,8 @@ FUNCTION {phdthesis}
 { output.bibitem
   format.authors "author" output.check
   format.btitle "title" output.check
-  "Ph.D. thesis" format.thesis.type output.nonnull
+  new.block
+  "PhD thesis" format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
@@ -1031,7 +987,8 @@ FUNCTION {proceedings}
 
 FUNCTION {techreport}
 { output.bibitem
-  format.author.or.collaboration
+  format.collaboration output
+  format.authors "author" output.check
   format.title "title" output.check
   blank.sep
   format.tr.number output.nonnull
@@ -1046,7 +1003,8 @@ FUNCTION {techreport}
 
 FUNCTION {unpublished}
 { output.bibitem
-  format.author.or.collaboration
+  format.collaboration output
+  format.authors "author" output.check
   format.title.p "title" output.check
   blank.sep
   % note "note" output.check
@@ -1128,7 +1086,6 @@ FUNCTION {begin.bib}
     'skip$
     { preamble$ write$ newline$ }
   if$
-  newline$
   "\providecommand{\href}[2]{#2}"
   "\begingroup\raggedright\begin{thebibliography}{" * longest.label  *
   "}" * write$ newline$ }

@@ -398,6 +398,8 @@
   }}%
 }
 
+
+
 \renewcommand{\ps@plain}{\let\@mkboth\@gobbletwo%
   \renewcommand{\@oddhead}{}%
   \renewcommand{\@evenhead}{}%
@@ -1405,8 +1407,8 @@ Vol.\ #3, No.\ #4, pp.\ #5
 \newcommand{\proofbox}{\vbox{\hrule height0.6pt\hbox{\vrule height1.3ex width0.6pt\hskip0.8ex\vrule width0.6pt}\hrule height0.6pt}}
 
 % Extra space around theorem-like environments
-%\theorempreskip{1ex plus .25ex minus .1ex}
-%\theorempostskip{1ex plus .25ex minus .1ex}
+\theorempreskip{1ex plus .25ex minus .1ex}
+\theorempostskip{1ex plus .25ex minus .1ex}
 %\theorempreskip{10\p@ \@plus2\p@ \@minus5\p@}
 %\theorempostskip{10\p@ \@plus2\p@ \@minus5\p@}
 

@@ -838,9 +838,7 @@ FUNCTION {format.chapter.pages}
   if$
 }
 
-
-
-     FUNCTION {format.in.ed.booktitle}
+FUNCTION {format.in.ed.booktitle}
 { booktitle empty$
     { "" }
     { editor empty$
@@ -1353,3 +1351,4 @@ EXECUTE {end.bib}
 %% End of customized bst file
 %%
 %% End of file `Science.bst'.
+

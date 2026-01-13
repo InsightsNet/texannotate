@@ -375,16 +375,10 @@
       \@trackname
     }
   \else
-    \if@workshop
-      \newcommand{\@noticestring}{%
-        Submitted to NeurIPS \@neuripsyear\/ Workshop: \@workshoptitle. Do not distribute.%
-      }
-    \else
-      \newcommand{\@noticestring}{%
-        Submitted to \@neuripsordinal\/ Conference on Neural Information
-        Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
-      }
-    \fi
+    \newcommand{\@noticestring}{%
+      Submitted to \@neuripsordinal\/ Conference on Neural Information
+      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+    }
 
     % hide the acknowledgements
     \NewEnviron{hide}{}

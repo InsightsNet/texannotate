@@ -1315,41 +1315,41 @@
   \setcounter{table}{#1}
 \fi
 }
-\renewcommand*\enddocument{%
-   \let\AtEndDocument\@firstofone
-   \@enddocumenthook
-   \clearpage
-   \advance\c@page \m@ne
-   \immediate\write\@auxout{\string\newlabel{LastPage}{{\thepage}{\thepage}{}{}{}}}
-   \@checkend{document}%
-   \clearpage
-   \begingroup
-     \if@filesw
-       \immediate\closeout\@mainaux
-       \let\@setckpt\@gobbletwo
-       \let\@newl@bel\@testdef
-       \@tempswafalse
-       \makeatletter \input\jobname.aux
-     \fi
-     \@dofilelist
-     \ifdim \font@submax >\fontsubfuzz\relax
-       \@font@warning{Size substitutions with differences\MessageBreak
-                  up to \font@submax\space have occurred.\@gobbletwo}%
-     \fi
-     \@defaultsubs
-     \@refundefined
-     \if@filesw
-       \ifx \@multiplelabels \relax
-         \if@tempswa
-           \@latex@warning@no@line{Label(s) may have changed.
-               Rerun to get cross-references right}%
-         \fi
-       \else
-         \@multiplelabels
-       \fi
-     \fi
-   \endgroup
-   \deadcycles\z@\@@end}
+%\renewcommand*\enddocument{%
+%   \let\AtEndDocument\@firstofone
+%   \@enddocumenthook
+%   \clearpage
+%   \advance\c@page \m@ne
+%   \immediate\write\@auxout{\string\newlabel{LastPage}{{\thepage}{\thepage}{}{}{}}}
+%   \@checkend{document}%
+%   \clearpage
+%   \begingroup
+%     \if@filesw
+%       \immediate\closeout\@mainaux
+%       \let\@setckpt\@gobbletwo
+%       \let\@newl@bel\@testdef
+%       \@tempswafalse
+%       \makeatletter \input\jobname.aux
+%     \fi
+%     \@dofilelist
+%     \ifdim \font@submax >\fontsubfuzz\relax
+%       \@font@warning{Size substitutions with differences\MessageBreak
+%                  up to \font@submax\space have occurred.\@gobbletwo}%
+%     \fi
+%     \@defaultsubs
+%     \@refundefined
+%     \if@filesw
+%       \ifx \@multiplelabels \relax
+%         \if@tempswa
+%           \@latex@warning@no@line{Label(s) may have changed.
+%               Rerun to get cross-references right}%
+%         \fi
+%       \else
+%         \@multiplelabels
+%       \fi
+%     \fi
+%   \endgroup
+%   \deadcycles\z@\@@end}
 \newcommand*\aa@defineentry{%
   \newcommand{\entry}[3]{%
     \par\noindent

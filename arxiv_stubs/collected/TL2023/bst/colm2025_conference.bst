@@ -393,17 +393,6 @@ FUNCTION {output.bibitem}
   before.all 'output.state :=
 }
 
-% FUNCTION {output.bibitem}
-% {
-%   newline$
-%   "\bibitem{" write$
-%   cite$ write$
-%   "}" write$
-%   newline$
-%   ""
-%   before.all 'output.state :=
-% }
-
 FUNCTION {n.dashify}
 { 't :=
   ""

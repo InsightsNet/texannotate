@@ -153,7 +153,7 @@
 
 \typeout{Document Class SIGCHI}
 
-%\typeout{Available at https://github.com/sigchi.}
+\typeout{Available at https://github.com/sigchi.}
 
 \typeout{}
 
@@ -961,7 +961,7 @@
 \begin{picture}(20,6) %Space for copyright notice
 \put(0,-0.95){\crnotice{\@toappear}}
 \end{picture}
-\fi
+
 \ifnum\ACM@basesize=10
 \begin{picture}(20,7) %Space for copyright notice
 \put(0,-0.95){\crnotice{\@toappear}}
@@ -1448,10 +1448,10 @@
        {References}
         \@mkboth{{\refname}}{{\refname}}%
     }%
-    \list{[\arabic{enumi}]}{%
-%    \list{\arabic{enumi}.}{% DLC
-        \settowidth\labelwidth{[#1]}%
-%        \settowidth\labelwidth{#1.}% DLC
+%    \list{[\arabic{enumi}]}{%
+    \list{\arabic{enumi}.}{% DLC
+%        \settowidth\labelwidth{[#1]}%
+        \settowidth\labelwidth{#1.}% DLC
         \leftmargin\labelwidth
         \advance\leftmargin\labelsep
         \advance\leftmargin\bibindent
@@ -1553,7 +1553,7 @@
 \baselineskip=11pt
 \let\thepage\relax % For  NO page numbers - Gerry Nov. 30th. 1999
 \def\setpagenumber#1{\global\setcounter{page}{#1}}
-%\pagenumbering{arabic}  % Arabic page numbers but commented out for NO page numbes - Gerry Nov. 30th. 1999
+\pagenumbering{arabic}  % Arabic page numbers but commented out for NO page numbes - Gerry Nov. 30th. 1999
 \twocolumn             % Double column.
 \flushbottom           % Even bottom -- alas, does not balance columns at end of document
 \pagestyle{plain}
@@ -1577,7 +1577,7 @@
 % ISBN
 %
 \def\isbn#1{\global\acmcopyr={#1}}
-\isbn{978-1-4503-2138-9}
+\isbn{}
 
 \RequirePackage{url}
 \urlstyle{rm}
@@ -1601,9 +1601,10 @@
   \if@printcopyright
     \copyright\ \the\copyrtyr\ \@copyrightowner
   \fi
-  \if@acmowned ISBN \else\ifnum\acm@copyrightmode=2 ISBN \else \par\smallskip ACM ISBN \fi\fi
- \the\acmcopyr\ifx\@acmPrice\@empty.\else\dots\@acmPrice\fi\par\smallskip
-{DOI: \small\expandafter\printdoi\expandafter{\@doi}}} 
+  \if@acmowned ISBN \else\ifnum\acm@copyrightmode=2 ISBN \else \par\smallskip \fi\fi
+\fi\par\smallskip
+%{arXiv ID: \small\expandafter\printdoi\expandafter{\@doi}}} 
+{\small\expandafter\printdoi\expandafter{}}} 
 \toappear{\fontsize{7pt}{8pt}\fontfamily{ptm}\selectfont
   \the\boilerplate\par\smallskip
  \the\copyrightetc}

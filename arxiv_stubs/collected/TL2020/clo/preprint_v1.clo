@@ -1,0 +1,147 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PREPRINT NUMBER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifpreprint
+%%%%%%%% PTP propers %%%%%%%%%%
+\preprintnumber{XXXX-XXXX}
+\def\tabularsize{\normalsize}
+\def\captionsize{\small}
+\def\refsize{\normalsize}
+\def\hruleheight{0.5pt} %
+\doublerulesep 2pt
+
+\def\@maketitle{\newpage
+ \null
+% \@ifundefined{@preprtnum}{}{\vskip -10pt%
+%  \hfill \parbox{\@preprtnumwidth}{\@preprtnum}
+%  \vskip 11em}
+% \vskip 2em
+ \begin{center}
+ \def\hang{\par\hangindent=0pt\hangafter=1\noindent}
+ {\Large\bf \hang \@title \par}
+ \@ifundefined{@subtitle}{}%
+ {\par\vskip 6pt {\Large\it\hang \rule[.5ex]{1.7em}{\hruleheight}\ %
+ \@subtitle\ \rule[.5ex]{1.7em}{\hruleheight}} \gdef\@subtitle{}}
+ \vskip 1.8em
+ {\large \hang \@author \par}
+ \@ifundefined{@inst}{}{\vskip .8em%
+ \large\it \hang \@inst \gdef\@inst{}\par}
+ \end{center}
+ \par
+%%% \@ifundefined{@abst}{}{%
+%%% \vfill
+%%%\begin{center}
+%%%{\bf Abstract}\par\vskip .7em
+%%%\parbox[t]{0.94\textwidth}{\setlength{\parindent}{2em}%
+%%% \@abst}
+%%%\end{center}
+%%% \gdef\@abst{}
+%%% \vfill}
+\if@abstract@provided%
+    \vskip.1pt%
+      {\hbox to 468.6pt{\hskip4.5pc\dotfill}}\vskip3pt%
+    {\fontsize{10}{12}\selectfont\noindent\unvbox\@abstractbox\par}%
+    \vspace{1.5\p@}%
+    \else%
+       \vspace{0\p@}%
+     \fi%
+\if@subjectindex@provided%
+\vspace*{-4.5pt}
+      {\fontfamily{\sfdefault}\fontsize{9}{11}\selectfont\leftskip=4.7pc\parindent=0pt
+      {\hbox to 468.6pt{\hskip4.5pc\dotfill}}%
+       \@hangfrom{{\begin{tabular}{@{}p{6pc}@{\hskip0.8pt}}{\subindexname}\end{tabular}}}\@subjectindex\par}\vspace*{-2pt}%
+    \vspace{11\p@}%
+\else%
+       \vspace{0\p@}%
+\fi%
+    \if@classification@provided
+      {\leftskip\z@\parfillskip=\z@ plus1fill%
+        \fontsize{8}{9}\selectfont\@classification\par}%
+    \fi
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\normalsize{\@setsize\normalsize{18pt}\xiipt\@xiipt
+ \abovedisplayskip 12pt plus3pt minus7pt\belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 6.5pt plus3.5pt minus3pt}
+\normalfont \normalsize
+\def\small{\@setsize\small{15pt}\xipt\@xipt
+ \abovedisplayskip 11pt plus3pt minus6pt\belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 6.5pt plus3.5pt minus 3pt
+ \def\@listi{\topsep=0pt
+ \itemsep=0pt \parsep=0pt}}
+\def\footnotesize{\@setsize\footnotesize{13pt}\xpt\@xpt
+ \abovedisplayskip 10pt plus 2pt minus 5pt\belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus 3pt\belowdisplayshortskip 6pt plus3pt minus3pt
+ \def\@listi{\topsep=0pt
+ \parsep=0pt
+ \itemsep=0pt \parsep=0pt}}
+\def\scriptsize{\@setsize\scriptsize{11pt}\viiipt\@viiipt}
+\def\tiny{\@setsize\tiny{8.5pt}\vipt\@vipt}
+\def\large{\@setsize\large{22pt}\xivpt\@xivpt}
+\def\Large{\@setsize\Large{26pt}\xviipt\@xviipt}
+\def\LARGE{\@setsize\LARGE{28pt}\xxpt\@xxpt}
+\def\huge{\@setsize\huge{33pt}\xxvpt\@xxvpt}
+\let\Huge=\huge
+
+\oddsidemargin -1.1pt \evensidemargin -15.3pt
+\marginparwidth 21mm \marginparsep 3mm
+ \topmargin -30pt \headheight 12pt \headsep 25pt \topskip 12pt
+ \footskip 35pt
+
+\textheight 226mm \textwidth 165mm \columnsep .5truecm
+
+\footnotesep 7pt
+
+\parskip 0pt plus 1pt \parindent 1.5em
+\topsep 6pt plus 2pt minus 4pt
+
+\def\section{\@startsection {section}{1}{\z@}
+{3.6ex plus 1ex minus .2ex}{1.7ex plus .2ex}{\large}}
+\def\subsection{\@startsection{subsection}{2}{\z@}
+{2.5ex plus .5ex minus .2ex}{1ex plus .2ex}{\normalsize\it}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}
+{2ex plus .5ex minus .2ex}{1ex plus .2ex}{\normalsize\it}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%\normalfont \normalsize%%%if something get wrong about these dimension settings, set this line available. It may due to `em' specifications.
+\leftmargini 2.5em
+\leftmargin\leftmargini
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep=0pt
+ \parsep=0pt
+ \itemsep \parsep}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%
+\AtEndOfClass{%
+\typeout{-----Setting Option: preprint-----}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%----- PTP preprint options ---
+\def\@secapp{\mathhexbox278}  %
+\def\bgn@center{\begin{center}} \def\end@center{\end{center}}
+    % centering the section title. If you don't like the centering, then put
+    %\def\bgn@center{} \def\end@center{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand\maketitle{\par%
+ \begingroup%
+\setcounter{footnote}{1}
+\renewcommand\thefootnote{\@fnsymbol\c@footnote}
+ \newpage%
+ \global\@topnum\z@ \@maketitle \thispagestyle{headings}\@thanks%
+ \endgroup%
+  \setcounter{footnote}{0}%
+ \newpage%
+ \let\maketitle\relax%
+ \let\@maketitle\relax%
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand\ps@headings{\let\@mkboth\markboth
+\renewcommand\@oddhead{\hbox to \textwidth{\ifpteplogo\includegraphics[scale=0.40]{newlogo.eps}\else\fi\hfill\ttfamily Preprint number: \@preprtnum}}
+\renewcommand\@oddfoot{\hbox to \textwidth{\hfil\rmfamily\thepage\hfil%
+\makebox[0\p@][r]{\@typeset}}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{plain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PREPRINT NUMBER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

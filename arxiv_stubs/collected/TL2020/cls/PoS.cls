@@ -31,7 +31,7 @@
 %  ***:to do  **?:question  ...:to choose  XXX:to delete  ???:unknown %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{PoS} [2015/08/05 v1.2.4 LaTeX document class - P.D.]
+\ProvidesClass{PoS} [2017/01/19 v1.2.6 LaTeX document class - P.D.]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \def\logo{\raisebox{-5mm}{\hbox{\noindent\includegraphics{PoSlogo}}}}
@@ -163,7 +163,7 @@
 \RequirePackage{amssymb}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{times}
-\RequirePackage{mathptmx}
+%\RequirePackage{mathptmx} % !!!DS for better calligraphic N
 \ifpdf
       \RequirePackage[pdftex]{graphicx}
       \DeclareGraphicsExtensions{.pdf,.jpg,.jpeg}
@@ -706,7 +706,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%  URL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newbox\PoSpaper@url
 \global\setbox\PoSpaper@url\hbox{\tiny\ttfamily
-		http://pos.sissa.it/}
+		https://pos.sissa.it/}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% COPYRIGHT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \gdef\PoScopyright@box{\vbox{\setlength{\baselineskip}{7.6pt}%
  \hbox{\tiny $\copyright$ Copyright owned by the author(s) under the terms of the Creative Commons}%
@@ -1370,7 +1370,7 @@
 \fi
 \let\@openbib@code\@empty
 
-\newcommand{\pos}[1]{\href{http://pos.sissa.it/cgi-bin/reader/contribution.cgi?id=#1}{\tt #1}}
+\newcommand{\pos}[1]{\href{https://pos.sissa.it/cgi-bin/reader/contribution.cgi?id=#1}{\tt #1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOOTNOTES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \skip\footins = 1\bigskipamount plus 2pt minus 4pt
 

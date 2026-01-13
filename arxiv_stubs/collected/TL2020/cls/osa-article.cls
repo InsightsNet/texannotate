@@ -7,7 +7,7 @@
 % of LaTeX version 2005/12/01 or later.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{osa-article}[2020/12/22 LaTeX package for OSA Journal Submissions]
+\ProvidesClass{osa-article}[2019/08/01 LaTeX package for OSA Journal Submissions]
 
 %% Disable twocolumn
 \DeclareOption{twocolumn}{%
@@ -136,12 +136,12 @@
 
 \def\@copyrighttext{}
 \newcommand{\setcopyright}[1]{\gdef\@copyrighttext{#1}}
-\setcopyright{Optica Publishing Group}
+\setcopyright{Optical Society of America}
 
 \AtBeginDocument{%
    \ifosa@openaccess
      \appto{\@copyrighttext}{%
-     \space under the terms of the \href{https://www.osapublishing.org/submit/review/copyright_permissions.cfm}{Optica Publishing Group Publishing Agreement}
+     \space under the terms of the \href{https://doi.org/10.1364/OA_License_v1}{OSA Open Access Publishing Agreement}
      }
    \fi%
 }
@@ -182,7 +182,6 @@
 \def\fps@table{h}%\def\fps@table{!htb}
 \renewcommand\refname{References}
 \bibliographystyle{osajnl}
-\AtBeginDocument{\pretocmd{\bibliography}{\typeout{}}{}{}}
 
 % Table style
 \arrayrulecolor{authorcolor} % Set the color of the horizontal rules
@@ -269,13 +268,6 @@
                                      {-2.25ex plus -1ex minus -.2ex}%
                                      {1ex plus .2ex}%
                                      {\small\upshape\sffamily}}
-
-% 2020-12-22: Backmatter sections should use smaller font
-% size, including run-in headings \bmsection.
-\newenvironment{backmatter}{%
-  \small%
-  \newcommand{\bmsection}[1]{\par\medskip\noindent{\bfseries ##1.\enspace}}%
-}{}
 
 \RequirePackage[colorlinks=true,urlcolor=urlblue,linkcolor=black,citecolor=black,breaklinks=true,bookmarks=false]{hyperref}
 

@@ -1,0 +1,166 @@
+% a bunch of macros/shortcuts for writing A(1)-resolutions and the like
+% some of these were adapted from macros of Agnès Beaudry and Jonathan Campbell
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{examplepackage}[2020/07/14 TikZ macros for A(1)-resolutions]
+
+\RequirePackage{tikz}
+\usetikzlibrary{calc}
+
+% these definitions were adapted from Beaudry-Campbell, then modified slightly
+\def\sqtwoL (#1,#2){
+  \draw (#1,#2) .. controls (#1-1,#2+1) .. (#1,#2+2);
+}
+
+\def\sqtwoR (#1,#2){
+  \draw (#1,#2) .. controls (#1+1,#2+1) .. (#1,#2+2);
+}
+
+\def \sqtwoCR (#1,#2){
+   \draw (#1,#2) .. controls (#1+0.75,#2+.5) and (#1+1.125,#2+2) .. (#1+1.5,#2+2);
+}
+
+
+\def \sqtwoCL (#1,#2){
+   \draw (#1,#2) .. controls (#1-0.75,#2+.5) and (#1-1.125,#2+2)  .. (#1-1.5,#2+2);
+}
+
+\def \sqone (#1,#2){
+  \draw (#1, #2) -- (#1, #2+1);
+}
+
+\def \drawbock (#1,#2){
+  \draw[dashed] (#1, #2) -- (#1, #2+1);
+}
+
+% everything below this is original
+% for working over E(1)
+\def \qoneL (#1, #2){
+    \draw[dashed] (#1, #2) .. controls (#1-1.25, #2+1.5) .. (#1, #2+3);
+}
+\def \qoneR (#1, #2){
+    \draw[dashed] (#1, #2) .. controls (#1+1.25, #2+1.5) .. (#1, #2+3);
+}
+
+\def \sqfourR (#1,#2){
+	\draw (#1, #2) -- (#1 + 0.5, #2) -- (#1 + 0.5, #2 + 4) -- (#1, #2 + 4);
+}
+\def \sqfourL (#1,#2){
+	\draw (#1, #2) -- (#1 - 0.5, #2) -- (#1 - 0.5, #2 + 4) -- (#1, #2 + 4);
+}
+
+
+% x, y, text options/color
+%\newcommand{\tikzpt}[4]{
+%    \fill[#4] (#1, #2) circle (3pt) node[anchor=east] {#3}
+%}
+\newcommand{\tikzpt}[4]{
+\if\relax\detokenize{#4}\relax
+	\node[fill, #4, circle, inner sep=1.4pt] at (#1, #2) {};
+\else
+	\node[fill, #4, inner sep=1.4pt] at (#1, #2) {};
+\fi
+	\node[#4] at (#1-0.7, #2) {#3}
+}
+
+\newcommand{\tikzptR}[4]{
+\if\relax\detokenize{#4}\relax
+	\node[fill, #4, circle, inner sep=1.4pt] at (#1, #2) {};
+\else
+	\node[fill, #4, inner sep=1.4pt] at (#1, #2) {};
+\fi
+	\node[#4] at (#1+0.7, #2) {#3}
+}
+
+\newcommand{\tikzptB}[4]{
+\if\relax\detokenize{#4}\relax
+	\node[fill, #4, circle, inner sep=1.4pt] at (#1, #2) {};
+\else
+	\node[fill, #4, inner sep=1.4pt] at (#1, #2) {};
+\fi
+	\node[#4] at (#1, #2-0.4) {#3}
+}
+
+\newcommand{\tikzrect}[4]{
+    \fill[#4] (#1-0.11, #2-0.11) rectangle (#1+0.11, #2+0.11) node[anchor=east] {#3}
+}
+
+% inputs: x, y, name of root
+\newcommand{\Aone}[3]{
+    \tikzpt{#1}{#2}{#3}{};
+    \tikzpt{#1}{#2+1}{}{};
+    \tikzpt{#1}{#2+2}{}{};
+    \tikzpt{#1}{#2+3}{}{};
+    \foreach \y in {3, ..., 6} {
+        \tikzpt{#1+1.5}{#2+\y}{}{};
+    }
+    \sqone(#1, #2);
+    \sqone(#1, #2+2);
+    \sqone(#1+1.5, #2+3);
+    \sqone(#1+1.5, #2+5);
+    \sqtwoL(#1, #2);
+    \sqtwoCR(#1, #2+1);
+    \sqtwoCR(#1, #2+2);
+    \sqtwoCR(#1, #2+3);
+    \sqtwoR(#1+1.5, #2+4);
+}
+
+\newcommand{\SpanishQnMark}[4]{
+    \tikzpt{#1}{#2}{#3}{#4};
+    \tikzpt{#1}{#2+2}{}{#4};
+    \tikzpt{#1}{#2+3}{}{#4};
+    \sqtwoL(#1, #2);
+    \sqone(#1, #2+2);
+}
+
+% upside-down qn mark as an E(1)-module
+\newcommand{\EoneQnMark}[4]{
+    \tikzpt{#1}{#2}{#3}{#4};
+    \tikzpt{#1}{#2+2}{}{#4};
+    \tikzpt{#1}{#2+3}{}{#4};
+    \qoneL(#1, #2);
+    \sqone(#1, #2+2);
+}
+
+\newcommand{\Joker}[4]{
+    \tikzpt{#1}{#2}{#3}{#4};
+    \tikzpt{#1}{#2+1}{}{#4};
+    \tikzpt{#1}{#2+2}{}{#4};
+    \tikzpt{#1}{#2+3}{}{#4};
+    \tikzpt{#1}{#2+4}{}{#4};
+    \sqone(#1, #2);
+    \sqtwoR(#1, #2);
+    \sqtwoL(#1, #2+1);
+    \sqtwoR(#1, #2+2);
+    \sqone(#1, #2+3);
+}
+
+\newcommand{\Rtwo}[5]{
+    \tikzpt{#1}{#2}{#3}{#5};
+    \tikzpt{#1}{#2+1}{#4}{#5};
+    \tikzpt{#1}{#2+2}{}{#5};
+    \foreach \y in {2, ..., 5} {
+        \tikzpt{#1+1.5}{#2+\y}{}{#5};
+    }
+    \sqone(#1, #2+1);
+    \sqone(#1+1.5, #2+2);
+    \sqone(#1+1.5, #2+4);
+    \sqtwoCR(#1, #2);
+    \sqtwoCR(#1, #2+1);
+    \sqtwoCR(#1, #2+2);
+    \sqtwoR(#1+1.5, #2+3);
+}
+
+% inputs: x, y, name of root (likely left blank)
+\newcommand{\Eone}[4]{
+    \tikzpt{#1}{#2}{#3}{#4};
+    \tikzpt{#1}{#2 + 1}{}{#4};
+    \tikzpt{#1}{#2 + 3}{}{#4};
+    \tikzpt{#1}{#2 + 4}{}{#4};
+    \sqone(#1, #2);
+    \sqone(#1, #2 + 3);
+    \qoneL(#1, #2);
+    \qoneR(#1, #2 + 1);
+}
+
+\ProcessOptions\relax

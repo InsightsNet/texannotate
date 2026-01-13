@@ -1,8 +1,10 @@
-% File: icml2022.sty (LaTeX style file for ICML-2022, version of 2022-11-23)
+% File: icml2023.sty (LaTeX style file for ICML-2023, version of 2023-04-25)
 
 % This file contains the LaTeX formatting parameters for a two-column
 % conference proceedings that is 8.5 inches wide by 11 inches high.
+%
 % Modified by Sivan Sabato 2023: changed years and volume number.
+% Modified by Jonathan Scarlett 2023: added page numbers to every page
 %
 % Modified by Csaba Szepesvari 2022: changed years, PMLR ref. Turned off checking marginparwidth
 %     as marginparwidth only controls the space available for margin notes and margin notes
@@ -86,7 +88,7 @@
 % Use fancyhdr package
 \RequirePackage{fancyhdr}
 \RequirePackage{xcolor} % changed from color to xcolor (2021/11/24)
-% \RequirePackage{algorithm}
+\RequirePackage{algorithm}
 \RequirePackage{algorithmic}
 \RequirePackage{natbib}
 \RequirePackage{eso-pic} % used by \AddToShipoutPicture
@@ -103,40 +105,18 @@
   \gdef\nohyperref{1}
 }
 
-\ifdefined\nohyperref\else\ifdefined\hypersetup
-  \definecolor{mydarkblue}{rgb}{0,0.08,0.45}
-  \hypersetup{ %
-    pdftitle={},
-    pdfauthor={},
-    pdfsubject={Proceedings of the International Conference on Machine Learning 2023},
-    pdfkeywords={},
-    pdfborder=0 0 0,
-    pdfpagemode=UseNone,
-    colorlinks=true,
-    linkcolor=mydarkblue,
-    citecolor=mydarkblue,
-    filecolor=mydarkblue,
-    urlcolor=mydarkblue,
-    }
 
-  \ifdefined\isaccepted \else
-    \hypersetup{pdfauthor={Anonymous Submission}}
-  \fi
-\fi\fi
 
 %%%%%%%%%%%%%%%%%%%%
 % This string is printed at the bottom of the page for the
 % final/accepted version of the ``appearing in'' note.  Modify it to
 % change that text.
 %%%%%%%%%%%%%%%%%%%%
-\newcommand{\ICML@appearing}{
-% \textit{
-% Proceedings of the
-% $\mathit{40}^{th}$ International Conference on Machine Learning},
-% Honolulu, Hawaii, USA. PMLR 202, 2023.
-% Copyright 2023 by the author(s).
-    
-}
+%\newcommand{\ICML@appearing}{\textit{Proceedings of the
+\newcommand{\ICML@appearing}{\textit{A version of this work appeared at the
+$\mathit{40}^{th}$ International Conference on Machine Learning},
+Honolulu, Hawaii, USA. PMLR 202, 2023.
+Copyright 2023 by the author(s).}
 
 %%%%%%%%%%%%%%%%%%%%
 % This string is printed at the bottom of the page for the draft/under
@@ -148,6 +128,32 @@ International Conference on Machine Learning (ICML)\@.  Do not distribute.}
 
 % Cause the declared options to actually be parsed and activated
 \ProcessOptions\relax
+
+\ifdefined\isaccepted\else\ifdefined\hypersetup
+    \hypersetup{pdfauthor={Anonymous Authors}}
+ \fi
+\fi
+
+\ifdefined\nohyperref\else\ifdefined\hypersetup
+  \definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+  \hypersetup{ %
+    pdftitle={},
+    pdfsubject={Proceedings of the International Conference on Machine Learning 2023},
+    pdfkeywords={},
+    pdfborder=0 0 0,
+    pdfpagemode=UseNone,
+    colorlinks=true,
+    linkcolor=mydarkblue,
+    citecolor=mydarkblue,
+    filecolor=mydarkblue,
+    urlcolor=mydarkblue,
+    }
+
+ 
+  \fi
+\fi
+
+
 
 % Uncomment the following for debugging.  It will cause LaTeX to dump
 % the version of the ``appearing in'' string that will actually appear
@@ -244,7 +250,7 @@ International Conference on Machine Learning (ICML)\@.  Do not distribute.}
 \ifdim\headheight=10.0pt             \else headheight has been altered.\\ \marginsmessedwithtrue\fi
 \ifdim\textheight=650.43pt           \else textheight has been altered.\\ \marginsmessedwithtrue\fi
 \ifdim\marginparsep=11.0pt           \else marginparsep has been altered.\\ \marginsmessedwithtrue\fi
-\ifdim\footskip=0.0pt                \else footskip has been altered.\\ \marginsmessedwithtrue\fi
+\ifdim\footskip=25.0pt                \else footskip has been altered.\\ \marginsmessedwithtrue\fi
 \ifdim\hoffset=0.0pt                 \else hoffset has been altered.\\ \marginsmessedwithtrue\fi
 \ifdim\paperwidth=614.295pt          \else paperwidth has been altered.\\ \marginsmessedwithtrue\fi
 \ifdim\topmargin=-24.95781pt         \else topmargin has been altered.\\ \marginsmessedwithtrue\fi
@@ -312,7 +318,7 @@ the offending package(s), or layout-changing commands and try again.
 % Note: A few Latex versions need the next line instead of the former.
 % \addtolength{\topmargin}{0.3in}
 % \setlength\footheight{0pt}
-\setlength\footskip{0pt}
+\setlength\footskip{25.0pt}
 %\pagestyle{empty}
 \flushbottom \twocolumn
 \sloppy
@@ -345,6 +351,7 @@ the offending package(s), or layout-changing commands and try again.
 \fancyhf{}
 \fancyhead{}
 \fancyfoot{}
+\cfoot{\thepage}
 % set the width of the head rule to 1 point
 \renewcommand{\headrulewidth}{1pt}
 
@@ -399,7 +406,7 @@ the offending package(s), or layout-changing commands and try again.
     \fi
 
   % no running title on the first page of the paper
-  \thispagestyle{empty}
+  \thispagestyle{plain}
 
 %%%%%%%%%%%%%%%%%%%% Kristian Kersting %%%%%%%%%%%%%%%%%%%%%%%%%
 %end%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -418,9 +425,11 @@ the offending package(s), or layout-changing commands and try again.
     \addstringtofullauthorlist{#1}%
     \gdef\icmlanyauthors{1}%
   \fi%
-  \ifdefined\nohyperref\else\ifdefined\hypersetup%
+%  \ifdefined\nohyperref\else
+  \ifdefined\hypersetup%
     \hypersetup{pdfauthor=\icmlfullauthorlist}%
-  \fi\fi}
+    \fi%\fi
+  }
 
 
 \def\toptitlebar{\hrule height1pt \vskip .25in}
@@ -472,6 +481,9 @@ the offending package(s), or layout-changing commands and try again.
     \fi
 }
 
+
+
+
 \newcommand{\icmlsetsymbol}[2]{%
   \expandafter\gdef\csname @icmlsymbol#1\endcsname{#2}
  }
@@ -517,6 +529,7 @@ the offending package(s), or layout-changing commands and try again.
 \newcommand{\printAffiliationsAndNotice}[1]{%
 \stepcounter{@affiliationcounter}%
 {\let\thefootnote\relax\footnotetext{\hspace*{-\footnotesep}\ifdefined\isaccepted #1\fi%
+* Work performed while at Google DeepMind
 \forloop{@affilnum}{1}{\value{@affilnum} < \value{@affiliationcounter}}{
 \textsuperscript{\arabic{@affilnum}}\ifcsname @affilname\the@affilnum\endcsname%
 \csname @affilname\the@affilnum\endcsname%
@@ -524,11 +537,13 @@ the offending package(s), or layout-changing commands and try again.
 {\bf AUTHORERR: Missing \textbackslash{}icmlaffiliation.}
 \fi
 }.
+\hypertarget{code}{\textsuperscript{3}Code and configuration: \href{https://www.cs.cit.tum.de/daml/digraph-transformer}{\texttt{www.cs.cit.tum.de/daml/digraph-transformer}}}
 \ifdefined\icmlcorrespondingauthor@text
 Correspondence to: \icmlcorrespondingauthor@text.
 \else
 {\bf AUTHORERR: Missing \textbackslash{}icmlcorrespondingauthor.}
 \fi
+
 
 \ \\
 \Notice@String

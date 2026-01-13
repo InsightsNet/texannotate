@@ -725,16 +725,16 @@ FUNCTION {format.vol.num.pages}
     {
       "volume" bibinfo.check
     }
-  if$
-  number "number" bibinfo.check duplicate$ empty$ 'skip$
-    {
-      swap$ duplicate$ empty$
-        { "there's a number but no volume in " cite$ * warning$ }
-        'skip$
-      if$
-      swap$
-      "(" swap$ * ")" *
-    }
+  %% if$
+  %% number "number" bibinfo.check duplicate$ empty$ 'skip$
+    %% {
+      %% swap$ duplicate$ empty$
+        %% { "there's a number but no volume in " cite$ * warning$ }
+        %% 'skip$
+      %% if$
+      %% swap$
+      %% "(" swap$ * ")" *
+    %% }
   if$ *
 }
 
@@ -951,9 +951,9 @@ FUNCTION {article}
     { format.journal.pages }
     { format.journal.eid }
   if$
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -989,9 +989,9 @@ FUNCTION {book}
   if$
   format.date "year" output.check
   format.isbn output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1007,9 +1007,9 @@ FUNCTION {booklet}
   address "address" bibinfo.check output
   format.date output
   format.isbn output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1053,9 +1053,9 @@ FUNCTION {inbook}
   format.date "year" output.check
   date.block
   format.pages "pages" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1084,9 +1084,9 @@ FUNCTION {incollection}
   format.date "year" output.check
   date.block
   format.pages "pages" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1114,9 +1114,9 @@ FUNCTION {inproceedings}
     }
   if$
   format.pages "pages" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1154,9 +1154,9 @@ FUNCTION {manual}
   if$
   format.edition output
   format.date output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1174,9 +1174,9 @@ FUNCTION {mastersthesis}
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
   format.date "year" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1191,9 +1191,9 @@ FUNCTION {misc}
   howpublished new.block.checka
   howpublished "howpublished" bibinfo.check output
   format.date output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1211,9 +1211,9 @@ FUNCTION {phdthesis}
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
   format.date "year" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1256,9 +1256,9 @@ FUNCTION {proceedings}
   if$
       format.date "year" output.check
   format.isbn output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1276,9 +1276,9 @@ FUNCTION {techreport}
   institution "institution" bibinfo.warn output
   address "address" bibinfo.check output
   format.date "year" output.check
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note output
   format.eprint output
@@ -1291,9 +1291,9 @@ FUNCTION {unpublished}
   new.block
   format.title "title" output.check
   format.date output
-  format.doi output
+  %% format.doi output
   new.block
-  format.url output
+  %% format.url output
   new.block
   format.note "note" output.check
   format.eprint output
