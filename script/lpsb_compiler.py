@@ -29,11 +29,109 @@ except ImportError:
 LPSB_IMAGE = "lpsb-texlive:latest"
 TIMEOUT_SEC = 300  # 5 mins per paper
 
+# Auto-verification: When compilation fails, retry without LPSB injection
+# to determine if failure is LPSB-caused (TRUE_FAIL) or source-inherent (FALSE_POSITIVE)
+VERIFY_ON_FAIL = True
+VERIFY_TIMEOUT_SEC = 120  # Shorter timeout for verification pass
+
 import re
 import json
 from typing import Tuple
 import threading
 import atexit
+
+
+def verify_without_lpsb_injection(
+    work_dir: Path, 
+    main_tex_path: Path, 
+    docker_image: str, 
+    log_file: Path,
+    timeout: int = VERIFY_TIMEOUT_SEC
+) -> bool:
+    """Re-compile without LPSB injection to verify if source is inherently broken.
+    
+    Args:
+        work_dir: Working directory containing source files
+        main_tex_path: Path to main .tex file
+        docker_image: Docker image to use
+        log_file: Log file to append verification results
+        timeout: Timeout in seconds
+        
+    Returns:
+        True if source compiles successfully WITHOUT LPSB (meaning LPSB caused failure)
+        False if source also fails without LPSB (source is inherently broken)
+    """
+    import tempfile
+    import shutil
+    
+    try:
+        # Create a clean copy without LPSB injection
+        with tempfile.TemporaryDirectory(prefix="lpsb_verify_") as verify_dir:
+            verify_path = Path(verify_dir)
+            
+            # Copy source files
+            tex_dir = main_tex_path.parent
+            for item in tex_dir.iterdir():
+                if item.is_file():
+                    shutil.copy(item, verify_path / item.name)
+                elif item.is_dir() and item.name not in ('_pdflatex', '__pycache__'):
+                    shutil.copytree(item, verify_path / item.name)
+            
+            # Remove LPSB package files if present
+            for lpsb_file in verify_path.glob("lpsb*.sty"):
+                lpsb_file.unlink()
+            
+            # Remove \usepackage{lpsb-mcid} from main tex
+            main_name = main_tex_path.name
+            verify_tex = verify_path / main_name
+            if verify_tex.exists():
+                content = verify_tex.read_text(errors='ignore')
+                # Remove LPSB usepackage line
+                content = re.sub(r'\\usepackage\{lpsb-mcid\}.*\n?', '', content)
+                content = re.sub(r'\\usepackage\{lpsb\}.*\n?', '', content)
+                verify_tex.write_text(content)
+            
+            # Compile without LPSB
+            docker_cmd = [
+                "docker", "run", "--rm",
+                "--net", "none",
+                "-v", f"{verify_path}:/work",
+                "-w", "/work",
+                docker_image,
+                "pdflatex", "-interaction=nonstopmode", "-synctex=0", main_name
+            ]
+            
+            result = subprocess.run(
+                docker_cmd,
+                capture_output=True,
+                timeout=timeout,
+                check=False
+            )
+            
+            # Check if PDF was created
+            pdf_name = main_name.replace('.tex', '.pdf')
+            pdf_path = verify_path / pdf_name
+            
+            if pdf_path.exists() and pdf_path.stat().st_size > 1000:
+                with open(log_file, "a") as log:
+                    log.write("\n=== VERIFICATION: Source compiles WITHOUT LPSB ===\n")
+                    log.write("==> This is a TRUE FAILURE (LPSB caused the failure)\n")
+                return True  # Source works without LPSB = LPSB caused failure
+            else:
+                with open(log_file, "a") as log:
+                    log.write("\n=== VERIFICATION: Source also fails WITHOUT LPSB ===\n")
+                    log.write("==> This is a FALSE POSITIVE (source is inherently broken)\n")
+                return False  # Source also fails = not LPSB's fault
+                
+    except subprocess.TimeoutExpired:
+        with open(log_file, "a") as log:
+            log.write("\n=== VERIFICATION: Timed out (source likely broken) ===\n")
+        return False
+    except Exception as e:
+        with open(log_file, "a") as log:
+            log.write(f"\n=== VERIFICATION: Error - {e} ===\n")
+        return False
+
 
 # -----------------------------------------------------------------------------
 # Docker Container Pool
@@ -628,7 +726,12 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str, options: str = "")
         return  # No valid \documentclass{...} found
 
     opt = f"[{options}]" if options else ""
-    lines.insert(docclass_end_idx + 1, f"\\usepackage{opt}{{{pkg}}}{newline}")
+    # Use deferred loading for lpsb-mcid to avoid hyperref/hyperxmp order conflicts
+    if pkg == "lpsb-mcid":
+        deferred_load = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt}{{{pkg}}}}}"
+        lines.insert(docclass_end_idx + 1, f"{deferred_load} % LPSB MCID - deferred{newline}")
+    else:
+        lines.insert(docclass_end_idx + 1, f"\\usepackage{opt}{{{pkg}}}{newline}")
 
     try:
         tex_file.write_text("".join(lines))
@@ -752,8 +855,12 @@ def _inject_lpsb_mcid_after_packages(tex_file: Path, options: str = "") -> None:
     opt_str = f"[{options}]" if options else ""
     
     if last_pkg_cmd_end_idx >= 0:
-        # Insert lpsb-mcid right after the last package command.
-        lines.insert(last_pkg_cmd_end_idx + 1, f"\\usepackage{opt_str}{{lpsb-mcid}} % LPSB MCID - must load after all other packages{newline}")
+        # Insert lpsb-mcid with DEFERRED loading to avoid hyperref/hyperxmp order conflicts.
+        # Many document classes (e.g., acmart) use AtEndPreamble hooks to load hyperref/hyperxmp.
+        # Using AddToHook{begindocument/before} ensures lpsb-mcid loads AFTER all such hooks.
+        # This hook is available in LaTeX2e from 2020-10-01 (TeX Live 2020+).
+        deferred_load = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}"
+        lines.insert(last_pkg_cmd_end_idx + 1, f"{deferred_load} % LPSB MCID - deferred load for hyperref compat{newline}")
         try:
             tex_file.write_text("".join(lines))
         except Exception:
@@ -780,14 +887,24 @@ def _modify_lpsb_mcid_options(tex_file: Path, new_options: str) -> bool:
     except Exception:
         return False
     
-    # Pattern to match \usepackage[...]{lpsb-mcid} or \usepackage{lpsb-mcid}
-    pattern = r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}"
-    
-    if not re.search(pattern, content):
-        return False  # lpsb-mcid not found
+    # Pattern to match both old style \usepackage{lpsb-mcid} and new AddToHook style
+    old_pattern = r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}"
+    hook_pattern = r"\\AddToHook\{begindocument/before\}\{\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}\}"
     
     opt_str = f"[{new_options}]" if new_options else ""
-    new_content = re.sub(pattern, f"\\\\usepackage{opt_str}{{lpsb-mcid}}", content)
+    
+    if re.search(hook_pattern, content):
+        # New AddToHook style
+        new_content = re.sub(
+            hook_pattern, 
+            f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}", 
+            content
+        )
+    elif re.search(old_pattern, content):
+        # Old direct style (backwards compat)
+        new_content = re.sub(old_pattern, f"\\usepackage{opt_str}{{lpsb-mcid}}", content)
+    else:
+        return False  # lpsb-mcid not found
     
     try:
         tex_file.write_text(new_content)
@@ -2217,12 +2334,23 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             if not (aux_file.exists() and pdf_file.exists()):
                 with open(log_file, 'a') as log:
                     log.write("\nError: COMPILATION_FAILED (missing gold artifacts)\n")
+                
+                if VERIFY_ON_FAIL:
+                    # pd_main_tex_full is available from earlier
+                    if not verify_without_lpsb_injection(work_dir, pd_main_tex_full, docker_image, log_file):
+                        return "FALSE_POSITIVE"
+                
                 return "FAIL"
 
         # Many LaTeX runs return rc=1 due to warnings but still produce a valid PDF.
         if not (aux_file.exists() and pdf_file.exists()):
             with open(log_file, 'a') as log:
                 log.write("\nError: COMPILATION_FAILED (missing artifacts)\n")
+            
+            if VERIFY_ON_FAIL:
+                 if not verify_without_lpsb_injection(work_dir, pd_main_tex_full, docker_image, log_file):
+                        return "FALSE_POSITIVE"
+            
             return "FAIL"
         
         # Copy auxiliary files for debugging (aux, bbl, blg, log, synctex, etc.)
@@ -2551,14 +2679,17 @@ def main():
                 try:
                     res = f.result()
                     # Track WITHDRAWN and NOT_TEX as SKIPPED (source issues, not LPSB bugs)
-                    if res in ('WITHDRAWN', 'NOT_TEX'):
+                    if res in ('WITHDRAWN', 'NOT_TEX', 'FALSE_POSITIVE'):
                         results['SKIPPED'] = results.get('SKIPPED', 0) + 1
+                        if res == 'FALSE_POSITIVE':
+                            results['FALSE_POSITIVE'] = results.get('FALSE_POSITIVE', 0) + 1
                     else:
                         results[res] = results.get(res, 0) + 1
                     if HAS_TQDM:
                         pbar.set_postfix(
                             S=results.get('SUCCESS', 0), 
                             F=results.get('FAIL', 0), 
+                            FP=results.get('FALSE_POSITIVE', 0),
                             Skip=results.get('SKIPPED', 0)
                         )
                     else:

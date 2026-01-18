@@ -90,3 +90,5 @@ results*/
 output/
 debug_*/
 tools/
+arxiv_stubs/
+latexml_cache/
