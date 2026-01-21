@@ -1107,18 +1107,16 @@
 
 \if@BLINDREV
 \RRHFirstLine{\bf Authors' names blinded for peer review}% default
-\RRHSecondLine{\fs.7.9.\rm Article submitted to {\it\theJOURNAL}; manuscript no. {\theMANUSCRIPTNO}
-}% default
+\RRHSecondLine{\fs.7.9.\rm {\it\theJOURNAL}  {\theMANUSCRIPTNO}}% default
 \LRHFirstLine{\bf Authors' names blinded for peer review}% default
-\LRHSecondLine{\fs.7.9.\rm Article submitted to {\it\theJOURNAL}; manuscript no. {\theMANUSCRIPTNO}
-}% default
+\LRHSecondLine{\fs.7.9.\rm  {\it\theJOURNAL} {\theMANUSCRIPTNO}}% default
 \fi
 
 \if@NONBLINDREV
 \RRHFirstLine{\bf\theRUNAUTHOR:\enskip {\it\theRUNTITLE}}% default
-\RRHSecondLine{ }% default
+\RRHSecondLine{\fs.7.9.\rm  {\it\theJOURNAL} {\theMANUSCRIPTNO}}% default
 \LRHFirstLine{\bf\theRUNAUTHOR:\enskip {\it\theRUNTITLE}}% default
-\LRHSecondLine{}% default
+\LRHSecondLine{\fs.7.9.\rm   {\it\theJOURNAL}  {\theMANUSCRIPTNO}}% default
 \fi
 
 \let\savesetoddRF=\setoddRF
@@ -1877,19 +1875,9 @@
   \begin{Center}
   \parbox[t][60pt][t]{\textwidth}{%
   \theARTICLETOPLEFT\hfill\theARTICLETOPRIGHT}\\[10pt]
-  \parbox{36pc}{\fs.10.11.\bf\textcolor{red}{
-      %Authors are encouraged to submit new papers to INFORMS journals by means of
-%a style file template, which includes the journal title. However, use of a
-%template does not certify that the paper has been accepted for publication
-%in the named journal. INFORMS journal templates are for the exclusive
-%purpose of submitting to an INFORMS journal and should not be used to
-%distribute the papers in print or online or to submit the papers to another
-%publication.
-  }}
+  \parbox{36pc}{\fs.10.11.\bf\textcolor{red}{}}
 \vspace*{12pt}
   \end{Center}}
-  
-
 
 % default values
 \def\HOOKtop{\vspace*{0pt}}%
@@ -1898,7 +1886,7 @@
 \def\HOOKc{\vspace*{0pt}}%
 
 \def\MANUSCRIPTNO#1{\gdef\theMANUSCRIPTNO{#1}}%
-  \def\theMANUSCRIPTNO{MKSC-19-0348}%{M anuscript number}%
+  \def\theMANUSCRIPTNO{(Please, provide the manuscript number!)}%{Manuscript number}%
 
 %
 \long\def\theARTICLETOPLEFT{{\tabcolsep0pt\fs.8.10.%
@@ -1918,9 +1906,8 @@
 \if@BLINDREV
 %
 \long\def\theARTICLETOPLEFT{{\tabcolsep0pt\fs.12.14.\bf
-\begin{tabular}{l}\HD{25}{0}Submitted to {\bi\theJOURNAL}\\
-manuscript {\theMANUSCRIPTNO}
-\end{tabular}}}%
+\begin{tabular}{l}\HD{25}{0} {\bi\theJOURNAL}\\
+  {\theMANUSCRIPTNO}\end{tabular}}}%
 \def\theARTICLETOPRIGHT{}%
 %
 %\def\theHISTORY{}%
@@ -1928,7 +1915,9 @@ manuscript {\theMANUSCRIPTNO}
 
 \if@NONBLINDREV
 %
-\long\def\theARTICLETOPLEFT{\small Working paper. January 2020.}%
+\long\def\theARTICLETOPLEFT{{\tabcolsep0pt\fs.12.14.\bf
+\begin{tabular}{l}\HD{25}{0} {\bi\theJOURNAL}\\
+  {\theMANUSCRIPTNO}\end{tabular}}}%
 \def\theARTICLETOPRIGHT{}%
 %
 \fi
@@ -2604,9 +2593,9 @@ manuscript {\theMANUSCRIPTNO}
 \fi
 
 \if@OPRE
-\JOURNAL{Operations Research}%
-\ISSN{0030-364X}%
-\EISSN{1526-5463}%
+\JOURNAL{ }%
+\ISSN{ }%
+\EISSN{ }%
 \fi
 
 \if@ORSC

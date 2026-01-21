@@ -16,25 +16,44 @@
 
 ## Quick Start
 
-### 1. Build Docker Image
+### 1. Installation
 
 ```bash
+# Clone repository
+git clone https://github.com/your-org/LPSB.git && cd LPSB
+
+# Create virtual environment
+python3 -m venv .venv && source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Build Docker image
 docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 ```
 
-### 2. Compile a Single Paper (Recommended)
+### 2. Compile a Single Paper
 
 ```bash
 # Two-pass compilation with StructTree injection
 LPSB_TWO_PASS=1 python3 script/lpsb_compiler.py --single <source_dir> --output <output_dir>
 ```
 
-Output: `<paper>.pdf` (with StructTree), `<paper>.lpsb.json`, `<paper>.mcid.json`
+**Output files**:
+- `<paper>_tagged.pdf` — PDF with StructTree (PDF/UA compliant)
+- `<paper>.mcid.json` — MCID structure data
+- `<paper>.lpsb.json` — Structure events
 
 ### 3. Batch Processing (arXiv)
 
 ```bash
 LPSB_TWO_PASS=1 python3 script/lpsb_compiler.py --batch data/download --output results --workers 8
+```
+
+### 4. Visualization
+
+```bash
+python3 script/visualization/visualize_mcid.py output.pdf -o visualized.pdf
 ```
 
 ---
@@ -107,13 +126,13 @@ LPSB generates PDF/UA-compatible tagged content using MCID (Marked Content IDent
 - **Links**: `Link` (URLs and hyperlinks)
 - **Code**: `Code` (verbatim, listings, fancyvrb)
 
-### Cross-Page Handling
+### Cross-Page & Cross-Column Handling
 
-LPSB automatically handles elements that span page boundaries:
-- Generates continuation MCIDs at page breaks
-- Two-pass compilation for accurate float handling
-- Post-processing fixes orphaned text after floats
-- Maintains correct reading order
+LPSB automatically handles elements that span page/column boundaries:
+- **Phase 0**: Removes orphan EMC markers (structural cleanup)
+- **Phase 1**: Injects missing BDC markers for cross-page continuations
+- **Phase 2**: Splits cross-column tags in two-column layouts
+- **SyncTeX integration**: Uses `.synctex.gz` for accurate discontinuity detection
 
 ### StructTree Injection
 
@@ -196,7 +215,7 @@ python3 script/visualization/visualize_mcid.py output.pdf -o visualized.pdf
 Features:
 - **Line-based boxes**: Text elements (P, H1-H4) display per-line boxes to avoid cross-column artifacts
 - **Float bodies merged**: Figure, Table, Caption show as single blocks
-- **Reading order**: Boxes numbered by MCID order (LaTeX's actual writing/reading order)
+- **Reading order**: Labels follow logical element order when an adjacent `*.aux` is available (and `*.order.json` when present)
 
 ---
 

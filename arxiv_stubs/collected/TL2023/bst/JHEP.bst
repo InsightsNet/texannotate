@@ -54,6 +54,7 @@ ENTRY
     report
     collaboration
     url
+    reportNumber
   }
   {}
   { label }
@@ -249,7 +250,7 @@ FUNCTION {format.url}
 
 %% from http://mirrors.ctan.org/biblio/bibtex/contrib/doc/btxFAQ.pdf Q.35
 %% from Philip G. Ratcliffe on the newsgroup comp.text.tex on June 28, 2002
-%% in the thread â€œBiBTeX, bst hackers, format.name$, please helpâ€.
+%% in the thread “BiBTeX, bst hackers, format.name$, please help”.
 FUNCTION {remove.spaces}
 { 'z :=
   ""
@@ -636,6 +637,27 @@ FUNCTION {empty.misc.check}
   if$
 }
 
+FUNCTION {tr.number.or.reportNumber}
+%% pile on the stack: the "number" or, if it's empty, the "reportNumber"
+%% or nothing if both are empty
+{
+  number empty$
+  {
+    reportNumber empty$
+    { "" } { reportNumber }
+    if$
+  }
+  { number }
+  if$
+}
+
+FUNCTION {tr.number.or.reportNumber.or.url}
+{
+  tr.number.or.reportNumber empty$
+  {url}{tr.number.or.reportNumber}
+  if$
+}
+
 FUNCTION {format.tr.number}
 {
   type empty$
@@ -644,8 +666,8 @@ FUNCTION {format.tr.number}
   if$
   output blank.sep
   url empty$
-    { number }
-    { "\href{" url * "}{" * number * "}" * }
+    { tr.number.or.reportNumber }
+    { "\href{" url * "}{" * tr.number.or.reportNumber.or.url * "}" * }
   if$
 }
 
@@ -748,6 +770,31 @@ FUNCTION {format.author.or.collaboration}
   if$
 }
 
+%% Output the authors and/or the editors
+%% at least one (author or editor) must be present
+FUNCTION {format.author.or.editor}
+{
+  author empty$
+    { format.editors "author and editor" output.check }
+    { format.authors output.nonnull
+      crossref missing$
+	    { "author and editor" editor either.or.check }
+	    'skip$
+      if$
+    }
+  if$
+}
+
+%% Output either the collaboration name and no authors/editors
+%% or the authors/editors (if there is no collaboration)
+FUNCTION {format.author.editor.or.collaboration}
+{
+  collaboration empty$
+    { format.author.or.editor }
+    { format.collaboration output }
+  if$
+}
+
 FUNCTION {article}
 {
   output.bibitem
@@ -804,21 +851,13 @@ FUNCTION {article}
   if$
 
   new.sentence
+  note output
   fin.entry
 }
 
 FUNCTION {book}
 { output.bibitem
-  format.collaboration output
-  author empty$
-    { format.editors "author and editor" output.check }
-    { format.authors output.nonnull
-      crossref missing$
-	    { "author and editor" editor either.or.check }
-	    'skip$
-      if$
-    }
-  if$
+  format.author.editor.or.collaboration
   format.btitle "title" output.check
   crossref missing$
     { format.bvolume output
@@ -1001,7 +1040,7 @@ FUNCTION {misc}
   howpublished output
   format.date output
   new.block
-  % note output
+  note output
   doi output
   fin.entry
   empty.misc.check

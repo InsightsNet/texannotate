@@ -1,304 +1,46 @@
-\usepackage{tikz}
-\usetikzlibrary{calc,decorations.pathmorphing,shapes}
+% Some macros for signal flow diagrams.
+%
+% Author: Dr. Karlheinz Ochs, Ruhr-University of Bochum, Germany
+% Version: 0.1
+% Date: 2007/01/05
 
-\newcounter{sarrow}
-\newcommand\xrsquigarrow[1]{%
-\stepcounter{sarrow}%
-\mathrel{\begin{tikzpicture}[baseline= {( $ (current bounding box.south) + (0,-0.5ex) $ )}]
-\node[inner sep=.5ex] (\thesarrow) {$\scriptstyle #1$};
-\path[draw,<-,decorate,
-  decoration={zigzag,amplitude=0.7pt,segment length=1.2mm,pre=lineto,pre length=4pt}]
-    (\thesarrow.south east) -- (\thesarrow.south west);
-\end{tikzpicture}}%
-}
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{tikz}
+\RequirePackage{signalflowdiagram}
+\ProvidesPackage{macros}
+              [2007/01/05 v0.1 Some user-defined macros for signal flow diagrams]
 
-
-\newcommand{\eref}[1]{\ensuremath{\mathrm{Eq.}~(\ref{#1})}}
-\newcommand{\Caption}[1]{\singlespace\small\caption{#1}}
-
-
-
-\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
-\newcommand{\inner}[1]{\langle#1\rangle}
-\newfloatcommand{capbtabbox}{table}[][\FBwidth]
-\newcommand{\pa}[1]{\left(#1\right)}
-\newcommand{\pb}[1]{\left\{#1\right\}}
-\newcommand{\pc}[1]{\left[#1\right]}
-\newcommand{\ty}[1]{\texttt{#1}}
-\newcommand{\borel}[1]{\mathscr{B}\pa{#1}}
-\newcommand{\scr}{\EuScript}
-\newcommand{\scrb}{\mathscr}
-
-\newcommand{\bea}{\begin{eqnarray}}
-\newcommand{\baa}{\begin{alignat}}
-\newcommand{\eea}{\end{eqnarray}}
-\newcommand{\eaa}{\end{alignat}}
-\newcommand{\eq}[1]{\begin{align}#1\end{align}}
-\newcommand{\nn}{\nonumber}
-\newcommand{\tha}{\theta}
-\newcommand{\po}{\noindent}
-\renewcommand{\arraystretch}{1.5}
-% \renewcommand{\thesubsection}{\thesection.\alph{subsection}}
-
-\DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
-\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
-\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
-\def\defeq{\mathrel{\ensurestackMath{\stackon[1pt]{=}{\boldsymbol{\cdot}}}}}
-\def\iid{\mathrel{\ensurestackMath{\stackon[1pt]{\sim}{\scriptscriptstyle{iid} }}}}
-\def\distas{\mathrel{\ensurestackMath{\stackon[1pt]{=}{\scriptscriptstyle \mathcal{D}}}}}
-\def\Tau{{\scr{T}}}
-\DeclareMathOperator*{\cart}{\times}
+%
+% Creates the signal flow diagram of a minimum shift keying coder.
+%
+% #1 = global label
+% #2 = parameter for placement
+\newcommand{\mskCoder}[3]{%
+   % building blocks
+   \node[modulator]  (#1-in)  [#2] {};
+   \node[multiplier] (mul)    [below from=#1-in] {$\mathrm{j}$};
+   \node[delay]      (del)    [right from=#1-in] {$T$};
+   \node[node]       (#1-out) [right from=del]   {};
+   % signal paths
+   \path[c>] (#1-in)  -- (del);
+   \path[c>] (del)    -- (#1-out);
+   \path[c>] (#1-out) |- (mul);
+   \path[c>] (mul)    -- (#1-in);
+}%
 
 
-\DeclareMathOperator{\sech}{sech}
-\DeclareMathOperator{\ann}{ann}
-\DeclareMathOperator{\spec}{spec}
-\DeclareMathOperator{\lcm}{lcm}
-\DeclareMathOperator{\conv}{conv}
-\DeclareMathOperator{\spn}{span}
-\DeclareMathOperator{\Res}{Res}
-\DeclareMathOperator{\tr}{tr}
-\DeclareMathOperator{\tor}{tor}
-\DeclareMathOperator{\img}{im}
-\DeclareMathOperator{\codim}{codim}
-\DeclareMathOperator{\rk}{rk}
-\DeclareMathOperator{\nul}{null}
-\DeclareMathOperator{\Var}{Var}
-\DeclareMathOperator{\Cov}{Cov}
-\DeclareMathOperator{\erf}{erf}
-\DeclareMathOperator{\Aut}{Aut}
-\DeclareMathOperator{\Int}{Int}
-\DeclareMathOperator{\Cl}{Cl}
-\DeclareMathOperator{\cl}{cl}
-\DeclareMathOperator{\Hom}{Hom}
-\DeclareMathOperator{\End}{End}
-\DeclareMathOperator{\Ann}{Ann}
-\DeclareMathOperator{\Inn}{Inn}
-\DeclareMathOperator{\Out}{Out}
-\DeclareMathOperator{\Gal}{Gal}
-\DeclareMathOperator{\Arg}{Arg}
-\DeclareMathOperator{\cis}{cis}
-\DeclareMathOperator{\Log}{Log}
-\DeclareMathOperator{\hdim}{hdim}
-\DeclareMathOperator{\Lip}{Lip}
-\DeclareMathOperator{\Rp}{Re}
-\DeclareMathOperator{\Ip}{Im}
-\DeclareMathOperator{\charr}{Char}
-
-
-%\newcommand{\lc}[1]{\,\ul{\text{#1}}\,}
-\newcommand{\mcol}[3]{\multicolumn{#1}{#2}{#3}}
-\newcommand{\ip}[2]{\left \la #1, #2\right\ra}
-\newcommand{\incr}{\uparrow}
-\newcommand{\decr}{\downarrow}
-\newcommand{\biglub}{\bigvee}
-\newcommand{\bigglb}{\bigwedge}
-\newcommand{\lub}{\vee}
-\newcommand{\glb}{\wedge}
-\newcommand{\hole}{{\diamond}}
-%\newcommand{\st}{\ | \ }
-\newcommand{\induc}{\uparrow}
-\newcommand{\restr}{\downarrow}
-\newcommand{\mb}{\mathbb}
-\newcommand{\mc}{\mathcal}
-\newcommand{\ms}{\mathscr}
-\newcommand{\qedsym}{\renewcommand{\qedsymbol}}
-\newcommand{\proves}{\vdash}
-
-\newcommand{\arr}{\begin{array}}
-\newcommand{\xarr}{\end{array}}
-\newcommand{\tabl}{\begin{tabular}}
-\newcommand{\xtabl}{\end{tabular}}
-
-\newcommand{\liff}{\leftrightarrow}
-
-\newcommand{\ra}{\rangle}
-\newcommand{\la}{\langle}
-\newcommand{\norm}[1]{\left\|#1\right\|}
-\newcommand{\abs}[1]{\left|#1\right|}
-
-\newcommand{\Leg}[2]{\left(\f {#1}{#2} \right)}
-\newcommand{\Fou}{\mathscr F}
-\newcommand{\Leb}{\mathscr L}
-\newcommand{\true}{{\tt true}}
-\newcommand{\false}{{\tt false}}
-\newcommand{\pic}{\includegraphics}
-\newcommand{\str}{^\star}
-\newcommand{\sstr}{^{\star\star}}
-\newcommand{\rt}[2]{\sqrt[#1]{#2}}
-\newcommand{\cm}[1]{\equiv_{#1}}
-\newcommand{\bigo}[1]{\mathcal O \left( #1 \right)}
-%\newcommand{\lint}{\ul {\int}}
-\newcommand{\uint}{\ol {\int}}
-\newcommand{\p}{\partial}
-\newcommand{\f}{\frac}
-\newcommand{\cf}{\cfrac}
-\newcommand{\eqns}{\begin{eqnarray*}}
-\newcommand{\xeqns}{\end{eqnarray*}}
-\newcommand{\enum}{\begin{enumerate}}
-\newcommand{\xenum}{\end{enumerate}}
-\newcommand{\itmz}{\begin{itemize}}
-\newcommand{\xitmz}{\end{itemize}}
-\newcommand{\case}{\begin{cases}}
-\newcommand{\xcase}{\end{cases}}
-\newcommand{\e}{&=&}
-\newcommand{\inv}{^{-1}}
-\newcommand{\forward}{\item[$\Rightarrow$]}
-\newcommand{\backward}{\item[$\Leftarrow$]}
-\newcommand{\ns}{\lhd}
-\newcommand{\fg}{\pi_1}
-\newcommand{\bmat}{\begin{bmatrix}}
-\newcommand{\xbmat}{\end{bmatrix}}
-\newcommand{\pmat}{\begin{pmatrix}}
-\newcommand{\xpmat}{\end{pmatrix}}
-
-
-\newcommand{\phiinv}{\Phi^{-1}}
-\newcommand{\Fiinv}{F^{-1}}
-\newcommand{\giinv}{g^{-1}}
-
-
-\newcommand{\fhat}{\hat{f}}
-\newcommand{\ghat}{\hat{g}}
-\newcommand{\ftheta}{f_\theta}
-\newcommand{\fthetav}{f_{\thetav}}
-\newcommand{\gtheta}{g_\theta}
-\newcommand{\gthetav}{g_{\thetav}}
-\newcommand{\ztheta}{Z_\theta}
-\newcommand{\xtheta}{\Xv_\theta}
-\newcommand{\ytheta}{\Yv_\theta}
-
-\newcommand{\absdet}[1]{\abs{\det\pa{#1}}}
-\newcommand{\jac}[1]{\Jv_{#1}}
-\newcommand{\absdetjx}[1]{\abs{\det\pa{\Jv_{#1}}}}
-\newcommand{\absdetj}[1]{\norm{\Jv_{#1}}}
-\newcommand{\sint}{sin(\theta)}
-\newcommand{\cost}{cos(\theta)}
-\newcommand{\sor}[1]{S\mathcal{O}(#1)}
-\newcommand{\ort}[1]{\mathcal{O}(#1)}
-
-
-
-\newcommand{\pr}{{\mathbb P}}
-\newcommand{\qr}{{\mathbb Q}}
-\newcommand{\NP}{{\mathbb {NP}}}
-\newcommand{\I}{{\mathbb I}}
-\newcommand{\Pspc}{{\mathbb P}}
-\newcommand{\Rie}{\mathscr{R}}
-\newcommand{\del}{\nabla}
-\newcommand{\jm}{{\jmath}}
-\newcommand{\im}{\imath}
-\newcommand{\flr}[1]{\left\lfloor #1 \right\rfloor}
-\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
-\newcommand{\disp}{\displaystyle}
-\newcommand{\lla}{\left \la \! \left \la}
-\newcommand{\rra}{\right \ra \! \right \ra}
-\newcommand{\mchs}[2]{\left( \! \binom{#1}{#2} \! \right)}
-\newcommand{\qbinom}[2]{\left[ \! \arr {c} {#1}\\{#2} \xarr \! \right]}
-\newcommand{\risfac}[2]{#1^{(#2)}}
-\newcommand{\falfac}[2]{#1_{(#2)}}
-%\newcommand{\ul}[1]{\underline{#1}}
-\newcommand{\ol}[1]{\overline{#1}}
-\newcommand{\limto}[2]{\lim_{#1 \to #2}}
-\newcommand{\rad}{\text{Rad}}
-\newcommand{\intgl}{\text{Int}}
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Letter modifications:
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\av}{\ensuremath{\boldsymbol{a}}}
-\newcommand{\bv}{\ensuremath{\boldsymbol{b}}}
-\newcommand{\cv}{\ensuremath{\boldsymbol{c}}}
-\newcommand{\dv}{\ensuremath{\boldsymbol{d}}}
-\newcommand{\ev}{\ensuremath{\boldsymbol{e}}}
-\newcommand{\fv}{\ensuremath{\boldsymbol{f}}}
-\newcommand{\gv}{\ensuremath{\boldsymbol{g}}}
-\newcommand{\hv}{\ensuremath{\boldsymbol{h}}}
-\newcommand{\nv}{\ensuremath{\boldsymbol{n}}}
-
-\newcommand{\sv}{\ensuremath{\boldsymbol{s}}}
-\newcommand{\tv}{\ensuremath{\boldsymbol{t}}}
-\newcommand{\uv}{\ensuremath{\boldsymbol{u}}}
-\newcommand{\vv}{\ensuremath{\boldsymbol{v}}}
-\newcommand{\wv}{\ensuremath{\boldsymbol{w}}}
-
-
-\newcommand{\zerov}{\mathbf{0}}
-\newcommand{\onev}{\mathbf{1}}
-\newcommand{\phiv}{\boldsymbol{{\phi}}}
-\newcommand{\cc}{\ensuremath{\check{C}}}
-
-\newcommand{\xv}{\ensuremath{\boldsymbol{x}}}
-\newcommand{\Xv}{\ensuremath{\boldsymbol{X}}}
-\newcommand{\yv}{\ensuremath{\boldsymbol{y}}}
-\newcommand{\Yv}{\ensuremath{\boldsymbol{Y}}}
-\newcommand{\zv}{\ensuremath{\boldsymbol{z}}}
-\newcommand{\Zv}{\ensuremath{\boldsymbol{Z}}}
-\newcommand{\Iv}{\ensuremath{\boldsymbol{I}}}
-\newcommand{\Jv}{\ensuremath{\boldsymbol{J}}}
-\newcommand{\Cv}{\ensuremath{\boldsymbol{C}}}
-\newcommand{\Ev}{\ensuremath{\boldsymbol{E}}}
-\newcommand{\Fv}{\ensuremath{\boldsymbol{F}}}
-\newcommand{\Gv}{\ensuremath{\boldsymbol{G}}}
-\newcommand{\Hv}{\ensuremath{\boldsymbol{H}}}
-\newcommand{\alphav}{\ensuremath{\boldsymbol{\alpha}}}
-\newcommand{\epsilonv}{\ensuremath{\boldsymbol{\epsilon}}}
-\newcommand{\betav}{\ensuremath{\boldsymbol{\beta}}}
-\newcommand{\deltav}{\ensuremath{\boldsymbol{\delta}}}
-\newcommand{\gammav}{\ensuremath{\boldsymbol{\gamma}}}
-\newcommand{\etav}{\ensuremath{\boldsymbol{\eta}}}
-\newcommand{\piv}{\ensuremath{\boldsymbol{\pi}}}
-\newcommand{\thetav}{\ensuremath{\boldsymbol{\theta}}}
-\newcommand{\tauv}{\ensuremath{\boldsymbol{\tau}}}
-\newcommand{\muv}{\ensuremath{\boldsymbol{\mu}}}
-\DeclareMathSymbol{\punctcomma}{\mathpunct}{letters}{"3B}
-
-\newcommand{\zerovect}{\ensuremath{{\boldsymbol{0}}}}
-\newcommand{\onesvect}{\ensuremath{{\boldsymbol{1}}}}
-
-
-
-\newcommand{\A}{{\mathbb A}}
-\newcommand{\C}{{\mathbb C}}
-\newcommand{\E}{{\mathbb E}}
-
-\newcommand{\F}{{\scr{F}}}
-\newcommand{\N}{{\mathbb N}}
-\newcommand{\R}{{\mathbb R}}
-\newcommand{\Q}{{\mathbb Q}}
-\newcommand{\Z}{{\mathbb Z}}
-
-%%%%
-
-\newcommand{\aff}{\ensuremath{\mathcal{A}}}
-\newcommand{\bff}{\ensuremath{\mathcal{B}}}
-\newcommand{\fff}{\ensuremath{\mathcal{F}}}
-\newcommand{\lff}{\ensuremath{\mathcal{L}}}
-\newcommand{\xff}{\ensuremath{\mathcal{X}}}
-\newcommand{\yff}{\ensuremath{\mathcal{Y}}}
-
-\newcommand{\X}{\ensuremath{\scr{X}}}
-\newcommand{\Y}{\ensuremath{\mathcal{Y}}}
-% \newcommand{\G}{{\scr{G}}}
-% \newcommand{\G}{{\bf{G}}}
-\newcommand{\G}{{\mathcal{G}}}
-\newcommand{\M}{{\mathcal{M}}}
-
-\newcommand{\betaequivalent}{$\beta$-equivalent}
-\newcommand{\betaequivalence}{$\beta$-equivalence}
-
-\newcommand{\Top}{\ensuremath{\boldsymbol{\mathsf{S}}}}
-\newcommand{\Mb}{\ensuremath{\boldsymbol{\mathsf{M}}}}
-\newcommand{\Br}{\ensuremath{\mb{\mathsf{Bar}}}}
-\newcommand{\dgm}{\ensuremath{\mb{\mathsf{Dgm}}}}
-\newcommand{\Xn}{\ensuremath{\mathbb{X}_n}}
-\newcommand{\Yn}{\ensuremath{\mathbb{Y}_n}}
-\newcommand{\Xb}{\ensuremath{\mathbb{X}}}
-\newcommand{\Yb}{\ensuremath{\mathbb{Y}}}
-\newcommand{\z}{\ensuremath{\scr{Z}}}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Creates the signal flow diagram of a pulse shaper.
+%
+% #1 = global label
+% #2 = parameter for placement
+\newcommand{\pulseShaper}[4]{%
+   % building blocks
+   \node[modulator]  (#1-in)  [#2] {};
+   \node[coordinate] (pam)
+      [above from = #1-in,
+       label=above:$\sum\limits_{\nu=-\infty}^{\infty} \delta(t-t_\nu)$] {};
+   \node[filter]     (#1-out) [right from = #1-in] {$q(t)$};
+   % signal paths
+   \path[r>] (pam)   -- (#1-in);
+   \path[c>] (#1-in) -- (#1-out);
+}%

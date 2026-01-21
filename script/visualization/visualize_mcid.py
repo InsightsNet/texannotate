@@ -9,24 +9,17 @@ import pdfplumber
 from pathlib import Path
 import colorsys
 import argparse
+import json
 import re
-from collections import defaultdict
 from typing import Dict, List, Tuple, Optional
 
 # pdfplumber/pdfminer can choke on malformed font dicts (e.g. missing Length1).
 # Relax strictness to keep bbox extraction working on real-world PDFs.
-try:
-    import pdfminer.settings  # type: ignore
+import pdfminer.settings  # type: ignore
+pdfminer.settings.STRICT = False
+import sys
 
-    pdfminer.settings.STRICT = False
-except Exception:
-    pass
-
-try:
-    # Optional: merge MCIDs by logical element using aux structure
-    from parse_lpsb_mcid import parse_aux_file
-except Exception:
-    parse_aux_file = None
+from ..parsing.parse_lpsb_mcid import parse_aux_file  # type: ignore
 
 
 def generate_color(mcid: int, total_mcids: int = 100) -> tuple:
@@ -166,18 +159,102 @@ def _merge_bbox(a: Tuple[float, float, float, float], b: Tuple[float, float, flo
     return (min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3]))
 
 
-def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int, Tuple[float, float, float, float]]:
-    """Infer Figure MCID bboxes from images drawn inside Figure marked-content.
+def _bbox_area(bb: Tuple[float, float, float, float]) -> float:
+    try:
+        return max(0.0, float(bb[2]) - float(bb[0])) * max(0.0, float(bb[3]) - float(bb[1]))
+    except Exception:
+        return 0.0
 
-    pdfplumber's MCID extraction is text-based (chars), so image-only Figure content
-    won't show up. Here we parse the page content streams to associate `Do` image
-    draws with the currently-open `/Figure ... BDC` MCID and compute a bbox from
-    PyMuPDF's image rects.
+
+def _bbox_valid(bb: Optional[Tuple[float, float, float, float]]) -> bool:
+    if not bb:
+        return False
+    try:
+        x0, y0, x1, y1 = map(float, bb)
+    except Exception:
+        return False
+    if x1 <= x0 or y1 <= y0:
+        return False
+    # Avoid microscopic / degenerate boxes.
+    return _bbox_area((x0, y0, x1, y1)) >= 4.0
+
+
+def _page_image_block_bboxes(page: fitz.Page) -> List[Tuple[float, float, float, float]]:
+    """Get image block bboxes on a page.
+
+    PyMuPDF's text dict includes blocks of type=1 for images, with accurate bboxes.
+    This is a visualization fallback only (no MCID association available here).
+    """
+    out: List[Tuple[float, float, float, float]] = []
+    try:
+        d = page.get_text("dict")
+    except Exception:
+        return out
+    for b in d.get("blocks", []) or []:
+        try:
+            if int(b.get("type", -1)) != 1:
+                continue
+            bb = b.get("bbox")
+            if not bb or len(bb) != 4:
+                continue
+            x0, y0, x1, y1 = map(float, bb)
+            out.append((x0, y0, x1, y1))
+        except Exception:
+            continue
+    return out
+
+
+def _safe_union_bbox(
+    base: Tuple[float, float, float, float],
+    extra: Tuple[float, float, float, float],
+    *,
+    max_area_ratio: float = 6.0,
+    min_iou: float = 0.05,
+) -> Tuple[float, float, float, float]:
+    """Union bboxes, but reject wild extras.
+
+    When figures are embedded as PDF/Form XObjects, some bbox sources can be
+    overly conservative and cover a large portion of the page. For visualization
+    we prefer stable boxes: only merge if the extra overlaps meaningfully or is
+    not much larger than the base.
+    """
+    try:
+        base_a = _bbox_area(base)
+        extra_a = _bbox_area(extra)
+        if base_a <= 0.0 or extra_a <= 0.0:
+            return _merge_bbox(base, extra)
+        ratio = extra_a / max(base_a, 1e-6)
+        # If the extra is huge AND barely overlaps, ignore it.
+        if ratio > max_area_ratio:
+            try:
+                if _iou(base, extra) < min_iou:
+                    return base
+            except Exception:
+                return base
+        return _merge_bbox(base, extra)
+    except Exception:
+        return _merge_bbox(base, extra)
+
+
+def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int, Tuple[float, float, float, float]]:
+    """Infer Figure MCID bboxes from XObject draws inside Figure marked-content.
+
+    pdfplumber's MCID extraction is text-based (chars), so Figure content that is
+    *not text* can look "missing". In practice, figures are commonly injected as
+    XObjects:
+    - raster images: `/Im0 Do` (Subtype /Image)
+    - vector/PDF graphics: `/Fm0 Do` (Subtype /Form)
+
+    Here we parse the page content streams to associate `Do` draws with the
+    currently-open `/Figure ... BDC` MCID and compute a bbox from PyMuPDF's
+    resource rects (images + form XObjects).
     """
     page = doc[page_num]
 
-    # Map image resource name -> bbox (union of all occurrences).
+    # Map XObject resource name -> bbox (union of all occurrences).
     name_to_bbox: Dict[str, Tuple[float, float, float, float]] = {}
+
+    # 1) Images: resource name -> union rects (can appear multiple times).
     try:
         imgs = page.get_images(full=True) or []
     except Exception:
@@ -200,6 +277,31 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
                 name_to_bbox[name] = _merge_bbox(name_to_bbox[name], bb)
             else:
                 name_to_bbox[name] = bb
+
+    # 2) Form XObjects: PyMuPDF can provide their page-space bbox directly.
+    # This is crucial for figures included as PDF (vector) where there is no /Image.
+    try:
+        xobjs = page.get_xobjects() or []
+    except Exception:
+        xobjs = []
+    for xo in xobjs:
+        try:
+            # (xref, name, inv, bbox)
+            name = str(xo[1])
+            bb = xo[3]
+        except Exception:
+            continue
+        if not name or not bb or len(bb) != 4:
+            continue
+        try:
+            x0, y0, x1, y1 = map(float, bb)
+        except Exception:
+            continue
+        bb2 = (x0, y0, x1, y1)
+        if name in name_to_bbox:
+            name_to_bbox[name] = _merge_bbox(name_to_bbox[name], bb2)
+        else:
+            name_to_bbox[name] = bb2
 
     if not name_to_bbox:
         return {}
@@ -256,11 +358,7 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
 
 def get_elements_from_aux(aux_path: str) -> List[Dict]:
     """Parse aux and return element dicts with role + mcids (no geometry)."""
-    if parse_aux_file is None:
-        return []
-    from pathlib import Path as _Path
-
-    auxp = _Path(aux_path)
+    auxp = Path(aux_path)
     if not auxp.exists():
         return []
 
@@ -674,21 +772,69 @@ def _extract_math_spans(page, y_tol: float = 2.0, x_gap: float = 2.0) -> List[Di
 def visualize_mcid(
     pdf_path: str,
     output_path: str,
-    pages: list = None,
-    include_math_spans: bool = True,
-    aux_path: Optional[str] = None,
-    merge_tables: bool = False,
 ):
     """Create a visualization of MCID boxes on the PDF."""
-    
+
+    def _guess_aux_path(pdfp: Path) -> Optional[Path]:
+        # Mirror lpsb_compiler.py behavior.
+        cands = [
+            pdfp.with_name("main.aux.merged"),
+            pdfp.with_name("main.aux.fixed"),
+            pdfp.with_name("main.aux"),
+            pdfp.with_suffix(".aux"),
+        ]
+        for p in cands:
+            try:
+                if p.exists():
+                    return p
+            except Exception:
+                continue
+        return None
+
+    def _guess_order_map_path(pdfp: Path, auxp: Optional[Path]) -> Optional[Path]:
+        cands: List[Path] = []
+        if auxp:
+            cands.append(auxp.with_name("main.order.json"))
+            cands.append(auxp.with_suffix(".order.json"))
+        cands.append(pdfp.with_name("main.order.json"))
+        cands.append(pdfp.with_suffix(".order.json"))
+        for p in cands:
+            try:
+                if p.exists():
+                    return p
+            except Exception:
+                continue
+        return None
+
+    pdfp = Path(pdf_path)
+
     # Get MCID data from pdfplumber
     page_data = get_mcid_bboxes(pdf_path)
 
     aux_elements = []
-    if aux_path and merge_tables:
-        aux_elements = get_elements_from_aux(aux_path)
+    # Parse aux whenever provided: it's also used for reading-order labels even
+    # when we are not merging Table MCIDs.
+    aux_path = _guess_aux_path(pdfp)
+    if aux_path:
+        aux_elements = get_elements_from_aux(str(aux_path))
+        if not aux_elements:
+            raise SystemExit(f"[viz] ERROR: aux parsed but produced no elements: {aux_path}")
+
+    # Optional: external element order map (elem_id -> order index).
+    order_map: Dict[int, int] = {}
+    order_map_path = _guess_order_map_path(pdfp, aux_path)
+    if order_map_path:
+        raw = json.loads(Path(order_map_path).read_text(errors="replace"))
+        d = raw.get("order_by_elem_id", raw) if isinstance(raw, dict) else None
+        if not isinstance(d, dict):
+            raise SystemExit(f"[viz] ERROR: invalid order-map JSON schema: {order_map_path}")
+        for k, v in d.items():
+            try:
+                order_map[int(k)] = int(v)
+            except Exception as e:
+                raise SystemExit(f"[viz] ERROR: invalid order-map entry {k!r}:{v!r} in {order_map_path}: {e}") from e
     table_mcid_to_elem: Dict[int, int] = {}
-    if merge_tables and aux_elements:
+    if aux_elements:
         for e in aux_elements:
             if e.get("role") != "Table":
                 continue
@@ -712,56 +858,169 @@ def visualize_mcid(
 
     # Process each page
     for page_num in range(len(doc)):
-        if pages and page_num not in pages:
-            continue
-            
         page = doc[page_num]
         # Copy: we'll augment with image-derived bboxes below.
         mcid_bboxes = dict(page_data.get(page_num, {}) or {})
         
         math_spans = []
-        if include_math_spans:
-            try:
-                math_spans = _extract_math_spans(plumber.pages[page_num])
-            except Exception:
-                math_spans = []
+        try:
+            math_spans = _extract_math_spans(plumber.pages[page_num])
+        except Exception as e:
+            raise SystemExit(f"[viz] ERROR: failed to extract math spans on page={page_num}: {e}") from e
         
         # Get tag types from PDF content stream
         mcid_tags = get_mcid_tag_types(doc, page_num)
+        table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
 
         # Augment Figure MCID bboxes with image rects (so figures don't look "missing").
         fig_img_bboxes = get_figure_mcid_image_bboxes(doc, page_num)
         if fig_img_bboxes:
             for mcid, bb in fig_img_bboxes.items():
-                if mcid in mcid_bboxes and mcid_bboxes[mcid].get("bbox"):
+                cur = mcid_bboxes.get(mcid, {}) or {}
+                cur_bb = cur.get("bbox")
+                if _bbox_valid(cur_bb):
                     try:
-                        mcid_bboxes[mcid]["bbox"] = _merge_bbox(tuple(mcid_bboxes[mcid]["bbox"]), bb)
+                        mcid_bboxes[mcid]["bbox"] = _safe_union_bbox(tuple(cur_bb), bb)
                     except Exception:
                         mcid_bboxes[mcid]["bbox"] = bb
                 else:
-                    mcid_bboxes[mcid] = {"bbox": bb, "text_preview": "", "char_count": 0}
+                    mcid_bboxes[mcid] = {"bbox": bb, "line_bboxes": [bb], "text_preview": "", "char_count": 0}
+
+        # Second-level fallback for image-only Figures:
+        # If a Figure MCID exists (from content stream) but we still have no bbox
+        # (e.g. due to XObject/Form indirection), assign a plausible image block bbox.
+        fig_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Figure"]
+        if fig_mcids_on_page:
+            missing_figs = []
+            for mcid in fig_mcids_on_page:
+                bb = mcid_bboxes.get(mcid, {}).get("bbox")
+                if not _bbox_valid(bb):
+                    missing_figs.append(mcid)
+
+            if missing_figs:
+                cands = sorted(_page_image_block_bboxes(page), key=_bbox_area, reverse=True)
+
+                used: List[Tuple[float, float, float, float]] = []
+                for mcid in fig_mcids_on_page:
+                    bb = mcid_bboxes.get(mcid, {}).get("bbox")
+                    if _bbox_valid(bb):
+                        used.append(tuple(map(float, bb)))
+
+                def _is_taken(bb: Tuple[float, float, float, float]) -> bool:
+                    for u in used:
+                        try:
+                            if _iou(bb, u) >= 0.20:
+                                return True
+                        except Exception:
+                            continue
+                    return False
+
+                for mcid in missing_figs:
+                    pick = None
+                    for bb in cands:
+                        if _bbox_area(bb) < 64.0:  # ignore tiny marks/icons
+                            continue
+                        if _is_taken(bb):
+                            continue
+                        pick = bb
+                        break
+                    if pick is None:
+                        continue
+                    mcid_bboxes[mcid] = {"bbox": pick, "line_bboxes": [pick], "text_preview": "", "char_count": 0}
+                    used.append(pick)
 
         if not mcid_bboxes and not math_spans:
             continue
-        
+
         # Get total MCIDs for color generation
         total_mcids = len(mcid_bboxes)
-        
-        # Sort MCIDs by their MCID number - this is the actual reading order from LaTeX
-        sorted_mcids = sorted(mcid_bboxes.keys())
-        
+
+        # Build MCID -> logical element ID mapping from aux_elements
+        # This allows us to show reading order based on logical elements, not MCID numbers
+        mcid_to_elem_id: Dict[int, int] = {}
+        elem_id_to_info: Dict[int, Dict] = {}
+        if aux_elements:
+            for elem in aux_elements:
+                elem_id = elem.get("elem_id")
+                role = elem.get("role", "?")
+                for m in elem.get("mcids", []):
+                    mcid_val = m.get("mcid")
+                    page_val = m.get("page")
+                    if mcid_val is not None and page_val == page_num + 1:  # aux uses 1-based pages
+                        mcid_to_elem_id[mcid_val] = elem_id
+                        if elem_id not in elem_id_to_info:
+                            elem_id_to_info[elem_id] = {"role": role, "mcids": [], "first_mcid": mcid_val}
+                        elem_id_to_info[elem_id]["mcids"].append(mcid_val)
+
+        # Sort MCIDs by logical element order (prefer external order_map when provided),
+        # and within the same element, follow two-column reading order (left column before right).
+        # NOTE: MCID numeric order is NOT reliable inside an element due to LaTeX's async output routine.
+        def get_sort_key(mcid):
+            elem_id = mcid_to_elem_id.get(mcid)
+            if elem_id is not None:
+                try:
+                    eid_int = int(elem_id)
+                except Exception:
+                    eid_int = None
+                elem_rank = order_map.get(eid_int, eid_int if eid_int is not None else 999999)
+
+                bb = mcid_bboxes.get(mcid, {}).get("bbox")
+                if bb:
+                    try:
+                        x0, y0, x1, y1 = map(float, bb)
+                        cx = 0.5 * (x0 + x1)
+                        boundary = 0.5 * float(page.rect.width)
+                        col = 0 if cx < boundary else 1
+                        return (elem_rank, col, y0, x0, mcid)
+                    except Exception:
+                        pass
+                return (elem_rank, 2, 1e9, 1e9, mcid)
+            else:
+                # Fallback: use a large elem_id so unmapped MCIDs come last, sorted by mcid
+                return (999999, 2, 1e9, 1e9, mcid)
+
+        sorted_mcids = sorted(mcid_bboxes.keys(), key=get_sort_key)
+
+        # Assign order numbers based on logical elements (same elem = same order)
+        elem_order_map: Dict[int, int] = {}
+        current_order = 0
+        for mcid in sorted_mcids:
+            elem_id = mcid_to_elem_id.get(mcid)
+            if elem_id is not None:
+                if elem_id not in elem_order_map:
+                    try:
+                        eid_int = int(elem_id)
+                    except Exception:
+                        eid_int = None
+                    if eid_int is not None and eid_int in order_map:
+                        elem_order_map[elem_id] = int(order_map[eid_int])
+                    else:
+                        current_order += 1
+                        elem_order_map[elem_id] = current_order
+            else:
+                # No elem_id mapping - assign unique order
+                current_order += 1
+                elem_order_map[mcid] = current_order  # Use mcid as key for unmapped
+
         # Draw boxes for each MCID
-        for order, mcid in enumerate(sorted_mcids, 1):
+        for mcid in sorted_mcids:
             data = mcid_bboxes[mcid]
             bbox = data['bbox']  # Overall bbox for label positioning
             line_bboxes = data.get('line_bboxes', [bbox])  # Per-line boxes for drawing
-            
+
             # Get tag type
             tag_type = mcid_tags.get(mcid, '?')
-            if merge_tables and tag_type == "Table":
+            if tag_type == "Table":
                 # We'll draw a merged Table bbox using aux structure.
                 continue
-            
+
+            # Get logical order
+            elem_id = mcid_to_elem_id.get(mcid)
+            if elem_id is not None:
+                order = elem_order_map.get(elem_id, mcid)
+            else:
+                order = elem_order_map.get(mcid, mcid)
+
             # Generate color based on tag type for consistency
             tag_colors = {
                 'P': (0.2, 0.6, 0.2),      # Green for paragraphs
@@ -776,7 +1035,7 @@ def visualize_mcid(
                 'Table': (0.7, 0.5, 0.3),  # Brown for tables
             }
             color = tag_colors.get(tag_type, generate_color(mcid, total_mcids))
-            
+
             # Float tags (Figure, Table, Caption) should use merged bbox, not line-based
             float_tags = {'Figure', 'Table', 'Caption', 'Formula'}
             if tag_type in float_tags:
@@ -785,7 +1044,7 @@ def visualize_mcid(
             else:
                 # Use per-line boxes for text elements
                 draw_bboxes = line_bboxes
-            
+
             # Draw semi-transparent filled rectangle for each bbox
             for line_bb in draw_bboxes:
                 rect = fitz.Rect(line_bb[0], line_bb[1], line_bb[2], line_bb[3])
@@ -793,15 +1052,15 @@ def visualize_mcid(
                 shape.draw_rect(rect)
                 shape.finish(color=color, fill=color, fill_opacity=0.15, width=1.5)
                 shape.commit()
-            
+
             # Label: TagType#Order (e.g., P#1, H1#2) - placed at top-left of first line
             label = f"{tag_type}#{order}"
-            
+
             # Position label at top-left of first line bbox
             first_bb = line_bboxes[0] if line_bboxes else bbox
             label_x = first_bb[0]
             label_y = first_bb[1] - 3
-            
+
             # Draw label background (filled rectangle)
             text_width = len(label) * 6 + 6
             label_rect = fitz.Rect(label_x - 1, label_y - 12, label_x + text_width, label_y + 2)
@@ -811,10 +1070,8 @@ def visualize_mcid(
             page.insert_text(fitz.Point(label_x + 2, label_y), label, fontsize=9, color=(1, 1, 1))
 
         # Draw merged table boxes (one per logical Table element), using stroke-only border detection.
-        if merge_tables:
+        if table_mcids_on_page:
             # Detect tables from content stream BDC markers.
-            table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
-
             tables: List[Dict] = []
             if aux_elements and table_mcid_to_elem:
                 # Preferred: map MCID -> logical Table elem_id using aux.
@@ -913,10 +1170,8 @@ def visualize_mcid(
         # Add legend at top of page
         legend_y = 20
         legend_text = f"Page {page_num + 1}: {len(mcid_bboxes)} MCIDs"
-        if include_math_spans:
-            legend_text += f" | {len(math_spans)} math spans"
-        if merge_tables:
-            legend_text += " | merged tables"
+        legend_text += f" | {len(math_spans)} math spans"
+        legend_text += " | merged tables"
         legend_text += " | Format: TagType#ReadingOrder"
         page.insert_text(fitz.Point(10, legend_y), legend_text, fontsize=10, color=(0, 0, 0))
     
@@ -933,10 +1188,6 @@ def main():
     parser = argparse.ArgumentParser(description='Visualize MCID tags on PDF')
     parser.add_argument('input_pdf', help='Input PDF file path')
     parser.add_argument('-o', '--output', help='Output PDF path (default: input_mcid_viz.pdf)')
-    parser.add_argument('-p', '--pages', type=int, nargs='+', help='Specific pages to visualize (0-indexed)')
-    parser.add_argument('--no-math', action='store_true', help='Disable heuristic math-span boxes')
-    parser.add_argument('--aux', help='Optional .aux file to merge tables by logical element')
-    parser.add_argument('--merge-tables', action='store_true', help='Merge Table MCIDs into one box per table (uses --aux when provided)')
     
     args = parser.parse_args()
     
@@ -950,13 +1201,10 @@ def main():
     visualize_mcid(
         str(input_path),
         output_path,
-        args.pages,
-        include_math_spans=not args.no_math,
-        aux_path=args.aux,
-        merge_tables=bool(args.merge_tables),
     )
     return 0
 
 
-if __name__ == '__main__':
-    exit(main())
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py visualize-mcid ...

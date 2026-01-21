@@ -18,12 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
-try:
-    from tqdm import tqdm
-    HAS_TQDM = True
-except ImportError:
-    HAS_TQDM = False
+from tqdm import tqdm
 
 # Configuration
 LPSB_IMAGE = "lpsb-texlive:latest"
@@ -39,6 +34,14 @@ import json
 from typing import Tuple
 import threading
 import atexit
+
+# Import post-processing modules for direct function calls (no subprocess overhead)
+from .postprocess.fix_split_headings import merge_split_headings_aux
+from .postprocess.merge_split_paragraphs import merge_split_paragraphs as merge_split_paragraphs_func
+from .parsing.parse_lpsb_mcid import parse_aux_file, elements_to_json, reconcile_element_pages
+from .postprocess.synctex_enhanced_fix import process_pdf_synctex as fix_crosspage_process_pdf
+from .postprocess.inject_structtree import inject_structtree as inject_structtree_func
+from .visualization.visualize_mcid import visualize_mcid as visualize_mcid_func
 
 
 def verify_without_lpsb_injection(
@@ -895,14 +898,13 @@ def _modify_lpsb_mcid_options(tex_file: Path, new_options: str) -> bool:
     
     if re.search(hook_pattern, content):
         # New AddToHook style
-        new_content = re.sub(
-            hook_pattern, 
-            f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}", 
-            content
-        )
+        repl = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}"
+        # IMPORTANT: use a function replacement so backslashes are not treated as escapes.
+        new_content = re.sub(hook_pattern, lambda _m: repl, content)
     elif re.search(old_pattern, content):
         # Old direct style (backwards compat)
-        new_content = re.sub(old_pattern, f"\\usepackage{opt_str}{{lpsb-mcid}}", content)
+        repl = f"\\usepackage{opt_str}{{lpsb-mcid}}"
+        new_content = re.sub(old_pattern, lambda _m: repl, content)
     else:
         return False  # lpsb-mcid not found
     
@@ -2406,120 +2408,111 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             _collect_successful_packages(work_dir, selected_tl)
 
         # =========================================================================
-        # Post-processing: MCID parsing and fixes
+        # Post-processing: MCID parsing and fixes (direct function calls)
         # =========================================================================
         script_dir = Path(__file__).parent
 
-        # Prefer a local venv python for post-processing (pikepdf lives there in many setups).
-        # By default we use sys.executable, but if ../.venv/bin/python exists (relative to repo)
-        # and can import pikepdf, use that for StructTree injection.
-        post_py = sys.executable
-        try:
-            import subprocess as sp
-            # Do NOT .resolve() here: venv python is often a symlink to the base
-            # interpreter; resolving would bypass the venv context (and lose site-packages).
-            venv_py = (lpsb_root.parent / ".venv" / "bin" / "python")
-            if venv_py.exists():
-                r = sp.run([str(venv_py), "-c", "import pikepdf"], check=False,
-                           capture_output=True, timeout=10, text=True)
-                if r.returncode == 0:
-                    post_py = str(venv_py)
-                    with open(log_file, "a") as log:
-                        log.write(f"\nInfo: Using venv python for postprocess: {post_py}\n")
-        except Exception:
-            pass
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: Running post-processing (direct imports, no subprocess)\n")
 
         # Fix split headings in AUX for downstream consumers (tree/StructTree).
         # This targets the classic pattern produced by LaTeX's staged heading output,
         # especially around \section* and bibliography headings.
         aux_for_downstream = aux_file
         aux_fixed = pd_tex_dir / f"{main_base}.aux.fixed"
+        if not aux_file.exists():
+            raise SystemExit(f"[postprocess] ERROR: aux not found: {aux_file}")
         try:
-            import subprocess as sp
-            fix_headings_script = script_dir / "postprocess" / "fix_split_headings.py"
-            if fix_headings_script.exists() and aux_file.exists():
-                result = sp.run([sys.executable, str(fix_headings_script),
-                                 str(aux_file), "-o", str(aux_fixed)],
-                                check=False, capture_output=True, timeout=60, text=True)
-                if result.returncode == 0 and aux_fixed.exists():
-                    aux_for_downstream = aux_fixed
-                    with open(log_file, "a") as log:
-                        log.write(f"\nInfo: Split headings fixed (aux): {aux_fixed}\n")
+            merge_count = merge_split_headings_aux(aux_file, aux_fixed)
         except Exception as e:
-            with open(log_file, "a") as log:
-                log.write(f"\nWarning: Failed to fix split headings (aux): {e}\n")
+            raise SystemExit(f"[postprocess] ERROR: fix-split-headings failed: {e}")
+        if not aux_fixed.exists():
+            raise SystemExit(f"[postprocess] ERROR: fix-split-headings produced no output: {aux_fixed}")
+        aux_for_downstream = aux_fixed
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: Split headings fixed (aux): {aux_fixed} (merged {merge_count})\n")
+
+        # Merge cross-column split paragraphs in aux (two-column layout).
+        aux_merged = pd_tex_dir / f"{main_base}.aux.merged"
+        if not (aux_for_downstream.exists() and pdf_file.exists()):
+            raise SystemExit("[postprocess] ERROR: cannot merge split paragraphs: missing aux/pdf")
+        try:
+            merge_count = merge_split_paragraphs_func(aux_for_downstream, pdf_file, aux_merged)
+        except Exception as e:
+            raise SystemExit(f"[postprocess] ERROR: merge-split-paragraphs failed: {e}")
+        if not aux_merged.exists():
+            raise SystemExit(f"[postprocess] ERROR: merge-split-paragraphs produced no output: {aux_merged}")
+        aux_for_downstream = aux_merged
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: Cross-column split paragraphs merged (aux): {aux_merged} (merged {merge_count})\n")
         
         # 1. Parse MCID data from aux file to JSON
         mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
+        if not aux_for_downstream.exists():
+            raise SystemExit(f"[postprocess] ERROR: aux for downstream not found: {aux_for_downstream}")
         try:
-            parse_script = script_dir / "parsing" / "parse_lpsb_mcid.py"
-            if parse_script.exists():
-                sp.run([sys.executable, str(parse_script), str(aux_for_downstream)],
-                       check=False, capture_output=True, timeout=60)
-                with open(log_file, "a") as log:
-                    log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
+            elements, summary = parse_aux_file(aux_for_downstream)
+            # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
+            reconcile_element_pages(elements, pdf_file, verbose=False)
+            output_data = elements_to_json(elements, summary)
+            with open(mcid_json, "w") as f:
+                json.dump(output_data, f, indent=2)
         except Exception as e:
-            with open(log_file, "a") as log:
-                log.write(f"\nWarning: Failed to parse MCID aux: {e}\n")
+            raise SystemExit(f"[postprocess] ERROR: parse-mcid failed: {e}")
+        if not mcid_json.exists():
+            raise SystemExit(f"[postprocess] ERROR: parse-mcid produced no output: {mcid_json}")
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
         
-        # 2. Fix split headings (merge H1 + following P into single heading)
-        mcid_fixed_json = pd_tex_dir / f"{main_base}.mcid.fixed.json"
-        try:
-            fix_headings_script = script_dir / "postprocess" / "fix_split_headings.py"
-            if fix_headings_script.exists() and mcid_json.exists():
-                result = sp.run([sys.executable, str(fix_headings_script), 
-                                str(mcid_json), "-o", str(mcid_fixed_json)],
-                               check=False, capture_output=True, timeout=60, text=True)
-                if result.returncode == 0 and mcid_fixed_json.exists():
-                    with open(log_file, "a") as log:
-                        log.write(f"\nInfo: Split headings fixed: {result.stdout.strip()}\n")
-        except Exception as e:
-            with open(log_file, "a") as log:
-                log.write(f"\nWarning: Failed to fix split headings: {e}\n")
-        
-        # 3. Fix cross-page MCIDs in PDF (inject continuation BDC markers)
-        # NOTE: Two-pass mode provides better LaTeX-level tagging, but
-        #       post-processing is still needed to handle edge cases.
+        # 2. Fix cross-page / cross-column MCID issues in PDF (SyncTeX-driven injection/splitting)
+        # We always require SyncTeX output in this pipeline.
         pdf_fixed = pd_tex_dir / f"{main_base}_fixed.pdf"
+        if not pdf_file.exists():
+            raise SystemExit(f"[postprocess] ERROR: pdf not found for crosspage fix: {pdf_file}")
+        synctex_file = pd_tex_dir / f"{main_base}.synctex.gz"
+        if not synctex_file.exists():
+            raise SystemExit(f"[postprocess] ERROR: synctex not found (required): {synctex_file}")
         try:
-            fix_crosspage_script = script_dir / "postprocess" / "fix_crosspage_mcid.py"
-            if fix_crosspage_script.exists() and pdf_file.exists():
-                result = sp.run([sys.executable, str(fix_crosspage_script),
-                                str(pdf_file), "--aux", str(aux_file), 
-                                "-o", str(pdf_fixed)],
-                               check=False, capture_output=True, timeout=120, text=True)
-                if result.returncode == 0 and pdf_fixed.exists():
-                    with open(log_file, "a") as log:
-                        log.write(f"\nInfo: Cross-page MCIDs fixed: {pdf_fixed}\n")
-                    # Replace the output PDF with the fixed version
-                    shutil.copy(pdf_fixed, final_pdf)
+            fix_crosspage_process_pdf(
+                str(pdf_file),
+                str(aux_for_downstream),
+                str(synctex_file),
+                str(pdf_fixed),
+                verbose=False,
+            )
         except Exception as e:
-            with open(log_file, "a") as log:
-                log.write(f"\nWarning: Failed to fix cross-page MCIDs: {e}\n")
+            raise SystemExit(f"[postprocess] ERROR: fix-crosspage-mcid failed: {e}")
+        if not pdf_fixed.exists():
+            raise SystemExit(f"[postprocess] ERROR: fix-crosspage-mcid produced no output: {pdf_fixed}")
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: Cross-page MCIDs fixed: {pdf_fixed}\n")
+        # Replace the output PDF with the fixed version
+        shutil.copy(pdf_fixed, final_pdf)
+
+        # 3.5. Reading order map:
+        # Inject StructTree auto-detects an adjacent *.order.json, and will compute one
+        # on-demand if missing. We keep the conventional path here for log/copy only.
+        order_map_json = pd_tex_dir / f"{main_base}.order.json"
         
-        # 4. Inject StructTree into PDF (for PDF/UA compliance)
+        # 3. Inject StructTree into PDF (for PDF/UA compliance)
         pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
+        if not (pdf_fixed.exists() and aux_for_downstream.exists()):
+            raise SystemExit("[postprocess] ERROR: cannot inject StructTree: missing fixed pdf or aux")
         try:
-            inject_structtree_script = script_dir / "postprocess" / "inject_structtree.py"
-            if inject_structtree_script.exists() and pdf_fixed.exists() and aux_for_downstream.exists():
-                result = sp.run([post_py, str(inject_structtree_script),
-                                str(pdf_fixed), "--aux", str(aux_for_downstream),
-                                "-o", str(pdf_tagged)],
-                               check=False, capture_output=True, timeout=120, text=True)
-                if result.returncode == 0 and pdf_tagged.exists():
-                    with open(log_file, "a") as log:
-                        log.write(f"\nInfo: StructTree injected: {pdf_tagged}\n")
-                    # Replace the output PDF with the tagged version
-                    shutil.copy(pdf_tagged, final_pdf)
-                else:
-                    with open(log_file, "a") as log:
-                        log.write(f"\nWarning: StructTree injection failed: {result.stderr[:200] if result.stderr else 'unknown error'}\n")
+            success = inject_structtree_func(str(pdf_fixed), str(aux_for_downstream), str(pdf_tagged), verbose=False)
+            if not success:
+                raise RuntimeError("inject_structtree returned False")
         except Exception as e:
-            with open(log_file, "a") as log:
-                log.write(f"\nWarning: Failed to inject StructTree: {e}\n")
+            raise SystemExit(f"[postprocess] ERROR: inject-structtree failed: {e}")
+        if not pdf_tagged.exists():
+            raise SystemExit(f"[postprocess] ERROR: inject-structtree produced no output: {pdf_tagged}")
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: StructTree injected: {pdf_tagged}\n")
+        # Replace the output PDF with the tagged version
+        shutil.copy(pdf_tagged, final_pdf)
         
         # Copy post-processed files to result directory
-        for src_file in [mcid_json, mcid_fixed_json, aux_fixed, pdf_fixed, pdf_tagged]:
+        for src_file in [mcid_json, aux_fixed, aux_merged, pdf_fixed, pdf_tagged, order_map_json]:
             if src_file.exists():
                 try:
                     shutil.copy(src_file, res_dir / src_file.name)
@@ -2547,6 +2540,45 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 _CONTAINER_POOL = None
 _CONTAINER_NAMES = []  # List of container names for workers to use
 
+def _run_visualization(output_dir: str, script_dir: Path) -> None:
+    """Run MCID visualization on the compiled PDF.
+    
+    Finds the main_tagged.pdf in the output directory and generates
+    a visualization with colored MCID boxes.
+    Uses direct function call instead of subprocess.
+    """
+    output_path = Path(output_dir)
+    
+    # Find the paper subdirectory (output_dir may be parent containing paper_id subdir)
+    # Look for main_tagged.pdf or the output PDF
+    pdf_candidates = list(output_path.rglob("main_tagged.pdf"))
+    if not pdf_candidates:
+        pdf_candidates = list(output_path.rglob("*.pdf"))
+        # Filter out visualization outputs
+        pdf_candidates = [p for p in pdf_candidates if "_mcid_viz" not in p.name]
+    
+    if not pdf_candidates:
+        print("[Visualize] No PDF found to visualize")
+        return
+    
+    # Use the first found PDF
+    pdf_path = pdf_candidates[0]
+    
+    # Output file: same directory with _mcid_viz suffix
+    viz_output = pdf_path.with_name(pdf_path.stem + "_mcid_viz.pdf")
+    
+    print(f"[Visualize] Generating MCID visualization: {viz_output.name}")
+    
+    # Direct function call instead of subprocess
+    try:
+        visualize_mcid_func(str(pdf_path), str(viz_output))
+        print(f"[Visualize] Success: {viz_output}")
+    except Exception as e:
+        # Ensure we don't leave behind a stale/incorrect visualization file.
+        if viz_output.exists():
+            viz_output.unlink()
+        raise SystemExit(f"[Visualize] ERROR: visualize-mcid failed: {e}")
+
 def batch_worker(args):
     """Worker function for batch processing.
     
@@ -2566,7 +2598,10 @@ def main():
                         help="Reuse Docker containers across papers (default: enabled)")
     parser.add_argument('--no-reuse-containers', action='store_false', dest='reuse_containers',
                         help="Disable container reuse (start new container per command)")
-    
+    parser.add_argument('--visualize', action='store_true', default=True,
+                        help="Generate MCID visualization after successful compile (default: enabled)")
+    parser.add_argument('--no-visualize', action='store_false', dest='visualize',
+                        help="Disable MCID visualization output")
 
     args = parser.parse_args()
     
@@ -2577,6 +2612,10 @@ def main():
         print(f"Processing SINGLE paper: {args.single}")
         res = process_one_paper(args.single, args.output, lpsb_root, not args.no_ramdisk)
         print(f"Result: {res}")
+        
+        # Optional visualization of MCID tags
+        if res == "SUCCESS" and args.visualize:
+            _run_visualization(args.output, script_dir)
         
     elif args.batch:
         src_root = Path(args.batch)
@@ -2668,11 +2707,8 @@ def main():
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             futures = {executor.submit(batch_worker, task): task[0].name for task in tasks}
             
-            # Use tqdm for progress bar if available
-            if HAS_TQDM:
-                pbar = tqdm(as_completed(futures), total=len(futures), desc="Compiling", unit="paper")
-            else:
-                pbar = as_completed(futures)
+            # Use tqdm for progress bar
+            pbar = tqdm(as_completed(futures), total=len(futures), desc="Compiling", unit="paper")
             
             for f in pbar:
                 pid = futures[f]
@@ -2685,20 +2721,14 @@ def main():
                             results['FALSE_POSITIVE'] = results.get('FALSE_POSITIVE', 0) + 1
                     else:
                         results[res] = results.get(res, 0) + 1
-                    if HAS_TQDM:
-                        pbar.set_postfix(
-                            S=results.get('SUCCESS', 0), 
-                            F=results.get('FAIL', 0), 
-                            FP=results.get('FALSE_POSITIVE', 0),
-                            Skip=results.get('SKIPPED', 0)
-                        )
-                    else:
-                        print(f"[{res}] {pid}")
+                    pbar.set_postfix(
+                        S=results.get('SUCCESS', 0), 
+                        F=results.get('FAIL', 0), 
+                        FP=results.get('FALSE_POSITIVE', 0),
+                        Skip=results.get('SKIPPED', 0)
+                    )
                 except Exception as e:
-                    if HAS_TQDM:
-                        pbar.set_postfix(S=results.get('SUCCESS', 0), F=results.get('FAIL', 0), E=results.get('ERROR', 0)+1)
-                    else:
-                        print(f"[CRASH] {pid}: {e}")
+                    pbar.set_postfix(S=results.get('SUCCESS', 0), F=results.get('FAIL', 0), E=results.get('ERROR', 0)+1)
                     results['ERROR'] = results.get('ERROR', 0) + 1
                     
         print("\nSummary:")
@@ -2710,10 +2740,5 @@ def main():
             multi_version_pool.stop()
             print("Containers stopped.")
         
-
-
     else:
         parser.print_help()
-
-if __name__ == '__main__':
-    main()

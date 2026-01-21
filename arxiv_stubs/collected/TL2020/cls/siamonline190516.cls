@@ -1662,31 +1662,31 @@ Vol.\ #3, No.\ #4, pp.\ #5
 %% Support for "review" class option to turn on linenumbers via the
 %% lineno package. Slightly complicated because the lineno and amsmath
 %% packages do not play well together.
-%\if@review
-%  \RequirePackage[mathlines]{lineno}[4.41]
-  %\linenumbers
-  %\renewcommand{\linenumberfont}{\normalfont\footnotesize\color{siamreviewcolor}}
+\if@review
+  \RequirePackage[mathlines]{lineno}[4.41]
+  \linenumbers
+  \renewcommand{\linenumberfont}{\normalfont\footnotesize\color{siamreviewcolor}}
   % The \linenumbers command does not play nice with amsmath, so we
   % have added some patches to fix it. See   
   % http://phaseportrait.blogspot.com/2007/08/lineno-and-amsmath-compatibility.html
- % \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
-  %  \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
-  %  \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
-   % \renewenvironment{#1}%
-   % {\linenomath\csname old#1\endcsname}%
-   % {\csname oldend#1\endcsname\endlinenomath}}% 
- % \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
- %   \patchAmsMathEnvironmentForLineno{#1}%
- %   \patchAmsMathEnvironmentForLineno{#1*}}%
- % \patchBothAmsMathEnvironmentsForLineno{equation}%
- % \patchBothAmsMathEnvironmentsForLineno{align}%
- % \patchBothAmsMathEnvironmentsForLineno{flalign}%
-  %\patchBothAmsMathEnvironmentsForLineno{alignat}%
- % \patchBothAmsMathEnvironmentsForLineno{gather}%
-  %\patchBothAmsMathEnvironmentsForLineno{multline}%
- % \renewcommand{\footercopyright}{\textcolor{siamreviewcolor}%
- %   {\textit{This manuscript is for review purposes only.}}}
-%\fi
+  \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+    \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+    \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+    \renewenvironment{#1}%
+    {\linenomath\csname old#1\endcsname}%
+    {\csname oldend#1\endcsname\endlinenomath}}% 
+  \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+    \patchAmsMathEnvironmentForLineno{#1}%
+    \patchAmsMathEnvironmentForLineno{#1*}}%
+  \patchBothAmsMathEnvironmentsForLineno{equation}%
+  \patchBothAmsMathEnvironmentsForLineno{align}%
+  \patchBothAmsMathEnvironmentsForLineno{flalign}%
+  \patchBothAmsMathEnvironmentsForLineno{alignat}%
+  \patchBothAmsMathEnvironmentsForLineno{gather}%
+  \patchBothAmsMathEnvironmentsForLineno{multline}%
+  \renewcommand{\footercopyright}{\textcolor{siamreviewcolor}%
+    {\textit{This manuscript is for review purposes only.}}}
+\fi
 %%
 %% <<tgk<<
 %%

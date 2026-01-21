@@ -42,7 +42,7 @@
 
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{raa}[ 2008/09/22 v1.2 (Zhou Ai-Ying); 
+\ProvidesClass{RAA}[ 2008/09/22 v1.2 (Zhou Ai-Ying); 
 ^^J\space\space\space\space\space\space\space\space\space\space\space\space
 \space\space\space\space\space\space\space\space\space2003/05/12 v1.1e (Zhou Ai-Ying).
 ^^J\space\space\space\space\space\space\space\space\space\space\space\space
@@ -200,8 +200,8 @@ twoside,                final,10pt,runningheads} %%% 10pt zjz 0601
   \setlength{\textwidth}{200mm}       %AA:180mm; zay:use (200,250) 2008.09.24
   \setlength{\textheight}{250mm}      %AA:694pt, 1mm=0.04in=2.845pt 
 \else                                 %preprint, final version
-  \setlength{\textwidth}{145mm}       %RAA 
-  \setlength{\textheight}{210mm}      %% 
+  \setlength{\textwidth}{150mm}       %RAA 
+  \setlength{\textheight}{215mm}      %% 
   \topmargin=0pt
   \oddsidemargin=0pt
   \evensidemargin=0pt
@@ -559,18 +559,16 @@ twoside,                final,10pt,runningheads} %%% 10pt zjz 0601
 %=========================================================
 \def\RAAlogo       
   {
-    \begin{minipage}{25mm}%35
+    \begin{minipage}{35mm}
        \small %% \normalsize %%zjz0601
        \vspace{-8.1mm}       %%zay: 2006.09.07
        \begin{tabular}{l}
           \hline\\[-1mm]     %% [-3mm] %% zjz0601
-          {\sl {\large\bm{ R}}esearch in}\\%[-0.5 TRUE MM] 
-        {\sl {\large \bm{A}}stronomy and} 
-\\    %[-0.5 true mm] 
-          {\sl {\large\bm{ A}}strophysics}\\[1.8mm] %% [1.8mm] %% zjz0601
+          Research in\\%[-0.5 TRUE MM] 
+          Astronomy and \\    %[-0.5 true mm] 
+          Astrophysics\\[1.8mm] %% [1.8mm] %% zjz0601
           \hline \\[-2mm]    %% [-3mm] %% zjz0601
        \end{tabular}
-
     \end{minipage}
   } 
 
@@ -587,13 +585,12 @@ twoside,                final,10pt,runningheads} %%% 10pt zjz 0601
      %no logo
   \else  
     \noindent
-    \begin{minipage}{145mm} %%JJJ 140-->145 %%% zjz 0601
-    \begin{minipage}{85mm}%{95mm}
+    \begin{minipage}{150mm} %%JJJ 140-->145 %%% zjz 0601
+    \begin{minipage}{95mm}
     \vspace{-8.1mm}         %%zay: 2006.09.07
-    {\small  Research in Astron. Astrophys. {#1 } \\   %Vol.0 (200x) No.0, 000--000 \\
-    {\it http://www.raa-journal.org\/~~~~~ http://www.iop.org/journals/raa}\/ 
-    {(\small \LaTeX:~~\jobname.tex;~~printed on \today; \timenow)} %Added by Xianghua on 16 Oct 2015
-    %\hfill~~ \\
+    {\small  Research in Astron. \& Astrophys. {#1 } \\   %Vol.0 (200x) No.0, 000--000 \\
+    ({\it http://www.raa-journal.org}\/) 
+    \hfill~~ \\
     \hfill~~ \\
 %%  {\bf REVIEW}            %% preserved for Editor
 %%  {\bf LETTER}            %% preserved for Editor
@@ -624,7 +621,7 @@ twoside,                final,10pt,runningheads} %%% 10pt zjz 0601
 %z  \begin{minipage}{140mm}
 %z    \begin{minipage}{95mm}
 %z     {\small   Chin. J. Astron. Astrophys. ~Vol.~0, No.~0, (200x) 000--000  \\
-%z     ({\it http:/$\!\!$/www.raa-journal.org\/~~http:www.iop.org/journals/raa })
+%z     ({\it http:/$\!\!$/www.raa-journal.org\/})
 %z      \hfill~~ \\
 %z      \hfill~~ \\
 %%  {\bf REVIEW}            %% preserved for Editor
@@ -648,10 +645,10 @@ twoside,                final,10pt,runningheads} %%% 10pt zjz 0601
 \fi
   was prepared with the RAA \LaTeX\ macro v1.2.% 
   }% 
- }% 
+}% 
 
 %\def\@maketitle{\newpage                    %old
- \def\@maketitle{\vskip-50pt  %\newpage   %zay:2006.09.07:use -50pt instead of -%%%27pt
+\def\@maketitle{\vskip-50pt  %\newpage       %zay:2006.09.07:use -50pt instead of -27pt
  \normalfont
  \vbox to0pt{\vskip-20pt        
  \nointerlineskip
@@ -1692,14 +1689,6 @@ to0pt{\kern6.52\wd0\vrule height0.45\ht0\hss}\box0}}}}
 \newcommand{\mult}{\multicolumn}
 \newcommand{\rmd}{{\rm d}}
 
-
-\newcommand{\uph}{$^{\rm h}$}
-\newcommand{\upm}{$^{\rm m}$}
-\newcommand{\ups}{$^{\rm s}$}
-\newcommand{\hms}[3]{\mbox{#1\uph #2\upm #3\ups}}
-\newcommand{\dms}[3]{\mbox{#1\dg #2$'$ #3$''$}}
-
-
 \def\ls{\raise 1pt\hbox{$\,<\;$}\kern -10.5pt\lower3pt
           \hbox{$\sim$}\kern 1.5pt} %%% less or similar
 \def\gs{\raise 1.5pt\hbox{$\,>\,$}\kern -9.5pt\lower3pt
@@ -1711,9 +1700,6 @@ to0pt{\kern6.52\wd0\vrule height0.45\ht0\hss}\box0}}}}
 %====================================================================
 \let\jnl@style=\rmfamily 
 \def\ref@jnl#1{{\jnl@style#1}}% 
-
-\newcommand\icarus{\ref@jnl{Icarus}}% 
-          % Icarus
 \newcommand\aj{\ref@jnl{AJ}}% 
           % Astronomical Journal 
 \newcommand\araa{\ref@jnl{ARA\&A}}% 
@@ -1815,88 +1801,12 @@ to0pt{\kern6.52\wd0\vrule height0.45\ht0\hss}\box0}}}}
           % Proceedings of the SPIE 
 \newcommand\sci{\ref@jnl{Sci.}}          
           % Science
-\newcommand\na{\ref@jnl{New Astron.}}
-          % New Astronomy 
-\newcommand\nar{\ref@jnl{New Astron. Rev.}}
-          % New Astronomy Review
-\newcommand\actaa{\ref@jnl{Acta Astronomica}}
-          % Acta Astronomica
-\newcommand\jcap{\ref@jnl{J. Cosmol. Astropart. Phys.}}
-          % Acta Astronomica
-\newcommand\pasa{\ref@jnl{PASA}}%
-
-\newcommand\caa{\ref@jnl{Chinese Astronomy and Astrophysics}}
-  % Publications of the Astron. Soc. of Australia
 \let\astap=\aap 
 \let\aas=\aaps
 \let\apjlett=\apjl 
 \let\apjsupp=\apjs 
 \let\applopt=\ao
 
-
-
-%%%%%% by zjz
-\newcommand{\cas}{Chinese Academy of Sciences}
-
-\newcommand{\nao}{ National Astronomical Observatories, 
-\cas, Beijing~ 100012, China}
-
-\newcommand{\pmo}{Purple Mountain Observatory,  Chinese Academy of 
-          Sciences, Nanjing~ 210008, China}
-\newcommand{\sho}{Shanghai Astronomical Observatory, 
-          Chinese Academy of 
-          Sciences, Shanghai~ 200030, China}
-\newcommand{\yuo}{Yunnan Observatory,  Chinese Academy of 
-          Sciences, Kunming~ 650011, China}
-
-\newcommand{\ust}{Centre for Astrophysics, University of 
-          Sciences and  Technology of China, Hefei~ 230026, China}
-
-\newcommand{\nua}{Department of Astronomy, Nanjing
-University, Nanjing~ 210093, China}
-
-
-\newcommand{\pka}{Department of Astronomy, Peking
-University, Beijing~ 100871, China}
-
-\newcommand{\geo}{Department of Geophysics, Peking
-University, Beijing~ 100871, China}
-
-\newcommand{\bac}{Chinese Academy of Sciences-Peking University Joint 
-Beijing Astrophysics Center,  Beijing~ 100871, China}
-
-\newcommand{\hep}{Institute of High Energy Physics,  Chinese 
-          Academy of Sciences, Beijing~ 100039, China}
-
-\newcommand{\bnua}{Department of Astronomy, Beijing Normal 
-          University, Beijing~ 100875, China}
-
-\newcommand{\nsfc}{National Natural Science Foundation of China}
-
-
-
-%%%%% by Li Xianghua
-%\usepackage{color}
-\usepackage[dvipsnames]{xcolor}
-%\usepackage{colordvi}
-\usepackage{ulem}
-\RequirePackage{lineno}
-\newcommand{\del}[1]{{\color{red}{\sout{\,#1}}}}
-\newcommand{\de}[1]{{\color{Maroon}{\sout{\,#1}}}}
-%\newcommand{\add}[1]{\Blue{\uline{#1}}}
-\newcommand{\add}[1]{{\color{blue}{\uline{\,#1}}}}
-%\newcommand{\ad}{\add}
-\newcommand{\aq}[1]{{\color{magenta}{\uwave{\,#1}}}}
-\def\S{Section}
-%\newcommand{\qug}[1]{{\color{green}{\uwave{#1}}}}
-\newcommand{\putq}[1]{\marginpar{~~~~~~#1}}
-\normalem
-\newcommand{\hii}{H\,{\normalsize II}}
-
-%added by LIXH on Nov 20, 2017
-\usepackage{subcaption}
-\captionsetup{compatibility=false}
-%=======================================
 
 %============================================================
 % Chinese astronomical affiliates -- not encouraged to use

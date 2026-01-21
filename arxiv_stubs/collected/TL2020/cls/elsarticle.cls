@@ -6,7 +6,7 @@
 %%
 %% elsarticle.dtx  (with options: `class')
 %% 
-%% Copyright 2007, 2008, 2009 Elsevier Ltd
+%% Copyright 2007-2020 Elsevier Ltd
 %% 
 %% This file is part of the 'Elsarticle Bundle'.
 %% -------------------------------------------
@@ -22,20 +22,34 @@
 %% given in the file `manifest.txt'.
 %% 
 %%
-%% $Id: elsarticle.dtx 19 2009-12-17 07:07:52Z rishi $
+%%
 %%
  \def\RCSfile{elsarticle}%
- \def\RCSversion{1.20b}%
- \def\RCSdate{2009/09/17}%
+ \def\RCSversion{3.3}%
+ \def\RCSdate{2020/11/20}%
  \def\@shortjnl{\relax}
- \def\@journal{Elsevier Ltd} \def\@company{Elsevier Ltd}
+ \def\@journal{Elsevier Ltd}
+ \def\@company{Elsevier Ltd}
  \def\@issn{000-0000}
  \def\@shortjid{elsarticle}
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{\@shortjid}[\RCSdate, \RCSversion: \@journal]
 \def\ABD{\AtBeginDocument}
 \newif\ifpreprint \preprintfalse
+\newif\ifnonatbib \nonatbibfalse
 \newif\iflongmktitle \longmktitlefalse
+\newif\ifnopreprintline \nopreprintlinefalse
+\newif\ifdoubleblind \doubleblindfalse
+
+\newif\ifuseexplthreefunctions \useexplthreefunctionsfalse
+
+\IfFileExists{expl3.sty}{%
+  \global\useexplthreefunctionstrue%
+  \RequirePackage{expl3}}{}
+\ifuseexplthreefunctions\relax%
+\IfFileExists{xparse.sty}{\RequirePackage{xparse}}{}
+\IfFileExists{etoolbox.sty}{\RequirePackage{etoolbox}}{}
+\fi
 
 \def\@blstr{1}
 \newdimen\@bls
@@ -54,11 +68,13 @@
 \DeclareOption{preprint}{\global\preprinttrue
   \gdef\@blstr{1}\xdef\jtype{0}%
    \AtBeginDocument{\@twosidefalse\@mparswitchfalse}}
+\DeclareOption{nopreprintline}{\global\nopreprintlinetrue}
 \DeclareOption{final}{\gdef\@blstr{1}\global\preprintfalse}
 \DeclareOption{review}{\global\preprinttrue\gdef\@blstr{1.5}}
 \DeclareOption{authoryear}{\xdef\@biboptions{round,authoryear}}
 \DeclareOption{number}{\xdef\@biboptions{numbers}}
 \DeclareOption{numbers}{\xdef\@biboptions{numbers}}
+\DeclareOption{nonatbib}{\global\nonatbibtrue}
 \DeclareOption{longtitle}{\global\longmktitletrue}
 \DeclareOption{5p}{\xdef\jtype{5}\global\preprintfalse
   \ExecuteOptions{twocolumn}}
@@ -69,40 +85,66 @@
 \DeclareOption{times}{\IfFileExists{txfonts.sty}%
   {\AtEndOfClass{\RequirePackage{txfonts}%
   \gdef\ttdefault{cmtt}%
-   \let\iint\relax
+  \let\iint\relax
   \let\iiint\relax
   \let\iiiint\relax
   \let\idotsint\relax
-  \let\openbox\relax}}{\RequirePackage{times}}}
-\ExecuteOptions{a4paper,10pt,oneside,onecolumn,number,preprint}
+  \let\openbox\relax}}{\AtEndOfClass{\RequirePackage{times}}}}
+
+\DeclareOption{endfloat}{\IfFileExists{endfloat.sty}
+   {\AtEndOfClass{\RequirePackage[markers]{endfloat}}}{}}
+\DeclareOption{endfloats}{\IfFileExists{endfloat.sty}
+   {\AtEndOfClass{\RequirePackage[markers]{endfloat}}}{}}
+\DeclareOption{numafflabel}
+   {\AtBeginDocument{\def\theaffn{\arabic{affn}}}} %*%
+\DeclareOption{lefttitle}
+   {\AtBeginDocument{\def\elsarticletitlealign{flushleft}}} %*%
+\DeclareOption{centertitle}
+   {\AtBeginDocument{\def\elsarticletitlealign{center}}} %*%
+\DeclareOption{reversenotenum}
+   {\AtBeginDocument{\def\theaffn{\arabic{affn}}
+    \def\thefnote{\alph{fnote}}}}
+\DeclareOption{doubleblind}{\doubleblindtrue}
+
+\ExecuteOptions{a4paper,10pt,oneside,onecolumn,number,preprint,centertitle}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
 \ProcessOptions
 \LoadClass{article}
 \RequirePackage{graphicx}
 \let\comma\@empty
 \let\tnotesep\@empty
-\def\title#1{\gdef\@title{#1}}
 \let\@title\@empty
+
+\def\useelstitle{}
+
+\def\title#1{\g@addto@macro\@title{#1%
+       \global\let\tnoteref\@gobble}%
+       \g@addto@macro\useelstitle{#1}}
 
 \def\elsLabel#1{\@bsphack\protected@write\@auxout{}%
          {\string\Newlabel{#1}{\@currentlabel}}\@esphack}
 \def\Newlabel#1#2{\expandafter\xdef\csname X@#1\endcsname{#2}}
 
-\def\elsRef#1{\@ifundefined{X@#1}{0}{\csname X@#1\endcsname}%
-}
+\def\elsRef#1{\@ifundefined{X@#1}{0}{\csname X@#1\endcsname}}
 
-\def\tnotemark[#1]{\textsuperscript{\@for\@@tmark:=#1\do{%
-      \edef\tnotenum{\@ifundefined{X@\@@tmark}{1}{\elsRef{\@@tmark}}}%
-      \ifcase\tnotenum\or\ding{73}\or,\ding{73}\ding{73}\fi}}%
-}
 \let\@tnotemark\@empty
 
+\ifdoubleblind
+  \def\tnotemark[#1]{}
+\else
+  \def\tnotemark[#1]{\@for\mytmark:=#1\do{%
+        \expandafter\ifcase\elsRef{\mytmark}\or$^{\star}$\or
+       $^{,\star\star}$\fi
+    }%
+}
+\fi
+
+\def\tnoteref#1{\tnotemark[{#1}]}
 \let\@tnotes\@empty
-\RequirePackage{pifont}
 \newcounter{tnote}
 \def\tnotetext[#1]#2{\g@addto@macro\@tnotes{%
-  \refstepcounter{tnote}\elsLabel{#1}%
-   \def\thefootnote{\ifcase\c@tnote\or\ding{73}\or\ding{73}\ding{73}\fi}%
+  \stepcounter{tnote}\elsLabel{#1}%
+    \def\thefootnote{\ifcase\c@tnote\or$\star$\or$\star\star$\fi}%
     \footnotetext{#2}}}
 
 \let\@nonumnotes\@empty
@@ -110,17 +152,20 @@
      \let\thefootnote\relax\footnotetext{#1}}}
 
 \newcounter{fnote}
+\def\thefnote{\arabic{fnote}}
 \def\fnmark[#1]{\let\comma\@empty
     \def\@fnmark{\@for\@@fnmark:=#1\do{%
     \edef\fnotenum{\@ifundefined{X@\@@fnmark}{1}{\elsRef{\@@fnmark}}}%
   \unskip\comma\fnotenum\let\comma,}}%
 }
 
+\def\fnref#1{\fnmark[#1]}
+
 \let\@fnotes\@empty\let\@fnmark\@empty
 \def\fntext[#1]#2{\g@addto@macro\@fnotes{%
-     \refstepcounter{fnote}\elsLabel{#1}%
-   \def\thefootnote{\thefnote}%
-   \global\setcounter{footnote}{\thefnote}%
+   \refstepcounter{fnote}\elsLabel{#1}%
+   \def\thefootnote{\c@fnote}%
+   \global\setcounter{footnote}{\c@fnote}%
    \footnotetext{#2}}}
 
 \def\cormark[#1]{\edef\cnotenum{\elsRef{#1}}%
@@ -141,14 +186,11 @@
     \edef\@corref{\ifcase\cnotenum\or
          $\ast$\or$\ast\ast$\fi\hskip-1pt}}
 
-\def\fnref#1{\fnmark[#1]}
-\def\tnoteref#1{\tnotemark[#1]}
-
 \def\resetTitleCounters{\c@cnote=0
    \c@fnote=0 \c@tnote=0 \c@footnote=0}
 
 \let\eadsep\@empty
-\let\@elseads\@empty
+\def\@elseads{}
 \let\@elsuads\@empty
 \let\@cormark\@empty
 \def\hashchar{\expandafter\@gobble\string\~}
@@ -156,44 +198,57 @@
 \def\lbracechar{\expandafter\@gobble\string\{}
 \def\rbracechar{\expandafter\@gobble\string\}}
 
-\def\ead{\@ifnextchar[{\@uad}{\@ead}}
-\gdef\@ead#1{\bgroup\def\_{\string\underscorechar\space}%
-  \def\{{\string\lbracechar\space}%
-   \def~{\hashchar\space}%
-   \def\}{\string\rbracechar\space}%
-   \edef\tmp{\the\@eadauthor}
+\gdef\ead{\@ifnextchar[{\@uad}{\@ead}}
+\gdef\@ead#1{\bgroup
+   \def\_{\underscorechar}%
+   \def\{{\lbracechar}%
+   \def~{\hashchar}%
+   \def\}{\rbracechar}%
+   \edef\tmp{\the\@eadauthor}%
    \immediate\write\@auxout{\string\emailauthor
      {#1}{\expandafter\strip@prefix\meaning\tmp}}%
-  \egroup
+   \egroup
 }
 \newcounter{ead}
 \gdef\emailauthor#1#2{\stepcounter{ead}%
      \g@addto@macro\@elseads{\raggedright%
-      \let\corref\@gobble
-      \eadsep\texttt{#1} (#2)\def\eadsep{\unskip,\space}}%
+      \let\corref\@gobble\def\@@tmp{#1}%
+      \eadsep{\ttfamily\expandafter\strip@prefix\meaning\@@tmp}
+      (#2)\def\eadsep{\unskip,\space}}%
 }
 \gdef\@uad[#1]#2{\bgroup
-  \def~{\string\hashchar\space}%
-  \def\_{\string\underscorechar\space}%
+   \def~{\hashchar}%
+   \def\_{\underscorechar}%
+   \def~{\hashchar}%
+   \def\}{\rbracechar}%
    \edef\tmp{\the\@eadauthor}
    \immediate\write\@auxout{\string\urlauthor
      {#2}{\expandafter\strip@prefix\meaning\tmp}}%
   \egroup
 }
-\def\urlauthor#1#2{\g@addto@macro\@elsuads{\let\corref\@gobble%
-     \raggedright\eadsep\texttt{#1}\space(#2)%
+\gdef\urlauthor#1#2{\g@addto@macro\@elsuads{\let\corref\@gobble%
+     \def\@@tmp{#1}\raggedright\eadsep
+     {\ttfamily\expandafter\strip@prefix\meaning\@@tmp}\space(#2)%
      \def\eadsep{\unskip,\space}}%
 }
 
 \def\elsauthors{}
+\def\useauthors{}
+\def\elsprelimauthors{}
+
 \def\pprinttitle{}
 \let\authorsep\@empty
+\let\prelimauthorsep\@empty
 \let\sep\@empty
 \newcounter{author}
 \def\author{\@ifnextchar[{\@@author}{\@author}}
 
 \newtoks\@eadauthor
-\def\@@author[#1]#2{\g@addto@macro\elsauthors{%
+\def\@@author[#1]#2{%
+    \g@addto@macro\elsprelimauthors{%
+     \prelimauthorsep#2%
+     \def\prelimauthorsep{\unskip,\space}}%
+    \g@addto@macro\elsauthors{%
     \def\baselinestretch{1}%
     \authorsep#2\unskip\textsuperscript{%#1%
       \@for\@@affmark:=#1\do{%
@@ -205,10 +260,15 @@
     \def\authorsep{\unskip,\space}%
     \global\let\sep\@empty\global\let\@corref\@empty
     \global\let\@fnmark\@empty}%
-    \@eadauthor={#2}
+    \@eadauthor={#2}%
+    \g@addto@macro\useauthors{#2; }%
 }
 
-\def\@author#1{\g@addto@macro\elsauthors{\normalsize%
+\def\@author#1{%
+    \g@addto@macro\elsprelimauthors{%
+     \prelimauthorsep#1%
+     \def\prelimauthorsep{\unskip,\space}}%
+    \g@addto@macro\elsauthors{\normalsize%
     \def\baselinestretch{1}%
     \upshape\authorsep#1\unskip\textsuperscript{%
       \ifx\@fnmark\@empty\else\unskip\sep\@fnmark\let\sep=,\fi
@@ -216,14 +276,20 @@
       }%
     \def\authorsep{\unskip,\space}%
     \global\let\@fnmark\@empty
-    \global\let\@corref\@empty
-    \global\let\sep\@empty}%
-    \@eadauthor={#1}
+    \global\let\@corref\@empty    \global\let\sep\@empty}%
+    \@eadauthor={#1}%
+    \g@addto@macro\useauthors{#1; }%
+}
+
+\AtBeginDocument{%
+  \@ifpackageloaded{hyperref}{%
+    \expandafter\gdef\csname Hy@title\endcsname{\useelstitle}%
+    \expandafter\gdef\csname Hy@author\endcsname{\useauthors}%
+   }{}
 }
 
 \def\elsaddress{}
 \def\addsep{\par\vskip6pt}
-\def\address{\@ifnextchar[{\@@address}{\@address}}
 
 \def\@alph#1{%
   \ifcase#1\or a\or b\or c\or d\or e\or f\or g\or h\or i\or j\or k\or
@@ -255,6 +321,320 @@
 \newcounter{affn}
 \renewcommand\theaffn{\alph{affn}}
 
+\ifuseexplthreefunctions\relax%
+  \ExplSyntaxOn
+  \def\ca_affitem_postskip{\mbox{~}\unskip\ignorespaces}
+  %%Author Address
+  \DeclareDocumentCommand \ca_organization { O{,} m }
+    {
+  %    #2 #1\mbox{~}\unskip\ignorespaces
+      \csgappto { ca_affiliation_values } { #2 #1\ca_affitem_postskip }
+    }
+  \DeclareDocumentCommand \ca_postal_code { O{,} m }
+    {
+  %    #2 #1\mbox{~}\unskip\ignorespaces
+      \csgappto { ca_affiliation_values } { #2 #1\ca_affitem_postskip }
+    }
+  \DeclareDocumentCommand \ca_aff_city { O{,}  m }
+    {
+  %    #2 #1\mbox{~}\unskip\ignorespaces
+      \csgappto { ca_affiliation_values } { #2 #1\ca_affitem_postskip }
+    }
+  \DeclareDocumentCommand \ca_address_line { O{,}m }
+    {
+  %    #2 #1\mbox{~}\unskip\ignorespaces
+      \csgappto { ca_affiliation_values } { #2 #1\ca_affitem_postskip }
+    }
+  \DeclareDocumentCommand \ca_state { O{,} m }
+    {
+  %    #2 #1\mbox{~}\unskip\ignorespaces
+      \csgappto { ca_affiliation_values } { #2 #1\ca_affitem_postskip }
+    }
+  \DeclareDocumentCommand \ca_country { O{ } m }
+    {
+  %    #2 #1
+      \csgappto { ca_affiliation_values } { #2 #1 }
+    }
+
+  \DeclareDocumentCommand \ca_stm_organization { O{,} m }
+    {
+      #2 #1\ca_affitem_postskip
+    }
+  \DeclareDocumentCommand \ca_stm_postal_code { O{,} m }
+    {
+      #2 #1\ca_affitem_postskip
+    }
+  \DeclareDocumentCommand \ca_stm_aff_city { O{,}  m }
+    {
+      #2 #1\ca_affitem_postskip
+    }
+  \DeclareDocumentCommand \ca_stm_aff_address_line { O{,}m }
+    {
+      #2 #1\ca_affitem_postskip
+    }
+  \DeclareDocumentCommand \ca_stm_state { O{,} m }
+    {
+      #2 #1\ca_affitem_postskip
+    }
+  \DeclareDocumentCommand \ca_stm_country { O{ } m }
+    {
+      #2 #1
+    }
+
+  \keys_define:nn { stm / affiliation }
+    {
+      op   .tl_set_x:N   = \l_organization_punc_tl,
+      oraganizationsep   .tl_set_x:N   = \l_organization_punc_tl,
+      ap   .tl_set_x:N   = \l_address_line_punc_tl,
+      addresslinesep   .tl_set_x:N   = \l_address_line_punc_tl,
+      cp   .tl_set_x:N   = \l_city_punc_tl,
+      citysep   .tl_set_x:N   = \l_city_punc_tl,
+      pp   .tl_set_x:N   = \l_postal_code_punc_tl,
+      postcodesep   .tl_set_x:N   = \l_postal_code_punc_tl,
+      sp   .tl_set_x:N   = \l_state_punc_tl,
+      statesep   .tl_set_x:N   = \l_state_punc_tl,
+      o    .code:n       = { \ca_organization[\l_organization_punc_tl]{#1} },
+      organization    .code:n       = { \ca_organization[\l_organization_punc_tl]{#1} },
+      a    .code:n       = { \ca_address_line[\l_address_line_punc_tl]{#1} },
+      addressline    .code:n       = { \ca_address_line[\l_address_line_punc_tl]{#1} },
+      c    .code:n       = { \ca_aff_city[\l_city_punc_tl]{#1} },
+      city .code:n       = { \ca_aff_city[\l_city_punc_tl]{#1} },
+      p    .code:n       = { \ca_postal_code[\l_postal_code_punc_tl]{#1} },
+      postcode    .code:n       = { \ca_postal_code[\l_postal_code_punc_tl]{#1} },
+      s    .code:n       = { \ca_state[\l_state_punc_tl]{#1} },
+      state    .code:n       = { \ca_state[\l_state_punc_tl]{#1} },
+      orp  .tl_set_x:N   = \l_organization_punc_tl,
+      adp  .tl_set_x:N   = \l_address_line_punc_tl,
+      cip  .tl_set_x:N   = \l_city_punc_tl,
+      pcp  .tl_set_x:N   = \l_postal_code_punc_tl,
+      stp  .tl_set_x:N   = \l_state_punc_tl,
+      cyp  .tl_set_x:N   = \l_country_punc_tl,
+      or   .code:n       = { \ca_organization[\l_organization_punc_tl]{#1} },
+      ad   .code:n       = { \ca_address_line[\l_address_line_punc_tl]{#1} },
+      ci   .code:n       = { \ca_aff_city[\l_city_punc_tl]{#1} },
+      pc   .code:n       = { \ca_postal_code[\l_postal_code_punc_tl]{#1} },
+      st   .code:n       = { \ca_state[\l_state_punc_tl]{#1} },
+      cy   .code:n       = { \ca_country[\l_country_punc_tl]{#1} },
+      country   .code:n  = { \ca_country[\l_country_punc_tl]{#1} },
+      unknown   .code:n  = {
+                             \ifstrempty { #1 } {
+                                  \csxappto { ca_affiliation_values }
+                                       { {\l_keys_key_tl}~ }
+                                } {
+                                  \csxappto { ca_affiliation_values }
+                                       { {#1}~ }
+                                }
+                           }
+    }
+
+  \cs_set:Npn \__reset_affiliation:
+  {
+    \tl_gset:Nn \l_organization_punc_tl { , }
+    \tl_gset:Nn \l_address_line_punc_tl { , }
+    \tl_gset:Nn \l_city_punc_tl { , }
+    \tl_gset:Nn \l_postal_code_punc_tl { , }
+    \tl_gset:Nn \l_state_punc_tl { , }
+    \tl_gset:Nn \l_country_punc_tl { }
+  }
+
+  \DeclareDocumentCommand\affiliation{ o m }{
+    \__reset_affiliation:
+    \csgdef { ca_affiliation_values } { }
+    \IfNoValueTF { #2 }
+      { }
+      {
+       \keys_set:nn { stm / affiliation } { #2 }
+      }
+     \csgappto{elsaddress}{
+      \def\baselinestretch{1}%
+      \refstepcounter{affn}
+      \xdef\@currentlabel{\theaffn}
+      \IfNoValueTF { #1 }
+        { }
+        { \elsLabel{#1} }
+      \textsuperscript{\theaffn}}
+      \csxappto{elsaddress}{
+        \csuse { ca_affiliation_values }
+        \par
+      }
+  }
+  \ExplSyntaxOff
+  \else%
+  \def\caaffitempostskip{\space}
+
+  \DeclareRobustCommand\caorganization[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\capostalcode[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\caaffcity[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\caaddressline[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\castate[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\cacountry[2][,]{%
+     \g@addto@macro\caaffiliationvalues{#2#1\caaffitempostskip}%
+  }
+  \DeclareRobustCommand\castmorganization[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+  \DeclareRobustCommand\castmpostalcode[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+  \DeclareRobustCommand\castmaffcity[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+  \DeclareRobustCommand\castmaddressline[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+  \DeclareRobustCommand\castmstate[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+  \DeclareRobustCommand\castmcountry[2][,]{%
+     #2#1\caaffitempostskip%
+  }
+
+  \define@key{affiliation}{op}{\xdef\@organizationpunc{#1}}
+  \define@key{affiliation}{orp}{\xdef\@organizationpunc{#1}}
+  \define@key{affiliation}{organizationsep}{\xdef\@organizationpunc{#1}}
+  \define@key{affiliation}{ap}{\xdef\@addresslinepunc{#1}}
+  \define@key{affiliation}{adp}{\xdef\@addresslinepunc{#1}}
+  \define@key{affiliation}{addresslinesep}{\xdef\@addresslinepunc{#1}}
+  \define@key{affiliation}{cp}{\xdef\@citypunc{#1}}
+  \define@key{affiliation}{cip}{\xdef\@citypunc{#1}}
+  \define@key{affiliation}{cyp}{\xdef\@countrypunc{#1}}
+  \define@key{affiliation}{citysep}{\xdef\@citypunc{#1}}
+  \define@key{affiliation}{pp}{\xdef\@postcodepunc{#1}}
+  \define@key{affiliation}{pop}{\xdef\@postcodepunc{#1}}
+  \define@key{affiliation}{postcodesep}{\xdef\@postcodepunc{#1}}
+  \define@key{affiliation}{sp}{\xdef\@statepunc{#1}}
+  \define@key{affiliation}{stp}{\xdef\@statepunc{#1}}
+  \define@key{affiliation}{statesep}{\xdef\@statepunc{#1}}
+  \define@key{affiliation}{countrysep}{\xdef\@countrypunc{#1}}
+
+  \define@key{affiliation}{organization}{%
+   \caorganization[\@organizationpunc]{#1}}
+  \define@key{affiliation}{addressline}{%
+   \caaddressline[\@addresslinepunc]{#1}}
+  \define@key{affiliation}{city}{%
+   \caaffcity[\@citypunc]{#1}}
+  \define@key{affiliation}{postcode}{%
+   \capostalcode[\@postcodepunc]{#1}}
+  \define@key{affiliation}{state}{%
+   \castate[\@statepunc]{#1}}
+  \define@key{affiliation}{or}{%
+   \caorganization[\@organizationpunc]{#1}}
+  \define@key{affiliation}{ad}{%
+   \caaddressline[\@addresslinepunc]{#1}}
+  \define@key{affiliation}{ci}{%
+   \caaffcity[\@citypunc]{#1}}
+  \define@key{affiliation}{po}{%
+   \capostalcode[\@postcodepunc]{#1}}
+  \define@key{affiliation}{st}{%
+   \castate[\@statepunc]{#1}}
+  \define@key{affiliation}{o}{%
+   \caorganization[\@organizationpunc]{#1}}
+  \define@key{affiliation}{a}{%
+   \caaddressline[\@addresslinepunc]{#1}}
+  \define@key{affiliation}{c}{%
+   \cacity[\@citypunc]{#1}}
+  \define@key{affiliation}{p}{%
+   \capostcode[\@postcodepunc]{#1}}
+  \define@key{affiliation}{s}{%
+   \castate[\@statepunc]{#1}}
+  \define@key{affiliation}{cy}{%
+   \cacountry[\@countrypunc]{#1}}
+  \define@key{affiliation}{country}{%
+   \cacountry[\@countrypunc]{#1}}
+
+  \gdef\@resetaffiliation{%
+    \gdef\@organizationpunc{,}%
+    \gdef\@addresslinepunc{,}%
+    \gdef\@citypunc{,}%
+    \gdef\@statepunc{,}%
+    \gdef\@postcodepunc{,}%
+    \gdef\@countrypunc{}%
+  }
+
+  \def\affiliation{\@ifnextchar[{\@@affiliation}{\@affiliation}}
+
+  \newcommand*{\newstmrobustcmd}{}
+  \protected\def\newstmrobustcmd{\@star@or@long\stmetb@new@command}
+
+  \def\stmetb@new@command#1{\@testopt{\stmetb@newcommand#1}0}
+
+  \def\stmetb@newcommand#1[#2]{%
+    \@ifnextchar[%]
+      {\stmetb@xargdef#1[#2]}
+      {\ifx\l@ngrel@x\relax
+         \let\l@ngrel@x\protected
+       \else
+         \protected\def\l@ngrel@x{\protected\long}%
+       \fi
+       \@argdef#1[#2]}}
+
+  \long\def\stmetb@xargdef#1[#2][#3]#4{%
+    \@ifdefinable#1{%
+      \expandafter\protected
+      \expandafter\def
+      \expandafter#1%
+      \expandafter{%
+        \expandafter\@testopt
+        \csname\string#1\endcsname{#3}}%
+      \expandafter\@yargdef\csname\string#1\endcsname\tw@{#2}{#4}}}
+  %
+  \newcommand{\ifstmundef}[1]{%
+    \ifdefined#1%
+      \ifx#1\relax
+        \expandafter\expandafter
+        \expandafter\@firstoftwo
+      \else
+        \expandafter\expandafter
+        \expandafter\@secondoftwo
+      \fi
+    \else
+      \expandafter\@firstoftwo
+    \fi}
+  \newcommand{\stmexpandonce}[1]{%
+    \unexpanded\expandafter{#1}}
+  \newstmrobustcmd{\gstmappto}[2]{%
+    \ifundef{#1}
+      {\xdef#1{\unexpanded{#2}}}
+      {\xdef#1{\stmexpandonce#1\unexpanded{#2}}}}
+  \newstmrobustcmd{\xstmappto}[2]{%
+    \ifstmundef{#1}
+      {\xdef#1{#2}}
+      {\xdef#1{\stmexpandonce#1#2}}}
+
+  \long\def\@@affiliation[#1]#2{%
+      \@resetaffiliation%
+      \gdef\caaffiliationvalues{}%
+      \elsLabel{#1}%
+      \setkeys{affiliation}{#2}%
+      \g@addto@macro\elsaddress{%
+      \def\baselinestretch{1}%
+      \refstepcounter{affn}%
+      \xdef\@currentlabel{\theaffn}%
+      \elsLabel{#1}%
+      \textsuperscript{\theaffn}}
+      \xstmappto\elsaddress{\caaffiliationvalues\par}}
+
+  \long\def\@affiliation#1{%
+      \@resetaffiliation%
+      \gdef\caaffiliationvalues{}%
+      \setkeys{affiliation}{#1}%
+      \g@addto@macro\elsauthors{%
+      \def\baselinestretch{1}}%
+      \xstmappto\elsaddress{\caaffiliationvalues\par}}
+\fi
+
+\def\address{\@ifnextchar[{\@@address}{\@address}}
+
 \long\def\@@address[#1]#2{\g@addto@macro\elsaddress{%
     \def\baselinestretch{1}%
      \refstepcounter{affn}
@@ -268,13 +648,66 @@
     \def\authorsep{\par\vskip8pt}}}
 
 \newbox\absbox
+\let\@elsarticleabstitle\@empty %*%
+\def\abstracttitle#1{\gdef\@elsarticleabstitle{#1}} %*%
+\abstracttitle{Abstract} %*%
 \renewenvironment{abstract}{\global\setbox\absbox=\vbox\bgroup
   \hsize=\textwidth\def\baselinestretch{1}%
-  \noindent\unskip\textbf{Abstract}
+  \noindent\unskip\textbf{\@elsarticleabstitle} %*%
+ \par\medskip\noindent\unskip\ignorespaces}
+ {\egroup}
+
+\newbox\elsarticlehighlightsbox
+\newbox\elsarticlegrabsbox
+\def\@elsarticlehighlightstitle{Highlights}
+\def\@elsarticlegrabstitle{Graphical Abstract}
+\newif\ifelsprelimpagegrabs\global\elsprelimpagegrabsfalse
+\newif\ifelsprelimpagehl\global\elsprelimpagehlfalse
+\def\elsarticleprelims{%
+ \ifelsprelimpagegrabs\relax%
+   \thispagestyle{empty}%
+   \unvbox\elsarticlegrabsbox%
+   \pagebreak\clearpage%
+ \fi%
+ \ifelsprelimpagehl\relax%
+   \thispagestyle{empty}
+   \unvbox\elsarticlehighlightsbox%
+   \pagebreak\clearpage%
+   \setcounter{page}{1}%
+ \fi%
+}
+\newenvironment{highlights}{%
+  \global\elsprelimpagehltrue%
+  \global\setbox\elsarticlehighlightsbox=\vbox\bgroup
+  \hsize=\textwidth\def\baselinestretch{1}%
+  \noindent\unskip{\Large\@elsarticlehighlightstitle}%*%
+  \par\vskip12pt\noindent\unskip\ignorespaces\textbf{\@title}%
+  \ifx\elsprelimauthors\@empty\relax\else%
+    \par\vskip6pt\noindent\unskip\ignorespaces\elsprelimauthors%
+  \fi%
+  \par\medskip\noindent\unskip\ignorespaces
+ \begin{itemize}
+ }
+ {\end{itemize}
+  \egroup}
+\newenvironment{graphicalabstract}{%
+  \global\elsprelimpagegrabstrue%
+  \global\setbox\elsarticlegrabsbox=\vbox\bgroup
+  \hsize=\textwidth\def\baselinestretch{1}%
+  \noindent\unskip{\Large\@elsarticlegrabstitle}%*%
+  \par\vskip12pt\noindent\unskip\ignorespaces\textbf{\@title}%
+  \ifx\elsprelimauthors\@empty\relax\else%
+    \par\vskip6pt\noindent\unskip\ignorespaces\elsprelimauthors%
+  \fi%
  \par\medskip\noindent\unskip\ignorespaces}
  {\egroup}
 
 \newbox\keybox
+\let\@elsarticlekwdtitle\@empty %*%
+\def\keywordtitle#1{\gdef\@elsarticlekwdtitle{#1}} %*%
+\def\keywordtitlesep#1{\gdef\@elsarticlekeywordtitlesep{#1}} %*%
+\keywordtitle{Keywords} %*%
+\keywordtitlesep{:\ }
 \def\keyword{%
   \def\sep{\unskip, }%
  \def\MSC{\@ifnextchar[{\@MSC}{\@MSC[2000]}}
@@ -284,7 +717,7 @@
   \global\setbox\keybox=\vbox\bgroup\hsize=\textwidth
   \normalsize\normalfont\def\baselinestretch{1}
   \parskip\z@
-  \noindent\textit{Keywords: }
+  \noindent\textit{\@elsarticlekwdtitle\@elsarticlekeywordtitlesep}
   \raggedright                         % Keywords are not justified.
   \ignorespaces}
 \def\endkeyword{\par \egroup}
@@ -294,7 +727,10 @@
 
 \def\printFirstPageNotes{%
   \iflongmktitle
-   \let\columnwidth=\textwidth\fi
+    \let\columnwidth=\textwidth
+  \fi
+\ifdoubleblind
+\else
   \ifx\@tnotes\@empty\else\@tnotes\fi
   \ifx\@nonumnotes\@empty\else\@nonumnotes\fi
   \ifx\@cornotes\@empty\else\@cornotes\fi
@@ -308,28 +744,49 @@
    \let\thefootnote\relax
    \footnotetext{\textit{URL:\space}%
      \@elsuads}\fi
+\fi
   \ifx\@fnotes\@empty\else\@fnotes\fi
   \iflongmktitle\if@twocolumn
    \let\columnwidth=\Columnwidth\fi\fi
 }
+
+%% Pushing text to begin on newpage %*%
+\def\newpage@after@title{title}
+\def\newpage@after@author{author}
+\def\newpage@after@abstract{abstract}
+\def\newpageafter#1%
+    {\gdef\@elsarticlenewpageafter{#1}}
 
 \long\def\pprintMaketitle{\clearpage
   \iflongmktitle\if@twocolumn\let\columnwidth=\textwidth\fi\fi
   \resetTitleCounters
   \def\baselinestretch{1}%
   \printFirstPageNotes
-  \begin{center}%
+  \begin{\elsarticletitlealign}%
  \thispagestyle{pprintTitle}%
    \def\baselinestretch{1}%
-    \Large\@title\par\vskip18pt
-    \normalsize\elsauthors\par\vskip10pt
-    \footnotesize\itshape\elsaddress\par\vskip36pt
+    \Large\@title\par\vskip18pt%
+    \ifx\@elsarticlenewpageafter\newpage@after@title% %*%
+      \newpage
+    \fi%
+    \ifdoubleblind
+      \vspace*{2pc}
+    \else
+      \normalsize\elsauthors\par\vskip10pt
+      \footnotesize\itshape\elsaddress\par\vskip36pt
+    \fi
+    \ifx\@elsarticlenewpageafter\newpage@after@author% %*%
+      \newpage
+    \fi%
     \hrule\vskip12pt
     \ifvoid\absbox\else\unvbox\absbox\par\vskip10pt\fi
     \ifvoid\keybox\else\unvbox\keybox\par\vskip10pt\fi
     \hrule\vskip12pt
-    \end{center}%
-  \gdef\thefootnote{\arabic{footnote}}%
+    \ifx\@elsarticlenewpageafter\newpage@after@abstract% %*%
+      \newpage
+    \fi%
+    \end{\elsarticletitlealign}%
+    \gdef\thefootnote{\arabic{footnote}}%
   }
 
 \def\printWarning{%
@@ -352,17 +809,21 @@
 \long\def\MaketitleBox{%
   \resetTitleCounters
   \def\baselinestretch{1}%
-  \begin{center}%
+  \begin{\elsarticletitlealign}%
    \def\baselinestretch{1}%
     \Large\@title\par\vskip18pt
+  \ifdoubleblind
+    \vspace*{2pc}
+  \else
     \normalsize\elsauthors\par\vskip10pt
     \footnotesize\itshape\elsaddress\par\vskip36pt
+  \fi
     \hrule\vskip12pt
     \ifvoid\absbox\else\unvbox\absbox\par\vskip10pt\fi
     \ifvoid\keybox\else\unvbox\keybox\par\vskip10pt\fi
     \hrule\vskip12pt
-    \end{center}%
-  }
+    \end{\elsarticletitlealign}%
+}
 
 \def\FNtext#1{\par\bgroup\footnotesize#1\egroup}
 \newdimen\space@left
@@ -370,6 +831,39 @@
              \typeout{#1}%
              \typeout{******************************}%
 }
+
+\def\titlespancalculator#1#2#3#4{%
+  % break count
+  \@tempcnta=#4\relax%
+  % pagebreakcount increment
+  \advance\@tempcnta by 1\relax%
+  % title page height
+  \@tempdima=#1\relax%
+  % Page height - title page notes height (only for first break)
+  % Page height - textheight (for remaining breaks)
+  % Page height - title page notes height
+  \@tempdimb=#2\relax%
+  % Remaining title page height
+  \advance\@tempdima -\the\@tempdimb%
+  % Checks if remaining title page
+  % height less than textheight
+  \ifdim\the\@tempdima>#3\relax%
+     \titlespancalculator%
+      {\the\@tempdima}{#3}{#3}{\the\@tempcnta}%Break again
+  \else%
+  % Save break count and exit.
+     \xdef\savetitlepagespan{\the\@tempcnta}%
+  \fi%
+}%
+
+\long\def\myfor#1#2#3{%
+  \@tempcnta=#1\relax%
+  \ifnum#1<#2\relax%
+    \advance\@tempcnta by 1\relax%
+    #3%
+    \myfor{\the\@tempcnta}{#2}{#3}%
+  \fi}
+
 \long\def\getSpaceLeft{%\global\@twocolumnfalse%
    \global\setbox0=\vbox{\hsize=\textwidth\MaketitleBox}%
    \global\setbox1=\vbox{\hsize=\textwidth
@@ -380,6 +874,9 @@
     \@tempdima=\vsize
     \advance\@tempdima-\noteheight
     \advance\@tempdima-1\baselineskip
+    \xdef\savefpageheight{\the\@tempdima}%
+    \setbox2=\vbox{\titlespancalculator{\titleheight}%
+       {\savefpageheight}{\textheight}{0}}%
 }
 
   \skip\footins=24pt
@@ -388,15 +885,25 @@
 \newbox\els@boxb
 
 \ifpreprint
-  \def\maketitle{\pprintMaketitle}
+  \def\maketitle{\elsarticleprelims\pprintMaketitle}
   \else
    \ifnum\jtype=1
     \def\maketitle{%
+      \elsarticleprelims%
       \iflongmktitle\getSpaceLeft
+        \ifdim\noteheight>0pt%
+    \advance\@tempdima-1.35\baselineskip
+        \fi%
        \global\setbox\els@boxa=\vsplit0 to \@tempdima
        \box\els@boxa\par\resetTitleCounters
        \thispagestyle{pprintTitle}%
        \printFirstPageNotes
+       \ifnum\savetitlepagespan>1\relax%
+       \myfor{2}{\savetitlepagespan}{%
+       \global\setbox\els@boxb=\vsplit0 to \textheight%\@tempdima
+       \box\els@boxb}
+       \else%
+       \fi%
        \box0%
       \else
        \finalMaketitle\printFirstPageNotes
@@ -405,11 +912,21 @@
   \else
  \ifnum\jtype=5
     \def\maketitle{%
+      \elsarticleprelims%
       \iflongmktitle\getSpaceLeft
+        \ifdim\noteheight>0pt%
+    \advance\@tempdima-1.35\baselineskip
+        \fi%
        \global\setbox\els@boxa=\vsplit0 to \@tempdima
        \box\els@boxa\par\resetTitleCounters
        \thispagestyle{pprintTitle}%
        \printFirstPageNotes
+       \ifnum\savetitlepagespan>1\relax%
+       \myfor{2}{\savetitlepagespan}{%
+       \global\setbox\els@boxb=\vsplit0 to \textheight%\@tempdima
+       \twocolumn[\box\els@boxb]}
+       \else%
+       \fi%
        \twocolumn[\box0]%\printFirstPageNotes
       \else
        \twocolumn[\finalMaketitle]\printFirstPageNotes
@@ -418,11 +935,21 @@
   \else
   \if@twocolumn
     \def\maketitle{%
-      \iflongmktitle\getSpaceLeft
+        \elsarticleprelims%
+        \iflongmktitle\getSpaceLeft
+          \ifdim\noteheight>0pt%
+    \advance\@tempdima-1.35\baselineskip
+        \fi%
        \global\setbox\els@boxa=\vsplit0 to \@tempdima
        \box\els@boxa\par\resetTitleCounters
        \thispagestyle{pprintTitle}%
        \printFirstPageNotes
+       \ifnum\savetitlepagespan>1\relax%
+       \myfor{2}{\savetitlepagespan}{%
+       \global\setbox\els@boxb=\vsplit0 to \textheight%\@tempdima
+       \twocolumn[\box\els@boxb]}
+       \else%
+       \fi%
        \twocolumn[\box0]%
       \else
        \twocolumn[\finalMaketitle]\printFirstPageNotes
@@ -430,13 +957,24 @@
      \gdef\thefootnote{\arabic{footnote}}}%
    \else
     \def\maketitle{%
+      \elsarticleprelims%
       \iflongmktitle\getSpaceLeft
+        \ifdim\noteheight>0pt%
+    \advance\@tempdima-1.35\baselineskip
+        \fi%
        \global\setbox\els@boxa=\vsplit0 to \@tempdima
        \box\els@boxa\par\resetTitleCounters
        \thispagestyle{pprintTitle}%
        \printFirstPageNotes
+       \ifnum\savetitlepagespan>1\relax%
+       \myfor{2}{\savetitlepagespan}{%
+       \global\setbox\els@boxb=\vsplit0 to \textheight%\@tempdima
+       \box\els@boxb}
+       \else%
+       \fi%
        \box0%
      \else
+       \elsarticleprelims%
        \finalMaketitle\printFirstPageNotes
       \fi
     \gdef\thefootnote{\arabic{footnote}}}%
@@ -444,12 +982,43 @@
   \fi
  \fi
 \fi
+
+\let\@elsarticlemyfooter\@empty
+\let\@elsarticlemyfooteralign\@empty
+\def\@elsarticlemyfooteralignleft{L}
+\def\@elsarticlemyfooteralignright{R}
+\def\@elsarticlemyfooteraligncenter{C}
+
+\def\myfooter[#1]#2 %*%
+      {\gdef\@elsarticlemyfooteralign{#1}
+       \gdef\@elsarticlemyfooter{#2}}
+
+\def\myfooterfont#1{\gdef\@myfooterfont{#1}}
+\myfooterfont{\footnotesize\itshape}
 \def\ps@pprintTitle{%
      \let\@oddhead\@empty
      \let\@evenhead\@empty
-     \def\@oddfoot{\footnotesize\itshape
-       \ifx\@journal\@empty %Elsevier
-       \else\@journal\fi\hfill}%\today
+     \def\@oddfoot
+       {\hbox to \textwidth%
+        {\ifnopreprintline\relax\else
+        \@myfooterfont%
+         \ifx\@elsarticlemyfooteralign\@elsarticlemyfooteraligncenter%
+           \hfil\@elsarticlemyfooter\hfil%
+         \else%
+         \ifx\@elsarticlemyfooteralign\@elsarticlemyfooteralignleft%
+           \@elsarticlemyfooter\hfill{}%
+         \else%
+         \ifx\@elsarticlemyfooteralign\@elsarticlemyfooteralignright%
+           {}\hfill\@elsarticlemyfooter%
+         \else%
+               Preprint submitted to \ifx\@journal\@empty%
+                 Elsevier%
+            \else\@journal\fi\hfill\@date\fi%
+         \fi%
+         \fi%
+         \fi%
+         }
+       }%
      \let\@evenfoot\@oddfoot}
 \def\@seccntDot{.}
 \def\@seccntformat#1{\csname the#1\endcsname\@seccntDot\hskip 0.5em}
@@ -640,8 +1209,9 @@
 
 \@ifundefined{@biboptions}{\xdef\@biboptions{numbers}}{}
 \InputIfFileExists{\jobname.spl}{}{}
-\RequirePackage[\@biboptions]{natbib}
-
+\ifnonatbib\relax\else
+  \RequirePackage[\@biboptions]{natbib}
+\fi
 \newwrite\splwrite
 \immediate\openout\splwrite=\jobname.spl
 \def\biboptions#1{\def\next{#1}\immediate\write\splwrite{%
@@ -649,7 +1219,6 @@
     ,\expandafter\strip@prefix\meaning\next}}}
 
 \let\baselinestretch=\@blstr
-
 \ifnum\jtype=1
  \RequirePackage{geometry}
  \geometry{twoside,
@@ -781,29 +1350,30 @@
 }}}
 %%
 %% Added for avoiding clash with cleveref.sty
-
 \@ifpackageloaded{cleveref}%
  {}
  {\def\tnotetext[#1]#2{\g@addto@macro\@tnotes{%
     \refstepcounter{tnote}%
     \immediate\write\@auxout{\string\Newlabel{#1}{\thetnote}}
-    \def\thefootnote{\ifcase\c@tnote\or\ding{73}\or\ding{73}\ding{73}\fi}%
+    \def\thefootnote{\ifcase\c@tnote\or$\star$\or$\star\star$\fi}%
     \footnotetext{#2}}}
 %%%
   \def\fntext[#1]#2{\g@addto@macro\@fnotes{%
     \refstepcounter{fnote}%
     \immediate\write\@auxout{\string\Newlabel{#1}{\thefnote}}
     \def\thefootnote{\thefnote}%
-    \global\setcounter{footnote}{\thefnote}%
+    \global\setcounter{footnote}{\c@fnote}%
     \footnotetext{#2}}}
 %%%
   \def\cortext[#1]#2{\g@addto@macro\@cornotes{%
     \refstepcounter{cnote}%
     \immediate\write\@auxout{\string\Newlabel{#1}{\thecnote}}
-    \def\thefootnote{\ifcase\thecnote\or$\ast$\or
+    \def\thefootnote{\ifcase\c@cnote\or$\ast$\or
     $\ast\ast$\fi}%
     \footnotetext{#2}}}
 }
+
+\def\textmarker#1#2{\textcolor{#1}{#2}}%*%
 \endinput
 %%
 %% End of file `elsarticle.cls'.

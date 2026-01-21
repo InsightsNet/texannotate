@@ -2,6 +2,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% AASTeX61.cls                                  %%
 %% October 5, 2016                               %%
+%% December 28, 2016 (bug fix on .bib file)      %%
 %% Copyright 2016 American Astronomical Society  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5419,8 +5420,6 @@ by 1\relax}\ignorespaces}%
 
 \newcommand*\submitjournal[1]
 {\def\@submitted{Submitted to #1}}%
-\newcommand*\tosubmitjournal[1]
-{\def\@submitted{To be submitted to #1}}%
 
 %% this one is used
 \def\titleblock@produce{%
@@ -6030,7 +6029,7 @@ needed. It will not do anything.^^J Please use
 \newcount\AuthorCollaborationLimit
 \let\AuthorCallLimit\AuthorCollaborationLimit
 %% no limit for default
-\AuthorCollaborationLimit=1000
+\AuthorCollaborationLimit=100
 \newcount\largestAffilNum
 
 \def\lookfornumbers#1#2#3#4#5#6#7#8#9{\def\one{#1}
@@ -6238,8 +6237,8 @@ needed. It will not do anything.^^J Please use
 \ifnumlines\nolinenumbers\fi
 \onecolumngrid
 \clearpage
-\AuthorCollaborationLimit=1000
-\largestAffilNum=1000
+\AuthorCollaborationLimit=100
+\largestAffilNum=100
 {\vskip6pt\vskip1sp\centerline{\large\bf All Authors and
 Affiliations\vrule depth 18pt width0pt}\nobreak
 \maketitle
@@ -6320,7 +6319,11 @@ width 0pt\relax\fi}}}
 }%
 
 
-%% get rid of \jobname Notes being sent to .aux file:
+%%% These lines were commented out until a fix could be applied that
+%%% addresses the underlying issues. The problme is that on Linux systems
+%%% you can not write a "hidden" .bib file. There is no issue with this
+%%% on Mac OS X nor Windows.
+%%% get rid of \jobname Notes being sent to .aux file:
 %\let\bibdata@app\relax
 %\def\pre@bibdata{}
 

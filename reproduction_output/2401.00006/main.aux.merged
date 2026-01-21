@@ -1,0 +1,984 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\providecommand\lpsb@tag@data[4]{}
+\providecommand\lpsb@tag@atom[5]{}
+\providecommand\lpsb@tag@end[2]{}
+\providecommand\lpsb@mcid@cont[3]{}
+\providecommand\lpsb@summary[3]{}
+\providecommand\lpsb@meta[2]{}
+\providecommand\lpsb@refkey[2]{}
+\providecommand\lpsb@pass@float[4]{}
+\providecommand\lpsb@pass@pagebreak[2]{}
+\providecommand\lpsb@pass@elempage[3]{}
+\providecommand\lpsb@pass@section[4]{}
+\providecommand\lpsb@layout[1]{}
+\providecommand\lpsb@layout@switch[2]{}
+\lpsb@layout{twocolumn}
+\lpsb@tag@data{1}{P}{1}{1}
+\lpsb@tag@end{1}{1}
+\lpsb@tag@data{2}{Title}{2}{1}
+\lpsb@tag@end{2}{1}
+\lpsb@tag@data{3}{P}{3}{1}
+\lpsb@tag@end{3}{1}
+\lpsb@tag@data{4}{Author}{4}{1}
+\lpsb@tag@end{4}{1}
+\lpsb@tag@data{5}{P}{5}{1}
+\lpsb@tag@end{5}{1}
+\lpsb@tag@data{6}{Author}{6}{1}
+\lpsb@tag@end{6}{1}
+\lpsb@tag@data{7}{P}{7}{1}
+\lpsb@tag@end{7}{1}
+\lpsb@tag@data{8}{Author}{8}{1}
+\lpsb@tag@end{8}{1}
+\lpsb@tag@data{9}{P}{9}{1}
+\lpsb@tag@end{9}{1}
+\lpsb@tag@data{10}{Author}{10}{1}
+\lpsb@tag@end{10}{1}
+\lpsb@tag@data{11}{P}{11}{1}
+\lpsb@tag@end{11}{1}
+\lpsb@tag@data{12}{Author}{12}{1}
+\lpsb@tag@end{12}{1}
+\lpsb@tag@data{13}{P}{13}{1}
+\lpsb@tag@end{13}{1}
+\lpsb@tag@data{14}{Author}{14}{1}
+\lpsb@tag@end{14}{1}
+\lpsb@tag@data{15}{P}{15}{1}
+\lpsb@tag@end{15}{1}
+\lpsb@tag@data{16}{Author}{16}{1}
+\lpsb@tag@end{16}{1}
+\lpsb@tag@data{17}{P}{17}{1}
+\lpsb@tag@end{17}{1}
+\lpsb@tag@data{18}{Author}{18}{1}
+\lpsb@tag@end{18}{1}
+\lpsb@tag@data{19}{P}{19}{1}
+\lpsb@tag@end{19}{1}
+\lpsb@tag@data{20}{Author}{20}{1}
+\lpsb@tag@end{20}{1}
+\lpsb@tag@data{21}{P}{21}{1}
+\lpsb@tag@atom{22}{Note}{22}{1}{21}
+\lpsb@tag@end{21}{1}
+\lpsb@tag@data{23}{Note}{23}{1}
+\lpsb@tag@end{23}{1}
+\lpsb@tag@data{24}{P}{24}{1}
+\lpsb@mcid@cont{21}{25}{1}
+\lpsb@tag@end{24}{1}
+\lpsb@tag@data{25}{H1}{26}{1}
+\lpsb@tag@end{25}{1}
+\lpsb@tag@data{26}{P}{27}{1}
+\lpsb@tag@end{26}{1}
+\lpsb@tag@data{28}{P}{29}{1}
+\lpsb@tag@end{28}{1}
+\lpsb@tag@data{29}{H1}{30}{1}
+\lpsb@tag@atom{30}{Reference}{31}{1}{29}
+\lpsb@refkey{30}{}
+\citation{khandelwal2022simple,huang2023voxposer}
+\lpsb@mcid@cont{21}{32}{1}
+\lpsb@tag@atom{31}{Reference}{33}{1}{29}
+\lpsb@refkey{31}{}
+\citation{wang2023voyager,ouyang2022training}
+\lpsb@mcid@cont{21}{34}{1}
+\lpsb@tag@atom{32}{Reference}{35}{1}{29}
+\lpsb@refkey{32}{}
+\citation{team2021open,balduzzi2019open}
+\lpsb@mcid@cont{21}{36}{1}
+\lpsb@tag@end{29}{1}
+\lpsb@tag@data{33}{P}{37}{1}
+\lpsb@tag@atom{34}{Reference}{38}{1}{33}
+\lpsb@refkey{34}{}
+\citation{wang2023voyager}
+\lpsb@mcid@cont{21}{39}{1}
+\lpsb@tag@atom{35}{Reference}{40}{1}{33}
+\lpsb@refkey{35}{}
+\citation{team2021open}
+\lpsb@mcid@cont{21}{41}{1}
+\lpsb@tag@atom{36}{Reference}{42}{1}{33}
+\lpsb@refkey{36}{}
+\citation{liu2022goal}
+\lpsb@mcid@cont{21}{43}{1}
+\lpsb@tag@end{33}{1}
+\lpsb@tag@data{37}{Figure}{44}{1}
+\lpsb@tag@atom{38}{Caption}{45}{1}{37}
+\lpsb@mcid@cont{37}{46}{1}
+\lpsb@tag@end{37}{1}
+\lpsb@tag@data{39}{P}{47}{1}
+\lpsb@tag@atom{40}{Reference}{48}{1}{39}
+\lpsb@refkey{40}{}
+\citation{hu2023enabling,du2023guiding}
+\lpsb@mcid@cont{37}{49}{1}
+\lpsb@tag@atom{41}{Reference}{50}{1}{39}
+\lpsb@refkey{41}{}
+\citation{wang2023voyager,wang2023describe}
+\lpsb@mcid@cont{37}{51}{1}
+\lpsb@tag@atom{42}{Reference}{52}{1}{39}
+\lpsb@refkey{42}{}
+\citation{du2022glm}
+\lpsb@mcid@cont{37}{53}{1}
+\lpsb@tag@end{39}{1}
+\lpsb@tag@data{43}{H1}{54}{1}
+\lpsb@mcid@cont{43}{55}{2}
+\lpsb@tag@end{43}{2}
+\lpsb@tag@data{44}{P}{56}{2}
+\lpsb@tag@end{44}{2}
+\lpsb@tag@data{45}{H4}{57}{2}
+\lpsb@tag@end{45}{2}
+\lpsb@tag@data{46}{P}{58}{2}
+\lpsb@tag@atom{47}{Reference}{59}{2}{46}
+\lpsb@refkey{47}{}
+\citation{liu2022goal}
+\lpsb@mcid@cont{37}{60}{2}
+\lpsb@tag@end{46}{2}
+\lpsb@tag@data{48}{Formula}{61}{2}
+\lpsb@tag@end{48}{2}
+\lpsb@tag@atom{49}{Reference}{62}{2}{}
+\lpsb@refkey{49}{}
+\citation{weng2020curriculum}
+\lpsb@tag@data{50}{P}{63}{2}
+\lpsb@tag@atom{51}{Reference}{64}{2}{50}
+\lpsb@refkey{51}{}
+\citation{andrychowicz2017hindsight,fang2019curriculum,zheng2022online,schaul2015prioritized}
+\lpsb@mcid@cont{37}{65}{2}
+\lpsb@tag@atom{52}{Reference}{66}{2}{50}
+\lpsb@refkey{52}{}
+\citation{ng1999policy,ecoffet2021first,ding2023magnetic,trott2019keeping}
+\lpsb@mcid@cont{37}{67}{2}
+\lpsb@tag@end{50}{2}
+\lpsb@tag@data{53}{H4}{68}{2}
+\lpsb@tag@end{53}{2}
+\lpsb@tag@data{54}{P}{69}{2}
+\lpsb@tag@atom{55}{Reference}{70}{2}{54}
+\lpsb@refkey{55}{}
+\citation{brown2020language,openai2023gpt4}
+\lpsb@mcid@cont{37}{71}{2}
+\lpsb@tag@atom{56}{Reference}{72}{2}{54}
+\lpsb@refkey{56}{}
+\citation{jiang2023vima,hermann2017grounded}
+\lpsb@mcid@cont{37}{73}{2}
+\lpsb@tag@atom{57}{Reference}{74}{2}{54}
+\lpsb@refkey{57}{}
+\citation{brohan2022rt,zitkovich2023rt,nakano2021webgpt}
+\lpsb@mcid@cont{37}{75}{2}
+\lpsb@tag@atom{58}{Reference}{76}{2}{54}
+\lpsb@refkey{58}{}
+\citation{wang2023describe,wang2023voyager}
+\lpsb@mcid@cont{37}{77}{2}
+\lpsb@tag@end{54}{2}
+\lpsb@tag@data{59}{H1}{78}{2}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:co_training}{{1}{2}{Overview of co-training in \framework {}. The Policy and LLM is pre-trained with multi-step fine-tuning and goal-conditioned RL, respectively. Then, the co-training aligns them towards achieving instruction open-endedness}{figure.caption.1}{}}
+\newlabel{fig:co_training@cref}{{[figure][1][]1}{[1][1][]2}}
+\newlabel{sec:goal_conditioned_rl}{{2}{2}{}{section.2}{}}
+\newlabel{sec:goal_conditioned_rl@cref}{{[section][2][]2}{[1][2][]2}}
+\newlabel{eq:goal_reward}{{1}{2}{}{equation.2.1}{}}
+\newlabel{eq:goal_reward@cref}{{[equation][1][]1}{[1][2][]2}}
+\lpsb@tag@end{59}{3}
+\lpsb@tag@atom{60}{Reference}{79}{3}{}
+\lpsb@refkey{60}{}
+\citation{gautam2021battle}
+\lpsb@tag@data{61}{P}{80}{3}
+\lpsb@tag@end{61}{3}
+\lpsb@tag@data{62}{H1}{81}{3}
+\lpsb@tag@end{62}{3}
+\lpsb@tag@atom{63}{Reference}{82}{3}{}
+\lpsb@refkey{63}{}
+\citation{vinyals2019grandmaster}
+\lpsb@tag@data{64}{P}{83}{3}
+\lpsb@tag@atom{65}{Em}{84}{3}{64}
+\lpsb@mcid@cont{64}{85}{3}
+\lpsb@tag@atom{66}{Em}{86}{3}{64}
+\lpsb@mcid@cont{64}{87}{3}
+\lpsb@tag@atom{67}{Em}{88}{3}{64}
+\lpsb@mcid@cont{64}{89}{3}
+\lpsb@tag@atom{68}{Em}{90}{3}{64}
+\lpsb@mcid@cont{64}{91}{3}
+\lpsb@tag@atom{69}{Reference}{92}{3}{64}
+\lpsb@refkey{69}{}
+\citation{openai2019dota}
+\lpsb@mcid@cont{64}{93}{3}
+\lpsb@tag@end{64}{3}
+\lpsb@tag@data{70}{H2}{94}{3}
+\lpsb@tag@end{70}{3}
+\lpsb@tag@atom{71}{Reference}{95}{3}{}
+\lpsb@refkey{71}{}
+\citation{schulman2017proximal}
+\lpsb@tag@data{72}{P}{96}{3}
+\lpsb@tag@end{72}{3}
+\lpsb@tag@data{73}{Formula}{97}{3}
+\lpsb@tag@end{73}{3}
+\lpsb@tag@data{74}{H2}{98}{3}
+\lpsb@tag@end{74}{3}
+\lpsb@tag@atom{75}{Strong}{99}{3}{}
+\lpsb@tag@atom{76}{Strong}{100}{3}{}
+\lpsb@tag@atom{77}{Strong}{101}{3}{}
+\newlabel{sec:mastering_novel_skills}{{4.1}{3}{}{subsection.4.1}{}}
+\newlabel{sec:mastering_novel_skills@cref}{{[subsection][1][4]4.1}{[1][3][]3}}
+\newlabel{eq:non_goal_reward_function}{{2}{3}{}{equation.4.2}{}}
+\newlabel{eq:non_goal_reward_function@cref}{{[equation][2][]2}{[1][3][]3}}
+\newlabel{sec:stage_cgrl}{{4.2}{3}{}{subsection.4.2}{}}
+\newlabel{sec:stage_cgrl@cref}{{[subsection][2][4]4.2}{[1][3][]3}}
+\lpsb@tag@data{78}{H4}{102}{4}
+\lpsb@tag@end{78}{4}
+\lpsb@tag@atom{79}{Reference}{103}{4}{}
+\lpsb@refkey{79}{}
+\citation{andrychowicz2017hindsight,ren2019exploration}
+\lpsb@tag@data{80}{P}{104}{4}
+\lpsb@tag@atom{81}{Reference}{105}{4}{80}
+\lpsb@refkey{81}{}
+\citation{bai2019guided}
+\lpsb@mcid@cont{}{106}{4}
+\lpsb@tag@end{80}{4}
+\lpsb@tag@data{82}{Formula}{107}{4}
+\lpsb@tag@end{82}{4}
+\lpsb@tag@data{83}{H4}{108}{4}
+\lpsb@tag@end{83}{4}
+\lpsb@tag@data{84}{Formula}{109}{4}
+\lpsb@tag@end{84}{4}
+\lpsb@tag@data{85}{Formula}{110}{4}
+\lpsb@tag@end{85}{4}
+\lpsb@tag@data{86}{H4}{111}{4}
+\lpsb@tag@end{86}{4}
+\lpsb@tag@data{87}{Formula}{112}{4}
+\lpsb@tag@end{87}{4}
+\lpsb@tag@data{88}{H2}{113}{4}
+\lpsb@tag@end{88}{4}
+\newlabel{eq:goal_reward}{{4}{4}{}{equation.4.4}{}}
+\newlabel{eq:goal_reward@cref}{{[equation][4][]4}{[1][4][]4}}
+\newlabel{eq:goal_learning_reward}{{5}{4}{}{equation.4.5}{}}
+\newlabel{eq:goal_learning_reward@cref}{{[equation][5][]5}{[1][4][]4}}
+\newlabel{eq:kl_policy}{{6}{4}{}{equation.4.6}{}}
+\newlabel{eq:kl_policy@cref}{{[equation][6][]6}{[1][4][]4}}
+\lpsb@tag@data{89}{H4}{114}{5}
+\lpsb@tag@end{89}{5}
+\lpsb@tag@atom{90}{Reference}{115}{5}{}
+\lpsb@refkey{90}{}
+\citation{openai2023gpt4}
+\lpsb@tag@data{91}{P}{116}{5}
+\lpsb@tag@atom{92}{Reference}{117}{5}{91}
+\lpsb@refkey{92}{}
+\citation{wei2023chainofthought}
+\lpsb@mcid@cont{}{118}{5}
+\lpsb@tag@atom{93}{Strong}{119}{5}{91}
+\lpsb@mcid@cont{91}{120}{5}
+\lpsb@tag@atom{94}{Strong}{121}{5}{91}
+\lpsb@mcid@cont{91}{122}{5}
+\lpsb@tag@atom{95}{Strong}{123}{5}{91}
+\lpsb@mcid@cont{91}{124}{5}
+\lpsb@tag@atom{96}{Strong}{125}{5}{91}
+\lpsb@mcid@cont{91}{126}{5}
+\lpsb@tag@end{91}{5}
+\lpsb@tag@data{97}{H4}{127}{5}
+\lpsb@tag@end{97}{5}
+\lpsb@tag@atom{98}{Reference}{128}{5}{}
+\lpsb@refkey{98}{}
+\citation{hu2021lora}
+\lpsb@tag@data{99}{P}{129}{5}
+\lpsb@tag@atom{100}{Strong}{130}{5}{99}
+\lpsb@mcid@cont{99}{131}{5}
+\lpsb@tag@atom{101}{Strong}{132}{5}{99}
+\lpsb@mcid@cont{99}{133}{5}
+\lpsb@tag@atom{102}{Strong}{134}{5}{99}
+\lpsb@mcid@cont{99}{135}{5}
+\lpsb@tag@end{99}{5}
+\lpsb@tag@data{103}{H2}{136}{5}
+\lpsb@tag@end{103}{5}
+\lpsb@tag@data{104}{Formula}{137}{5}
+\lpsb@tag@end{104}{5}
+\lpsb@tag@atom{105}{Reference}{138}{5}{}
+\lpsb@refkey{105}{}
+\citation{vezhnevets2017feudal}
+\lpsb@tag@data{106}{P}{139}{5}
+\lpsb@tag@atom{107}{Reference}{140}{5}{106}
+\lpsb@refkey{107}{}
+\citation{hu2021lora}
+\lpsb@mcid@cont{99}{141}{5}
+\lpsb@tag@end{106}{5}
+\lpsb@tag@data{108}{Figure}{142}{5}
+\lpsb@tag@atom{109}{Caption}{143}{5}{108}
+\lpsb@mcid@cont{108}{144}{5}
+\lpsb@tag@end{108}{5}
+\lpsb@tag@data{110}{LI}{145}{5}
+\lpsb@tag@end{110}{5}
+\lpsb@tag@data{111}{LI}{146}{5}
+\lpsb@tag@end{111}{5}
+\lpsb@tag@data{112}{LI}{147}{5}
+\lpsb@tag@end{112}{5}
+\lpsb@tag@data{113}{LI}{148}{5}
+\lpsb@tag@end{113}{5}
+\lpsb@tag@data{114}{LI}{149}{5}
+\lpsb@tag@end{114}{5}
+\lpsb@tag@data{115}{LI}{150}{5}
+\lpsb@tag@end{115}{5}
+\lpsb@tag@data{116}{LI}{151}{5}
+\lpsb@tag@end{116}{5}
+\lpsb@tag@data{117}{LI}{152}{5}
+\lpsb@tag@end{117}{5}
+\lpsb@tag@data{118}{LI}{153}{5}
+\lpsb@tag@end{118}{5}
+\lpsb@tag@data{119}{LI}{154}{5}
+\lpsb@tag@end{119}{5}
+\lpsb@tag@data{120}{LI}{155}{5}
+\lpsb@tag@end{120}{5}
+\lpsb@tag@data{121}{LI}{156}{5}
+\lpsb@tag@end{121}{5}
+\lpsb@tag@data{122}{LI}{157}{5}
+\lpsb@tag@end{122}{5}
+\lpsb@tag@data{123}{LI}{158}{5}
+\lpsb@tag@end{123}{5}
+\lpsb@tag@data{124}{LI}{159}{5}
+\lpsb@tag@end{124}{5}
+\lpsb@tag@data{125}{H1}{160}{5}
+\newlabel{sec:pretrain_llm}{{4.3}{5}{}{subsection.4.3}{}}
+\newlabel{sec:pretrain_llm@cref}{{[subsection][3][4]4.3}{[1][4][]5}}
+\newlabel{sec:co_training}{{4.4}{5}{}{subsection.4.4}{}}
+\newlabel{sec:co_training@cref}{{[subsection][4][4]4.4}{[1][5][]5}}
+\newlabel{eq:co_training_objective}{{7}{5}{}{equation.4.7}{}}
+\newlabel{eq:co_training_objective@cref}{{[equation][7][]7}{[1][5][]5}}
+\lpsb@tag@end{125}{6}
+\lpsb@tag@data{126}{H4}{161}{6}
+\lpsb@tag@end{126}{6}
+\lpsb@tag@data{127}{H4}{162}{6}
+\lpsb@tag@end{127}{6}
+\lpsb@tag@data{128}{H4}{163}{6}
+\lpsb@tag@end{128}{6}
+\lpsb@tag@data{129}{H2}{164}{6}
+\lpsb@tag@end{129}{6}
+\lpsb@tag@data{130}{Figure}{165}{6}
+\lpsb@tag@atom{131}{Caption}{166}{6}{130}
+\lpsb@mcid@cont{130}{167}{6}
+\lpsb@tag@end{130}{6}
+\lpsb@tag@data{132}{P}{168}{6}
+\lpsb@tag@end{132}{6}
+\lpsb@tag@data{133}{H2}{169}{6}
+\lpsb@tag@end{133}{6}
+\lpsb@tag@data{134}{Table}{170}{6}
+\lpsb@tag@atom{135}{Caption}{171}{6}{134}
+\lpsb@mcid@cont{134}{172}{6}
+\lpsb@tag@end{134}{6}
+\lpsb@tag@data{136}{P}{173}{6}
+\lpsb@tag@end{136}{6}
+\lpsb@tag@data{137}{Table}{174}{6}
+\lpsb@tag@atom{138}{Caption}{175}{6}{137}
+\lpsb@mcid@cont{137}{176}{6}
+\lpsb@tag@end{137}{6}
+\lpsb@tag@data{139}{P}{177}{6}
+\lpsb@tag@end{139}{6}
+\lpsb@tag@data{140}{Figure}{178}{6}
+\lpsb@tag@atom{141}{Caption}{179}{6}{140}
+\lpsb@mcid@cont{140}{180}{6}
+\lpsb@tag@end{140}{6}
+\lpsb@tag@data{142}{P}{181}{6}
+\newlabel{tab:data_type}{{1}{6}{Evaluation on different datasets. ``ALL'' the proportional mixture of the four base datasets}{table.caption.3}{}}
+\newlabel{tab:data_type@cref}{{[table][1][]1}{[1][6][]6}}
+\lpsb@tag@end{142}{7}
+\lpsb@tag@data{143}{Table}{182}{7}
+\lpsb@tag@atom{144}{Caption}{183}{7}{143}
+\lpsb@mcid@cont{143}{184}{7}
+\lpsb@tag@end{143}{7}
+\lpsb@tag@data{145}{P}{185}{7}
+\lpsb@tag@end{145}{7}
+\lpsb@tag@data{146}{H2}{186}{7}
+\lpsb@tag@end{146}{7}
+\lpsb@tag@data{147}{H1}{187}{7}
+\newlabel{alg:co_train}{{1}{7}{\textsc {Collaborative Training}}{algorithm.1}{}}
+\newlabel{alg:co_train@cref}{{[algorithm][1][]1}{[1][5][]7}}
+\newlabel{tab:cot}{{2}{7}{Evaluation on different tuning methods}{table.caption.4}{}}
+\newlabel{tab:cot@cref}{{[table][2][]2}{[1][6][]7}}
+\newlabel{tab_example_co_training}{{3}{7}{Comparison of goal-generation. \textcolor {cyan}{Cyan} the helpful, \textcolor {pink}{pink} the conflicting, and \textcolor {orange}{orange} the critical sub-goals. It is evident that co-training enables goal-generation to avoid conflicts of sub-goals and improves reasonability by including helpful and critical sub-goals}{table.caption.6}{}}
+\newlabel{tab_example_co_training@cref}{{[table][3][]3}{[1][7][]7}}
+\lpsb@tag@end{147}{8}
+\lpsb@tag@data{148}{H1}{188}{8}
+\lpsb@tag@end{148}{8}
+\lpsb@tag@atom{149}{Strong}{189}{8}{}
+\lpsb@tag@atom{150}{Strong}{190}{8}{}
+\lpsb@tag@atom{151}{Strong}{191}{8}{}
+\lpsb@tag@atom{152}{Strong}{192}{8}{}
+\lpsb@tag@atom{153}{Strong}{193}{8}{}
+\lpsb@tag@atom{154}{Strong}{194}{8}{}
+\lpsb@tag@atom{155}{Strong}{195}{8}{}
+\bibdata{ref}
+\newlabel{fig:rl_pretrain_goal_train}{{2(a)}{8}{Subfigure 2(a)}{subfigure.2.1}{}}
+\newlabel{fig:rl_pretrain_goal_train@cref}{{[subfigure][1][2]2(a)}{[1][6][]8}}
+\newlabel{sub@fig:rl_pretrain_goal_train}{{(a)}{8}{Subfigure 2(a)\relax }{subfigure.2.1}{}}
+\newlabel{fig:rl_pretrain_goal_test}{{2(b)}{8}{Subfigure 2(b)}{subfigure.2.2}{}}
+\newlabel{fig:rl_pretrain_goal_test@cref}{{[subfigure][2][2]2(b)}{[1][6][]8}}
+\newlabel{sub@fig:rl_pretrain_goal_test}{{(b)}{8}{Subfigure 2(b)\relax }{subfigure.2.2}{}}
+\newlabel{fig:degradation_reward_kil}{{2(c)}{8}{Subfigure 2(c)}{subfigure.2.3}{}}
+\newlabel{fig:degradation_reward_kil@cref}{{[subfigure][3][2]2(c)}{[1][6][]8}}
+\newlabel{sub@fig:degradation_reward_kil}{{(c)}{8}{Subfigure 2(c)\relax }{subfigure.2.3}{}}
+\newlabel{fig_co-training_reset_a}{{3(a)}{8}{Subfigure 3(a)}{subfigure.3.1}{}}
+\newlabel{fig_co-training_reset_a@cref}{{[subfigure][1][3]3(a)}{[1][6][]8}}
+\newlabel{sub@fig_co-training_reset_a}{{(a)}{8}{Subfigure 3(a)\relax }{subfigure.3.1}{}}
+\newlabel{fig_co-training_reset_b}{{3(b)}{8}{Subfigure 3(b)}{subfigure.3.2}{}}
+\newlabel{fig_co-training_reset_b@cref}{{[subfigure][2][3]3(b)}{[1][6][]8}}
+\newlabel{sub@fig_co-training_reset_b}{{(b)}{8}{Subfigure 3(b)\relax }{subfigure.3.2}{}}
+\newlabel{fig_co-training_reset_c}{{3(c)}{8}{Subfigure 3(c)}{subfigure.3.3}{}}
+\newlabel{fig_co-training_reset_c@cref}{{[subfigure][3][3]3(c)}{[1][6][]8}}
+\newlabel{sub@fig_co-training_reset_c}{{(c)}{8}{Subfigure 3(c)\relax }{subfigure.3.3}{}}
+\newlabel{fig_co-training_reset}{{3}{8}{(a) The completion ratio of goals with dimension size ranges from 1 to 7; (b) The goal completion ratio of goals that $|g|=3$, the trend curve reflects the improving completion ratio; (c) The sub-goals distribution changes along the training in one loop of co-training, where the description of each $g^i$ is included in \Cref {tab:frequency}}{figure.caption.5}{}}
+\newlabel{fig_co-training_reset@cref}{{[figure][3][]3}{[1][6][]8}}
+\lpsb@tag@data{156}{H1}{196}{9}
+\lpsb@tag@end{156}{9}
+\lpsb@tag@data{157}{BibList}{197}{9}
+\lpsb@tag@end{157}{9}
+\lpsb@tag@data{158}{BibEntry}{198}{9}
+\bibcite{andrychowicz2017hindsight}{{1}{2017}{{Andrychowicz et~al.}}{{Andrychowicz, Wolski, Ray, Schneider, Fong, Welinder, McGrew, Tobin, Pieter~Abbeel, and Zaremba}}}
+\lpsb@tag@end{158}{9}
+\lpsb@tag@data{159}{BibEntry}{199}{9}
+\bibcite{bai2019guided}{{2}{2019}{{Bai et~al.}}{{Bai, Liu, Zhao, and Tang}}}
+\lpsb@tag@end{159}{9}
+\lpsb@tag@data{160}{BibEntry}{200}{9}
+\bibcite{balduzzi2019open}{{3}{2019}{{Balduzzi et~al.}}{{Balduzzi, Garnelo, Bachrach, Czarnecki, Perolat, Jaderberg, and Graepel}}}
+\lpsb@tag@end{160}{9}
+\lpsb@tag@data{161}{BibEntry}{201}{9}
+\bibcite{openai2019dota}{{4}{2019}{{Berner et~al.}}{{Berner, Brockman, Chan, Cheung, D{\k {e}}biak, Dennison, Farhi, Fischer, Hashme, Hesse, et~al.}}}
+\lpsb@tag@end{161}{9}
+\lpsb@tag@data{162}{BibEntry}{202}{9}
+\bibcite{brohan2022rt}{{5}{2022}{{Brohan et~al.}}{{Brohan, Brown, Carbajal, Chebotar, Dabis, Finn, Gopalakrishnan, Hausman, Herzog, Hsu, et~al.}}}
+\lpsb@tag@end{162}{9}
+\lpsb@tag@data{163}{BibEntry}{203}{9}
+\bibcite{brown2020language}{{6}{2020}{{Brown et~al.}}{{Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal, Neelakantan, Shyam, Sastry, Askell, Agarwal, Herbert-Voss, Krueger, Henighan, Child, Ramesh, Ziegler, Wu, Winter, Hesse, Chen, Sigler, Litwin, Gray, Chess, Clark, Berner, McCandlish, Radford, Sutskever, and Amodei}}}
+\lpsb@tag@end{163}{9}
+\lpsb@tag@data{164}{BibEntry}{204}{9}
+\bibcite{burda2018exploration}{{7}{2018}{{Burda et~al.}}{{Burda, Edwards, Storkey, and Klimov}}}
+\lpsb@tag@end{164}{9}
+\lpsb@tag@data{165}{BibEntry}{205}{9}
+\bibcite{ding2023magnetic}{{8}{2023}{{Ding et~al.}}{{Ding, Tang, Wu, Wang, Chen, and Wang}}}
+\lpsb@tag@end{165}{9}
+\lpsb@tag@data{166}{BibEntry}{206}{9}
+\bibcite{du2023guiding}{{9}{2023}{{Du et~al.}}{{Du, Watkins, Wang, Colas, Darrell, Abbeel, Gupta, and Andreas}}}
+\lpsb@tag@end{166}{9}
+\lpsb@tag@data{167}{BibEntry}{207}{9}
+\bibcite{du2022glm}{{10}{2022}{{Du et~al.}}{{Du, Qian, Liu, Ding, Qiu, Yang, and Tang}}}
+\lpsb@tag@end{167}{9}
+\lpsb@tag@data{168}{BibEntry}{208}{9}
+\bibcite{ecoffet2021first}{{11}{2021}{{Ecoffet et~al.}}{{Ecoffet, Huizinga, Lehman, Stanley, and Clune}}}
+\lpsb@tag@end{168}{9}
+\lpsb@tag@data{169}{BibEntry}{209}{9}
+\bibcite{fang2019curriculum}{{12}{2019}{{Fang et~al.}}{{Fang, Zhou, Du, Han, and Zhang}}}
+\lpsb@tag@end{169}{9}
+\lpsb@tag@data{170}{BibEntry}{210}{9}
+\bibcite{gautam2021battle}{{13}{2021}{{Gautam et~al.}}{{Gautam, Jain, Senger, and Dhand}}}
+\lpsb@tag@end{170}{9}
+\lpsb@tag@data{171}{BibEntry}{211}{9}
+\bibcite{hermann2017grounded}{{14}{2017}{{Hermann et~al.}}{{Hermann, Hill, Green, Wang, Faulkner, Soyer, Szepesvari, Czarnecki, Jaderberg, Teplyashin, et~al.}}}
+\lpsb@tag@end{171}{9}
+\lpsb@tag@data{172}{BibEntry}{212}{9}
+\bibcite{hu2023enabling}{{15}{2023}{{Hu et~al.}}{{Hu, Zhao, Zhang, Zhou, Yang, Xu, and Liu}}}
+\lpsb@tag@end{172}{9}
+\lpsb@tag@data{173}{BibEntry}{213}{9}
+\bibcite{hu2021lora}{{16}{2021}{{Hu et~al.}}{{Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and Chen}}}
+\lpsb@tag@end{173}{9}
+\lpsb@tag@data{174}{BibEntry}{214}{9}
+\bibcite{huang2023voxposer}{{17}{2023}{{Huang et~al.}}{{Huang, Wang, Zhang, Li, Wu, and Fei-Fei}}}
+\lpsb@tag@end{174}{9}
+\lpsb@tag@data{175}{BibEntry}{215}{9}
+\bibcite{jiang2023vima}{{18}{2023}{{Jiang et~al.}}{{Jiang, Gupta, Zhang, Wang, Dou, Chen, Fei-Fei, Anandkumar, Zhu, and Fan}}}
+\lpsb@tag@end{175}{9}
+\lpsb@tag@data{176}{BibEntry}{216}{9}
+\bibcite{khandelwal2022simple}{{19}{2022}{{Khandelwal et~al.}}{{Khandelwal, Weihs, Mottaghi, and Kembhavi}}}
+\lpsb@tag@end{176}{9}
+\lpsb@tag@data{177}{BibEntry}{217}{9}
+\bibcite{liu2022goal}{{20}{2022}{{Liu et~al.}}{{Liu, Zhu, and Zhang}}}
+\lpsb@tag@end{177}{9}
+\lpsb@tag@data{178}{BibEntry}{218}{9}
+\bibcite{nakano2021webgpt}{{21}{2021}{{Nakano et~al.}}{{Nakano, Hilton, Balaji, Wu, Ouyang, Kim, Hesse, Jain, Kosaraju, Saunders, et~al.}}}
+\lpsb@tag@end{178}{10}
+\lpsb@tag@data{179}{BibEntry}{219}{10}
+\bibcite{ng1999policy}{{22}{1999}{{Ng et~al.}}{{Ng, Harada, and Russell}}}
+\lpsb@tag@end{179}{10}
+\lpsb@tag@data{180}{BibEntry}{220}{10}
+\bibcite{nikulin2023anti}{{23}{2023}{{Nikulin et~al.}}{{Nikulin, Kurenkov, Tarasov, and Kolesnikov}}}
+\lpsb@tag@end{180}{10}
+\lpsb@tag@data{181}{BibEntry}{221}{10}
+\bibcite{openai2023gpt4}{{24}{2023}{{OpenAI}}{{}}}
+\lpsb@tag@end{181}{10}
+\lpsb@tag@data{182}{BibEntry}{222}{10}
+\bibcite{ouyang2022training}{{25}{2022}{{Ouyang et~al.}}{{Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, Zhang, Agarwal, Slama, Ray, et~al.}}}
+\lpsb@tag@end{182}{10}
+\lpsb@tag@data{183}{BibEntry}{223}{10}
+\bibcite{ren2019exploration}{{26}{2019}{{Ren et~al.}}{{Ren, Dong, Zhou, Liu, and Peng}}}
+\lpsb@tag@end{183}{10}
+\lpsb@tag@data{184}{BibEntry}{224}{10}
+\bibcite{schaul2015prioritized}{{27}{2015}{{Schaul et~al.}}{{Schaul, Quan, Antonoglou, and Silver}}}
+\lpsb@tag@end{184}{10}
+\lpsb@tag@data{185}{BibEntry}{225}{10}
+\bibcite{schulman2017proximal}{{28}{2017}{{Schulman et~al.}}{{Schulman, Wolski, Dhariwal, Radford, and Klimov}}}
+\lpsb@tag@end{185}{10}
+\lpsb@tag@data{186}{BibEntry}{226}{10}
+\bibcite{team2021open}{{29}{2021}{{Team et~al.}}{{Team, Stooke, Mahajan, Barros, Deck, Bauer, Sygnowski, Trebacz, Jaderberg, Mathieu, et~al.}}}
+\lpsb@tag@end{186}{10}
+\lpsb@tag@data{187}{BibEntry}{227}{10}
+\bibcite{trott2019keeping}{{30}{2019}{{Trott et~al.}}{{Trott, Zheng, Xiong, and Socher}}}
+\lpsb@tag@end{187}{10}
+\lpsb@tag@data{188}{BibEntry}{228}{10}
+\bibcite{van2008visualizing}{{31}{2008}{{Van~der Maaten \& Hinton}}{{Van~der Maaten and Hinton}}}
+\lpsb@tag@end{188}{10}
+\lpsb@tag@data{189}{BibEntry}{229}{10}
+\bibcite{vezhnevets2017feudal}{{32}{2017}{{Vezhnevets et~al.}}{{Vezhnevets, Osindero, Schaul, Heess, Jaderberg, Silver, and Kavukcuoglu}}}
+\lpsb@tag@end{189}{10}
+\lpsb@tag@data{190}{BibEntry}{230}{10}
+\bibcite{vinyals2019grandmaster}{{33}{2019}{{Vinyals et~al.}}{{Vinyals, Babuschkin, Czarnecki, Mathieu, Dudzik, Chung, Choi, Powell, Ewalds, Georgiev, et~al.}}}
+\lpsb@tag@end{190}{10}
+\lpsb@tag@data{191}{BibEntry}{231}{10}
+\bibcite{wagner1974string}{{34}{1974}{{Wagner \& Fischer}}{{Wagner and Fischer}}}
+\lpsb@tag@end{191}{10}
+\lpsb@tag@data{192}{BibEntry}{232}{10}
+\bibcite{wang2023voyager}{{35}{2023{a}}{{Wang et~al.}}{{Wang, Xie, Jiang, Mandlekar, Xiao, Zhu, Fan, and Anandkumar}}}
+\lpsb@tag@end{192}{10}
+\lpsb@tag@data{193}{BibEntry}{233}{10}
+\bibcite{wang2023describe}{{36}{2023{b}}{{Wang et~al.}}{{Wang, Cai, Liu, Ma, and Liang}}}
+\lpsb@tag@end{193}{10}
+\lpsb@tag@data{194}{BibEntry}{234}{10}
+\bibcite{wei2023chainofthought}{{37}{2023}{{Wei et~al.}}{{Wei, Wang, Schuurmans, Bosma, Ichter, Xia, Chi, Le, and Zhou}}}
+\lpsb@tag@end{194}{10}
+\lpsb@tag@data{195}{BibEntry}{235}{10}
+\bibcite{weng2020curriculum}{{38}{2020}{{Weng}}{{}}}
+\lpsb@tag@end{195}{10}
+\lpsb@tag@data{196}{BibEntry}{236}{10}
+\bibcite{zhang2021noveld}{{39}{2021}{{Zhang et~al.}}{{Zhang, Xu, Wang, Wu, Keutzer, Gonzalez, and Tian}}}
+\lpsb@tag@end{196}{10}
+\lpsb@tag@data{197}{BibEntry}{237}{10}
+\bibcite{zheng2022online}{{40}{2022}{{Zheng et~al.}}{{Zheng, Zhang, and Grover}}}
+\lpsb@tag@end{197}{10}
+\lpsb@tag@data{198}{BibEntry}{238}{10}
+\bibcite{zitkovich2023rt}{{41}{2023}{{Zitkovich et~al.}}{{Zitkovich, Yu, Xu, Xu, Xiao, Xia, Wu, Wohlhart, Welker, Wahid, et~al.}}}
+\lpsb@tag@end{198}{10}
+\lpsb@tag@data{199}{P}{239}{10}
+\bibstyle{icml2024}
+\lpsb@tag@end{199}{11}
+\lpsb@tag@data{200}{H1}{240}{11}
+\lpsb@tag@end{200}{11}
+\lpsb@tag@atom{201}{Reference}{241}{11}{}
+\lpsb@refkey{201}{}
+\citation{gautam2021battle}
+\lpsb@tag@data{202}{P}{242}{11}
+\lpsb@tag@end{202}{11}
+\lpsb@tag@data{203}{H4}{243}{11}
+\lpsb@tag@end{203}{11}
+\lpsb@tag@data{204}{Figure}{244}{11}
+\lpsb@tag@atom{205}{Caption}{245}{11}{204}
+\lpsb@mcid@cont{204}{246}{11}
+\lpsb@tag@end{204}{11}
+\lpsb@tag@data{206}{P}{247}{11}
+\lpsb@tag@end{206}{11}
+\lpsb@tag@data{207}{H4}{248}{11}
+\lpsb@tag@end{207}{11}
+\lpsb@tag@atom{208}{Strong}{249}{11}{}
+\lpsb@tag@atom{209}{Strong}{250}{11}{}
+\lpsb@tag@atom{210}{Strong}{251}{11}{}
+\lpsb@tag@atom{211}{Strong}{252}{11}{}
+\lpsb@tag@atom{212}{Strong}{253}{11}{}
+\lpsb@tag@atom{213}{Strong}{254}{11}{}
+\lpsb@tag@data{214}{H4}{255}{11}
+\lpsb@tag@end{214}{11}
+\lpsb@tag@data{215}{Table}{256}{11}
+\lpsb@tag@atom{216}{Caption}{257}{11}{215}
+\lpsb@mcid@cont{215}{258}{11}
+\newlabel{app:env}{{A}{11}{Author Contribution Statement}{appendix.A}{}}
+\newlabel{app:env@cref}{{[appendix][1][2147483647]A}{[1][11][]11}}
+\newlabel{sec_observation_space}{{A}{11}{Author Contribution Statement}{appendix.A}{}}
+\newlabel{sec_observation_space@cref}{{[appendix][1][2147483647]A}{[1][11][]11}}
+\newlabel{fig:observation_process}{{4}{11}{Preprocessing for an observation with four types of features}{figure.caption.9}{}}
+\newlabel{fig:observation_process@cref}{{[figure][4][2147483647]4}{[1][11][]11}}
+\newlabel{appendix_reward}{{A}{11}{Author Contribution Statement}{figure.caption.9}{}}
+\newlabel{appendix_reward@cref}{{[appendix][1][2147483647]A}{[1][11][]11}}
+\lpsb@tag@end{215}{12}
+\lpsb@tag@data{217}{P}{259}{12}
+\lpsb@tag@end{217}{12}
+\lpsb@tag@data{218}{Formula}{260}{12}
+\lpsb@tag@end{218}{12}
+\lpsb@tag@data{219}{Figure}{261}{12}
+\lpsb@tag@atom{220}{Caption}{262}{12}{219}
+\lpsb@mcid@cont{219}{263}{12}
+\lpsb@tag@end{219}{12}
+\lpsb@tag@data{221}{LI}{264}{12}
+\lpsb@tag@end{221}{12}
+\lpsb@tag@data{222}{LI}{265}{12}
+\lpsb@tag@end{222}{12}
+\lpsb@tag@data{223}{LI}{266}{12}
+\lpsb@tag@end{223}{12}
+\lpsb@tag@data{224}{LI}{267}{12}
+\lpsb@tag@end{224}{12}
+\lpsb@tag@data{225}{LI}{268}{12}
+\lpsb@tag@end{225}{12}
+\lpsb@tag@data{226}{LI}{269}{12}
+\lpsb@tag@end{226}{12}
+\lpsb@tag@data{227}{LI}{270}{12}
+\lpsb@tag@end{227}{12}
+\lpsb@tag@data{228}{LI}{271}{12}
+\lpsb@tag@end{228}{12}
+\lpsb@tag@data{229}{LI}{272}{12}
+\lpsb@tag@end{229}{12}
+\lpsb@tag@data{230}{LI}{273}{12}
+\lpsb@tag@end{230}{12}
+\lpsb@tag@data{231}{LI}{274}{12}
+\lpsb@tag@end{231}{12}
+\lpsb@tag@data{232}{LI}{275}{12}
+\lpsb@tag@end{232}{12}
+\lpsb@tag@data{233}{LI}{276}{12}
+\lpsb@tag@end{233}{12}
+\lpsb@tag@data{234}{Table}{277}{12}
+\lpsb@tag@atom{235}{Caption}{278}{12}{234}
+\lpsb@mcid@cont{234}{279}{12}
+\lpsb@tag@end{234}{12}
+\lpsb@tag@data{236}{P}{280}{12}
+\lpsb@tag@end{236}{12}
+\lpsb@tag@data{237}{H1}{281}{12}
+\lpsb@tag@end{237}{12}
+\lpsb@tag@data{238}{Table}{282}{12}
+\lpsb@tag@atom{239}{Caption}{283}{12}{238}
+\lpsb@mcid@cont{238}{284}{12}
+\lpsb@layout@switch{onecolumn}{12}
+\newlabel{tab:features_summary}{{4}{12}{The details of features in the observation space}{table.caption.10}{}}
+\newlabel{tab:features_summary@cref}{{[table][4][2147483647]4}{[1][11][]12}}
+\newlabel{appendix:environment_state_abstraction}{{B}{12}{Author Contribution Statement}{appendix.B}{}}
+\newlabel{appendix:environment_state_abstraction@cref}{{[appendix][2][2147483647]B}{[1][12][]12}}
+\lpsb@tag@end{238}{13}
+\lpsb@tag@data{240}{P}{285}{13}
+\lpsb@tag@end{240}{13}
+\lpsb@tag@data{241}{Table}{286}{13}
+\lpsb@tag@atom{242}{Caption}{287}{13}{241}
+\lpsb@mcid@cont{241}{288}{13}
+\lpsb@tag@end{241}{13}
+\lpsb@tag@data{243}{P}{289}{13}
+\lpsb@tag@end{243}{13}
+\lpsb@tag@data{244}{H1}{290}{13}
+\lpsb@tag@end{244}{13}
+\lpsb@tag@data{245}{Table}{291}{13}
+\lpsb@tag@atom{246}{Caption}{292}{13}{245}
+\lpsb@mcid@cont{245}{293}{13}
+\lpsb@tag@end{245}{13}
+\lpsb@tag@data{247}{P}{294}{13}
+\lpsb@tag@atom{248}{Reference}{295}{13}{247}
+\lpsb@refkey{248}{}
+\citation{vinyals2019grandmaster}
+\lpsb@mcid@cont{245}{296}{13}
+\lpsb@tag@end{247}{13}
+\lpsb@tag@data{249}{Figure}{297}{13}
+\lpsb@tag@atom{250}{Caption}{298}{13}{249}
+\lpsb@mcid@cont{249}{299}{13}
+\lpsb@tag@end{249}{13}
+\lpsb@tag@data{251}{P}{300}{13}
+\lpsb@tag@end{251}{13}
+\lpsb@tag@data{252}{H4}{301}{13}
+\lpsb@tag@end{252}{13}
+\lpsb@tag@atom{253}{Em}{302}{13}{}
+\lpsb@tag@atom{254}{Em}{303}{13}{}
+\lpsb@tag@atom{255}{Em}{304}{13}{}
+\newlabel{alg:ob_reward_calc}{{2}{13}{\textsc {Calculation of $\mathbf {d}^{\star }_t$}}{algorithm.2}{}}
+\newlabel{alg:ob_reward_calc@cref}{{[algorithm][2][2147483647]2}{[1][12][]13}}
+\newlabel{tab:action_space}{{6}{13}{Action space}{table.caption.12}{}}
+\newlabel{tab:action_space@cref}{{[table][6][2147483647]6}{[1][12][]13}}
+\newlabel{app:rl_network}{{C}{13}{Author Contribution Statement}{appendix.C}{}}
+\newlabel{app:rl_network@cref}{{[appendix][3][2147483647]C}{[1][13][]13}}
+\newlabel{tab:surgery_events}{{8}{13}{The major changes in the training procedure}{table.caption.14}{}}
+\newlabel{tab:surgery_events@cref}{{[table][8][2147483647]8}{[1][13][]13}}
+\lpsb@tag@data{256}{H1}{305}{14}
+\lpsb@tag@end{256}{14}
+\lpsb@tag@atom{257}{Reference}{306}{14}{}
+\lpsb@refkey{257}{}
+\citation{openai2019dota}
+\lpsb@tag@data{258}{P}{307}{14}
+\lpsb@tag@end{258}{14}
+\lpsb@tag@data{259}{Figure}{308}{14}
+\lpsb@tag@atom{260}{Caption}{309}{14}{259}
+\lpsb@mcid@cont{259}{310}{14}
+\lpsb@tag@end{259}{14}
+\lpsb@tag@data{261}{P}{311}{14}
+\newlabel{tab:reward_weight}{{5}{14}{The introduction of different rewards}{table.caption.11}{}}
+\newlabel{tab:reward_weight@cref}{{[table][5][2147483647]5}{[1][12][]14}}
+\lpsb@tag@end{261}{15}
+\lpsb@tag@data{262}{H1}{312}{15}
+\lpsb@tag@end{262}{15}
+\lpsb@tag@data{263}{Table}{313}{15}
+\lpsb@tag@atom{264}{Caption}{314}{15}{263}
+\lpsb@mcid@cont{263}{315}{15}
+\lpsb@tag@end{263}{15}
+\lpsb@tag@data{265}{P}{316}{15}
+\lpsb@tag@end{265}{15}
+\lpsb@tag@data{266}{Table}{317}{15}
+\lpsb@tag@atom{267}{Caption}{318}{15}{266}
+\lpsb@mcid@cont{266}{319}{15}
+\lpsb@tag@end{266}{15}
+\lpsb@tag@data{268}{P}{320}{15}
+\newlabel{tab:goal_space}{{7}{15}{Overview of sub-goal classes, we show a part of them here}{table.caption.13}{}}
+\newlabel{tab:goal_space@cref}{{[table][7][2147483647]7}{[1][13][]15}}
+\newlabel{app:dataset_construction}{{E}{15}{Author Contribution Statement}{appendix.E}{}}
+\newlabel{app:dataset_construction@cref}{{[appendix][5][2147483647]E}{[1][15][]15}}
+\lpsb@tag@end{268}{16}
+\lpsb@tag@data{269}{H4}{321}{16}
+\lpsb@tag@end{269}{16}
+\newlabel{fig:rl_network}{{5}{16}{Network structure of our proposed policy}{figure.caption.15}{}}
+\newlabel{fig:rl_network@cref}{{[figure][5][2147483647]5}{[1][13][]16}}
+\newlabel{fig:surgery_value}{{6}{16}{The value changes during the training process}{figure.caption.16}{}}
+\newlabel{fig:surgery_value@cref}{{[figure][6][2147483647]6}{[1][14][]16}}
+\newlabel{appendix:bi_directional_dataset_construction}{{E}{16}{Author Contribution Statement}{table.caption.18}{}}
+\newlabel{appendix:bi_directional_dataset_construction@cref}{{[appendix][5][2147483647]E}{[1][16][]16}}
+\lpsb@tag@data{270}{L}{322}{17}
+\lpsb@tag@end{270}{17}
+\lpsb@tag@data{271}{LI}{323}{17}
+\lpsb@tag@atom{272}{Em}{324}{17}{271}
+\lpsb@mcid@cont{271}{325}{17}
+\lpsb@tag@end{271}{17}
+\lpsb@tag@data{273}{LI}{326}{17}
+\lpsb@tag@atom{274}{Em}{327}{17}{273}
+\lpsb@mcid@cont{273}{328}{17}
+\lpsb@tag@end{273}{17}
+\lpsb@tag@data{275}{LI}{329}{17}
+\lpsb@tag@atom{276}{Em}{330}{17}{275}
+\lpsb@mcid@cont{275}{331}{17}
+\lpsb@tag@end{275}{17}
+\lpsb@tag@data{277}{LI}{332}{17}
+\lpsb@tag@atom{278}{Em}{333}{17}{277}
+\lpsb@mcid@cont{277}{334}{17}
+\lpsb@tag@end{277}{17}
+\lpsb@tag@data{279}{H1}{335}{17}
+\lpsb@tag@end{279}{17}
+\lpsb@tag@atom{280}{Em}{336}{17}{}
+\lpsb@tag@atom{281}{Em}{337}{17}{}
+\lpsb@tag@data{282}{Figure}{338}{17}
+\lpsb@tag@atom{283}{Caption}{339}{17}{282}
+\lpsb@mcid@cont{282}{340}{17}
+\lpsb@tag@end{282}{17}
+\lpsb@tag@data{284}{P}{341}{17}
+\lpsb@tag@end{284}{17}
+\lpsb@tag@data{285}{Figure}{342}{17}
+\lpsb@tag@atom{286}{Caption}{343}{17}{285}
+\lpsb@mcid@cont{285}{344}{17}
+\lpsb@tag@end{285}{17}
+\lpsb@tag@data{287}{P}{345}{17}
+\lpsb@tag@end{287}{17}
+\lpsb@tag@data{288}{H1}{346}{17}
+\lpsb@tag@end{288}{17}
+\lpsb@tag@data{289}{Figure}{347}{17}
+\lpsb@tag@atom{290}{Caption}{348}{17}{289}
+\lpsb@mcid@cont{289}{349}{17}
+\lpsb@tag@end{289}{17}
+\lpsb@tag@data{291}{P}{350}{17}
+\lpsb@tag@end{291}{17}
+\lpsb@tag@data{292}{H1}{351}{17}
+\lpsb@tag@end{292}{17}
+\lpsb@tag@data{293}{Figure}{352}{17}
+\lpsb@tag@atom{294}{Caption}{353}{17}{293}
+\lpsb@mcid@cont{293}{354}{17}
+\lpsb@tag@end{293}{17}
+\lpsb@tag@data{295}{LI}{355}{17}
+\lpsb@tag@end{295}{17}
+\lpsb@tag@data{296}{LI}{356}{17}
+\lpsb@tag@end{296}{17}
+\lpsb@tag@data{297}{LI}{357}{17}
+\lpsb@tag@end{297}{17}
+\lpsb@tag@data{298}{LI}{358}{17}
+\lpsb@tag@end{298}{17}
+\lpsb@tag@data{299}{LI}{359}{17}
+\lpsb@tag@end{299}{17}
+\lpsb@tag@data{300}{LI}{360}{17}
+\lpsb@tag@end{300}{17}
+\lpsb@tag@data{301}{LI}{361}{17}
+\lpsb@tag@end{301}{17}
+\lpsb@tag@data{302}{LI}{362}{17}
+\lpsb@tag@end{302}{17}
+\lpsb@tag@data{303}{LI}{363}{17}
+\lpsb@tag@end{303}{17}
+\lpsb@tag@data{304}{Formula}{364}{17}
+\newlabel{app:training_system}{{F}{17}{Author Contribution Statement}{appendix.F}{}}
+\newlabel{app:training_system@cref}{{[appendix][6][2147483647]F}{[1][17][]17}}
+\lpsb@tag@end{304}{18}
+\lpsb@tag@data{305}{Formula}{365}{18}
+\lpsb@tag@end{305}{18}
+\lpsb@tag@data{306}{H1}{366}{18}
+\lpsb@tag@end{306}{18}
+\lpsb@tag@atom{307}{Reference}{367}{18}{}
+\lpsb@refkey{307}{}
+\citation{andrychowicz2017hindsight}
+\lpsb@tag@data{308}{P}{368}{18}
+\lpsb@tag@end{308}{18}
+\lpsb@tag@data{309}{Table}{369}{18}
+\lpsb@tag@atom{310}{Caption}{370}{18}{309}
+\lpsb@mcid@cont{309}{371}{18}
+\newlabel{fig:rl_framework}{{7}{18}{This training system has four key parts: Actor, Learner, League and LLM replicas. Actors are responsible for data collection, the Learner trains the policy model using this data, the League coordinates the overall training process and displays results, and the LLM Replicas handle goal generation and distribute them to downstream workers}{figure.caption.19}{}}
+\newlabel{fig:rl_framework@cref}{{[figure][7][2147483647]7}{[1][17][]18}}
+\newlabel{appendix_algorithm}{{H}{18}{Author Contribution Statement}{appendix.H}{}}
+\newlabel{appendix_algorithm@cref}{{[appendix][8][2147483647]H}{[1][17][]18}}
+\newlabel{alg:rl}{{3}{18}{\textsc {Goal-conditioned Reinforcement Learning}}{algorithm.3}{}}
+\newlabel{alg:rl@cref}{{[algorithm][3][2147483647]3}{[1][17][]18}}
+\lpsb@tag@end{309}{19}
+\lpsb@tag@data{311}{P}{372}{19}
+\lpsb@tag@end{311}{19}
+\lpsb@tag@data{312}{H4}{373}{19}
+\lpsb@tag@end{312}{19}
+\lpsb@tag@atom{313}{Reference}{374}{19}{}
+\lpsb@refkey{313}{}
+\citation{van2008visualizing}
+\lpsb@tag@data{314}{P}{375}{19}
+\lpsb@tag@end{314}{19}
+\lpsb@tag@data{315}{Figure}{376}{19}
+\lpsb@tag@atom{316}{Caption}{377}{19}{315}
+\lpsb@mcid@cont{315}{378}{19}
+\lpsb@tag@end{315}{19}
+\lpsb@tag@data{317}{P}{379}{19}
+\lpsb@tag@end{317}{19}
+\lpsb@tag@data{318}{H1}{380}{19}
+\lpsb@tag@end{318}{19}
+\lpsb@tag@data{319}{H4}{381}{19}
+\lpsb@tag@end{319}{19}
+\lpsb@tag@data{320}{Table}{382}{19}
+\lpsb@tag@atom{321}{Strong}{383}{19}{320}
+\lpsb@mcid@cont{320}{384}{19}
+\lpsb@tag@atom{322}{Strong}{385}{19}{320}
+\lpsb@mcid@cont{320}{386}{19}
+\lpsb@tag@atom{323}{Strong}{387}{19}{320}
+\lpsb@mcid@cont{320}{388}{19}
+\lpsb@tag@atom{324}{Strong}{389}{19}{320}
+\lpsb@mcid@cont{320}{390}{19}
+\lpsb@tag@atom{325}{Strong}{391}{19}{320}
+\lpsb@mcid@cont{320}{392}{19}
+\lpsb@tag@atom{326}{Strong}{393}{19}{320}
+\lpsb@mcid@cont{320}{394}{19}
+\lpsb@tag@atom{327}{Strong}{395}{19}{320}
+\lpsb@mcid@cont{320}{396}{19}
+\lpsb@tag@atom{328}{Strong}{397}{19}{320}
+\lpsb@mcid@cont{320}{398}{19}
+\lpsb@tag@atom{329}{Caption}{399}{19}{320}
+\lpsb@mcid@cont{320}{400}{19}
+\lpsb@tag@end{320}{19}
+\lpsb@tag@data{330}{P}{401}{19}
+\lpsb@tag@end{330}{19}
+\lpsb@tag@data{331}{H4}{402}{19}
+\newlabel{fig:LLM_RL_framework}{{8}{19}{Overview of the training framework with LLM. This training framework has three kinds of LLM tuning approaches: CoFT (Chain of Thoughts assisted Fine-Tuning), SFT (Supervised Fine-Tuning), EFT (Ensemble Fine-Tuning); and one LLM-RL co-training approach}{figure.caption.20}{}}
+\newlabel{fig:LLM_RL_framework@cref}{{[figure][8][2147483647]8}{[1][17][]19}}
+\newlabel{tab:hyper_param}{{11}{19}{Parameter settings for RL}{table.caption.22}{}}
+\newlabel{tab:hyper_param@cref}{{[table][11][2147483647]11}{[1][18][]19}}
+\newlabel{tab_rank}{{12}{19}{Evaluation on lora rank}{table.caption.24}{}}
+\newlabel{tab_rank@cref}{{[table][12][2147483647]12}{[1][19][]19}}
+\lpsb@tag@end{331}{20}
+\lpsb@tag@data{332}{Table}{403}{20}
+\lpsb@tag@atom{333}{Caption}{404}{20}{332}
+\lpsb@mcid@cont{332}{405}{20}
+\lpsb@tag@end{332}{20}
+\lpsb@tag@data{334}{P}{406}{20}
+\lpsb@tag@end{334}{20}
+\lpsb@tag@data{335}{Table}{407}{20}
+\lpsb@tag@atom{336}{Caption}{408}{20}{335}
+\lpsb@mcid@cont{335}{409}{20}
+\lpsb@tag@end{335}{20}
+\lpsb@tag@data{337}{P}{410}{20}
+\lpsb@tag@end{337}{20}
+\lpsb@tag@data{338}{Figure}{411}{20}
+\lpsb@tag@atom{339}{Caption}{412}{20}{338}
+\lpsb@mcid@cont{338}{413}{20}
+\lpsb@tag@end{338}{20}
+\lpsb@tag@data{340}{P}{414}{20}
+\lpsb@tag@end{340}{20}
+\lpsb@tag@data{341}{H4}{415}{20}
+\lpsb@tag@end{341}{20}
+\lpsb@tag@data{342}{Table}{416}{20}
+\lpsb@tag@atom{343}{Caption}{417}{20}{342}
+\lpsb@mcid@cont{342}{418}{20}
+\lpsb@tag@end{342}{20}
+\lpsb@tag@data{344}{P}{419}{20}
+\lpsb@tag@end{344}{20}
+\lpsb@tag@data{345}{H1}{420}{20}
+\lpsb@tag@end{345}{20}
+\lpsb@tag@data{346}{H4}{421}{20}
+\lpsb@tag@end{346}{20}
+\newlabel{fig:appendix_BEV}{{9}{20}{Illustration of BEV features in observation space. (a) and (b) are the altitude maps where bright areas are higher than dark areas. (c) is the aerial view map where the disconnected areas are windows or doors. One pixel in (a), (b) and (c) denotes 0.8 meter, 4 meters and 0.4 meter respectively. The small yellow blocks represent player positions and small blue blocks represent enemy positions}{figure.caption.21}{}}
+\newlabel{fig:appendix_BEV@cref}{{[figure][9][2147483647]9}{[1][17][]20}}
+\newlabel{fig:goal_prediction_3d}{{10(a)}{20}{Subfigure 10(a)}{subfigure.10.1}{}}
+\newlabel{fig:goal_prediction_3d@cref}{{[subfigure][1][2147483647,10]10(a)}{[1][19][]20}}
+\newlabel{sub@fig:goal_prediction_3d}{{(a)}{20}{Subfigure 10(a)\relax }{subfigure.10.1}{}}
+\newlabel{fig:goal_prediction_t}{{10(b)}{20}{Subfigure 10(b)}{subfigure.10.2}{}}
+\newlabel{fig:goal_prediction_t@cref}{{[subfigure][2][2147483647,10]10(b)}{[1][19][]20}}
+\newlabel{sub@fig:goal_prediction_t}{{(b)}{20}{Subfigure 10(b)\relax }{subfigure.10.2}{}}
+\newlabel{fig:goal_prediction_value}{{10(c)}{20}{Subfigure 10(c)}{subfigure.10.3}{}}
+\newlabel{fig:goal_prediction_value@cref}{{[subfigure][3][2147483647,10]10(c)}{[1][19][]20}}
+\newlabel{sub@fig:goal_prediction_value}{{(c)}{20}{Subfigure 10(c)\relax }{subfigure.10.3}{}}
+\newlabel{fig:goal_distribution_comparison}{{10}{20}{Distribution comparison between real goals (Oracles) and goals generated by $G_{op}$ (Prediction). The illustration shows that $G_{op}$ generates goals that follows the real distribution, indicating good generalization on open-ended goal generation}{figure.caption.23}{}}
+\newlabel{fig:goal_distribution_comparison@cref}{{[figure][10][2147483647]10}{[1][19][]20}}
+\lpsb@tag@data{347}{L}{422}{21}
+\lpsb@tag@end{347}{21}
+\lpsb@tag@data{348}{LI}{423}{21}
+\lpsb@tag@atom{349}{Strong}{424}{21}{348}
+\lpsb@mcid@cont{348}{425}{21}
+\lpsb@tag@end{348}{21}
+\lpsb@tag@data{350}{Formula}{426}{21}
+\lpsb@tag@end{350}{21}
+\lpsb@tag@data{351}{LI}{427}{21}
+\lpsb@tag@atom{352}{Strong}{428}{21}{351}
+\lpsb@mcid@cont{351}{429}{21}
+\lpsb@tag@end{351}{21}
+\lpsb@tag@data{353}{Formula}{430}{21}
+\lpsb@tag@end{353}{21}
+\lpsb@tag@data{354}{LI}{431}{21}
+\lpsb@tag@atom{355}{Strong}{432}{21}{354}
+\lpsb@mcid@cont{354}{433}{21}
+\lpsb@tag@atom{356}{Reference}{434}{21}{354}
+\lpsb@refkey{356}{}
+\citation{burda2018exploration,nikulin2023anti,zhang2021noveld,du2023guiding}
+\lpsb@mcid@cont{354}{435}{21}
+\lpsb@tag@end{354}{21}
+\lpsb@tag@data{357}{Formula}{436}{21}
+\lpsb@tag@end{357}{21}
+\lpsb@tag@data{358}{H4}{437}{21}
+\lpsb@tag@end{358}{21}
+\newlabel{tab_state_distributionB}{{11(a)}{21}{Subfigure 11(a)}{subfigure.11.1}{}}
+\newlabel{tab_state_distributionB@cref}{{[subfigure][1][2147483647,11]11(a)}{[1][20][]21}}
+\newlabel{sub@tab_state_distributionB}{{(a)}{21}{Subfigure 11(a)\relax }{subfigure.11.1}{}}
+\newlabel{fig:hindsight_goal_generation}{{11(b)}{21}{Subfigure 11(b)}{subfigure.11.2}{}}
+\newlabel{fig:hindsight_goal_generation@cref}{{[subfigure][2][2147483647,11]11(b)}{[1][20][]21}}
+\newlabel{sub@fig:hindsight_goal_generation}{{(b)}{21}{Subfigure 11(b)\relax }{subfigure.11.2}{}}
+\newlabel{app:cot_reward}{{K}{21}{Author Contribution Statement}{appendix.K}{}}
+\newlabel{app:cot_reward@cref}{{[appendix][11][2147483647]K}{[1][20][]21}}
+\newlabel{eq:reward_goal-oriented}{{11}{21}{Author Contribution Statement}{equation.K.11}{}}
+\newlabel{eq:reward_goal-oriented@cref}{{[equation][11][2147483647]11}{[1][21][]21}}
+\newlabel{eq:reward_keep}{{12}{21}{Author Contribution Statement}{equation.K.12}{}}
+\newlabel{eq:reward_keep@cref}{{[equation][12][2147483647]12}{[1][21][]21}}
+\lpsb@tag@data{359}{Formula}{438}{22}
+\lpsb@tag@end{359}{22}
+\lpsb@tag@data{360}{H4}{439}{22}
+\lpsb@tag@end{360}{22}
+\lpsb@tag@atom{361}{Reference}{440}{22}{}
+\lpsb@refkey{361}{}
+\citation{wagner1974string}
+\lpsb@tag@data{362}{P}{441}{22}
+\lpsb@tag@end{362}{22}
+\lpsb@tag@data{363}{Figure}{442}{22}
+\lpsb@tag@atom{364}{Caption}{443}{22}{363}
+\lpsb@mcid@cont{363}{444}{22}
+\lpsb@tag@end{363}{22}
+\lpsb@tag@data{365}{P}{445}{22}
+\lpsb@tag@end{365}{22}
+\lpsb@tag@data{366}{Table}{446}{22}
+\lpsb@tag@atom{367}{Caption}{447}{22}{366}
+\lpsb@mcid@cont{366}{448}{22}
+\lpsb@tag@end{366}{22}
+\lpsb@tag@data{368}{P}{449}{22}
+\lpsb@tag@end{368}{22}
+\lpsb@tag@data{369}{Table}{450}{22}
+\lpsb@tag@atom{370}{Caption}{451}{22}{369}
+\lpsb@mcid@cont{369}{452}{22}
+\lpsb@tag@end{369}{22}
+\lpsb@tag@data{371}{P}{453}{22}
+\lpsb@tag@end{371}{22}
+\lpsb@summary{371}{453}{22}
+\newlabel{fig:appendix_rnd}{{12}{22}{Implementation of the RND predictor network}{figure.caption.29}{}}
+\newlabel{fig:appendix_rnd@cref}{{[figure][12][2147483647]12}{[1][22][]22}}
+\newlabel{tab_gpt4_response}{{9}{23}{Chain of thought response from GPT4}{table.caption.17}{}}
+\newlabel{tab_gpt4_response@cref}{{[table][9][2147483647]9}{[1][15][]23}}
+\newlabel{tab_rule}{{10}{24}{Rule prompt for GPT4}{table.caption.18}{}}
+\newlabel{tab_rule@cref}{{[table][10][2147483647]10}{[1][15][]24}}
+\newlabel{tab_target}{{13}{24}{Evaluation on LoRA target}{table.caption.25}{}}
+\newlabel{tab_target@cref}{{[table][13][2147483647]13}{[1][20][]24}}
+\newlabel{tab:frequency}{{14}{24}{Top 20 sub-goals ranked by frequency}{table.caption.26}{}}
+\newlabel{tab:frequency@cref}{{[table][14][2147483647]14}{[1][20][]24}}
+\newlabel{tab_samll_data}{{15}{25}{Language model performance evaluation with different sizes of fine-tuning training set. The underlined ``Improve Rate'' values represent the improvement percentage of the ``CoFT $\rightarrow $ SFT'' method relative to ``SFT'' method}{table.caption.28}{}}
+\newlabel{tab_samll_data@cref}{{[table][15][2147483647]15}{[1][20][]25}}
+\newlabel{tab_gpt4_prompt}{{16}{26}{Chain of thought prompt for GPT4}{table.caption.30}{}}
+\newlabel{tab_gpt4_prompt@cref}{{[table][16][2147483647]16}{[1][22][]26}}
+\newlabel{tab_prompt}{{17}{27}{Example of prompt and response}{table.caption.31}{}}
+\newlabel{tab_prompt@cref}{{[table][17][2147483647]17}{[1][22][]27}}
+\gdef \@abspage@last{27}
+
+% --- LPSB: merged split headings ---
+% Promoted 1 title P elements into headings; dropped 1 stub headings.

@@ -37,21 +37,21 @@
 %                 \usepackage{spconf}
 %                 \title{Title of the paper}
 %                 \name{George P. Burdell and John Q. Professor
-%                       \thanks{This work was supported by...}}
+	%                       \thanks{This work was supported by...}}
 %                 \address{Common address, department \\
-%                          City, etc \\
-%                          optional e-mail address}
+	%                          City, etc \\
+	%                          optional e-mail address}
 %
 %                 \begin{document}
-%  OPTIONAL -->   \ninept            <-- OPTIONAL, for nine pt only
-%                 \maketitle
-%                 \begin{abstract}
-%                 This is the abstract for my paper.
-%                 \end{abstract}
-%                         .
-%                 Insert text of paper
-%                         .
-%                 \end{document}
+	%  OPTIONAL -->   \ninept            <-- OPTIONAL, for nine pt only
+	%                 \maketitle
+	%                 \begin{abstract}
+		%                 This is the abstract for my paper.
+		%                 \end{abstract}
+	%                         .
+	%                 Insert text of paper
+	%                         .
+	%                 \end{document}
 %
 % Example of use for two authors at two distinct addresses with only
 %    one support acknowledgment. For distinct support acknowledgments,
@@ -61,25 +61,25 @@
 %                 \usepackage{spconf}
 %                 \title{Title of the paper}
 %                 \twoauthors{John Doe
-%                       \thanks{This work was supported by...}}
+	%                       \thanks{This work was supported by...}}
 %                            {Doe's address, department \\
-%                             City, etc \\
-%                             optional e-mail address}
+	%                             City, etc \\
+	%                             optional e-mail address}
 %                            {Judy Smith}
 %                            {Smith's address, department \\
-%                             City, etc \\
-%                             optional e-mail address}
+	%                             City, etc \\
+	%                             optional e-mail address}
 %
 %                 \begin{document}
-%  OPTIONAL -->   \ninept            <-- OPTIONAL, for nine pt only
-%                 \maketitle
-%                 \begin{abstract}
-%                 This is the abstract for my paper.
-%                 \end{abstract}
-%                         .
-%                 Insert text of paper
-%                         .
-%                 \end{document}
+	%  OPTIONAL -->   \ninept            <-- OPTIONAL, for nine pt only
+	%                 \maketitle
+	%                 \begin{abstract}
+		%                 This is the abstract for my paper.
+		%                 \end{abstract}
+	%                         .
+	%                 Insert text of paper
+	%                         .
+	%                 \end{document}
 %
 % Preprint Option (Only for preprints, not for submissions!):
 %    - can create a preprint titlepage footer by using the
@@ -93,7 +93,7 @@
 %                         .
 %                 \copyrightnotice{\copyright\ IEEE 2000}
 %                 \toappear{To appear in {\it Proc.\ ICASSP2000,
-%                    June 05-09, 2000, Istanbul, Turkey}}
+		%                    June 05-09, 2000, Istanbul, Turkey}}
 %
 %
 % PLEASE REPORT ANY BUGS
@@ -143,29 +143,29 @@
 \def\ninept{\def\baselinestretch{.95}\let\normalsize\small\normalsize}
 
 \def\maketitle{\par
- \begingroup
- \def\thefootnote{}
- \def\@makefnmark{\hbox
- {$^{\@thefnmark}$\hss}}
- \if@twocolumn
- \twocolumn[\@maketitle]
- \else \newpage
- \global\@topnum\z@ \@maketitle \fi\@thanks
- \endgroup
- \setcounter{footnote}{0}
- \let\maketitle\relax
- \let\@maketitle\relax
- \gdef\thefootnote{\arabic{footnote}}\gdef\@@savethanks{}%
- \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+	\begingroup
+	\def\thefootnote{}
+	\def\@makefnmark{\hbox
+		{$^{\@thefnmark}$\hss}}
+	\if@twocolumn
+	\twocolumn[\@maketitle]
+	\else \newpage
+	\global\@topnum\z@ \@maketitle \fi\@thanks
+	\endgroup
+	\setcounter{footnote}{0}
+	\let\maketitle\relax
+	\let\@maketitle\relax
+	\gdef\thefootnote{\arabic{footnote}}\gdef\@@savethanks{}%
+	\gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
 
 \def\@maketitle{\newpage
- \null
- \vskip 2em \begin{center}
- {\large \bf \@title \par} \vskip 1.5em {\large \lineskip .5em
-\begin{tabular}[t]{c}\@name \\ \@address
- \end{tabular}\par} \end{center}
- \par
- \vskip 1.5em}
+	\null
+	\vskip 2em \begin{center}
+		{\large \bf \@title \par} \vskip 1.5em {\large \lineskip .5em
+			\begin{tabular}[t]{c}\@name \\ \@address
+			\end{tabular}\par} \end{center}
+	\par
+	\vskip 1.5em}
 
 \def\title#1{\gdef\@title{\uppercase{#1}}}
 \def\name#1{\gdef\@name{{\em #1}\\}}
@@ -173,43 +173,43 @@
 \gdef\@title{\uppercase{title of paper}}
 \gdef\@name{{\em Name of author}\\}
 \gdef\@address{Address - Line 1 \\
-               Address - Line 2 \\
-               Address - Line 3}
+	Address - Line 2 \\
+	Address - Line 3}
 
 \let\@@savethanks\thanks
 \def\thanks#1{\gdef\thefootnote{}\@@savethanks{#1}}
 \def\sthanks#1{\gdef\thefootnote{\fnsymbol{footnote}}\@@savethanks{#1}}
 
 \def\twoauthors#1#2#3#4{\gdef\@address{}
-   \gdef\@name{\begin{tabular}{@{}c@{}}
-        {\em #1} \\ \\
-        #2\relax
-   \end{tabular}\hskip 1in\begin{tabular}{@{}c@{}}
-        {\em #3} \\ \\
-        #4\relax
+	\gdef\@name{\begin{tabular}{@{}c@{}}
+			{\em #1} \\ \\
+			#2\relax
+		\end{tabular}\hskip 1in\begin{tabular}{@{}c@{}}
+			{\em #3} \\ \\
+			#4\relax
 \end{tabular}}}
 
 \def\@sect#1#2#3#4#5#6[#7]#8{
-   \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip 0.6em}
-       \begingroup \ifnum #2=1\bf\centering
-          {\interlinepenalty \@M
-             \@svsec\uppercase{#8}\par}\else\ifnum #2=2\bf
-          \noindent{\interlinepenalty \@M \@svsec #8\par}\else\it
-          \noindent{\interlinepenalty \@M
-             \@svsec #8\par}\fi\fi\endgroup
-       \csname #1mark\endcsname{#7}\addcontentsline
-         {toc}{#1}{\protect\numberline{\csname the#1\endcsname} #7}
-     \@tempskipa #5\relax
-     \@xsect{\@tempskipa}}
+	\refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip 0.6em}
+	\begingroup \ifnum #2=1\bf\centering
+	{\interlinepenalty \@M
+		\@svsec\uppercase{#8}\par}\else\ifnum #2=2\bf
+	\noindent{\interlinepenalty \@M \@svsec #8\par}\else\it
+	\noindent{\interlinepenalty \@M
+		\@svsec #8\par}\fi\fi\endgroup
+	\csname #1mark\endcsname{#7}\addcontentsline
+	{toc}{#1}{\protect\numberline{\csname the#1\endcsname} #7}
+	\@tempskipa #5\relax
+	\@xsect{\@tempskipa}}
 
 \def\abstract{\begin{center}
-{\bf ABSTRACT\vspace{-.5em}\vspace{0pt}}
+		{\bf ABSTRACT\vspace{-.5em}\vspace{0pt}}
 \end{center}}
 \def\endabstract{\par}
 
 % Keyword section, added by Lance Cotton, adapted from IEEEtrans, corrected by Ulf-Dietrich Braumann
 \def\keywords{\vspace{.5em}
-{\bfseries\textit{Index Terms}---\,\relax%
+	{\bfseries\textit{Index Terms}---\,\relax%
 }}
 \def\endkeywords{\par} 
 
@@ -221,28 +221,28 @@
 \@namedef{ds@preprint}{\global\@preprinttrue}
 \@options
 \def\ps@preprint{\def\mypage{}\let\@mkboth\@gobbletwo\def\@oddhead{}
-  \def\@oddfoot{\rlap{\@toappear}\hfil\mypage\hfil
-    \llap{\@copyrightnotice}
-    \gdef\mypage{\thepage}\gdef\@toappear{}\gdef\@copyrightnotice{}}}
+	\def\@oddfoot{\rlap{\@toappear}\hfil\mypage\hfil
+		\llap{\@copyrightnotice}
+		\gdef\mypage{\thepage}\gdef\@toappear{}\gdef\@copyrightnotice{}}}
 
 \if@preprint\ps@preprint
 \else\ps@empty\flushbottom\fi
 
 \def\thebibliography#1{\section{References}\list
- {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
- \advance\leftmargin\labelsep
- \usecounter{enumi}}
- \def\newblock{\hskip .11em plus .33em minus .07em}
- \sloppy\clubpenalty4000\widowpenalty4000
- \sfcode`\.=1000\relax}
+	{[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+		\advance\leftmargin\labelsep
+		\usecounter{enumi}}
+	\def\newblock{\hskip .11em plus .33em minus .07em}
+	\sloppy\clubpenalty4000\widowpenalty4000
+	\sfcode`\.=1000\relax}
 \let\endthebibliography=\endlist
 
 \long\def\@makecaption#1#2{
- \vskip 10pt
- \setbox\@tempboxa\hbox{#1. #2}
- \ifdim \wd\@tempboxa >\hsize #1. #2\par \else \hbox
-to\hsize{\hfil\box\@tempboxa\hfil}
- \fi}
+	\vskip 10pt
+	\setbox\@tempboxa\hbox{#1. #2}
+	\ifdim \wd\@tempboxa >\hsize #1. #2\par \else \hbox
+	to\hsize{\hfil\box\@tempboxa\hfil}
+	\fi}
 
 \def\fnum@figure{{\bf Fig.\ \thefigure}}
 \def\fnum@table{{\bf Table \thetable}}

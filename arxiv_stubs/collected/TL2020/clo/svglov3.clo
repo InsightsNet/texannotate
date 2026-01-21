@@ -21,24 +21,12 @@
 %%   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %%   Right brace   \}     Tilde         \~}
 \ProvidesFile{svglov3.clo}
-              [2009/12/18 v3.2
+              [2006/02/03 v3.1
       style option for standardised journals]
 \typeout{SVJour Class option: svglov3.clo for standardised journals}
 \def\validfor{svjour3}
-\global\let\if@runhead\iftrue
-\ExecuteOptions{final,10pt}
+\ExecuteOptions{final,10pt,runningheads}
 % No size changing allowed, hence a "copy" of size10.clo is included
-\DeclareFontShape{OT1}{cmr}{m}{n}{
-        <-6>    cmr5
-        <6-7>   cmr6
-        <7-8>   cmr7
-        <8-9>   cmr8
-        <9-10>  cmr9
-        <10-12> cmr10
-        <12-17> cmr12
-        <17->   cmr17
-      }{}
-%
 \renewcommand\normalsize{%
 \if@twocolumn
    \@setfontsize\normalsize\@xpt{12.5pt}%

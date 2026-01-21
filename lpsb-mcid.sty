@@ -328,9 +328,11 @@
       % Immediately reopen tag
       \stepcounter{lpsb@globalMCID}%
       \lpsb@pdfliteralcmd{ /\lpsb@actual@reopen@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@mcid@cont{\lpsb@reopen@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-      }%
+      % CRITICAL FIX: Pre-expand values before write
+      \edef\lpsb@cont@parentid{\lpsb@reopen@id}%
+      \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+      \edef\lpsb@cont@page{\thelpsb@currentPage}%
+      \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
       % CRITICAL: Set @lpsb@in@tag to true and restore current tag state
       \global\@lpsb@in@tagtrue
       \xdef\lpsb@current@logical@id{\lpsb@reopen@id}%
@@ -435,6 +437,31 @@
   % NOTE: We do NOT wrap \@outputdblcol separately because it internally calls
   % \@outputpage, which already handles header/footer artifact wrapping.
   % Wrapping both causes recursive \begingroup overflow.
+  %
+  % HOWEVER: We DO hook \@outputdblcol to handle cross-column tag continuation.
+  % When content flows from left column to right column, we need to ensure
+  % the tag state is preserved so that cross-column paragraphs remain as
+  % one logical element with multiple MCIDs (via \lpsb@mcid@cont).
+  \@ifundefined{@outputdblcol}{}{%
+    \let\lpsb@orig@@outputdblcol\@outputdblcol
+    \def\@outputdblcol{%
+      % Save current tag state before column switch
+      \xdef\lpsb@saved@col@tag@type{\lpsb@current@tag@type}%
+      \xdef\lpsb@saved@col@logical@id{\lpsb@current@logical@id}%
+      \xdef\lpsb@saved@col@in@tag{\if@lpsb@in@tag 1\else 0\fi}%
+      \xdef\lpsb@saved@col@in@abstract{\if@lpsb@in@abstract 1\else 0\fi}%
+      % Call original output routine
+      \lpsb@orig@@outputdblcol
+      % After column switch, check if we need to continue a tag
+      % This is triggered when moving from left column to right column
+      \if@firstcolumn\else
+        % We just switched to right column - restore abstract flag if it was set
+        \ifnum\lpsb@saved@col@in@abstract=1
+          \global\@lpsb@in@abstracttrue
+        \fi
+      \fi
+    }%
+  }%
   % Patch standard pagestyles so they wrap headers/footers after defining them
   % This is critical for first page where \thispagestyle{plain} overwrites our wrapping
   \lpsb@patch@pagestyles
@@ -912,6 +939,85 @@
   }%
 }
 
+% Helper: ICML-specific hook
+% ICML uses \twocolumn[...] for title block, not \@maketitle.
+% We need to hook \icmltitle and \icmlauthor directly.
+%
+% IMPORTANT: \icmltitle is called in preamble to STORE the title text.
+% The actual typesetting happens later inside \twocolumn[...] when ICML calls
+% the stored \@icmltitle. So we need to wrap the STORED content definition.
+\newcommand{\lpsb@hook@maketitle@icml}{%
+  % Hook \icmltitle to wrap the stored title with Title BDC/EMC
+  \@ifundefined{icmltitle}{}{%
+    \let\lpsb@orig@icmltitle\icmltitle
+    \long\def\icmltitle#1{%
+      % Store wrapped version that includes Title tags
+      \lpsb@orig@icmltitle{%
+        \lpsbTagEnd% Close any open P tag
+        \lpsbTagBegin{Title}%
+        #1%
+        \lpsbTagEnd% Close Title
+        \lpsbTagBegin{P}% Open P for content after title
+      }%
+    }%
+  }%
+  % Hook \icmlauthor to wrap stored author with Author BDC/EMC
+  % NOTE: The second argument contains affiliation markers like *1
+  % For simplicity, we only tag the author name, not the markers
+  \@ifundefined{icmlauthor}{}{%
+    \let\lpsb@orig@icmlauthor\icmlauthor
+    \long\def\icmlauthor#1#2{%
+      % Wrap the author name with Author tags when it's typeset
+      \lpsb@orig@icmlauthor{%
+        \lpsbTagEnd% Close any open P/Author tag
+        \lpsbTagBegin{Author}%
+        #1%
+        \lpsbTagEnd
+        \lpsbTagBegin{P}% Reopen P
+      }{#2}%
+    }%
+  }%
+  % Hook ICML abstract environment to tag "Abstract" title as H1
+  % ICML abstract structure:
+  %   \centerline{\large\bf Abstract}  <- this should be H1
+  %   \vspace{-0.12in}\begin{quote}    <- quote content should be P
+  %   ... content ...
+  %   \par\end{quote}
+  %
+  % Strategy: Redefine the entire abstract environment to insert tags at correct positions
+  % CRITICAL: Set @lpsb@in@abstract flag to prevent everypar from creating new P elements
+  % when text flows across columns. This keeps the entire abstract as one logical P element.
+  \AtBeginDocument{%
+    \@ifundefined{abstract}{}{%
+      \renewenvironment{abstract}{%
+        % Close any open P tag first
+        \lpsbTagEnd
+        % Output "Abstract" title with H1 tag
+        \lpsbTagBegin{H1}%
+        \centerline{\large\bf Abstract}%
+        \lpsbTagEnd
+        % Start the quote environment for abstract content
+        \vspace{-0.12in}%
+        \begin{quote}%
+        % Open P tag for abstract content
+        \lpsbTagBegin{P}%
+        % CRITICAL: Set flag to prevent everypar from creating new P elements
+        % This ensures abstract content stays as one logical element across columns
+        \global\@lpsb@in@abstracttrue
+      }{%
+        % Clear the abstract flag
+        \global\@lpsb@in@abstractfalse
+        % Close P tag for abstract content
+        \lpsbTagEnd
+        \par\end{quote}%
+        \vskip 0.12in
+        % Reopen P for content after abstract
+        \lpsbTagBegin{P}%
+      }%
+    }%
+  }%
+}
+
 \AtBeginDocument{%
   \@ifundefined{@maketitle}{%
     % No @maketitle - check for alternative patterns
@@ -962,8 +1068,8 @@
       \lpsb@hook@maketitle@conference
       \typeout{LPSB-MCID Info: cvpr detected - using conference-style @title/@author hooks}%
     \else\ifx\lpsb@detected@template\lpsb@tmp@icml
-      \lpsb@hook@maketitle@conference
-      \typeout{LPSB-MCID Info: icml detected - using conference-style @title/@author hooks}%
+      \lpsb@hook@maketitle@icml
+      \typeout{LPSB-MCID Info: icml detected - using icmltitle/icmlauthor hooks}%
     \else\ifx\lpsb@detected@template\lpsb@tmp@acl
       \lpsb@hook@maketitle@conference
       \typeout{LPSB-MCID Info: acl detected - using conference-style @title/@author hooks}%
@@ -1382,9 +1488,11 @@
 \newcommand{\lpsb@reopen@parent@tag}{%
   \stepcounter{lpsb@globalMCID}%
   \lpsb@pdfliteralcmd{ /\lpsb@current@tag@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-  \immediate\write\@auxout{%
-    \string\lpsb@mcid@cont{\lpsb@current@logical@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-  }%
+  % CRITICAL FIX: Pre-expand values before write
+  \edef\lpsb@cont@parentid{\lpsb@current@logical@id}%
+  \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+  \edef\lpsb@cont@page{\thelpsb@currentPage}%
+  \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
   \global\@lpsb@first@paratrue
 }
 
@@ -1483,37 +1591,91 @@
 % For inline elements like Strong, Em, InlineMath, Reference
 % Records parent element ID for proper nesting in output
 % IMPORTANT: PDF MCIDs don't nest - must close parent, insert atom, reopen parent
-\newcommand{\lpsb@TagAtomImpl}[2]{%
+% IMPORTANT: Use \long to handle arguments containing \par (paragraph breaks)
+\long\def\lpsb@TagAtomImpl#1#2{%
   % CRITICAL: Skip in non-typesetting contexts (moving arguments)
   \ifx\protect\@typeset@protect
     \if@lpsb@active
       \if@lpsb@in@tag
-        % Save parent info - use \protected@edef to avoid expansion issues in subfigure
-        \protected@edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
-        \protected@edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
+        % Save parent info - use \xdef for GLOBAL expansion (survives groups)
+        \xdef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
+        \xdef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
         % Close parent MCID temporarily
         \lpsb@pdfliteralcmd{ EMC }%
       \else
-        \def\lpsb@saved@parent@id{}%
-        \def\lpsb@saved@parent@type{}%
+        \gdef\lpsb@saved@parent@id{}%
+        \gdef\lpsb@saved@parent@type{}%
       \fi
       % Insert atom element
       \stepcounter{lpsb@logicalElemID}%
       \stepcounter{lpsb@globalMCID}%
       \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@atom{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@saved@parent@id}%
-      }%
+      % Write atom record - capture values NOW before #2 executes
+      \xdef\lpsb@atom@elemid{\thelpsb@logicalElemID}%
+      \xdef\lpsb@atom@mcid{\thelpsb@globalMCID}%
+      \xdef\lpsb@atom@page{\thelpsb@currentPage}%
+      \immediate\write\@auxout{\string\lpsb@tag@atom{\lpsb@atom@elemid}{#1}{\lpsb@atom@mcid}{\lpsb@atom@page}{\lpsb@saved@parent@id}}%
       #2%
       \lpsb@pdfliteralcmd{ EMC }%
       % Reopen parent with continuation MCID
       \if@lpsb@in@tag
         \stepcounter{lpsb@globalMCID}%
         \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-        \immediate\write\@auxout{%
-          \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-        }%
+        % CRITICAL FIX: Use globally defined parent ID
+        \xdef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+        \xdef\lpsb@cont@page{\thelpsb@currentPage}%
+        \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
       \fi
+    \else
+      #2%
+    \fi
+  \else
+    #2%
+  \fi
+}
+
+% Inline tag (atom) that ENDS the current parent element.
+%
+% This is only safe in special cases where the parent should not continue after
+% the atom (e.g. wrapfig injecting a wrapped box via \everypar, where reopening
+% the parent can leak into surrounding paragraph text).
+%
+% Semantics:
+% - Close parent BDC (EMC)
+% - Emit atom BDC/EMC and record parent_id
+% - Record tag_end for the parent and clear state (do NOT reopen parent)
+\long\def\lpsb@TagAtomImplEndParent#1#2{%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments)
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@tag
+        % Save parent info
+        \xdef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
+        \xdef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
+        % Close parent MCID
+        \lpsb@pdfliteralcmd{ EMC }%
+      \else
+        \gdef\lpsb@saved@parent@id{}%
+        \gdef\lpsb@saved@parent@type{}%
+      \fi
+      % Emit atom element
+      \stepcounter{lpsb@logicalElemID}%
+      \stepcounter{lpsb@globalMCID}%
+      \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
+      % Write atom record (captures parent id even though parent ends here)
+      \xdef\lpsb@atom@elemid{\thelpsb@logicalElemID}%
+      \xdef\lpsb@atom@mcid{\thelpsb@globalMCID}%
+      \xdef\lpsb@atom@page{\thelpsb@currentPage}%
+      \immediate\write\@auxout{\string\lpsb@tag@atom{\lpsb@atom@elemid}{#1}{\lpsb@atom@mcid}{\lpsb@atom@page}{\lpsb@saved@parent@id}}%
+      #2%
+      \lpsb@pdfliteralcmd{ EMC }%
+      % End the parent element HERE (do not reopen).
+      \ifx\lpsb@saved@parent@id\@empty\else
+        \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@saved@parent@id}{\thelpsb@currentPage}}%
+      \fi
+      % Clear state: parent ended, no active tag.
+      \gdef\lpsb@tag@stack{}%
+      \global\@lpsb@in@tagfalse
     \else
       #2%
     \fi
@@ -1532,22 +1694,36 @@
 %
 % Additionally, we add \ifx\protect\@typeset@protect guard AT THE TOP
 % to ensure NO code (including \def) runs in non-typesetting contexts.
-\protected\def\lpsbTagAtom#1#2{%
+% Uses \long\protected\def to handle:
+% 1. \long - arguments containing \par (paragraph breaks)
+% 2. \protected - prevents expansion in moving arguments
+\long\protected\def\lpsbTagAtom#1#2{%
   % CRITICAL: Skip in non-typesetting contexts (moving arguments, \setbox measurement)
   % This is the key fix for subfigure.sty compatibility - no code runs during expansion
   \ifx\protect\@typeset@protect
-    % Check if we're in a float and handle accordingly
-    \def\lpsb@atom@type{#1}%
-    \if@lpsb@in@float
-      % In float: only tag Caption type, pass through others
-      \ifx\lpsb@atom@type\lpsb@Caption@const
-        \lpsb@TagAtomImpl{#1}{#2}%
-      \else
-        #2%
-      \fi
+    % [MATH MODE GUARD] Skip tagging inside math mode
+    % Reason: Inserting \pdfliteral (BDC/EMC markers) in math mode can:
+    % 1. Break formula kerning and inter-character spacing
+    % 2. Cause "Missing }" errors in complex math environments (align, gather)
+    % 3. Create semantically invalid PDF structure (Strong inside Formula)
+    \ifmmode
+      % Math mode: just output content, no tagging
+      #2%
     \else
-      % Not in float: tag everything
-      \lpsb@TagAtomImpl{#1}{#2}%
+      % Text mode: proceed with normal tagging logic
+      % Check if we're in a float and handle accordingly
+      \def\lpsb@atom@type{#1}%
+      \if@lpsb@in@float
+        % In float: only tag Caption type, pass through others
+        \ifx\lpsb@atom@type\lpsb@Caption@const
+          \lpsb@TagAtomImpl{#1}{#2}%
+        \else
+          #2%
+        \fi
+      \else
+        % Not in float: tag everything
+        \lpsb@TagAtomImpl{#1}{#2}%
+      \fi
     \fi
   \else
     % Not typesetting - just output content, no tagging
@@ -1590,6 +1766,7 @@
     \if@lpsb@active
       \if@lpsb@in@tag
         % Inside a parent tag: emit proper Reference atom with EMC/BDC
+        % CRITICAL: Use \edef with \the to get counter values, store in global macros
         \edef\lpsb@saved@parent@id{\lpsb@current@logical@id}%
         \edef\lpsb@saved@parent@type{\lpsb@current@tag@type}%
         \lpsb@pdfliteralcmd{ EMC }%
@@ -1608,12 +1785,14 @@
         \endgroup
         #2%
         \lpsb@pdfliteralcmd{ EMC }%
-        % Reopen parent tag
+        % Reopen parent tag - use expanded values
         \stepcounter{lpsb@globalMCID}%
         \lpsb@pdfliteralcmd{ /\lpsb@saved@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-        \immediate\write\@auxout{%
-          \string\lpsb@mcid@cont{\lpsb@saved@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-        }%
+        % CRITICAL FIX: Capture all values BEFORE write, then write with pre-expanded string
+        \edef\lpsb@cont@parentid{\lpsb@saved@parent@id}%
+        \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+        \edef\lpsb@cont@page{\thelpsb@currentPage}%
+        \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
       \else
         % NOT inside a parent tag: emit standalone Reference BDC/EMC
         % After Reference ends, start a new P for subsequent text
@@ -1661,14 +1840,15 @@
     \renewcommand{\author}{%
       \@ifnextchar[\lpsb@author@opt\lpsb@author@noopt
     }%
-    \def\lpsb@author@opt[#1]#2{%
+    % IMPORTANT: Use \long to handle args with \par (multi-line affiliations, \thanks, etc.)
+    \long\def\lpsb@author@opt[#1]#2{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
       }%
       \lpsb@orig@author[#1]{#2}%
     }%
-    \def\lpsb@author@noopt#1{%
+    \long\def\lpsb@author@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
@@ -1682,14 +1862,14 @@
     \renewcommand{\affiliation}{%
       \@ifnextchar[\lpsb@affiliation@opt\lpsb@affiliation@noopt
     }%
-    \def\lpsb@affiliation@opt[#1]#2{%
+    \long\def\lpsb@affiliation@opt[#1]#2{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
       }%
       \lpsb@orig@affiliation[#1]{#2}%
     }%
-    \def\lpsb@affiliation@noopt#1{%
+    \long\def\lpsb@affiliation@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
@@ -1703,14 +1883,14 @@
     \renewcommand{\institute}{%
       \@ifnextchar[\lpsb@institute@opt\lpsb@institute@noopt
     }%
-    \def\lpsb@institute@opt[#1]#2{%
+    \long\def\lpsb@institute@opt[#1]#2{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
       }%
       \lpsb@orig@institute[#1]{#2}%
     }%
-    \def\lpsb@institute@noopt#1{%
+    \long\def\lpsb@institute@noopt#1{%
       \stepcounter{lpsb@logicalElemID}%
       \immediate\write\@auxout{%
         \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
@@ -1744,6 +1924,25 @@
 % Flag: defer P tag creation after section heading until real content appears
 % This prevents empty P tags when floats immediately follow \section{...}
 \newif\if@lpsb@P@pending@after@section \@lpsb@P@pending@after@sectionfalse
+% === EXTENDED DEFERRED P TAG PATTERN ===
+% These flags implement the "don't rush to open tags" philosophy:
+% Set a flag, wait until real text is typeset (\everypar), then decide.
+%
+% Phase 1: Display Math Protection
+% Prevents empty P tags after equation/align environments
+\newif\if@lpsb@P@pending@after@math \@lpsb@P@pending@after@mathfalse
+%
+% Phase 2: List Transition Protection  
+% Prevents empty P tags after itemize/enumerate/description
+\newif\if@lpsb@P@pending@after@list \@lpsb@P@pending@after@listfalse
+%
+% Phase 3: Layout Environment Suppression
+% Prevents spurious P tags inside center/minipage layout environments
+\newif\if@lpsb@suppress@pending@trigger \@lpsb@suppress@pending@triggerfalse
+%
+% Phase 4: Block Tag Lock
+% Prevents block-level tags (P, H1, etc.) inside atomic constructs (Caption, Footnote)
+\newif\if@lpsb@lock@block@tags \@lpsb@lock@block@tagsfalse
 \gdef\lpsb@pending@heading@level{H1}
 \gdef\lpsb@current@section@id{}
 
@@ -1907,14 +2106,15 @@
   \@ifundefined{ACM@format}{\@ifundefined{section}{}{%
     \let\lpsb@orig@section\section
     \def\section{\@ifstar\lpsb@section@star\lpsb@section@nostar}%
-    \def\lpsb@section@star#1{%
+    % Use \long\def for all sectioning hooks to handle titles with \par
+    \long\def\lpsb@section@star#1{%
       % Delegate to the original starred section; our \@ssect hook handles tagging.
       \lpsb@orig@section*{#1}%
     }%
     \def\lpsb@section@nostar{%
       \@ifnextchar[\lpsb@section@opt\lpsb@section@noopt
     }%
-    \def\lpsb@section@opt[#1]#2{%
+    \long\def\lpsb@section@opt[#1]#2{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -1929,7 +2129,7 @@
       \global\@lpsb@P@pending@after@sectiontrue
       \global\@lpsb@in@sectionfalse
     }%
-    \def\lpsb@section@noopt#1{%
+    \long\def\lpsb@section@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -1947,13 +2147,13 @@
   \@ifundefined{ACM@format}{\@ifundefined{subsection}{}{%
     \let\lpsb@orig@subsec\subsection
     \def\subsection{\@ifstar\lpsb@subsection@star\lpsb@subsection@nostar}%
-    \def\lpsb@subsection@star#1{%
+    \long\def\lpsb@subsection@star#1{%
       \lpsb@orig@subsec*{#1}%
     }%
     \def\lpsb@subsection@nostar{%
       \@ifnextchar[\lpsb@subsection@opt\lpsb@subsection@noopt
     }%
-    \def\lpsb@subsection@opt[#1]#2{%
+    \long\def\lpsb@subsection@opt[#1]#2{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -1966,7 +2166,7 @@
       \global\@lpsb@P@pending@after@sectiontrue
       \global\@lpsb@in@sectionfalse
     }%
-    \def\lpsb@subsection@noopt#1{%
+    \long\def\lpsb@subsection@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -1984,13 +2184,13 @@
   \@ifundefined{ACM@format}{\@ifundefined{subsubsection}{}{%
     \let\lpsb@orig@subsubsec\subsubsection
     \def\subsubsection{\@ifstar\lpsb@subsubsection@star\lpsb@subsubsection@nostar}%
-    \def\lpsb@subsubsection@star#1{%
+    \long\def\lpsb@subsubsection@star#1{%
       \lpsb@orig@subsubsec*{#1}%
     }%
     \def\lpsb@subsubsection@nostar{%
       \@ifnextchar[\lpsb@subsubsection@opt\lpsb@subsubsection@noopt
     }%
-    \def\lpsb@subsubsection@opt[#1]#2{%
+    \long\def\lpsb@subsubsection@opt[#1]#2{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -2003,7 +2203,7 @@
       \global\@lpsb@P@pending@after@sectiontrue
       \global\@lpsb@in@sectionfalse
     }%
-    \def\lpsb@subsubsection@noopt#1{%
+    \long\def\lpsb@subsubsection@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -2021,13 +2221,13 @@
   \@ifundefined{ACM@format}{\@ifundefined{paragraph}{}{%
     \let\lpsb@orig@paragraph\paragraph
     \def\paragraph{\@ifstar\lpsb@paragraph@star\lpsb@paragraph@nostar}%
-    \def\lpsb@paragraph@star#1{%
+    \long\def\lpsb@paragraph@star#1{%
       \lpsb@orig@paragraph*{#1}%
     }%
     \def\lpsb@paragraph@nostar{%
       \@ifnextchar[\lpsb@paragraph@opt\lpsb@paragraph@noopt
     }%
-    \def\lpsb@paragraph@opt[#1]#2{%
+    \long\def\lpsb@paragraph@opt[#1]#2{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -2040,7 +2240,7 @@
       \global\@lpsb@P@pending@after@sectiontrue
       \global\@lpsb@in@sectionfalse
     }%
-    \def\lpsb@paragraph@noopt#1{%
+    \long\def\lpsb@paragraph@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
@@ -2123,22 +2323,50 @@
 % with nested \if..\fi conditionals
 
 % Inner paragraph hook - the core logic, extracted for conditional reuse
+% Implements the "deferred decision" pattern for robust tagging
 \newcommand{\lpsb@para@hook@inner}{%
   % Filter: skip section formatting (to prevent H1/H2 from being interrupted)
   \if@lpsb@in@section\else
   %
-  % Handle deferred P after section heading
-  % If a float appeared immediately after \section, the pending flag is cleared
-  % by AtBeginEnvironment{figure}. Otherwise, we start P now.
+  % [CRITICAL] Skip paragraph cycling inside abstract to keep it as one logical element
+  % This prevents cross-column abstract content from being split into multiple P elements
+  \if@lpsb@in@abstract\else
+  %
+  % [Phase 3] Layout Suppression: skip all pending logic inside center/minipage
+  \if@lpsb@suppress@pending@trigger\else
+  %
+  % [Phase 4] Block Tag Lock: don't open block tags inside atomic constructs
+  \if@lpsb@lock@block@tags\else
+  %
+  % === DEFERRED P TAG PATTERN ===
+  % Check all pending flags in priority order. If any is set, handle it
+  % instead of the normal paragraph cycling logic.
+  %
+  % [Phase 1] Deferred P after section heading
   \if@lpsb@P@pending@after@section
     \global\@lpsb@P@pending@after@sectionfalse
     \if@lpsb@in@tag\else
-      % Not in a tag - start P now that real paragraph content is arriving
       \lpsbTagBegin{P}%
       \global\@lpsb@first@parafalse
     \fi
   \else
-    % Normal paragraph logic
+  % [Phase 1] Deferred P after display math
+  \if@lpsb@P@pending@after@math
+    \global\@lpsb@P@pending@after@mathfalse
+    \if@lpsb@in@tag\else
+      \lpsbTagBegin{P}%
+      \global\@lpsb@first@parafalse
+    \fi
+  \else
+  % [Phase 2] Deferred P after list
+  \if@lpsb@P@pending@after@list
+    \global\@lpsb@P@pending@after@listfalse
+    \if@lpsb@in@tag\else
+      \lpsbTagBegin{P}%
+      \global\@lpsb@first@parafalse
+    \fi
+  \else
+    % Normal paragraph logic (no pending flags set)
     \if@lpsb@in@tag
       % Already in a tag
       \if@lpsb@first@para
@@ -2156,8 +2384,11 @@
       \lpsbTagBegin{P}%
       \global\@lpsb@first@parafalse
     \fi
-  \fi
+  \fi\fi\fi % end pending flag checks
   %
+  \fi % @lpsb@lock@block@tags
+  \fi % @lpsb@suppress@pending@trigger
+  \fi % @lpsb@in@abstract
   \fi % @lpsb@in@section
 }
 
@@ -2203,9 +2434,11 @@
       \if@lpsb@in@tag
         \stepcounter{lpsb@globalMCID}%
         \lpsb@pdfliteralcmd{ /\lpsb@current@tag@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-        \immediate\write\@auxout{%
-          \string\lpsb@mcid@cont{\lpsb@current@logical@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-        }%
+        % CRITICAL FIX: Pre-expand values before write
+        \edef\lpsb@cont@parentid{\lpsb@current@logical@id}%
+        \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+        \edef\lpsb@cont@page{\thelpsb@currentPage}%
+        \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
       \fi
     \fi
     %%
@@ -2305,7 +2538,8 @@
 \AtEndEnvironment{itemize}{%
   \if@lpsb@active
     \lpsbTagEnd
-    \lpsbTagBegin{P}% Start P after list
+    % Defer P - everypar will start it when real content arrives
+    \global\@lpsb@P@pending@after@listtrue
   \fi
 }
 
@@ -2318,7 +2552,7 @@
 \AtEndEnvironment{enumerate}{%
   \if@lpsb@active
     \lpsbTagEnd
-    \lpsbTagBegin{P}%
+    \global\@lpsb@P@pending@after@listtrue
   \fi
 }
 
@@ -2333,7 +2567,7 @@
   \if@lpsb@active
     \global\@lpsb@suppress@inlinefalse
     \lpsbTagEnd
-    \lpsbTagBegin{P}%  % Resume P after description list
+    \global\@lpsb@P@pending@after@listtrue
   \fi
 }
 
@@ -2536,28 +2770,27 @@
       \lpsb@orig@enddblfloat
     }%
   }%
-  % Hook float package's float@endH for [H] option floats - DISABLED
-  % These bypass standard end@float and use float@endH instead
-  % 
-  % WARNING: This hook causes "No counter 'l/d/r/p'" errors in documents
-  % with complex math environments (eqnarray, etc.) due to conflicts with
-  % array column specifier parsing. The exact cause is that defining this
-  % hook in AtBeginDocument somehow corrupts LaTeX's internal parsing state.
+  % Hook float package's float@endH for [H] option floats.
+  % These bypass standard end@float and use float@endH instead, which otherwise
+  % leaves our float tag open and can mis-tag captions/algorithm content as /P.
   %
-  % Impact of disabling: [H] floats still render correctly, but may not
-  % have perfectly matched MCID end tags. Standard floats are unaffected.
-  %
-  % \@ifundefined{float@endH}{}{%
-  %   \let\lpsb@orig@floatendH\float@endH
-  %   \def\float@endH{%
-  %     \if@lpsb@active
-  %       \lpsbTagEndFloat
-  %       \global\@lpsb@first@paratrue
-  %     \fi
-  %     \global\@lpsb@in@floatfalse
-  %     \lpsb@orig@floatendH
-  %   }%
-  % }%
+  % NOTE: This used to be disabled due to reports of parsing-state corruption in
+  % some documents. We keep the wrapper as minimal as possible and mirror the
+  % end@float behavior: close the tag inside the float box (pass-2 only), then
+  % reset in-float state.
+  \@ifundefined{float@endH}{}{%
+    \let\lpsb@orig@floatendH\float@endH
+    \def\float@endH{%
+      \if@lpsb@active
+        \if@lpsb@pass@one\else
+          \lpsbTagEndFloat
+        \fi
+        \global\@lpsb@first@paratrue
+      \fi
+      \global\@lpsb@in@floatfalse
+      \lpsb@orig@floatendH
+    }%
+  }%
 }
 
 % At source location: CLOSE current P before float definition starts
@@ -2569,8 +2802,10 @@
 % - If float lands on SAME page: close P (conservative, correct)
 % - If float lands on DIFFERENT page: DON'T close P (the P content is not interrupted)
 \AtBeginEnvironment{figure}{%
-  % Clear pending P flag - floats don't need empty P before them
+  % Clear ALL pending P flags - floats don't need empty P before them
   \global\@lpsb@P@pending@after@sectionfalse
+  \global\@lpsb@P@pending@after@mathfalse
+  \global\@lpsb@P@pending@after@listfalse
   \if@lpsb@active\if@lpsb@in@tag%
     \lpsb@check@float@page  % Check where this float will land
     \if@lpsb@float@same@page
@@ -2584,6 +2819,8 @@
 }
 \AtBeginEnvironment{figure*}{%
   \global\@lpsb@P@pending@after@sectionfalse
+  \global\@lpsb@P@pending@after@mathfalse
+  \global\@lpsb@P@pending@after@listfalse
   \if@lpsb@active\if@lpsb@in@tag%
     \lpsb@check@float@page
     \if@lpsb@float@same@page
@@ -2596,6 +2833,8 @@
 }
 \AtBeginEnvironment{table}{%
   \global\@lpsb@P@pending@after@sectionfalse
+  \global\@lpsb@P@pending@after@mathfalse
+  \global\@lpsb@P@pending@after@listfalse
   \if@lpsb@active\if@lpsb@in@tag%
     \lpsb@check@float@page
     \if@lpsb@float@same@page
@@ -2608,6 +2847,8 @@
 }
 \AtBeginEnvironment{table*}{%
   \global\@lpsb@P@pending@after@sectionfalse
+  \global\@lpsb@P@pending@after@mathfalse
+  \global\@lpsb@P@pending@after@listfalse
   \if@lpsb@active\if@lpsb@in@tag%
     \lpsb@check@float@page
     \if@lpsb@float@same@page
@@ -2632,28 +2873,115 @@
 \newif\if@lpsb@in@caption \@lpsb@in@captionfalse
 \newif\if@lpsb@in@href    \@lpsb@in@hreffalse
 
+% --- PHASE 3: LAYOUT ENVIRONMENT SUPPRESSION ---
+% These environments are purely for layout (centering, sizing) and should not
+% trigger spurious P tags. When inside them, suppress the pending trigger logic.
+\AtBeginEnvironment{center}{%
+  \global\@lpsb@suppress@pending@triggertrue
+}
+\AtEndEnvironment{center}{%
+  \global\@lpsb@suppress@pending@triggerfalse
+}
+\AtBeginEnvironment{minipage}{%
+  \global\@lpsb@suppress@pending@triggertrue
+}
+\AtEndEnvironment{minipage}{%
+  \global\@lpsb@suppress@pending@triggerfalse
+}
+\AtBeginEnvironment{flushleft}{%
+  \global\@lpsb@suppress@pending@triggertrue
+}
+\AtEndEnvironment{flushleft}{%
+  \global\@lpsb@suppress@pending@triggerfalse
+}
+\AtBeginEnvironment{flushright}{%
+  \global\@lpsb@suppress@pending@triggertrue
+}
+\AtEndEnvironment{flushright}{%
+  \global\@lpsb@suppress@pending@triggerfalse
+}
+
 % Helper: Safe Caption Wrapper (checks guard)
+% [PHASE 4] Uses block tag lock to prevent spurious P tags inside caption
+%
+% IMPORTANT:
+% - Captions write to .lof/.lot and can execute in moving/expansion-only contexts.
+% - Do NOT run tagging side effects unless we are in typesetting mode.
 \newcommand{\lpsb@safe@caption@wrapper}[2]{%
-  \if@lpsb@in@caption
-     #1{#2}% Direct call to orig if already inside caption
+  \ifx\protect\@typeset@protect
+    \if@lpsb@in@caption
+       #1{#2}% Direct call to orig if already inside caption
+    \else
+       \global\@lpsb@lock@block@tagstrue  % LOCK: prevent block tags
+       % wrapfig injects its box via \everypar; if \caption is executed during
+       % that injection, reopening the parent tag (mcid_cont) can leak into the
+       % paragraph text stream. In that case, emit Caption as an atom that ENDS
+       % the parent element (no reopen).
+       \ifcsname if@lpsb@wf@boxing\endcsname
+         \if@lpsb@wf@boxing
+           % Inside a wrapfig box: DO NOT reopen the parent after Caption.
+           % Some wrapfig/caption code paths defer caption typesetting; a reopened
+           % parent (mcid_cont) can otherwise leak into the surrounding paragraph.
+           \lpsb@TagAtomImplEndParent{Caption}{%
+             \global\@lpsb@in@captiontrue
+             #1{#2}%
+             \global\@lpsb@in@captionfalse
+           }%
+         \else
+           \lpsbTagAtom{Caption}{%
+             \global\@lpsb@in@captiontrue
+             #1{#2}%
+             \global\@lpsb@in@captionfalse
+           }%
+         \fi
+       \else
+         \lpsbTagAtom{Caption}{%
+           \global\@lpsb@in@captiontrue
+           #1{#2}%
+           \global\@lpsb@in@captionfalse
+         }%
+       \fi
+       \global\@lpsb@lock@block@tagsfalse % UNLOCK
+    \fi
   \else
-     \lpsbTagAtom{Caption}{%
-       \global\@lpsb@in@captiontrue
-       #1{#2}%
-       \global\@lpsb@in@captionfalse
-     }%
+    % Not typesetting: preserve original behavior, no tagging.
+    #1{#2}%
   \fi
 }
 % Helper: Safe Caption Wrapper with Option
+% [PHASE 4] Uses block tag lock
 \newcommand{\lpsb@safe@caption@wrapper@opt}[3]{%
-  \if@lpsb@in@caption
-     #1[#2]{#3}%
-  \else
-     \lpsbTagAtom{Caption}{%
-       \global\@lpsb@in@captiontrue
+  \ifx\protect\@typeset@protect
+    \if@lpsb@in@caption
        #1[#2]{#3}%
-       \global\@lpsb@in@captionfalse
-     }%
+    \else
+       \global\@lpsb@lock@block@tagstrue  % LOCK
+       \ifcsname if@lpsb@wf@boxing\endcsname
+         \if@lpsb@wf@boxing
+           \lpsb@TagAtomImplEndParent{Caption}{%
+             \global\@lpsb@in@captiontrue
+             #1[#2]{#3}%
+             \global\@lpsb@in@captionfalse
+           }%
+         \else
+           \lpsbTagAtom{Caption}{%
+             \global\@lpsb@in@captiontrue
+             #1[#2]{#3}%
+             \global\@lpsb@in@captionfalse
+           }%
+         \fi
+       \else
+         \lpsbTagAtom{Caption}{%
+           \global\@lpsb@in@captiontrue
+           #1[#2]{#3}%
+           \global\@lpsb@in@captionfalse
+         }%
+       \fi
+       \global\@lpsb@lock@block@tagsfalse % UNLOCK
+    \fi
+  \else
+    % Not typesetting: preserve original behavior, no tagging.
+    #1[#2]{#3}%
   \fi
 }
 
@@ -2672,45 +3000,47 @@
   \@ifundefined{caption}{}{%
     \let\lpsb@orig@subfig@caption\caption
     \renewcommand{\caption}{\@ifnextchar[\lpsb@subfigcap@opt\lpsb@subfigcap@noopt}%
-    \def\lpsb@subfigcap@opt[##1]##2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subfig@caption{##1}{##2}}%
-    \def\lpsb@subfigcap@noopt##1{\lpsb@safe@caption@wrapper\lpsb@orig@subfig@caption{##1}}%
+    % IMPORTANT: Use \long\def to handle captions with paragraph breaks
+    \long\def\lpsb@subfigcap@opt[##1]##2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subfig@caption{##1}{##2}}%
+    \long\def\lpsb@subfigcap@noopt##1{\lpsb@safe@caption@wrapper\lpsb@orig@subfig@caption{##1}}%
   }%
 }
 \AtBeginDocument{%
-  % Skip caption hooks if legacy subfigure.sty is loaded (causes expansion conflicts)
-  \@ifpackageloaded{subfigure}{%
-    % Legacy subfigure.sty detected - it redefines \caption internally
-    % and has incompatible expansion behavior with our hooks.
-    % Caption tagging is sacrificed for compilation compatibility.
-    \PackageInfo{lpsb-mcid}{Legacy subfigure.sty detected - skipping caption hooks}%
-  }{%
-    % Safe to hook captions (subcaption package or no subfigure package)
-    \@ifundefined{caption}{}{%
-      \let\lpsb@orig@caption\caption
-      \renewcommand{\caption}{\@ifnextchar[\lpsb@cap@opt\lpsb@cap@noopt}%
-      % Use recursion guard to prevent infinite loops
-      \def\lpsb@cap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@caption{#1}{#2}}%
-      \def\lpsb@cap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@caption{#1}}%
-    }%
-    % subcaption package: \subcaption has same optional-arg pattern.
-    \@ifundefined{subcaption}{}{%
-      \let\lpsb@orig@subcaption\subcaption
-      \renewcommand{\subcaption}{\@ifnextchar[\lpsb@subcap@opt\lpsb@subcap@noopt}%
-      % Use same recursion guard (caption flag) since subcaption may call caption
-      \def\lpsb@subcap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subcaption{#1}{#2}}%
-      \def\lpsb@subcap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@subcaption{#1}}%
-    }%
-    % subcaption package: subfigure environment can override \caption locally.
-    % Hook the environment start and re-wrap \caption inside its group.
-    \@ifundefined{subfigure}{}{%
-      \AtBeginEnvironment{subfigure}{\lpsb@patch@subfigure@caption}%
-    }%
-    % subcaption: setcaptionsubtype triggers \caption@subtypehook; use that as a
-    % reliable place to re-wrap \caption for sub-captions (works even if subcaption
-    % swaps \caption behind our back).
-    \@ifundefined{caption@subtypehook}{}{%
-      \g@addto@macro\caption@subtypehook{\lpsb@patch@subfigure@caption}%
-    }%
+  % Always hook user-level caption macros.
+  %
+  % We previously skipped caption hooks when legacy subfigure.sty is loaded due
+  % to expansion/moving-argument conflicts. This is no longer necessary because:
+  % - \lpsbTagAtom is \protected and guarded by \@typeset@protect
+  % - our safe caption wrappers also guard non-typesetting contexts
+  %
+  % Result: figure/table captions are tagged as Caption atoms even under legacy
+  % subfigure.sty (fixes missing caption identification).
+  \@ifundefined{caption}{}{%
+    \let\lpsb@orig@caption\caption
+    \renewcommand{\caption}{\@ifnextchar[\lpsb@cap@opt\lpsb@cap@noopt}%
+    % Use recursion guard to prevent infinite loops
+    % IMPORTANT: Use \long\def to handle captions containing \par
+    \long\def\lpsb@cap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@caption{#1}{#2}}%
+    \long\def\lpsb@cap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@caption{#1}}%
+  }%
+  % subcaption package: \subcaption has same optional-arg pattern.
+  \@ifundefined{subcaption}{}{%
+    \let\lpsb@orig@subcaption\subcaption
+    \renewcommand{\subcaption}{\@ifnextchar[\lpsb@subcap@opt\lpsb@subcap@noopt}%
+    % Use same recursion guard (caption flag) since subcaption may call caption
+    \long\def\lpsb@subcap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subcaption{#1}{#2}}%
+    \long\def\lpsb@subcap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@subcaption{#1}}%
+  }%
+  % subcaption package: subfigure environment can override \caption locally.
+  % Hook the environment start and re-wrap \caption inside its group.
+  \@ifundefined{subfigure}{}{%
+    \AtBeginEnvironment{subfigure}{\lpsb@patch@subfigure@caption}%
+  }%
+  % subcaption: setcaptionsubtype triggers \caption@subtypehook; use that as a
+  % reliable place to re-wrap \caption for sub-captions (works even if subcaption
+  % swaps \caption behind our back).
+  \@ifundefined{caption@subtypehook}{}{%
+    \g@addto@macro\caption@subtypehook{\lpsb@patch@subfigure@caption}%
   }%
 }
 
@@ -2742,12 +3072,24 @@
     \def\lpsb@fnmark@noopt{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark}}%
   }%
   \@ifundefined{footnotetext}{}{%
+    % Hook \footnotetext for tagging. Use \long\def to handle paragraph breaks
+    % in the argument (common in complex macro content like ICML's \printAffiliationsAndNotice).
     \let\lpsb@orig@footnotetext\footnotetext
+    %
+    % The challenge: \footnotetext[num]{text} has optional arg.
+    % We use \@ifnextchar to detect [...], then capture args with \long\def.
     \renewcommand{\footnotetext}{%
       \@ifnextchar[\lpsb@fntext@opt\lpsb@fntext@noopt
     }%
-    \def\lpsb@fntext@opt[#1]#2{\lpsbTagAtom{Note}{\lpsb@orig@footnotetext[#1]{#2}}}%
-    \def\lpsb@fntext@noopt#1{\lpsbTagAtom{Note}{\lpsb@orig@footnotetext{#1}}}%
+    % Optional argument version: \footnotetext[num]{text}
+    \long\def\lpsb@fntext@opt[#1]#2{%
+      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext[#1]{#2}}%
+    }%
+    % No optional argument: \footnotetext{text}
+    % IMPORTANT: Use \long to handle \par and complex macro content
+    \long\def\lpsb@fntext@noopt#1{%
+      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext{#1}}%
+    }%
   }%
   % Standard \footnote uses internal \@footnotemark/\@footnotetext; hook those too so the
   % footnote text itself gets tagged (not just the mark in the paragraph).
@@ -2832,9 +3174,11 @@
              \lpsb@pdfliteralcmd{ EMC }% Close Link
              \stepcounter{lpsb@globalMCID}%
              \lpsb@pdfliteralcmd{ /\lpsb@current@tag@type\space << /MCID \thelpsb@globalMCID >> BDC }% Reopen parent
-             \immediate\write\@auxout{%
-               \string\lpsb@mcid@cont{\lpsb@current@logical@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-             }%
+             % CRITICAL FIX: Pre-expand values before write
+             \edef\lpsb@cont@parentid{\lpsb@current@logical@id}%
+             \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+             \edef\lpsb@cont@page{\thelpsb@currentPage}%
+             \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
           \fi
         \fi
       \fi
@@ -2970,9 +3314,11 @@
         \ifx\lpsb@math@parent@id\@empty\else
           \stepcounter{lpsb@globalMCID}%
           \lpsb@pdfliteralcmd{ /\lpsb@math@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
-          \immediate\write\@auxout{%
-            \string\lpsb@mcid@cont{\lpsb@math@parent@id}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
-          }%
+          % CRITICAL FIX: Pre-expand values before write
+          \edef\lpsb@cont@parentid{\lpsb@math@parent@id}%
+          \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+          \edef\lpsb@cont@page{\thelpsb@currentPage}%
+          \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
         \fi
       \fi
     \fi
@@ -3005,14 +3351,15 @@
     \@ifundefined{endequation}{}{%
       \apptocmd{\endequation}{%
         \lpsbTagEnd
-        \lpsbTagBegin{P}%
+        % Defer P - everypar will start it when real content arrives
+        \global\@lpsb@P@pending@after@mathtrue
       }{}{}%
     }%
   }%
 }{%
   \AfterEndEnvironment{equation}{%
     \lpsbTagEnd
-    \lpsbTagBegin{P}%
+    \global\@lpsb@P@pending@after@mathtrue
   }%
 }
 
@@ -3024,7 +3371,7 @@
 }
 \AfterEndEnvironment{align}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{align*}{%
@@ -3033,7 +3380,7 @@
 }
 \AfterEndEnvironment{align*}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{gather}{%
@@ -3042,7 +3389,7 @@
 }
 \AfterEndEnvironment{gather}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{gather*}{%
@@ -3051,7 +3398,7 @@
 }
 \AfterEndEnvironment{gather*}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{multline}{%
@@ -3060,7 +3407,7 @@
 }
 \AfterEndEnvironment{multline}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{multline*}{%
@@ -3069,7 +3416,7 @@
 }
 \AfterEndEnvironment{multline*}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{flalign}{%
@@ -3078,7 +3425,7 @@
 }
 \AfterEndEnvironment{flalign}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 \AtBeginEnvironment{flalign*}{%
@@ -3087,37 +3434,115 @@
 }
 \AfterEndEnvironment{flalign*}{%
   \lpsbTagEnd
-  \lpsbTagBegin{P}%
+  \global\@lpsb@P@pending@after@mathtrue
 }
 
 % --- Wrapfigure/Wraptable Tagging ---
-% wrapfig package creates inline figures/tables that text wraps around.
-% These should be tagged as Figure/Table with inline suppression.
+% wrapfig does NOT behave like a normal float:
+% - It builds the wrapped object into \WF@box, then injects that box later via \everypar.
+% - In collision cases it can also "force to float".
+%
+% Environment-level tagging (BeforeBeginEnvironment/AfterEndEnvironment) is wrong here:
+% it tends to tag the wrapped *text* as Table/Figure and the wrapped object as P,
+% swapping semantics (e.g. Table 8 on page 13 in 2401.00006).
+%
+% Correct approach: tag INSIDE the wrapped object box (\WF@box), not around the env.
 \AtBeginDocument{%
   \@ifpackageloaded{wrapfig}{%
-    \BeforeBeginEnvironment{wrapfigure}{%
-      \if@lpsb@active
-        \lpsbTagEnd
-      \fi
-      \lpsbTagBegin{Figure}%
-      \global\@lpsb@suppress@inlinetrue
+    \typeout{LPSB-MCID Info: wrapfig detected - tagging wrap box via WF@rapt/endwrapfloat}%
+    % Tracks whether we isolated tagging state for a wrap box.
+    \newif\if@lpsb@wf@boxing \@lpsb@wf@boxingfalse
+    % Tracks whether we need to resume a P after wrap box injection.
+    \newif\if@lpsb@wf@resumeP \@lpsb@wf@resumePfalse
+    % True only while wrapfig injects \WF@box via \everypar.
+    \newif\if@lpsb@wrapfig@inject \@lpsb@wrapfig@injectfalse
+    % Patch \WF@rapt: called after placement args are parsed, right before
+    % wrap content starts. At this point wrapfig has opened \WF@box (vtop/hbox)
+    % and is about to read the environment body into it.
+    \@ifundefined{WF@rapt}{}{%
+      \let\lpsb@orig@WF@rapt\WF@rapt
+      \def\WF@rapt[#1]#2{%
+        \lpsb@orig@WF@rapt[#1]{#2}%
+        \if@lpsb@active
+          % CRITICAL:
+          % wrapfig builds content into \WF@box (a \vtop/\hbox) using \setbox.
+          % Our tagging state (\lpsb@current@logical@id/type, stack, in@tag) is GLOBAL.
+          % If we mutate it inside \WF@box without restoring, we corrupt the outer
+          % document state and can swap Table/P semantics in the surrounding text.
+          %
+          % So: snapshot outer state, isolate box state, tag inside the box, and
+          % restore the outer state in \endwrapfloat.
+          \xdef\lpsb@wf@saved@tag@stack{\lpsb@tag@stack}%
+          \xdef\lpsb@wf@saved@curid{\lpsb@current@logical@id}%
+          \xdef\lpsb@wf@saved@curtype{\lpsb@current@tag@type}%
+          \if@lpsb@in@tag
+            \gdef\lpsb@wf@saved@in@tag{1}%
+          \else
+            \gdef\lpsb@wf@saved@in@tag{0}%
+          \fi
+          \global\@lpsb@wf@boxingtrue
+          % Isolate state for box tagging: start from a clean stack.
+          \gdef\lpsb@tag@stack{}%
+          \global\@lpsb@in@tagfalse
+          % Determine Figure vs Table from \@captype (set by wrapfig)
+          \edef\lpsb@wf@captype{\@captype}%
+          \def\lpsb@wf@table{table}%
+          \ifx\lpsb@wf@captype\lpsb@wf@table
+            \lpsbTagBegin{Table}%
+          \else
+            \lpsbTagBegin{Figure}%
+          \fi
+          \global\@lpsb@suppress@inlinetrue
+        \fi
+      }%
     }%
-    \AfterEndEnvironment{wrapfigure}{%
-      \global\@lpsb@suppress@inlinefalse
-      \lpsbTagEnd
-      \lpsbTagBegin{P}%
+    % Patch \endwrapfloat: close Table/Figure tag inside \WF@box before
+    % wrapfig finalizes and stores the box.
+    \@ifundefined{endwrapfloat}{}{%
+      \let\lpsb@orig@endwrapfloat\endwrapfloat
+      \def\endwrapfloat{%
+        \if@lpsb@active
+          \global\@lpsb@suppress@inlinefalse
+          \lpsbTagEnd
+          % Restore outer tagging state if we isolated it in \WF@rapt.
+          \if@lpsb@wf@boxing
+            \xdef\lpsb@tag@stack{\lpsb@wf@saved@tag@stack}%
+            \xdef\lpsb@current@logical@id{\lpsb@wf@saved@curid}%
+            \xdef\lpsb@current@tag@type{\lpsb@wf@saved@curtype}%
+            \ifnum\lpsb@wf@saved@in@tag=1\relax
+              \global\@lpsb@in@tagtrue
+            \else
+              \global\@lpsb@in@tagfalse
+            \fi
+            \global\@lpsb@wf@boxingfalse
+          \fi
+        \fi
+        \lpsb@orig@endwrapfloat
+      }%
     }%
-    \BeforeBeginEnvironment{wraptable}{%
-      \if@lpsb@active
-        \lpsbTagEnd
-      \fi
-      \lpsbTagBegin{Table}%
-      \global\@lpsb@suppress@inlinetrue
-    }%
-    \AfterEndEnvironment{wraptable}{%
-      \global\@lpsb@suppress@inlinefalse
-      \lpsbTagEnd
-      \lpsbTagBegin{P}%
+    % Patch \WF@floathand: wrapfig injects \WF@box later via \everypar.
+    % If we leave a /P BDC open, the injected box (and its tagging) can end up
+    % splitting the paragraph stream, causing Table/P semantics to swap.
+    % Close any open tag before injection, then resume P for the paragraph text.
+    \@ifundefined{WF@floathand}{}{%
+      \let\lpsb@orig@WF@floathand\WF@floathand
+      \def\WF@floathand{%
+        \if@lpsb@active
+          \if@lpsb@in@tag
+            \lpsbTagEnd
+          \fi
+        \fi
+        \global\@lpsb@wrapfig@injecttrue
+        \lpsb@orig@WF@floathand
+        \global\@lpsb@wrapfig@injectfalse
+        \if@lpsb@active
+          % Ensure paragraph text after wrapfig injection is tagged.
+          \if@lpsb@in@tag\else
+            \lpsbTagBegin{P}%
+            \global\@lpsb@first@paratrue
+          \fi
+        \fi
+      }%
     }%
   }{}%
 }
@@ -3169,24 +3594,41 @@
 % Keep citations as atom tags so they don't split /P into separate logical elements.
 % NOTE: natbib supports up to two optional args: \citep[pre][post]{key}.
 %
-% CRITICAL: Citation commands are often used in moving arguments (\caption, \section).
-% The \@ifnextchar[ trick is FRAGILE and breaks in moving arguments.
-% Solution: Use \protected\def for the outer command to delay expansion.
+% SOLUTION: Instead of hooking user-level commands (\cite, \citep, \citet),
+% we hook natbib's internal output primitive \NAT@citetp which is called
+% AFTER all argument parsing is complete. This avoids:
+% 1. Misplaced alignment tab errors from & in bibcodes
+% 2. Breaking natbib's complex argument scanning logic
+%
+% For non-natbib documents, we hook the standard \@citex command.
 %
 \AtBeginDocument{%
   \@ifpackageloaded{natbib}{%
-    \typeout{LPSB-MCID Info: natbib detected}%
-    %
-    % DISABLED: Citation wrappers cause "Misplaced alignment tab" errors when
-    % bibcodes contain & (e.g., 2013A&A...556A...2V for Astronomy & Astrophysics).
-    % The & is interpreted as alignment tab during \def argument parsing.
-    %
-    % Tradeoff: Citations are not individually tagged as Reference atoms,
-    % but compilation succeeds for papers with A&A-style bibcodes.
-    %
-    % TODO: Find a way to wrap citations without re-parsing the bibcode argument.
-    % Possible approach: Hook natbib internal primitives after parsing is complete.
-  }{}%
+    \typeout{LPSB-MCID Info: natbib detected - hooking internal citation output}%
+    % Hook \NAT@citetp - this is called to output the final citation text
+    % It receives the formatted citation as its argument
+    \ifdefined\NAT@citetp
+      \let\lpsb@orig@NAT@citetp\NAT@citetp
+      \long\def\NAT@citetp#1{%
+        \lpsbTagAtom{Reference}{\lpsb@orig@NAT@citetp{#1}}%
+      }%
+    \fi
+    % Also hook \NAT@citexnum for numeric citations
+    \ifdefined\NAT@citexnum
+      \let\lpsb@orig@NAT@citexnum\NAT@citexnum
+      % NAT@citexnum doesn't take an argument in the same way,
+      % it builds output internally. We hook at hyper@natlinkstart instead.
+    \fi
+  }{%
+    % Non-natbib: hook standard \@citex if available
+    \ifdefined\@citex
+      \let\lpsb@orig@citex\@citex
+      \long\def\@citex[#1]#2{%
+        \lpsbTagAtom{Reference}{\lpsb@orig@citex[#1]{#2}}%
+      }%
+      \typeout{LPSB-MCID Info: standard LaTeX citation hook installed}%
+    \fi
+  }%
 }
 
 % --- Hyperlinks → Link ---

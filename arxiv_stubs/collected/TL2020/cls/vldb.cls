@@ -4,7 +4,7 @@
 % SIG-ALTERNATE.CLS - VERSION 1.8
 % "COMPATIBLE" WITH THE "ACM_PROC_ARTICLE-SP.CLS" V2.7SP
 % Gerald Murray July 26th. 2005
-%
+% 
 % ---- Start of 'updates'  ----
 %
 % Allowance made to switch default fonts between those systems using
@@ -501,7 +501,7 @@
   \hrule width .4\columnwidth
   \kern 2.6\p@}                 % The \hrule has default height of .4pt .
 % ------
-\long\def\@makefntext#1{\noindent
+\long\def\@makefntext#1{\noindent 
 %\hbox to .5em{\hss$^{\@thefnmark}$}#1}   % original
 \hbox to .5em{\hss\textsuperscript{\@thefnmark}}#1}  % C. Clifton / GM Oct. 2nd. 2002
 % -------
@@ -771,14 +771,9 @@
 \fi
 \setcounter{footnote}{0}
 \section*{ABSTRACT}\normalsize%\ninept
-
 }
 
-\def\endabstract{\if@twocolumn\else\endquotation\fi \@mkbibcitation}
-
-
-
-
+\def\endabstract{\if@twocolumn\else\endquotation\fi}
 
 \def\keywords{\if@twocolumn
 \section*{Keywords}
@@ -892,25 +887,25 @@
 % -- end of original
 
 % (JSS) Fix for vertical spacing bug - Gerry Murray July 30th. 2002
-\def\proof{%
-\vspace{-\lastskip}\vspace{-\parsep}\penalty-51%
-\global\@qededfalse
-\@ifnextchar[{\@xproof}{\@proof}%
-}
+% \def\proof{%
+% \vspace{-\lastskip}\vspace{-\parsep}\penalty-51%
+% \global\@qededfalse
+% \@ifnextchar[{\@xproof}{\@proof}%
+% }
 
-\def\endproof{%
-    \if@qeded\else\qed\fi
-    \endtrivlist
-}
-\def\@proof{%
-    \trivlist
-    \item[%
-        \hskip 10\p@
-        \hskip \labelsep
-        {\sc Proof.}%
-    ]
-    \ignorespaces
-}
+% \def\endproof{%
+%     \if@qeded\else\qed\fi
+%     \endtrivlist
+% }
+% \def\@proof{%
+%     \trivlist
+%     \item[%
+%         \hskip 10\p@
+%         \hskip \labelsep
+%         {\sc Proof.}%
+%     ]
+%     \ignorespaces
+% }
 \def\@xproof[#1]{%
     \trivlist
     \item[\hskip 10\p@\hskip \labelsep{\sc Proof #1.}]%
@@ -1257,7 +1252,7 @@
 \newdimen\bibindent
 \setcounter{enumi}{1}
 \bibindent=0em
-\def\thebibliography#1{%
+\def\thebibliography#1{% 
 \ifnum\addauflag=0\addauthorsection\global\addauflag=1\fi
      \section[References]{%    <=== OPTIONAL ARGUMENT ADDED HERE
         {References} % was uppercased but this affects pdf bookmarks (SP/GM October 2004)
@@ -1389,40 +1384,18 @@
 
 % Future proceedings chair, please update the following: 1) conference sequence number, 2) date,
 % 3) location, 4) volume number, 5) Copyright year.
-%\global\boilerplate={Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. To copy otherwise, to republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee.  Articles from this volume were invited to present their results at The 45th International Conference on Very Large Data Bases, August 2019, Los Angeles, California.}
-\global\boilerplate={This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.  To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/.  For any use beyond those covered by this license, obtain permission by emailing info@vldb.org. Copyright is held by the owner/author(s). Publication rights licensed to the VLDB Endowment.}
-
-
-\def\vldbAuthors#1{\def\@vldbAuthors{#1}}
-\def\vldbTitle#1{\def\@vldbTitle{#1}}
-\def\vldbDOI#1{\def\@vldbDOI{#1}}
-\def\vldbVolume#1{\def\@vldbVolume{#1}}
-\def\vldbNumber#1{\def\@vldbNumber{#1}}
-\def\vldbYear#1{\def\@vldbYear{#1}}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\@mkbibcitation{\bgroup
-  \def\footnotemark{}%
-   \par\medskip\small\noindent{\bfseries PVLDB Reference Format:}\par\nobreak
-   \noindent \@vldbAuthors.
-   \noindent \@vldbTitle.
-   \noindent {\em PVLDB}, \@vldbVolume (\@vldbNumber): 868-883, \@vldbYear.\par
-   \noindent DOI: \@vldbDOI
-\par\egroup}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\global\boilerplate={Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. To copy otherwise, to republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee.  Articles from this volume were invited to present their results at The 40th International Conference on Very Large Data Bases, September 1st - 5th 2014, Hangzhou, China.}
 
 \global\conf{Proceedings of the VLDB Endowment,}
-\global\confinfo{Vol. \@vldbVolume, No. \@vldbNumber}
+\global\confinfo{Vol. 7, No. X}
 \newtoks\copyrightetc
-\global\copyrightetc{ISSN 2150-8097}
+\global\copyrightetc{Copyright 2013 VLDB Endowment 2150-8097/13/09... \$ 10.00}
 
+%% Uncomment for camera ready
+%\toappear{\the\boilerplate\par
+%{\confname{\the\conf}} \the\confinfo\par \the\copyrightetc.}
 
-\toappear{\the\boilerplate\par
-{\confname{\the\conf}} \the\confinfo\par \the\copyrightetc.\par DOI: \@vldbDOI}
-
-%% End of vldb.cls -- V1.8c - 02/09/2017 --
-%% Ricardo Torres -- September 2017 (inclusion of PVLDB Reference Format below abstract)
+%% End of vldb.cls -- V1.8c - 05/15/2011 --
 %% Ahmet Sacan  -- December 2011 (volume, issue, and dates are dynamically updated)
 %% Uwe Roehm    -- Oct-Dec 2010 & Jan-Apr 2011
 %% Gerry Murray -- Wednesday July 26th. 2005

@@ -531,12 +531,13 @@ later}
  \global\let\and\relax}
 
 \def\makeheadbox{{%
-\hbox to0pt{\vbox{\baselineskip=10dd\hrule\hbox
-to\hsize{\vrule\kern3pt\vbox{\kern3pt
-\hbox{\bfseries\@journalname\ manuscript No.}
-\hbox{(will be inserted by the editor)}
-\kern3pt}\hfil\kern3pt\vrule}\hrule}%
-\hss}}}
+%\hbox to0pt{\vbox{\baselineskip=10dd\hrule\hbox
+%to\hsize{\vrule\kern3pt\vbox{\kern3pt
+%\hbox{\bfseries\@journalname\ manuscript No.}
+%\hbox{(will be inserted by the editor)}
+%\kern3pt}\hfil\kern3pt\vrule}\hrule}%
+%\hss}
+}}
 %
 \def\rubric{\setbox0=\hbox{\small\strut}\@tempdima=\ht0\advance
 \@tempdima\dp0\advance\@tempdima2\fboxsep\vrule\@height\@tempdima
@@ -669,7 +670,8 @@ to\hsize{\vrule\kern3pt\vbox{\kern3pt
 % \hrule\nobreak\parskip=5pt\relax\fi}
 % %
 % \let\makesectruleori=\makesectrule
-% \def\restoresectrule{\global\let\makesectrule=\makesectruleori\global\@sectrulefalse}
+%
+\def\restoresectrule{\global\let\makesectrule=\makesectruleori\global\@sectrulefalse}
 % \def\nosectrule{\let\makesectrule=\restoresectrule}
 %
 \def\@startsection#1#2#3#4#5#6{%
@@ -937,7 +939,8 @@ to\hsize{\vrule\kern3pt\vbox{\kern3pt
          \item[\hskip\labelsep{##3##1}]{##3##2\@thmcounterend\ }}}{}
 \newenvironment{theopargself*}
     {\def\@spopargbegintheorem##1##2##3##4##5{\trivlist
-         \item[\hskip\labelsep{##4##1\ ##2}]{\hspace*{-\labelsep}##4##3\@thmcounterend}##5}
+         \item[\hskip\labelsep{##4##1\
+             ##2}]{\hspace*{-\labelsep}##4##3\@thmcounterend}##5}
      \def\@Opargbegintheorem##1##2##3##4{##4\trivlist
          \item[\hskip\labelsep{##3##1}]{\hspace*{-\labelsep}##3##2\@thmcounterend}}}{}
 %
@@ -1222,7 +1225,8 @@ to\hsize{\vrule\kern3pt\vbox{\kern3pt
        {Citation `\@citeb' on page \thepage \space undefined}}%
     {\setbox\z@\hbox{\global\@tempcntc0\csname b@\@citeb\endcsname\relax}%
      \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\m@ne
-       \@citea\def\@citea{,\hskip0.1em\ignorespaces}\hbox{\csname b@\@citeb\endcsname}%
+       \@citea\def\@citea{,\hskip0.1em\ignorespaces}\hbox{\csname
+       b@\@citeb\endcsname}%
      \else
       \advance\@tempcntb\@ne
       \ifnum\@tempcntb=\@tempcntc

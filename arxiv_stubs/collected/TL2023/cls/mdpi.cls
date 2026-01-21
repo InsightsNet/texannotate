@@ -757,18 +757,18 @@
 			\OR \equal{\@arttype}{Monograph}}{}{%
 				\ifthenelse{\equal{\@status}{submit}}{%	
 					\hfill \href{https://www.mdpi.com}{%
-					\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+					\includegraphics[height=1cm]{Definitions/logo-mdpi.pdf}}%
 					}{
 					\href{https://www.mdpi.com/journal/\@journal}{
-					\includegraphics[height=1.2cm]{Definitions/\@journal-logo.eps}}%
+					\includegraphics[height=1.2cm]{Definitions/\@journal-logo.pdf}}%
 					\hfill
 					\ifthenelse{\equal{\@journal}{siuj}}{%
-						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-siuj.eps}}
+						\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-siuj.pdf}}
 						}{
 						\ifthenelse{\equal{\@journal}{scipharm}}{%
-							\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-scipharm.eps}}%
+							\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi-scipharm.pdf}}%
 							}{%
-							\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi.eps}}%
+							\href{https://www.mdpi.com}{\includegraphics[height=1cm]{Definitions/logo-mdpi.pdf}}%
 							}%
 						}%
 					}%
@@ -850,7 +850,7 @@
 	\leftcolFont
 	\ifthenelse{\equal{\@status}{submit}}{
 		}{%
-		\href{https://www.mdpi.com/article/\@doinum?type=check_update&version=1}{\includegraphics[height=.6cm]{Definitions/logo-updates.eps}}\\
+		\href{https://www.mdpi.com/article/\@doinum?type=check_update&version=1}{\includegraphics[height=.6cm]{Definitions/logo-updates.pdf}}\\
 		}%
 	\raggedright
 	\textbf{Citation:}\papercitation
@@ -1679,9 +1679,9 @@
 			}{%
 			\href{https://creativecommons.org/}{%
 				\ifthenelse{\equal{\@journal}{ijtpp}}{%
-					\includegraphics[width=2 cm]{Definitions/logo-ccby-nc-nd.eps}%
+					\includegraphics[width=2 cm]{Definitions/logo-ccby-nc-nd.pdf}%
 					}{%
-					\includegraphics[width=2 cm]{Definitions/logo-ccby.eps}
+					\includegraphics[width=2 cm]{Definitions/logo-ccby.pdf}
 					}
 				}\\
 				{\justifying\textbf{Copyright:} \copyright \ {\@copyrightyear} by the \@authornum.\linebreak%

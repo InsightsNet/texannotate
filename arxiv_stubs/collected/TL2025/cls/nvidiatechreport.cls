@@ -88,7 +88,7 @@
 \RequirePackage{url}
 \RequirePackage[svgnames,dvipsnames]{xcolor}
 \definecolor{nvidiagreen}{HTML}{76B900}
-\RequirePackage[pdfauthor={},pdftitle={Alpamayo-R1: Bridging Reasoning and Action Prediction for Generalizable Autonomous Driving in the Long Tail},hyperfootnotes=false,pagebackref=true,breaklinks=true,colorlinks=true,allcolors=nvidiagreen]{hyperref}
+\RequirePackage[pdfauthor={},pdftitle={Cosmos World Foundation Model Platform for Physical AI},hyperfootnotes=false,pagebackref=true,breaklinks=true,colorlinks=true,allcolors=nvidiagreen]{hyperref}
 \RequirePackage{pifont}
 \RequirePackage{textcomp} % For copyright symbol styling
 \RequirePackage[overload]{textcase}

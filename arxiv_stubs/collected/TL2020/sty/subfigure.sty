@@ -30,9 +30,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% @LaTeX-style-file{
 %%    author     = "Steven Douglas Cochran",
-%%    version    = "2.1.4",
-%%    date       = "2002/07/30",
-%%    time       = "09:34:13",
+%%    version    = "2.1.5",
+%%    date       = "2005/04/29",
+%%    time       = "14:24:08",
 %%    filename   = "subfigure.sty",
 %%    address    = "Digital Mapping Laboratory, School of Computer Science
 %%                  Carnegie-Mellon University, 5000 Forbes Avenue
@@ -53,7 +53,32 @@
 %% }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
-\ProvidesPackage{subfigure}[2002/07/30 v2.1.4 subfigure package]
+\ProvidesPackage{subfigure}[2002/03/15 v2.1.5 subfigure package]
+\def\sf@floatfix#1#2{%
+  \ifx#1#2%
+    \ifx#1\@undefined\else
+      \PackageWarningNoLine{subfigure}{%
+Your document class has a bad definition^^J
+of \string#1, most likely^^J
+\string\let\string#1=\string#2^^J
+which has now been changed to^^J
+\string\def\string#1{\string#2}^^J
+because otherwise subsequent changes to \string#2^^J
+(like done by several packages changing float behaviour)^^J
+can't take effect on \string#1.^^J
+Please complain to your document class author}%
+      \def#1{#2}%
+    \fi
+  \fi}
+\begingroup
+\def\next#1#2{%
+    \endgroup
+  \sf@floatfix\endfigure\end@float
+  \sf@floatfix\endtable\end@float
+  \sf@floatfix#1\end@dblfloat
+  \sf@floatfix#2\end@dblfloat}
+\expandafter\next\csname endfigure*\expandafter\endcsname
+  \csname endtable*\endcsname
 \newif\ifhyperrefloaded
 \AtBeginDocument{%
   \@ifpackageloaded{hyperref}{%

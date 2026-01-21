@@ -15,6 +15,8 @@
 %    6/9/16     (JEH)    Fixed DOI, arXiv, and PubMed entries.
 %    6/14/16    (JEH)    Fixed format.editors function.
 %    11/4/16    (JEH)    Changes to DOI, arXiv, and PubMed entries.
+%    12/14/17   (JEH)    Fixed another issue with the format.editors function.
+%    11/20/18   (JS)     Fixed a bug with the editor and author fields.
 
 ENTRY
   { address
@@ -216,11 +218,15 @@ FUNCTION {format.organization}
 FUNCTION {format.editors}
 { editor empty$
     { "" }
-    { editor format.names scapify }
+    { author empty$ %in this case, see format.authors
+        { editor format.names scapify editor num.names$ #1 >
+			{ ", eds." * }
+      		{ ", ed." * }
+          if$
+        }
+        { "" }
       if$
-      editor num.names$ #1 >
-        { ", eds." * }
-	{ ", ed." * }
+    }
   if$
 }
 

@@ -1,4 +1,4 @@
-% UT Physics bibliographic style, ver. 2.4. Based on:
+% UT Physics bibliographic style, ver. 2.7. Based on:
 %
 %X     IEEE Transactions bibliography style (29-Jan-88 version)
 %X       numeric labels, order-of-reference, IEEE abbreviations,
@@ -21,7 +21,7 @@
 %                    Jonathan Flynn' suggestion. SPIRES now supports this field.
 %                 7) Improved output of Proceedings entries
 %
-%    Modified by Jacques Distler, 4/08
+%    Modified by Jacques Distler, 2/11
 %           History: ver 1.0  9/96
 %                    ver 1.1 10/96 - added "collaboration" field
 %                    ver 1.2  7/97 - added a "\providecommand{\href}[2]{#2}"
@@ -49,6 +49,12 @@
 %                   ver 2.3   8/09 - fix month formatting
 %                   ver 2.4   7/10 - remove some deprecated font-constructws.
 %                                    fix journal number formatting.
+%                   ver 2.5   9/10 - Internationalization and some more journal
+%                                    MACROs (thanks to Mateus Araujo)
+%                   ver 2.6   2/11 - Yipes! Fix capitalization of titles, spooged
+%                                    in previous version. (Reported by Ling Weak)
+%                   ver 2.7   8/11 - Fix "et~al." in format.crossref.editor, too.
+%                                    (Reported by Blake Stacey)
 %
 % HyperTeX Wizardry:
 %
@@ -98,6 +104,57 @@
 % The bibtex output produced by SPIRES, while far from perfect, is pretty
 % suitable for use with this style. Indeed, this style was designed with
 % SPIRES in mind.
+
+FUNCTION {string.and} {" and "}
+FUNCTION {string.editors} {", eds."}
+FUNCTION {string.editor} {", ed."}
+FUNCTION {string.edition} {"~ed."}
+FUNCTION {string.volume} {"vol.~"}
+FUNCTION {string.capsvolume} {"Vol.~"}
+FUNCTION {string.of} {" of "}
+FUNCTION {string.number} {"no.~"}
+FUNCTION {string.capsnumber} {"No.~"}
+FUNCTION {string.in} {"in "}
+FUNCTION {string.spacein} {" in "}
+FUNCTION {string.capsin} {"In "}
+FUNCTION {string.multipages} {"pp.~"}
+FUNCTION {string.pages} {"p.~"}
+FUNCTION {string.chapter} {"ch.~"}
+FUNCTION {string.techrep} {"Tech. Rep."}
+FUNCTION {string.mastersthesis} {"Master's thesis"}
+FUNCTION {string.phdthesis} {"PhD thesis"}
+
+MACRO {jan} {"Jan."}
+MACRO {feb} {"Feb."}
+MACRO {mar} {"Mar."}
+MACRO {apr} {"Apr."}
+MACRO {may} {"May"}
+MACRO {jun} {"June"}
+MACRO {jul} {"July"}
+MACRO {aug} {"Aug."}
+MACRO {sep} {"Sept."}
+MACRO {oct} {"Oct."}
+MACRO {nov} {"Nov."}
+MACRO {dec} {"Dec."}
+MACRO {am} {"Acta Math."}
+MACRO {amj} {"Am. J. Phys."}
+MACRO {ap} {"Ann. Phys."}
+MACRO {cmp} {"Comm. Math. Phys."}
+MACRO {ijmp} {"Int. Jour. Mod. Phys."}
+MACRO {mpl} {"Mod. Phys. Lett."}
+MACRO {njp} {"New J. Phys"}
+MACRO {nup} {"Nucl. Phys."}
+MACRO {pl} {"Phys. Lett."}
+MACRO {pla} {"Phys. Lett. A"}
+MACRO {pr} {"Phys. Rev."}
+MACRO {pra} {"Phys. Rev. A"}
+MACRO {prl} {"Phys. Rev. Lett."}
+MACRO {repmp} {"Rep. Math. Phys"}
+MACRO {rmp} {"Rev. Mod. Phys."}
+
+MACRO {arXiv}     {"http://arxiv.org/abs"}
+MACRO {cogprints} {"http://cogprints.org"}
+MACRO {pubmed}    {"http://www.ncbi.nlm.nih.gov/pubmed"}
 
 ENTRY
   { address
@@ -316,8 +373,8 @@ FUNCTION {format.names}
 		'skip$
 	      if$
 	      t "others" =
-		{ " {\em et al.}" * }
-		{ " and " * t * }
+		{ " {\em et~al.}" * }
+		{ string.and * t * }
 	      if$
 	    }
 	  if$
@@ -393,13 +450,21 @@ FUNCTION {format.report}
      if$
 }
 
+FUNCTION {format.howpublished}
+{ howpublished empty$
+    { "" }
+    { howpublished capitalize
+    }
+  if$
+}
+
 FUNCTION {format.editors}
 { editor empty$
     { "" }
     { editor format.names
       editor num.names$ #1 >
-	{ ", eds." * }
-	{ ", ed." * }
+	{ string.editors * }
+	{ string.editor * }
       if$
     }
   if$
@@ -514,10 +579,10 @@ FUNCTION {either.or.check}
 FUNCTION {format.bvolume}
 { volume empty$
     { "" }
-    { "vol.~" volume *
+    { string.volume volume *
       series empty$
 	'skip$
-	{ " of " * series emphasize * }
+	{ string.of * series emphasize * }
       if$
       "volume and number" number either.or.check
     }
@@ -529,13 +594,13 @@ FUNCTION {format.number.series}
     { number empty$
 	{ series field.or.null }
 	{ output.state mid.sentence =
-	    { "no.~" }
-	    { "No.~" }
+	    { string.number }
+	    { string.capsnumber }
 	  if$
 	  number *
 	  series empty$
 	    { "there's a number but no series in " cite$ * warning$ }
-	    { " in " * series * }
+	    { string.spacein * series * }
 	  if$
 	}
       if$
@@ -547,7 +612,7 @@ FUNCTION {format.number.series}
 FUNCTION {format.edition}
 { edition empty$
     { "" }
-    { edition "l" change.case$ "~ed." * }
+    { edition "l" change.case$ string.edition * }
   if$
 }
 
@@ -577,8 +642,8 @@ FUNCTION {format.pages}
 { pages empty$
     { "" }
     { pages multi.page.check
-	{ "pp.~" pages n.dashify * }
-	{ "p.~" pages * }
+	{ string.multipages pages n.dashify * }
+	{ string.pages pages * }
       if$
     }
   if$
@@ -616,7 +681,7 @@ FUNCTION {format.chapter.pages}
 { chapter empty$
     'format.pages
     { type empty$
-	{ "ch.~" chapter * }
+	{ string.chapter chapter * }
 	{ type "l" change.case$ chapter tie.or.space.connect }
       if$
       pages empty$
@@ -630,7 +695,7 @@ FUNCTION {format.chapter.pages}
 FUNCTION {format.in.ed.booktitle}
 { booktitle empty$
     { "" }
-    { "in " booktitle emphasize *
+    { string.in booktitle emphasize *
       editor empty$
 	'skip$
 	{ ", " * format.editors *  }
@@ -662,7 +727,7 @@ FUNCTION {empty.misc.check}
 
 FUNCTION {format.tr.number}
 { type empty$
-    { "Tech. Rep." }
+    { string.techrep }
     'type
   if$
   number empty$
@@ -685,10 +750,10 @@ FUNCTION {format.article.crossref}
 	  warning$
 	  ""
 	}
-	{ "in {\em " journal * "\/}" * }
+	{ string.in "{\em " * journal * "\/}" * }
       if$
     }
-    { "in " key * }
+    { string.in key * }
   if$
   " \cite{" * crossref * "}" *
 }
@@ -697,12 +762,12 @@ FUNCTION {format.crossref.editor}
 { editor #1 "{vv~}{ll}" format.name$
   editor num.names$ duplicate$
   #2 >
-    { pop$ " {\em et.~al.}" * }
+    { pop$ " {\em et~al.}" * }
     { #2 <
 	'skip$
 	{ editor #2 "{ff }{vv }{ll}{ jj}" format.name$ "others" =
-	    { " {\em et.~al.}" * }
-	    { " and " * editor #2 "{vv~}{ll}" format.name$ * }
+	    { " {\em et~al.}" * }
+	    { string.and * editor #2 "{vv~}{ll}" format.name$ * }
 	  if$
 	}
       if$
@@ -713,10 +778,10 @@ FUNCTION {format.crossref.editor}
 FUNCTION {format.book.crossref}
 { volume empty$
     { "empty volume in " cite$ * "'s crossref of " * crossref * warning$
-      "In "
+      string.capsin
     }
-    { "Vol.~" volume *
-      " of " *
+    { string.capsvolume volume *
+      string.of *
     }
   if$
   editor empty$
@@ -749,13 +814,13 @@ FUNCTION {format.incoll.inproc.crossref}
 	      crossref * warning$
 	      ""
 	    }
-	    { "in {\em " booktitle * "\/}" * }
+	    { string.in "{\em " * booktitle * "\/}" * }
 	  if$
 	}
-	{ "in " key * }
+	{ string.in key * }
       if$
     }
-    { "in " format.crossref.editor * }
+    { string.in format.crossref.editor * }
   if$
   " \cite{" * crossref * "}" *
 }
@@ -857,7 +922,7 @@ FUNCTION {booklet}
       blank.sep
     }
   if$
-  howpublished capitalize output
+  format.howpublished output
   address output
   format.date output
   new.block
@@ -1020,7 +1085,7 @@ FUNCTION {mastersthesis}
   format.authors "author" output.check
   format.title add.doi "title" output.check
   blank.sep
-  "Master's thesis" format.thesis.type output.nonnull
+  string.mastersthesis format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
@@ -1046,7 +1111,7 @@ FUNCTION {misc}
       blank.sep
     }
   if$
-  howpublished capitalize output
+  format.howpublished output
   format.date output
   new.block
   format.url output
@@ -1062,7 +1127,7 @@ FUNCTION {phdthesis}
   format.authors "author" output.check
   format.btitle add.doi "title" output.check
   new.block
-  "PhD thesis" format.thesis.type output.nonnull
+  string.phdthesis format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
@@ -1138,50 +1203,6 @@ FUNCTION {unpublished}
 }
 
 FUNCTION {default.type} { misc }
-
-MACRO {jan} {"Jan."}
-
-MACRO {feb} {"Feb."}
-
-MACRO {mar} {"Mar."}
-
-MACRO {apr} {"Apr."}
-
-MACRO {may} {"May"}
-
-MACRO {jun} {"June"}
-
-MACRO {jul} {"July"}
-
-MACRO {aug} {"Aug."}
-
-MACRO {sep} {"Sept."}
-
-MACRO {oct} {"Oct."}
-
-MACRO {nov} {"Nov."}
-
-MACRO {dec} {"Dec."}
-
-MACRO {nup} {"Nucl. Phys."}
-
-MACRO {cmp} {"Comm. Math. Phys."}
-
-MACRO {prl} {"Phys. Rev. Lett."}
-
-MACRO {pl} {"Phys. Lett."}
-
-MACRO {rmp} {"Rev. Mod. Phys."}
-
-MACRO {ijmp} {"Int. Jour. Mod. Phys."}
-
-MACRO {mpl} {"Mod. Phys. Lett."}
-
-MACRO {pr} {"Phys. Rev."}
-
-MACRO {arXiv}     {"http://arxiv.org/abs"}
-MACRO {cogprints} {"http://cogprints.org"}
-MACRO {pubmed}    {"http://www.ncbi.nlm.nih.gov/pubmed"}
 
 READ
 

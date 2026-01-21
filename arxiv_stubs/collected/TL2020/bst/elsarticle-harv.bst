@@ -1,7 +1,7 @@
 %%
 %% This is file `elsarticle-harv.bst'  (Version 2.1),
 %% 
-%% Copyright 2009-2019 Elsevier Ltd
+%% Copyright 2009-2020 Elsevier Ltd
 %% 
 %% This file is part of the 'Elsarticle Bundle'.
 %% ---------------------------------------------
@@ -13,9 +13,9 @@
 %% and version 1.2 or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
 %%
-%% $Id: elsarticle-harv.bst 163 2019-01-14 09:54:24Z rishi $
+%% $Id: elsarticle-harv.bst 194 2020-11-23 11:29:27Z rishi $
 %%
-%% $URL: http://lenova.river-valley.com/svn/elsarticle/trunk/elsarticle-harv.bst $
+%% $URL: https://lenova.river-valley.com/svn/elsarticle/trunk/elsarticle-harv.bst $
 %% 
 
 ENTRY
@@ -1594,4 +1594,5 @@ EXECUTE {end.bib}
 %% 30.08.2012
 %%   a. collaboration added.
 %%
+
 

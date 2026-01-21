@@ -19,8 +19,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
-from parse_lpsb_mcid import parse_aux_file, TaggedElement
+from .parse_lpsb_mcid import parse_aux_file, TaggedElement
 
 
 @dataclass
@@ -139,7 +138,7 @@ def _merge_split_headings(elements: List[TaggedElement]) -> List[TaggedElement]:
     return out
 
 
-def build_tree(elements: List[TaggedElement]) -> Dict:
+def build_tree(elements: List[TaggedElement], order_map: Optional[Dict[int, int]] = None) -> Dict:
     elements = _merge_split_headings(elements)
     # Build node map.
     nodes: Dict[int, Node] = {}
@@ -159,6 +158,18 @@ def build_tree(elements: List[TaggedElement]) -> Dict:
     ROOT_ID = 0
     root = Node(id=ROOT_ID, type="Document", is_atom=False)
 
+    def sort_key(e: TaggedElement) -> Tuple[int, int]:
+        """Sort block elements by an external order map when available.
+
+        order_map is intended to encode a stable reading order (e.g. page/column/y),
+        which is especially important for two-column layouts.
+        """
+        eid = int(e.elem_id)
+        if order_map and eid in order_map:
+            return (int(order_map[eid]), eid)
+        # Fallback: keep original aux emission order.
+        return (10**12 + eid, eid)
+
     # Attach block elements using heading stack heuristic.
     heading_stack: List[int] = []  # node ids (H/H1/H2/H3)
 
@@ -168,7 +179,7 @@ def build_tree(elements: List[TaggedElement]) -> Dict:
         return root
 
     # First pass: attach non-atom blocks.
-    for e in sorted(elements, key=lambda x: x.elem_id):
+    for e in sorted(elements, key=sort_key):
         if e.is_atom:
             continue
         lvl = _heading_level(e.tag_type)
@@ -244,6 +255,7 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py build-doc-tree ...
 

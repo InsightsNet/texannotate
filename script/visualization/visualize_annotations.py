@@ -197,5 +197,6 @@ def main():
             print(f"Exported: {png_path}")
 
 
-if __name__ == '__main__':
-    main()
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py visualize-annotations ...

@@ -1,18 +1,18 @@
 
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
-\RequirePackage{amsfonts}
+\RequirePackage{mathtools}
 \ifx\proof\undefined 
 \RequirePackage{amsthm}
 \fi
 \RequirePackage{bm} 
 \RequirePackage{url}
-\RequirePackage{color}
-
-\newcommand{\todo}{\textcolor{red}}
 
 % bold alphabet 
-
+\newcommand{\thpol}{\pi^{\theta}}
+\newcommand{\prns}[1]{\left(#1\right)}
+\newcommand{\braces}[1]{\left\{#1\right\}}
+\newcommand{\bracks}[1]{\left[#1\right]}
 \newcommand{\ab}{\mathbf{a}}
 \newcommand{\bb}{\mathbf{b}}
 \newcommand{\cbb}{\mathbf{c}}
@@ -66,6 +66,10 @@
 \newcommand{\Xb}{\mathbf{X}}
 \newcommand{\Yb}{\mathbf{Y}}
 \newcommand{\Zb}{\mathbf{Z}}
+
+\newcommand{\bP}{\bm{P}}
+\newcommand{\bQ}{\bm{Q}}
+\newcommand{\bpiP}{\bm\pi^{\bm P}}
 
 %%%%%%%%%%%%
 
@@ -132,17 +136,18 @@
 \DeclareMathOperator*{\Var}{{\rm Var}}
 \DeclareMathOperator*{\Cor}{Corr}
 \DeclareMathOperator*{\Cov}{Cov}
-%% \DeclareMathOperator*{\ind}{1{\hskip -2.5 pt}\hbox{I}}  % Indicator
+\DeclareMathOperator*{\ind}{1{\hskip -2.5 pt}\hbox{I}}  % Indicator
 \newcommand{\smallfrac}[2]{{\textstyle \frac{#1}{#2}}}  
                                                         
-\newcommand*{\zero}{{\bf 0}}
-\newcommand*{\one}{{\bf 1}}
+\newcommand*{\zero}{{\textbf 0}}
+\newcommand*{\one}{{\textbf 1}}
 
 \newcommand*{\Risk}{{\rm Risk}}
 \newcommand*{\Bias}{{\rm Bias}}
 
 \newcommand{\pen}{{\rm pen}}
 \newcommand{\diag}{{\rm diag}}
+\newcommand{\rank}{{\rm rank}}
 
 \def\iid{{\it i.i.d.}}
 \newcommand{\iidsim}{\stackrel{{iid}}{\sim}}
@@ -225,37 +230,86 @@
 \newtheorem{property}{Property}
 \fi
 \ifx\lemma\undefined
-\newtheorem{lemma}{Lemma}
+\newtheorem{lemma}[theorem]{Lemma}
 \fi
 \ifx\proposition\undefined
-\newtheorem{proposition}{Proposition}
+\newtheorem{proposition}[theorem]{Proposition}
 \fi
 \ifx\remark\undefined
-\newtheorem{remark}{Remark}
+\newtheorem{remark}[theorem]{Remark}
 \fi
 \ifx\corollary\undefined
 \newtheorem{corollary}[theorem]{Corollary}
 \fi
 \ifx\definition\undefined
-\newtheorem{definition}{Definition}
+\newtheorem{definition}[theorem]{Definition}
 \fi
 \ifx\conjecture\undefined
-\newtheorem{conjecture}{Conjecture}
+\newtheorem{conjecture}[theorem]{Conjecture}
 \fi
 \ifx\fact\undefined
-\newtheorem{fact}{Fact}
+\newtheorem{fact}[theorem]{Fact}
 \fi
 \ifx\claim\undefined
-\newtheorem{claim}{Claim}
+\newtheorem{claim}[theorem]{Claim}
 \fi
 \ifx\assum\undefined
-\newtheorem{assum}{Assumption}
+\newtheorem{assum}[theorem]{Assumption}
+\fi
+\ifx\exercise\undefined
+\newtheorem{exercise}{Exercise}
 \fi
 
+%%% MLT definitions
+\newcommand{\samplec}{n_{\Hcal}}
+\newcommand{\uniformc}{n_{\Hcal}^{\textrm{UC}}}
+\newcommand{\vcdim}{\textrm{VCdim}}
+\newcommand{\conv}{\textrm{conv}}
 
-%%%% James's
 
-\newcommand*{\cut}{\textrm{cut}}
-\newcommand*{\out}{\textrm{out}}
+%%% DJF Definitions
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert} %
+\DeclarePairedDelimiter{\brk}{[}{]}
+\DeclarePairedDelimiter{\crl}{\{}{\}}
+\DeclarePairedDelimiter{\prn}{(}{)}
+\DeclarePairedDelimiter{\nrm}{\|}{\|}
+\DeclarePairedDelimiter{\tri}{\langle}{\rangle}
+\DeclarePairedDelimiter{\dtri}{\llangle}{\rrangle}
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 
 
+% \DeclareMathOperator{\E}{\mathbb{E}} %expecation
+\let\Pr\undefined
+\let\P\undefined
+\DeclareMathOperator{\En}{\mathbb{E}}
+\DeclareMathOperator*{\Eh}{\widehat{\mathbb{E}}}
+\DeclareMathOperator{\P}{P}
+\DeclareMathOperator{\Pr}{Pr}
+
+\usepackage{prettyref}
+\newcommand{\pref}[1]{\prettyref{#1}}
+\newcommand{\pfref}[1]{Proof of \prettyref{#1}}
+\newcommand{\savehyperref}[2]{\texorpdfstring{\hyperref[#1]{#2}}{#2}}
+\newrefformat{eq}{\savehyperref{#1}{\textup{(\ref*{#1})}}}
+\newrefformat{eqn}{\savehyperref{#1}{Equation~\ref*{#1}}}
+\newrefformat{lem}{\savehyperref{#1}{Lemma~\ref*{#1}}}
+\newrefformat{def}{\savehyperref{#1}{Definition~\ref*{#1}}}
+\newrefformat{line}{\savehyperref{#1}{line~\ref*{#1}}}
+\newrefformat{thm}{\savehyperref{#1}{Theorem~\ref*{#1}}}
+\newrefformat{corr}{\savehyperref{#1}{Corollary~\ref*{#1}}}
+\newrefformat{sec}{\savehyperref{#1}{Section~\ref*{#1}}}
+\newrefformat{ssec}{\savehyperref{#1}{Subsection~\ref*{#1}}}
+\newrefformat{app}{\savehyperref{#1}{Appendix~\ref*{#1}}}
+\newrefformat{ass}{\savehyperref{#1}{Assumption~\ref*{#1}}}
+\newrefformat{ex}{\savehyperref{#1}{Example~\ref*{#1}}}
+\newrefformat{fig}{\savehyperref{#1}{Figure~\ref*{#1}}}
+\newrefformat{alg}{\savehyperref{#1}{Algorithm~\ref*{#1}}}
+\newrefformat{rem}{\savehyperref{#1}{Remark~\ref*{#1}}}
+\newrefformat{conj}{\savehyperref{#1}{Conjecture~\ref*{#1}}}
+\newrefformat{prop}{\savehyperref{#1}{Proposition~\ref*{#1}}}
+\newrefformat{proto}{\savehyperref{#1}{Protocol~\ref*{#1}}}
+\newrefformat{prob}{\savehyperref{#1}{Problem~\ref*{#1}}}
+\newrefformat{claim}{\savehyperref{#1}{Claim~\ref*{#1}}}
+\newrefformat{fact}{\savehyperref{#1}{Fact~\ref*{#1}}}

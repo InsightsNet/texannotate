@@ -37,9 +37,9 @@
 Association for the Advancement of Artificial Intelligence (www.aaai.org).
 All rights reserved.}
 \def\copyright@on{T}
-\def\nocopyright{\gdef\copyright@on{}} % Copyright notice is required for AAAI-20 papers.
-% \def\copyrighttext#1{\gdef\copyright@on{T}\gdef\copyright@text{#1}}
-% \def\copyrightyear#1{\gdef\copyright@on{T}\gdef\copyright@year{#1}}
+%\def\nocopyright{\gdef\copyright@on{}} % Copyright notice is required for AAAI-20 papers.
+\def\copyrighttext#1{\gdef\copyright@on{T}\gdef\copyright@text{#1}}
+\def\copyrightyear#1{\gdef\copyright@on{T}\gdef\copyright@year{#1}}
 % gf: End changes for copyright notice (used in \maketitle, below)
 % Title stuff, taken from deproc.
 \def\maketitle{\par
@@ -50,7 +50,7 @@ All rights reserved.}
 \twocolumn[\@maketitle] \@thanks
 \endgroup
 % gf: Insert copyright slug unless turned off
-% \if T\copyright@on\insert\footins{\noindent\footnotesize\copyright@text}\fi
+\if T\copyright@on\insert\footins{\noindent\footnotesize\copyright@text}\fi
 % gf: And now back to your regular programming
 \setcounter{footnote}{0}
 \let\maketitle\relax \let\@maketitle\relax

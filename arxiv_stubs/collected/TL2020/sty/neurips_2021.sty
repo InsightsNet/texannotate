@@ -68,18 +68,18 @@
 % handle tweaks for camera-ready copy vs. submission copy
 \if@preprint
   \newcommand{\@noticestring}{%
-    Preprint.%
+    Preprint. Under review.%
   }
 \else
-  \if@neuripsfinal
-    \newcommand{\@noticestring}{%
-      \@neuripsordinal\/ Conference on Neural Information Processing Systems
-      (NeurIPS \@neuripsyear), \@neuripslocation.%
-    }
-  \else
-    \newcommand{\@noticestring}{%
-      Submitted to \@neuripsordinal\/ Conference on Neural Information
-      Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
+  %\if@neuripsfinal
+  %  \newcommand{\@noticestring}{%
+  %    \@neuripsordinal\/ Conference on Neural Information Processing Systems
+  %    (NeurIPS \@neuripsyear), \@neuripslocation.%
+  %  }
+  %\else
+  %  \newcommand{\@noticestring}{%
+  %    Submitted to \@neuripsordinal\/ Conference on Neural Information
+   %   Processing Systems (NeurIPS \@neuripsyear). Do not distribute.%
     }
 
     % hide the acknowledgements
@@ -146,7 +146,7 @@
 
 % font sizes with reduced leading
 \renewcommand{\normalsize}{%
-  \@setfontsize\normalsize\@xipt\@xiipt
+  \@setfontsize\normalsize\@xpt\@xipt
   \abovedisplayskip      7\p@ \@plus 2\p@ \@minus 5\p@
   \abovedisplayshortskip \z@ \@plus 3\p@
   \belowdisplayskip      \abovedisplayskip

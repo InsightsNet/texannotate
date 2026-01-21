@@ -10,19 +10,119 @@ Usage:
 """
 
 import argparse
-import sys
+import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
-import pikepdf
 from pikepdf import Pdf, Name, Array, Dictionary
 
-# Add parent script dir to path for imports from other subdirectories
-script_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(script_dir / "parsing"))
+from ..parsing.parse_lpsb_mcid import parse_aux_file, reconcile_element_pages
+from ..parsing.build_doc_tree import build_tree
 
-from parse_lpsb_mcid import parse_aux_file
-from build_doc_tree import build_tree
+
+def _read_order_map_json(path: Path) -> Optional[Dict[int, int]]:
+    """Read {"order_by_elem_id": {"27": 1, ...}} style JSON into {27: 1, ...}."""
+    try:
+        raw = json.loads(path.read_text(errors="replace"))
+    except Exception as e:
+        raise RuntimeError(f"[structtree] failed to read/parse order-map JSON: {path} ({e})") from e
+
+    d = raw.get("order_by_elem_id", raw) if isinstance(raw, dict) else None
+    if not isinstance(d, dict):
+        raise RuntimeError(f"[structtree] invalid order-map JSON schema (expected dict): {path}")
+
+    out: Dict[int, int] = {}
+    for k, v in d.items():
+        try:
+            out[int(k)] = int(v)
+        except Exception:
+            continue
+    if not out:
+        raise RuntimeError(f"[structtree] order-map JSON contained no usable entries: {path}")
+    return out
+
+
+def _guess_order_map_paths(pdf_path: Path, aux_path: Path) -> List[Path]:
+    # Mirror lpsb_compiler / visualize_mcid conventions.
+    cands: List[Path] = []
+    try:
+        cands.append(aux_path.with_name("main.order.json"))
+        cands.append(aux_path.with_suffix(".order.json"))
+    except Exception:
+        pass
+    try:
+        cands.append(pdf_path.with_name("main.order.json"))
+        cands.append(pdf_path.with_suffix(".order.json"))
+    except Exception:
+        pass
+    # De-dup while preserving order.
+    out: List[Path] = []
+    seen = set()
+    for p in cands:
+        s = str(p)
+        if s in seen:
+            continue
+        seen.add(s)
+        out.append(p)
+    return out
+
+
+def _default_order_map_output(aux_path: Path, pdf_path: Path) -> Path:
+    # Prefer stable "main.order.json" when we're operating on main.aux*.
+    n = aux_path.name
+    if n.startswith("main.aux"):
+        return aux_path.with_name("main.order.json")
+    # Otherwise keep it adjacent to aux, derived from aux basename.
+    try:
+        return aux_path.with_suffix(".order.json")
+    except Exception:
+        return pdf_path.with_suffix(".order.json")
+
+
+def _get_order_map(pdf_path: Path, aux_path: Path, verbose: bool = False) -> Optional[Dict[int, int]]:
+    """
+    Resolve reading-order map in this priority:
+    1) Explicit --order-map (stashed in inject_structtree._order_map_path)
+    2) Auto-detect adjacent *.order.json
+    3) Compute on the fly (latex-mode) and write to disk for reuse
+    """
+    # 1) Explicit order-map JSON.
+    p0 = getattr(inject_structtree, "_order_map_path", None)
+    if p0:
+        p = Path(str(p0))
+        if not p.exists():
+            raise RuntimeError(f"[structtree] --order-map not found: {p}")
+        m = _read_order_map_json(p)
+        if verbose:
+            print(f"[structtree] order-map: {p}")
+        return m
+
+    # 2) Auto-detect near aux/pdf.
+    for p in _guess_order_map_paths(pdf_path, aux_path):
+        if not p.exists():
+            continue
+        m = _read_order_map_json(p)
+        if verbose:
+            print(f"[structtree] order-map(auto): {p}")
+        return m
+
+    # 3) Compute on demand.
+    # Local import: keep start-up cost low.
+    try:
+        from script.postprocess.compute_order_map import compute_order_map
+    except ImportError:
+        from compute_order_map import compute_order_map  # type: ignore
+
+    m = compute_order_map(aux_path, pdf_path, mode="latex", verbose=bool(verbose))
+    if not m:
+        raise RuntimeError("[structtree] computed order-map is empty (unexpected)")
+
+    outp = _default_order_map_output(aux_path, pdf_path)
+    payload = {"version": 1, "order_by_elem_id": {str(k): int(v) for k, v in m.items()}}
+    outp.write_text(json.dumps(payload, indent=2))
+    if verbose:
+        print(f"[structtree] order-map(computed): wrote {outp}")
+    return m
 
 
 def load_doc_tree(aux_path: str) -> Dict:
@@ -138,8 +238,16 @@ def inject_structtree(pdf_path: str, aux_path: str, output_path: str, verbose: b
     
     Returns True if successful.
     """
-    # Load document tree
-    tree = load_doc_tree(aux_path)
+    # Load elements first; build tree with optional external ordering.
+    elements, summary = parse_aux_file(Path(aux_path))
+    
+    # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
+    reconcile_element_pages(elements, Path(pdf_path), verbose=bool(verbose))
+    
+    order_map = _get_order_map(Path(pdf_path), Path(aux_path), verbose=bool(verbose))
+
+    tree = build_tree(elements, order_map=order_map)
+    tree["summary"] = summary
     
     if verbose:
         print(f"Document tree loaded")
@@ -210,6 +318,7 @@ def main():
     )
     parser.add_argument("pdf", help="Input PDF file")
     parser.add_argument("--aux", required=True, help="Auxiliary file with tag data")
+    parser.add_argument("--order-map", help="Optional JSON mapping elem_id->order for reading order")
     parser.add_argument("-o", "--output", help="Output PDF file")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     
@@ -228,6 +337,9 @@ def main():
     output_path = args.output or str(pdf_path.parent / (pdf_path.stem + "_tagged.pdf"))
     
     try:
+        # Stash order-map path for inject_structtree() without changing its signature.
+        if args.order_map:
+            inject_structtree._order_map_path = args.order_map  # type: ignore[attr-defined]
         success = inject_structtree(str(pdf_path), str(aux_path), output_path, args.verbose)
         
         if success:
@@ -244,5 +356,6 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    exit(main())
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py inject-structtree ...

@@ -7,8 +7,11 @@
 %% aa.dtx  (with options: `aa')
 %% 
 %% aa.dtx
-%% Copyright EDP Sciences, E-press (2016), J.-C. Charpentier (2010), all rights reserved.
+%% Copyright EDP Sciences, J.-C. Charpentier (2010), E-press (2011), TxT-aRt (2012)
+%%
 %% Class `aa' to use with LaTeX 2e
+%% Copyright (C) 2012 EDP Sciences, Jean-C\^ome Charpentier, all
+%% rights reserved.
 %% \CharacterTable
 %%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
 %%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
@@ -25,9 +28,9 @@
 %%   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %%   Right brace   \}     Tilde         \~}
 %%
-\def\filedate{2016/09/01}
+\def\filedate{2012/05/22}
 \let\aafiledate\filedate
-\def\fileversion{9.1}
+\def\fileversion{8.2}
 \let\aafileversion\fileversion
 \NeedsTeXFormat{LaTeX2e}[1995/06/01]
 \ProvidesClass{aa}
@@ -41,6 +44,8 @@
 \DeclareOption{online}{\aa@onlinetrue}
 \newif\ifaa@referee
 \DeclareOption{referee}{\aa@refereetrue}
+\newif\ifaa@rnote
+\DeclareOption{rnote}{\aa@rnotetrue}
 \newif\ifaa@contents
 \DeclareOption{contents}{\aa@contentstrue}
 \newif\ifaa@contentsAut
@@ -80,12 +85,10 @@
 \newif\if@wideboxfn
 \@wideboxfnfalse
 \DeclareOption{wideboxfn}{\@wideboxfntrue}
-%
 \newif\ifaa@longfn
 \DeclareOption{longfn}{\aa@longfntrue}
 \newif\ifaa@longauth
 \DeclareOption{longauth}{\aa@longauthtrue}
-\let\if@myobjects\iffalse
 \DeclareOption{ascii}{%
   \def\aa@inputenc{\RequirePackage[ascii]{inputenc}}%
 }
@@ -155,28 +158,11 @@
 \aa@inputenc
 \aa@font
 \ifaa@referee
-\RequirePackage{xcolor}
-\RequirePackage{marginnote}
-\AtEndOfClass{
-\setlength{\marginparwidth}{50mm}
-\setlength{\marginparsep}{5mm}
-}
-%
-\newcounter{lenote}
-\AtBeginDocument{%
-\@ifpackageloaded{hyperref}%
-{\newcommand{\LEm}[1]{\texorpdfstring{\protect\stepcounter{lenote}{\normalfont\textbf{\color{red}[Note \arabic{lenote}] }}
-\protect\marginnote{\baselineskip3ex{\normalsize{\normalfont\textbf{\color{red}[Note \arabic{lenote}: #1]}}}}}{}}
-\newcommand{\LEt}[1]{\texorpdfstring{\protect\stepcounter{lenote}\normalfont\textbf{\color{red}[Note \arabic{lenote}: #1] }}{}}}%
-{\newcommand{\LEm}[1]{\protect\stepcounter{lenote}{\normalfont\textbf{\color{red}[Note \arabic{lenote}] }}
-\protect\marginnote{\baselineskip3ex{\normalsize{\normalfont\textbf{\color{red}[Note \arabic{lenote}: #1]}}}}}
-\newcommand{\LEt}[1]{\protect\stepcounter{lenote}\normalfont\textbf{\color{red}[Note \arabic{lenote}: #1] }}}%
-}
   \renewcommand*\aa@column{onecolumn}
   \aa@twocolumnfalse
   \setlength{\aa@fullwidth}{0.75\aa@fullwidth}
   \renewcommand*\aa@leftmarginpaper{15mm}
-  \if!\csname appendix\endcsname!\AtEndDocument{\listofobjects}\fi
+  \if!\csname longtab\endcsname!\AtEndDocument{\listofobjects}\fi
 \fi
 \ifx\pdfoutput\undefined
   \newcount\pdfoutput
@@ -228,9 +214,7 @@
 \aa@biblio
 \RequirePackage{xspace}
 \RequirePackage[english]{babel}
-\def\aatolm#1{\gdef\@aatolm{#1}}
-\def\@aatolm{}
-\renewenvironment{appendix}{\par\clearpage\aatolm{1}
+\renewenvironment{appendix}{\par
 \def\@hangfrom##1{\setbox\@tempboxa\hbox{{##1}}%
       \hangindent \parindent\noindent\box\@tempboxa}
 \def\sectcounterend{:}
@@ -262,6 +246,56 @@
   \renewcommand\thetable{\@arabic\c@table}%
 }
 \RequirePackage[figuresright]{rotating}
+\RequirePackage{answers}
+\renewcommand{\Newassociation}[3]{%
+   \newsolution{#2}%
+   \expandafter\ifx\csname #3opentrue\endcsname\relax
+      \expandafter\newif\csname if#3open\endcsname
+   \fi
+   \newenvironment{#1}{%
+      \Ifanswerfiles{%
+         \let\Tmp\relax
+         \Iffileundefined{#3}{}{%
+            \Ifopen{#3}{%
+               \immediate\write\@nameuse{#3@file}%
+                  {\string\begin{#2}\@nameuse{#2params}}%
+            \def\Tmp{\Filesave{#3}}%
+            }{}%
+         }%
+      }{%
+         \edef\Tmp{\noexpand\begin{#2}\@nameuse{#2params}}%
+      }%
+      \csname pre#1\endcsname
+      \Tmp
+   }%
+   {%
+      \Ifanswerfiles{%
+         \Iffileundefined{#3}{}{%
+            \Ifopen{#3}{%
+               \endFilesave%
+               \immediate\write\@nameuse{#3@file}%
+                  {\string\end{#2}}%
+               \csname post#1\endcsname
+            }{}%
+         }%
+      }{%
+         \end{#2}%
+      }%
+   \stepcounter{table}}%
+}
+\renewcommand{\newsolution}[1]{%
+   \@ifundefined{#1}{%
+      \global\@namedef{#1params}{{\thetable}}%
+      \newenvironment{#1}[1]%
+      {%
+         \csname pre#1\endcsname
+         \trivlist
+         \item[\hskip\itemsep{\@nameuse{#1label}{##1}}]}%
+      {\csname post#1\endcsname\endtrivlist}%
+      \global\@namedef{#1label}##1{\solutionstyle{##1}}%
+   }{\typeout{WARNING: environment #1 already in use}}%
+}
+\renewcommand{\solutionextension}{llt}
 \newcount\aa@cnta
 \newcount\aa@cntb
 \newcount\aa@nbwords
@@ -300,7 +334,7 @@
 \newlength{\aa@hoffsetlettername}
 \setlength{\aa@hoffsetlettername}{2mm}
 \newlength{\aa@hoffsetgray}
-\setlength{\aa@hoffsetgray}{3mm}
+\setlength{\aa@hoffsetgray}{1mm}
 \newlength{\aa@aftercontentsnameskip}
 \setlength{\aa@aftercontentsnameskip}{12\p@}
 \newlength{\aa@aftercontentsAutnameskip}
@@ -329,6 +363,8 @@
 \setlength{\aa@aftersubtitleskip}{10\p@}
 \newlength{\aa@afterauthorskip}
 \setlength{\aa@afterauthorskip}{16.5\p@}
+\newlength{\aa@beforernoteskip}
+\setlength{\aa@beforernoteskip}{2pt}
 \newlength{\aa@beforedefaultheadnoteskip}
 \setlength{\aa@beforedefaultheadnoteskip}{2pt}
 \newlength{\aa@headingleftmargin}
@@ -367,6 +403,8 @@
 \setlength{\VSpaceBeforeTabBib}{2ex}
 \newlength{\VSpaceBeforeTabFoot}
 \setlength{\VSpaceBeforeTabFoot}{2ex}
+\newlength{\aa@textonlineboxsep}
+\setlength{\aa@textonlineboxsep}{1.5mm}
 \newlength{\aftertext}
 \setlength{\aftertext}{5pt}
 \newlength{\aa@entryboxwidth}
@@ -375,6 +413,7 @@
 \setlength{\betweenumberspace}{3.33pt}
 \newif\ifaa@structabstract
 \newif\ifaa@numberedtheorem
+\newif\ifaa@rnoteedp
 \newif\ifaa@firstonline
 \aa@firstonlinetrue
 \newcommand*\journalname[1]{\renewcommand*\aa@journalname{#1}}
@@ -391,6 +430,7 @@
 \gdef\@AANum{#1}}
 \newcommand*\@AANum{}
 \newcommand*\aa@numarticle{Article number}
+\newcommand*\rnoteedp{\aa@rnoteedptrue}
 \newcommand*\doi[1]{%
   \renewcommand*\aa@doi{DOI: #1}%
   \renewcommand*\aa@doifig{#1}%
@@ -426,7 +466,9 @@
 \addto\captionsenglish{\renewcommand*\figurename{Fig.}}
 \newcommand*\aa@figtype{figure}
 \newcommand*\aa@tabtype{table}
+\newcommand*\rnotename{(Research Note)}
 \newcommand*\lettername{Letter to the Editor}
+\newcommand*\rnotname{(RN)}
 \newcommand*\noteaddname{Note added in proof.}
 \def\noteadd{\par\addvspace{17pt}\rm
 \trivlist\item[\hskip\labelsep
@@ -451,6 +493,28 @@
 \newcommand*\aa@floatcounterend{.~}
 \newcommand*\aa@tablebibname{References}
 \newcommand*\aa@tablefootname{Notes}
+\newcommand{\textonlinebox}{%
+  \oneonlinepage
+    {Page \pageref{OLMFpage} is}
+    {Pages \pageref{OLMFpage} to \pageref{LastPage} are}
+  available in the electronic edition of the journal at
+  \url{http://www.aanda.org}%
+}
+\newcommand\oneonlinepage[2]{%
+  \def\reserved@a{#1}%
+  \def\reserved@b{#2}%
+  \let\reserved@c\reserved@a
+  \ifx\r@LastPage\undefined\else
+  \ifx\r@OLMFpage\undefined\else
+    \expandafter\aa@extractpage\expandafter\@tempcnta\r@LastPage
+    \expandafter\aa@extractpage\expandafter\@tempcntb\r@OLMFpage
+    \ifnum\@tempcnta>\@tempcntb
+      \let\reserved@c\reserved@b
+    \fi
+  \fi\fi
+  \reserved@c
+}
+\newcommand*\aa@extractpage[6]{#1 #3\relax}
 \renewcommand\normalsize{%
   \@setfontsize\normalsize\@xpt{11}%
   \abovedisplayskip 8.55\p@ \@plus4\p@ \@minus5\p@
@@ -507,6 +571,8 @@
 \newcommand*\aa@defaultheadnotefont{\LARGE\sffamily\bfseries\itshape}
 \newcommand*\aa@titlefont{\LARGE \sffamily\bfseries\boldmath}
 \newcommand*\aa@subtitlefont{\Large \sffamily\bfseries\boldmath}
+\newcommand*\aa@rnotefont{\LARGE \sffamily\bfseries\itshape}
+\newcommand*\aa@rnotfont{\itshape}
 \newcommand*\aa@authorfont{\large}
 \newcommand*\aa@institutefont{\small}
 \newcommand*\aa@datefont{\small}
@@ -530,16 +596,15 @@
 \newcommand*\aa@descriptionlabelfont{}
 \newcommand\aa@longtablecaptionfont{\small}
 \newcommand\aa@longtableheadcaptionfont{\small\bfseries}
+\newcommand*\aa@textonlineboxfont{\sffamily}
 \newcommand*\aa@emailfont{\ttfamily}
 \newcommand*\aa@entryifont{\itshape}
 \newcommand*\aa@entryiifont{\bfseries}
-\newtoks\authorlink
-\newtoks\yearCop
 \newbox\aa@stripbox
 \newbox\aa@outputbox
 \newenvironment{aa@strip}
 {%
-  \onecolumn\parindent0mm
+  \onecolumn
   \setbox\aa@stripbox=\vbox\bgroup
 }
 {%
@@ -599,14 +664,13 @@
 \newcommand*\aa@roheadletter{%
   \setlength{\aa@dima}
             {1in + \topmargin + \headheight - \dp\strutbox +
-              2\aa@bleedmargin}%
+              \aa@bleedmargin}%
   \setlength{\aa@dimb}
             {\paperwidth - (1in + \oddsidemargin + \textwidth) +
               \aa@bleedmargin - \aa@hoffsetgray}%
   \setbox0=\hbox{\aa@letternamefont \lettername}%
   \setlength{\aa@dimc}
             {\paperheight - \aa@dima - \wd0 + 2\aa@bleedmargin}%
-  \addtolength{\aa@voffsetlettername}{0.5cm}
   \leavevmode
   \hbox to0pt{%
     \hspace*{\aa@hoffsetgray}%
@@ -630,13 +694,12 @@
 \newcommand*\aa@leheadletter{%
   \setlength{\aa@dima}
             {1in + \topmargin + \headheight - \dp\strutbox +
-              2\aa@bleedmargin}%
+              \aa@bleedmargin}%
   \setlength{\aa@dimb}
             {1in + \oddsidemargin + \aa@bleedmargin - \aa@hoffsetgray}%
   \setbox0=\hbox{\aa@letternamefont \lettername}%
   \setlength{\aa@dimc}
             {\paperheight-\aa@dima-\wd0+2\aa@bleedmargin}%
-  \addtolength{\aa@voffsetlettername}{0.5cm}
   \leavevmode
   \hspace*{-2\fboxsep}%
   \hbox to0pt{%
@@ -794,11 +857,11 @@
   \aa@cntwords\aa@abstractwords
   \advance\aa@nbwords \aa@cnta\relax
   \ifnum\aa@nbwords>\aa@cntb
-  \typeout{^^J^^JIMPORTANT}
+  \typeout{^^J^^J!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
     \ClassWarning{aa}
       {Around \the\aa@nbwords\space words in the abstract instead
         of \the\aa@cntb\space (max). You should rewrite your abstract}
-  \typeout{IMPORTANT
+  \typeout{!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ^^J}
   \fi
 }
@@ -912,7 +975,8 @@
 \newcommand*\aa@dedication{}
 \renewcommand*\maketitle{%
   \thispagestyle{firstpage}
-\begingroup
+  \ifaa@twocolumn
+  \begingroup
     \if@wideboxfn
     \setlength\bibindent{1.4\parindent}
     \else
@@ -923,18 +987,27 @@
     \ifaa@longfn\hsize\textwidth\fi
     \noindent
     \hb@xt@\bibindent{\hss\@makefnmark\enspace}##1}
-  \ifaa@twocolumn
-  \begingroup
     \twocolumn[\aa@maketitle]
     \@thanks
   \endgroup
   \else
     \begingroup
+      \renewcommand*\thefootnote{\@fnsymbol\c@footnote}%
+      \renewcommand*\@makefnmark{%
+        \rlap{\@textsuperscript{\normalfont\@thefnmark}}%
+      }%
+      \renewcommand\@makefntext[1]{%
+        \parindent 1em
+        \noindent
+        \hb@xt@\bibindent{%
+          \hss\@textsuperscript{\normalfont\@thefnmark}%
+        }%
+        ##1%
+      }%
       \let\thanks\footnote
       \aa@maketitle
     \endgroup
   \fi
-\endgroup
   \setcounter{footnote}{0}%
 }
 \newcommand*\aa@maketitle{%
@@ -968,7 +1041,7 @@
     \begin{tabular}[b]{@{}l@{}}
       \aa@idlinefont \aa@idline\\
       \aa@doifont \aa@doi\\
-      \aa@copyrightfont \aa@copyrightname~\if!\the\yearCop!\the\year\else\the\yearCop\fi
+      \aa@copyrightfont \aa@copyrightname~\the\year
     \end{tabular}
     \hfill\AALogo
   \fi\vss}
@@ -1001,6 +1074,9 @@
     \fi
     {\aa@titlefont \aa@title\par}
     \ifx\aa@subtitle\empty%
+      \ifaa@rnote
+        {\aa@rnotefont \rnotename\par}
+      \fi
       \ifx\aa@headnote\aa@defaultheadnote
         {\aa@defaultheadnotefont (\aa@headnote)\par}
       \fi
@@ -1008,6 +1084,10 @@
     \else
     \addvspace{\aa@aftertitleskip}
       {\aa@subtitlefont \aa@subtitle\par}
+      \ifaa@rnote
+        \addvspace{\aa@beforernoteskip}
+        {\aa@rnotefont \rnotename\par}
+      \fi
       \ifx\aa@headnote\aa@defaultheadnote
         \addvspace{\aa@beforedefaultheadnoteskip}
         {\aa@defaultheadnotefont (\aa@headnote)\par}
@@ -1031,12 +1111,12 @@
     \addvspace{\aa@afterauthorskip}
   \endgroup
   \begingroup
-    \ifaa@longauth\addvspace{-10pt}
+    \leftskip \aa@headingleftmargin
+    \rightskip \aa@headingrightmargin
+    \ifaa@longauth
       {\noindent\aa@longauthfont%
        \aa@longauthopen\aa@longauthname\aa@longauthclose\par}
     \else
-    \leftskip \aa@headingleftmargin
-    \rightskip \aa@headingrightmargin
       \aainstitutename
     \fi
     \vspace{\aa@afterinstituteskip}
@@ -1085,9 +1165,7 @@
   \renewcommand*\fnmsep{}%
   \renewcommand*\and{, }%
   \renewcommand*\\{ }%
-  \renewcommand*\vspace[1]{}%
-  \renewcommand*\offprints[1]{}%
-  \protected@xdef\aa@PDFauthor{\if!\the\authorlink!\aa@author\else\the\authorlink\fi}%
+  \protected@xdef\aa@PDFauthor{\aa@author}%
   \protected@xdef\aa@PDFtitle{\noexpand\protect\noexpand\aa@title}%
   \def\object##1{##1}%
   \ifx\aa@authorrunning\empty
@@ -1109,12 +1187,18 @@
   \else
     \protected@xdef\aa@headings{\aa@headings\unskip: \aa@titlerunning}%
   \fi
+  \ifaa@rnote
+    \protected@xdef\aa@headings{%
+      \aa@headings\space
+      \aa@rnotfont \rnotname
+    }%
+  \fi
   \setbox0=\hbox{%
     \hspace*{\aa@securityheadmargin}%
     \aa@headfont \aa@headings
   }%
   \ifdim\wd0>\aa@fullwidth
-    \typeout{^^J^^JIMPORTANT}
+    \typeout{^^J^^J!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
     \ClassWarning{aa}
                {The running head built automatically
                  from \string\author\space and \string\title
@@ -1124,7 +1208,7 @@
                {Use \string\titlerunning\space to supply a shorter
                  title and/or \string\authorrunning\space to supply a
                  shorter list of authors.}%
-    \typeout{IMPORTANT
+    \typeout{!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ^^J}
   \fi
   \fi\fi
@@ -1268,88 +1352,126 @@
 \renewcommand\@makefntext[1]{%
     \noindent
     \hb@xt@\bibindent{\hss\@makefnmark\enspace}#1}
-\newcommand\listofobjects{\if@myobjects%
+\newcommand\listofobjects{%
   \section*{\listobjectname}
-  \@starttoc{obj}\fi%
+  \@starttoc{obj}%
 }
 \newcommand*\l@obj[2]{\noindent`#1' on page #2\par}
 \DeclareRobustCommand{\object}[1]{%
-   #1\global\let\if@myobjects\iftrue%
+   #1%
    \addcontentsline{obj}{obj}{#1}%
 }
-\newcommand\longtab[2][]{%
-\if!\@aatolm!
-  \aalongfloat{table}{#2}%
-\else
-  \aalongfloat[#1]{section}{#2}%
-\fi
+\newcommand\Online{%
+  \ifaa@online\else\aa@onlinetrue
+  \def\ps@Onlheadings{%
+    \let\@oddfoot\@empty\let\@evenfoot\@empty
+    \def\@evenhead{\hfil A\&A--\jobname, {\it Online Material p~\thepage}\hfil}%
+    \def\@oddhead{\hfil A\&A--\jobname, {\it Online Material p~\thepage}\hfil}%
+    \let\@mkboth\@gobbletwo
+    \let\sectionmark\@gobble
+    \let\subsectionmark\@gobble
+  }
+  \clearpage
+  \pagestyle{Onlheadings}
+  \fi
 }
-\newcommand\aalongfloat[3][]{%
+\newcommand*\aa@displaytextonlinebox[1]{%
+  \begingroup
+    \fboxsep=\aa@textonlineboxsep
+    \fbox{%
+      \parbox{\linewidth-\aa@textonlineboxsep}{%
+        \centering
+        \aa@textonlineboxfont
+        #1%
+      }%
+    }%
+  \endgroup
+}
+\newcommand\onlfig{%
+  \onlfloat{figure}%
+}
+\newcommand\onltab{%
+  \onlfloat{table}%
+}
+\newcommand\onllongtab{%
+  \onllongfloat{table}%
+}
+\newcommand\onlfloat[2]{%
   \AtEndDocument{%
-    \aa@savecounter \csname c@#2\endcsname \relax
-    \csname c@#2\endcsname
+    \Online
+    \aa@savecounter \csname c@#1\endcsname \relax
+    \csname c@#1\endcsname
   }%
-  \edef\aa@nombre{\number\csname c@#2\endcsname}%
-\if!\@aatolm!
+  \edef\aa@nombre{\number\csname c@#1\endcsname}%
   \expandafter\AtEndDocument\expandafter{%
     \aa@nombre\relax
-    \setlength{\LTcapwidth}{\textwidth}
-    \onecolumn
-    #3%
-    \twocolumn
-    \csname c@#2\endcsname \aa@savecounter \relax
+    #2%
+    \csname c@#1\endcsname \aa@savecounter \relax
   }%
-  \stepcounter{#2}%
-\else
-  \expandafter\AtEndDocument\expandafter{%
-    \aa@nombre\relax
-    \setlength{\LTcapwidth}{\textwidth}
-    \onecolumn
-\setcounter{table}{#1}\addtocounter{table}{-1}
-\renewcommand\thesection{\Alph{section}}%
-\renewcommand\thetable{\thesection.\arabic{table}}
-    #3%
-    \twocolumn
-    \csname c@#2\endcsname \aa@savecounter \relax
-  }%
-  \setcounter{table}{#1}
-\fi
+  \stepcounter{#1}%
 }
-%\renewcommand*\enddocument{%
-%   \let\AtEndDocument\@firstofone
-%   \@enddocumenthook
-%   \clearpage
-%   \advance\c@page \m@ne
-%   \immediate\write\@auxout{\string\newlabel{LastPage}{{\thepage}{\thepage}{}{}{}}}
-%   \@checkend{document}%
-%   \clearpage
-%   \begingroup
-%     \if@filesw
-%       \immediate\closeout\@mainaux
-%       \let\@setckpt\@gobbletwo
-%       \let\@newl@bel\@testdef
-%       \@tempswafalse
-%       \makeatletter \input\jobname.aux
-%     \fi
-%     \@dofilelist
-%     \ifdim \font@submax >\fontsubfuzz\relax
-%       \@font@warning{Size substitutions with differences\MessageBreak
-%                  up to \font@submax\space have occurred.\@gobbletwo}%
-%     \fi
-%     \@defaultsubs
-%     \@refundefined
-%     \if@filesw
-%       \ifx \@multiplelabels \relax
-%         \if@tempswa
-%           \@latex@warning@no@line{Label(s) may have changed.
-%               Rerun to get cross-references right}%
-%         \fi
-%       \else
-%         \@multiplelabels
-%       \fi
-%     \fi
-%   \endgroup
-%   \deadcycles\z@\@@end}
+\newcommand\onllongfloat[2]{%
+  \AtEndDocument{%
+    \Online
+    \aa@savecounter \csname c@#1\endcsname \relax
+    \csname c@#1\endcsname
+  }%
+  \edef\aa@nombre{\number\csname c@#1\endcsname}%
+  \expandafter\AtEndDocument\expandafter{%
+    \aa@nombre\relax
+    \setlength{\LTcapwidth}{\textwidth}
+    \onecolumn
+    #2%
+    \twocolumn
+    \csname c@#1\endcsname \aa@savecounter \relax
+  }%
+  \stepcounter{#1}%
+}
+\Newassociation{longtab}{Longtab}{\jobname}
+\newcommand{\Debutlongtab}{\Opensolutionfile{\jobname}}
+\newcommand{\Finlongtab}{\Closesolutionfile{\jobname} \Ecrirelongtab }
+\newcommand{\Ecrirelongtab}{  \Readsolutionfile{\jobname}}
+\renewenvironment{Longtab}[1]{\setcounter{table}{#1}%
+  \setlength{\LTcapwidth}{\textwidth}%
+  \onecolumn}{%
+  \twocolumn%
+}
+\g@addto@macro{\maketitle}{\Debutlongtab}
+\renewcommand*\enddocument{%
+   \let\AtEndDocument\@firstofone
+   \@enddocumenthook
+   \clearpage
+   \advance\c@page \m@ne
+   \immediate\write\@auxout{\string\newlabel{LastPage}{{\thepage}{\thepage}{}{page.\thepage}{}}}
+   \@checkend{document}%
+   \clearpage
+   \begingroup
+     \if@filesw
+       \immediate\closeout\@mainaux
+       \let\@setckpt\@gobbletwo
+       \let\@newl@bel\@testdef
+       \@tempswafalse
+       \makeatletter \input\jobname.aux
+     \fi
+     \@dofilelist
+     \ifdim \font@submax >\fontsubfuzz\relax
+       \@font@warning{Size substitutions with differences\MessageBreak
+                  up to \font@submax\space have occurred.\@gobbletwo}%
+     \fi
+     \@defaultsubs
+     \@refundefined
+     \if@filesw
+       \ifx \@multiplelabels \relax
+         \if@tempswa
+           \@latex@warning@no@line{Label(s) may have changed.
+               Rerun to get cross-references right}%
+         \fi
+       \else
+         \@multiplelabels
+       \fi
+     \fi
+   \endgroup
+   \deadcycles\z@\@@end}
 \newcommand*\aa@defineentry{%
   \newcommand{\entry}[3]{%
     \par\noindent
@@ -1710,7 +1832,8 @@
 }{%
   \endlist\par\endgroup%
   \ifaa@longauth\kern6pt\hrule\kern6pt\aainstitutename\aa@longauthfalse\fi%
-  \ifaa@referee\if!\csname appendix\endcsname!\relax\else\listofobjects\fi\fi
+  \ifaa@referee\if!\csname longtab\endcsname!\relax\else\listofobjects\fi\fi
+  \Finlongtab%
   \def\@noitemerr{\ClassWarning{aa}{Empty `thebibliography' environment}}%
 }
 \def \@floatboxreset {%
@@ -1747,7 +1870,7 @@
     \vphantom{x}^{\aa@element@tr}_{\aa@element@br}
   }%
 }
-\renewcommand*\vec[1]{\ensuremath{\boldsymbol{#1}}}
+\renewcommand*\vec[1]{\ensuremath{\mathbf{#1}}}
 \newcommand*\tens[1]{\ensuremath{\mathsf{#1}}}
 \newcommand*\sq{%
   \ifmmode
@@ -1925,7 +2048,7 @@
 \newcommand*\jcap{J. Cosmology Astropart. Phys.}
 \newcommand*\jcp{J.~Chem.~Phys.}
 \newcommand*\jgr{J.~Geophys.~Res.}
-\newcommand*\jqsrt{J.~Quant.~Spectr.~Rad.~Transf.}
+\newcommand*\jqsrt{J.~Quant.~Spec.~Radiat.~Transf.}
 \newcommand*\jrasc{JRASC}
 \newcommand*\memras{MmRAS}
 \newcommand*\memsai{Mem.~Soc.~Astron.~Italiana}
@@ -2059,9 +2182,6 @@
 \def\arxivprefixesep{:}
 \def\arxiv#1{%
 {\tt \arxivprefixe\arxivprefixesep\ignorespaces#1}%
-}
-\newcommand{\eprint}[2][]{%
-{\tt\if!#1!#2\else#1\arxivprefixesep\ignorespaces#2\fi}%
 }
 \endinput
 %%

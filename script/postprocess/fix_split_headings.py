@@ -85,6 +85,10 @@ def _detect_split_headings_aux(ordered: List[Tuple[int, str, int, int]]) -> List
             eid, etype, emcid, epage = ordered[j]
             if epage != hpage:
                 break
+            # Hard stop: another heading starts. A split heading cannot jump across
+            # a new heading, and treating later P as the title will corrupt structure.
+            if etype in ("H1", "H2", "H3"):
+                break
             if etype in ("BibList", "BibEntry"):
                 saw_bib = True
                 # If we already saw a close P, this is the bibliography heading split.
@@ -115,25 +119,14 @@ def _detect_split_headings_aux(ordered: List[Tuple[int, str, int, int]]) -> List
             splits.append((hid, p_bib[0]))
             continue
         
-        # Case C: direct H1 + P merge when P immediately follows H1 (MCID diff = 1)
-        # This handles cases where section title goes directly into P without
-        # an intermediate empty P (e.g., when followed by algorithm environment)
-        if p1 is not None and p2 is None:
-            # Only merge if the next non-P element is NOT another heading
-            # (to avoid eating content paragraphs)
-            next_is_heading = False
-            for j in range(i + 1, min(i + 5, len(ordered))):
-                eid, etype, emcid, epage = ordered[j]
-                if etype in ("H1", "H2", "H3"):
-                    next_is_heading = True
-                    break
-                if etype == "P" and eid != p1[0]:
-                    # There's another P between H1 and this one - skip
-                    break
-                if etype not in ("P",):
-                    # Found a non-P, non-heading element (like Algorithm) - safe to merge
-                    splits.append((hid, p1[0]))
-                    break
+        # Case C (DISABLED):
+        # A direct H1 + P merge when MCID diff=1 is too risky in real papers.
+        # It can incorrectly promote the *first content paragraph* after a heading
+        # into the heading itself (common in ICML/NeurIPS style files).
+        #
+        # Keep the aux-level fixer conservative: only merge when we see the
+        # classic staged-heading pattern (requires both +1 and +2/+3), or the
+        # bibliography-specific split.
 
     return splits
 
@@ -286,5 +279,6 @@ def main():
     return 1
     
 
-if __name__ == '__main__':
-    exit(main())
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py fix-split-headings ...

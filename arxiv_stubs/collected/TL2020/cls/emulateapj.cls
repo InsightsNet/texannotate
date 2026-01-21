@@ -1,4 +1,4 @@
-%% This is emulateapj.cls, version May 12, 2014
+%% This is emulateapj.cls, version January 23, 2015
 %% For the latest version check http://hea-www.harvard.edu/~alexey/emulateapj
 %%
 %% NOTE: ApJ has moved its publishing to IOP and they have slightly changed
@@ -31,7 +31,7 @@
 %% 8/17/2012 version, you can also use the [revtex4] option. 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Copyright 2000-2014 Alexey Vikhlinin
+%% Copyright 2000-2015 Alexey Vikhlinin
 %%
 %% The first version of this package was written by Maxim Markevitch. 
 %% Pieces of AASTeX code are used for compatibility with aastex.cls.
@@ -68,7 +68,7 @@
 %% For release notes and change log, see at bottom
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\emulapj@ver{05/12/14}
+\def\emulapj@ver{01/23/15}
 
 
 \ProvidesClass{emulateapj}
@@ -172,10 +172,12 @@
  \def\@eapj@cap@font{\scshape}
  \def\@eapj@figname{Fig.}
  \def\@eapj@tabname{TABLE}
+ \def\@eapj@ApJLetters{ApJ}
 \else
  \def\@eapj@cap@font{\bfseries}
  \def\@eapj@figname{Figure}
  \def\@eapj@tabname{Table}
+ \def\@eapj@ApJLetters{ApJL}
 \fi
 
 % Restore natbib package without sorting. 
@@ -1199,7 +1201,7 @@
 \newcommand\aj{\ref@jnl{AJ}}%        % Astronomical Journal 
 \newcommand\araa{\ref@jnl{ARA\&A}}%  % Annual Review of Astron and Astrophys 
 \renewcommand\apj{\ref@jnl{ApJ}}%    % Astrophysical Journal 
-\newcommand\apjl{\ref@jnl{ApJ}}%     % Astrophysical Journal, Letters 
+\newcommand\apjl{\ref@jnl{\@eapj@ApJLetters}}%     % Astrophysical Journal, Letters 
 \newcommand\apjs{\ref@jnl{ApJS}}%    % Astrophysical Journal, Supplement 
 \renewcommand\ao{\ref@jnl{Appl.~Opt.}}%   % Applied Optics 
 \newcommand\apss{\ref@jnl{Ap\&SS}}%  % Astrophysics and Space Science 
@@ -1445,7 +1447,10 @@
     \centering
     \begin{minipage}{\deluxe@table@width}
       \lt@expand@linewidth
-      \begin{longtable}{\lt@expand@linewidth@#1}
+      \def\@tmpa{\begin{longtable}}
+      \expandafter\expandafter\expandafter\@tmpa%
+      \expandafter\expandafter\expandafter{\lt@expand@linewidth@#1}
+%      \begin{longtable}{\lt@expand@linewidth@#1}
       }{
         \restore@tablenum%
       \end{longtable}%
@@ -1476,7 +1481,10 @@
     \find@table@width
     \begin{minipage}{\deluxe@table@width}
     \lt@expand@linewidth
-    \begin{longtable*}{\lt@expand@linewidth@#1}
+    \def\@tmpa{\begin{longtable*}}
+    \expandafter\expandafter\expandafter\@tmpa%
+    \expandafter\expandafter\expandafter{\lt@expand@linewidth@#1}
+    %\begin{longtable*}{\lt@expand@linewidth@#1}
     }{\gdef\pt@width{\LTcapwidth}%
       \restore@tablenum%
     \end{longtable*}%
@@ -1877,5 +1885,10 @@
 %% 05/03/13 add 10pt,aps,pra option to \LoadClass revtex4  to avoid warnings
 %%
 %% 05/12/14 More journal abbreviations
+%%
+%% 01/23/15 Fix collision with array package: expand
+%%          \lt@expand@linewidth@ twice before passing into longtable
+%%
+%% 01/23/15 \apjl with the iop option expands to ApJL
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

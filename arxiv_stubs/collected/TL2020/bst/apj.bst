@@ -1,8 +1,5 @@
 %%
 %% $Log: apj.bst,v $
-%% Revision 1.1  2013-10-03 02:01:06  bob
-%% Worked on paper, Oct 2, 2013
-%%
 %% Revision 1.10 2013/03/11 13:01:55 alberto
 %% Reworked code to use format.pid for articles without proper
 %% pagination which then leads the system to use either an eprint

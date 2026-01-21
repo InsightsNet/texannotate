@@ -1,0 +1,6249 @@
+{
+  "summary": {
+    "total_elements": 371,
+    "total_mcids": 453,
+    "total_pages": 22
+  },
+  "elements": [
+    {
+      "id": 1,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 1,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 2,
+      "type": "Title",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 2,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 3,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 3,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 4,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 4,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 5,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 5,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 6,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 6,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 7,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 7,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 8,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 8,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 9,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 9,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 10,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 10,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 11,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 11,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 12,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 12,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 13,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 13,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 14,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 14,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 15,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 15,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 16,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 16,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 17,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 17,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 18,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 18,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 19,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 19,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 20,
+      "type": "Author",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 20,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 21,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 21,
+          "page": 1
+        },
+        {
+          "mcid": 25,
+          "page": 1
+        },
+        {
+          "mcid": 32,
+          "page": 1
+        },
+        {
+          "mcid": 34,
+          "page": 1
+        },
+        {
+          "mcid": 36,
+          "page": 1
+        },
+        {
+          "mcid": 39,
+          "page": 1
+        },
+        {
+          "mcid": 41,
+          "page": 1
+        },
+        {
+          "mcid": 43,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 22,
+      "type": "Note",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 21,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 22,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 23,
+      "type": "Note",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 23,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 24,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 24,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 25,
+      "type": "H1",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 26,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 26,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 27,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 28,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 29,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 29,
+      "type": "H1",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 30,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 30,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 29,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 31,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 31,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 29,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 33,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 32,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 29,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 35,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 33,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 37,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 34,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 33,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 38,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 35,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 33,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 40,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 36,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 33,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 42,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 37,
+      "type": "Figure",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 44,
+          "page": 1
+        },
+        {
+          "mcid": 46,
+          "page": 1
+        },
+        {
+          "mcid": 49,
+          "page": 1
+        },
+        {
+          "mcid": 51,
+          "page": 1
+        },
+        {
+          "mcid": 53,
+          "page": 1
+        },
+        {
+          "mcid": 60,
+          "page": 2
+        },
+        {
+          "mcid": 65,
+          "page": 2
+        },
+        {
+          "mcid": 67,
+          "page": 2
+        },
+        {
+          "mcid": 71,
+          "page": 2
+        },
+        {
+          "mcid": 73,
+          "page": 2
+        },
+        {
+          "mcid": 75,
+          "page": 2
+        },
+        {
+          "mcid": 77,
+          "page": 2
+        }
+      ],
+      "cross_page": true
+    },
+    {
+      "id": 38,
+      "type": "Caption",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 37,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 45,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 39,
+      "type": "P",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 47,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 40,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 39,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 48,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 41,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 39,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 50,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 42,
+      "type": "Reference",
+      "start_page": 1,
+      "end_page": 1,
+      "is_atom": true,
+      "parent_id": 39,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 52,
+          "page": 1
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 43,
+      "type": "H1",
+      "start_page": 1,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 54,
+          "page": 1
+        },
+        {
+          "mcid": 55,
+          "page": 2
+        }
+      ],
+      "cross_page": true
+    },
+    {
+      "id": 44,
+      "type": "P",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 56,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 45,
+      "type": "H4",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 57,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 46,
+      "type": "P",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 58,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 47,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 46,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 59,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 48,
+      "type": "Formula",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 61,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 49,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 62,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 50,
+      "type": "P",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 63,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 51,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 50,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 64,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 52,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 50,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 66,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 53,
+      "type": "H4",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 68,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 54,
+      "type": "P",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 69,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 55,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 54,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 70,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 56,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 54,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 72,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 57,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 54,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 74,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 58,
+      "type": "Reference",
+      "start_page": 2,
+      "end_page": 2,
+      "is_atom": true,
+      "parent_id": 54,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 76,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 59,
+      "type": "H1",
+      "start_page": 2,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 78,
+          "page": 2
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 60,
+      "type": "Reference",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 79,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 61,
+      "type": "P",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 80,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 62,
+      "type": "H1",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 81,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 63,
+      "type": "Reference",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 82,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 64,
+      "type": "P",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 83,
+          "page": 3
+        },
+        {
+          "mcid": 85,
+          "page": 3
+        },
+        {
+          "mcid": 87,
+          "page": 3
+        },
+        {
+          "mcid": 89,
+          "page": 3
+        },
+        {
+          "mcid": 91,
+          "page": 3
+        },
+        {
+          "mcid": 93,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 65,
+      "type": "Em",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": 64,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 84,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 66,
+      "type": "Em",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": 64,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 86,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 67,
+      "type": "Em",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": 64,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 88,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 68,
+      "type": "Em",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": 64,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 90,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 69,
+      "type": "Reference",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": 64,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 92,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 70,
+      "type": "H2",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 94,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 71,
+      "type": "Reference",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 95,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 72,
+      "type": "P",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 96,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 73,
+      "type": "Formula",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 97,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 74,
+      "type": "H2",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 98,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 75,
+      "type": "Strong",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 99,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 76,
+      "type": "Strong",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 100,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 77,
+      "type": "Strong",
+      "start_page": 3,
+      "end_page": 3,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 101,
+          "page": 3
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 78,
+      "type": "H4",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 102,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 79,
+      "type": "Reference",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 103,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 80,
+      "type": "P",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 104,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 81,
+      "type": "Reference",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": true,
+      "parent_id": 80,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 105,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 82,
+      "type": "Formula",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 107,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 83,
+      "type": "H4",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 108,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 84,
+      "type": "Formula",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 109,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 85,
+      "type": "Formula",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 110,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 86,
+      "type": "H4",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 111,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 87,
+      "type": "Formula",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 112,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 88,
+      "type": "H2",
+      "start_page": 4,
+      "end_page": 4,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 113,
+          "page": 4
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 89,
+      "type": "H4",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 114,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 90,
+      "type": "Reference",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 115,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 91,
+      "type": "P",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 116,
+          "page": 5
+        },
+        {
+          "mcid": 120,
+          "page": 5
+        },
+        {
+          "mcid": 122,
+          "page": 5
+        },
+        {
+          "mcid": 124,
+          "page": 5
+        },
+        {
+          "mcid": 126,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 92,
+      "type": "Reference",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 91,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 117,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 93,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 91,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 119,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 94,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 91,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 121,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 95,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 91,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 123,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 96,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 91,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 125,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 97,
+      "type": "H4",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 127,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 98,
+      "type": "Reference",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 128,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 99,
+      "type": "P",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 129,
+          "page": 5
+        },
+        {
+          "mcid": 131,
+          "page": 5
+        },
+        {
+          "mcid": 133,
+          "page": 5
+        },
+        {
+          "mcid": 135,
+          "page": 5
+        },
+        {
+          "mcid": 141,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 100,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 99,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 130,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 101,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 99,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 132,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 102,
+      "type": "Strong",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 99,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 134,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 103,
+      "type": "H2",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 136,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 104,
+      "type": "Formula",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 137,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 105,
+      "type": "Reference",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 138,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 106,
+      "type": "P",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 139,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 107,
+      "type": "Reference",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 106,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 140,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 108,
+      "type": "Figure",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 142,
+          "page": 5
+        },
+        {
+          "mcid": 144,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 109,
+      "type": "Caption",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": true,
+      "parent_id": 108,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 143,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 110,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 145,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 111,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 146,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 112,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 147,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 113,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 148,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 114,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 149,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 115,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 150,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 116,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 151,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 117,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 152,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 118,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 153,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 119,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 154,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 120,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 155,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 121,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 156,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 122,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 157,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 123,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 158,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 124,
+      "type": "LI",
+      "start_page": 5,
+      "end_page": 5,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 159,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 125,
+      "type": "H1",
+      "start_page": 5,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 160,
+          "page": 5
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 126,
+      "type": "H4",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 161,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 127,
+      "type": "H4",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 162,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 128,
+      "type": "H4",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 163,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 129,
+      "type": "H2",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 164,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 130,
+      "type": "Figure",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 165,
+          "page": 6
+        },
+        {
+          "mcid": 167,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 131,
+      "type": "Caption",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": true,
+      "parent_id": 130,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 166,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 132,
+      "type": "P",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 168,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 133,
+      "type": "H2",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 169,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 134,
+      "type": "Table",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 170,
+          "page": 6
+        },
+        {
+          "mcid": 172,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 135,
+      "type": "Caption",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": true,
+      "parent_id": 134,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 171,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 136,
+      "type": "P",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 173,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 137,
+      "type": "Table",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 174,
+          "page": 6
+        },
+        {
+          "mcid": 176,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 138,
+      "type": "Caption",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": true,
+      "parent_id": 137,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 175,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 139,
+      "type": "P",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 177,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 140,
+      "type": "Figure",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 178,
+          "page": 6
+        },
+        {
+          "mcid": 180,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 141,
+      "type": "Caption",
+      "start_page": 6,
+      "end_page": 6,
+      "is_atom": true,
+      "parent_id": 140,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 179,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 142,
+      "type": "P",
+      "start_page": 6,
+      "end_page": 7,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 181,
+          "page": 6
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 143,
+      "type": "Table",
+      "start_page": 7,
+      "end_page": 7,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 182,
+          "page": 7
+        },
+        {
+          "mcid": 184,
+          "page": 7
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 144,
+      "type": "Caption",
+      "start_page": 7,
+      "end_page": 7,
+      "is_atom": true,
+      "parent_id": 143,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 183,
+          "page": 7
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 145,
+      "type": "P",
+      "start_page": 7,
+      "end_page": 7,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 185,
+          "page": 7
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 146,
+      "type": "H2",
+      "start_page": 7,
+      "end_page": 7,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 186,
+          "page": 7
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 147,
+      "type": "H1",
+      "start_page": 7,
+      "end_page": 8,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 187,
+          "page": 7
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 148,
+      "type": "H1",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 188,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 149,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 189,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 150,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 190,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 151,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 191,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 152,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 192,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 153,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 193,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 154,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 194,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 155,
+      "type": "Strong",
+      "start_page": 8,
+      "end_page": 8,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 195,
+          "page": 8
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 156,
+      "type": "H1",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 196,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 157,
+      "type": "BibList",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 197,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 158,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 198,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 159,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 199,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 160,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 200,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 161,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 201,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 162,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 202,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 163,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 203,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 164,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 204,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 165,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 205,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 166,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 206,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 167,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 207,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 168,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 208,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 169,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 209,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 170,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 210,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 171,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 211,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 172,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 212,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 173,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 213,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 174,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 214,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 175,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 215,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 176,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 216,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 177,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 9,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 217,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 178,
+      "type": "BibEntry",
+      "start_page": 9,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 218,
+          "page": 9
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 179,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 219,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 180,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 220,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 181,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 221,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 182,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 222,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 183,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 223,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 184,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 224,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 185,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 225,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 186,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 226,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 187,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 227,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 188,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 228,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 189,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 229,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 190,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 230,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 191,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 231,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 192,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 232,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 193,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 233,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 194,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 234,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 195,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 235,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 196,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 236,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 197,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 237,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 198,
+      "type": "BibEntry",
+      "start_page": 10,
+      "end_page": 10,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 238,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 199,
+      "type": "P",
+      "start_page": 10,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 239,
+          "page": 10
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 200,
+      "type": "H1",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 240,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 201,
+      "type": "Reference",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 241,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 202,
+      "type": "P",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 242,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 203,
+      "type": "H4",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 243,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 204,
+      "type": "Figure",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 244,
+          "page": 11
+        },
+        {
+          "mcid": 246,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 205,
+      "type": "Caption",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": 204,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 245,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 206,
+      "type": "P",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 247,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 207,
+      "type": "H4",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 248,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 208,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 249,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 209,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 250,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 210,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 251,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 211,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 252,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 212,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 253,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 213,
+      "type": "Strong",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 254,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 214,
+      "type": "H4",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 255,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 215,
+      "type": "Table",
+      "start_page": 11,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 256,
+          "page": 11
+        },
+        {
+          "mcid": 258,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 216,
+      "type": "Caption",
+      "start_page": 11,
+      "end_page": 11,
+      "is_atom": true,
+      "parent_id": 215,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 257,
+          "page": 11
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 217,
+      "type": "P",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 259,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 218,
+      "type": "Formula",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 260,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 219,
+      "type": "Figure",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 261,
+          "page": 12
+        },
+        {
+          "mcid": 263,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 220,
+      "type": "Caption",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": true,
+      "parent_id": 219,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 262,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 221,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 264,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 222,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 265,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 223,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 266,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 224,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 267,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 225,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 268,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 226,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 269,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 227,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 270,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 228,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 271,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 229,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 272,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 230,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 273,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 231,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 274,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 232,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 275,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 233,
+      "type": "LI",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 276,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 234,
+      "type": "Table",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 277,
+          "page": 12
+        },
+        {
+          "mcid": 279,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 235,
+      "type": "Caption",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": true,
+      "parent_id": 234,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 278,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 236,
+      "type": "P",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 280,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 237,
+      "type": "H1",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 281,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 238,
+      "type": "Table",
+      "start_page": 12,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 282,
+          "page": 12
+        },
+        {
+          "mcid": 284,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 239,
+      "type": "Caption",
+      "start_page": 12,
+      "end_page": 12,
+      "is_atom": true,
+      "parent_id": 238,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 283,
+          "page": 12
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 240,
+      "type": "P",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 285,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 241,
+      "type": "Table",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 286,
+          "page": 13
+        },
+        {
+          "mcid": 288,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 242,
+      "type": "Caption",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": 241,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 287,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 243,
+      "type": "P",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 289,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 244,
+      "type": "H1",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 290,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 245,
+      "type": "Table",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 291,
+          "page": 13
+        },
+        {
+          "mcid": 293,
+          "page": 13
+        },
+        {
+          "mcid": 296,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 246,
+      "type": "Caption",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": 245,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 292,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 247,
+      "type": "P",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 294,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 248,
+      "type": "Reference",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": 247,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 295,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 249,
+      "type": "Figure",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 297,
+          "page": 13
+        },
+        {
+          "mcid": 299,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 250,
+      "type": "Caption",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": 249,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 298,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 251,
+      "type": "P",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 300,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 252,
+      "type": "H4",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 301,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 253,
+      "type": "Em",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 302,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 254,
+      "type": "Em",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 303,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 255,
+      "type": "Em",
+      "start_page": 13,
+      "end_page": 13,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 304,
+          "page": 13
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 256,
+      "type": "H1",
+      "start_page": 14,
+      "end_page": 14,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 305,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 257,
+      "type": "Reference",
+      "start_page": 14,
+      "end_page": 14,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 306,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 258,
+      "type": "P",
+      "start_page": 14,
+      "end_page": 14,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 307,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 259,
+      "type": "Figure",
+      "start_page": 14,
+      "end_page": 14,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 308,
+          "page": 14
+        },
+        {
+          "mcid": 310,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 260,
+      "type": "Caption",
+      "start_page": 14,
+      "end_page": 14,
+      "is_atom": true,
+      "parent_id": 259,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 309,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 261,
+      "type": "P",
+      "start_page": 14,
+      "end_page": 15,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 311,
+          "page": 14
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 262,
+      "type": "H1",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 312,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 263,
+      "type": "Table",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 313,
+          "page": 15
+        },
+        {
+          "mcid": 315,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 264,
+      "type": "Caption",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": true,
+      "parent_id": 263,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 314,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 265,
+      "type": "P",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 316,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 266,
+      "type": "Table",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 317,
+          "page": 15
+        },
+        {
+          "mcid": 319,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 267,
+      "type": "Caption",
+      "start_page": 15,
+      "end_page": 15,
+      "is_atom": true,
+      "parent_id": 266,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 318,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 268,
+      "type": "P",
+      "start_page": 15,
+      "end_page": 16,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 320,
+          "page": 15
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 269,
+      "type": "H4",
+      "start_page": 16,
+      "end_page": 16,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 321,
+          "page": 16
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 270,
+      "type": "L",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 322,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 271,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 323,
+          "page": 17
+        },
+        {
+          "mcid": 325,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 272,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 271,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 324,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 273,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 326,
+          "page": 17
+        },
+        {
+          "mcid": 328,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 274,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 273,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 327,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 275,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 329,
+          "page": 17
+        },
+        {
+          "mcid": 331,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 276,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 275,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 330,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 277,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 332,
+          "page": 17
+        },
+        {
+          "mcid": 334,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 278,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 277,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 333,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 279,
+      "type": "H1",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 335,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 280,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 336,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 281,
+      "type": "Em",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 337,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 282,
+      "type": "Figure",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 338,
+          "page": 17
+        },
+        {
+          "mcid": 340,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 283,
+      "type": "Caption",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 282,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 339,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 284,
+      "type": "P",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 341,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 285,
+      "type": "Figure",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 342,
+          "page": 17
+        },
+        {
+          "mcid": 344,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 286,
+      "type": "Caption",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 285,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 343,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 287,
+      "type": "P",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 345,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 288,
+      "type": "H1",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 346,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 289,
+      "type": "Figure",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 347,
+          "page": 17
+        },
+        {
+          "mcid": 349,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 290,
+      "type": "Caption",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 289,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 348,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 291,
+      "type": "P",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 350,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 292,
+      "type": "H1",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 351,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 293,
+      "type": "Figure",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 352,
+          "page": 17
+        },
+        {
+          "mcid": 354,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 294,
+      "type": "Caption",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": true,
+      "parent_id": 293,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 353,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 295,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 355,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 296,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 356,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 297,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 357,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 298,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 358,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 299,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 359,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 300,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 360,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 301,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 361,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 302,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 362,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 303,
+      "type": "LI",
+      "start_page": 17,
+      "end_page": 17,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 363,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 304,
+      "type": "Formula",
+      "start_page": 17,
+      "end_page": 18,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 364,
+          "page": 17
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 305,
+      "type": "Formula",
+      "start_page": 18,
+      "end_page": 18,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 365,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 306,
+      "type": "H1",
+      "start_page": 18,
+      "end_page": 18,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 366,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 307,
+      "type": "Reference",
+      "start_page": 18,
+      "end_page": 18,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 367,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 308,
+      "type": "P",
+      "start_page": 18,
+      "end_page": 18,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 368,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 309,
+      "type": "Table",
+      "start_page": 18,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 369,
+          "page": 18
+        },
+        {
+          "mcid": 371,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 310,
+      "type": "Caption",
+      "start_page": 18,
+      "end_page": 18,
+      "is_atom": true,
+      "parent_id": 309,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 370,
+          "page": 18
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 311,
+      "type": "P",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 372,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 312,
+      "type": "H4",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 373,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 313,
+      "type": "Reference",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 374,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 314,
+      "type": "P",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 375,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 315,
+      "type": "Figure",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 376,
+          "page": 19
+        },
+        {
+          "mcid": 378,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 316,
+      "type": "Caption",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 315,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 377,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 317,
+      "type": "P",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 379,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 318,
+      "type": "H1",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 380,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 319,
+      "type": "H4",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 381,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 320,
+      "type": "Table",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 382,
+          "page": 19
+        },
+        {
+          "mcid": 384,
+          "page": 19
+        },
+        {
+          "mcid": 386,
+          "page": 19
+        },
+        {
+          "mcid": 388,
+          "page": 19
+        },
+        {
+          "mcid": 390,
+          "page": 19
+        },
+        {
+          "mcid": 392,
+          "page": 19
+        },
+        {
+          "mcid": 394,
+          "page": 19
+        },
+        {
+          "mcid": 396,
+          "page": 19
+        },
+        {
+          "mcid": 398,
+          "page": 19
+        },
+        {
+          "mcid": 400,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 321,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 383,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 322,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 385,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 323,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 387,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 324,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 389,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 325,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 391,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 326,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 393,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 327,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 395,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 328,
+      "type": "Strong",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 397,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 329,
+      "type": "Caption",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": true,
+      "parent_id": 320,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 399,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 330,
+      "type": "P",
+      "start_page": 19,
+      "end_page": 19,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 401,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 331,
+      "type": "H4",
+      "start_page": 19,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 402,
+          "page": 19
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 332,
+      "type": "Table",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 403,
+          "page": 20
+        },
+        {
+          "mcid": 405,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 333,
+      "type": "Caption",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": true,
+      "parent_id": 332,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 404,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 334,
+      "type": "P",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 406,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 335,
+      "type": "Table",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 407,
+          "page": 20
+        },
+        {
+          "mcid": 409,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 336,
+      "type": "Caption",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": true,
+      "parent_id": 335,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 408,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 337,
+      "type": "P",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 410,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 338,
+      "type": "Figure",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 411,
+          "page": 20
+        },
+        {
+          "mcid": 413,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 339,
+      "type": "Caption",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": true,
+      "parent_id": 338,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 412,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 340,
+      "type": "P",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 414,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 341,
+      "type": "H4",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 415,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 342,
+      "type": "Table",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 416,
+          "page": 20
+        },
+        {
+          "mcid": 418,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 343,
+      "type": "Caption",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": true,
+      "parent_id": 342,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 417,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 344,
+      "type": "P",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 419,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 345,
+      "type": "H1",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 420,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 346,
+      "type": "H4",
+      "start_page": 20,
+      "end_page": 20,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 421,
+          "page": 20
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 347,
+      "type": "L",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 422,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 348,
+      "type": "LI",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 423,
+          "page": 21
+        },
+        {
+          "mcid": 425,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 349,
+      "type": "Strong",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": true,
+      "parent_id": 348,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 424,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 350,
+      "type": "Formula",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 426,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 351,
+      "type": "LI",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 427,
+          "page": 21
+        },
+        {
+          "mcid": 429,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 352,
+      "type": "Strong",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": true,
+      "parent_id": 351,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 428,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 353,
+      "type": "Formula",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 430,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 354,
+      "type": "LI",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 431,
+          "page": 21
+        },
+        {
+          "mcid": 433,
+          "page": 21
+        },
+        {
+          "mcid": 435,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 355,
+      "type": "Strong",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": true,
+      "parent_id": 354,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 432,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 356,
+      "type": "Reference",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": true,
+      "parent_id": 354,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 434,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 357,
+      "type": "Formula",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 436,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 358,
+      "type": "H4",
+      "start_page": 21,
+      "end_page": 21,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 437,
+          "page": 21
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 359,
+      "type": "Formula",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 438,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 360,
+      "type": "H4",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 439,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 361,
+      "type": "Reference",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": true,
+      "parent_id": null,
+      "ref_key": "",
+      "mcids": [
+        {
+          "mcid": 440,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 362,
+      "type": "P",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 441,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 363,
+      "type": "Figure",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 442,
+          "page": 22
+        },
+        {
+          "mcid": 444,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 364,
+      "type": "Caption",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": true,
+      "parent_id": 363,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 443,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 365,
+      "type": "P",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 445,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 366,
+      "type": "Table",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 446,
+          "page": 22
+        },
+        {
+          "mcid": 448,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 367,
+      "type": "Caption",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": true,
+      "parent_id": 366,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 447,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 368,
+      "type": "P",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 449,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 369,
+      "type": "Table",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 450,
+          "page": 22
+        },
+        {
+          "mcid": 452,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 370,
+      "type": "Caption",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": true,
+      "parent_id": 369,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 451,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    },
+    {
+      "id": 371,
+      "type": "P",
+      "start_page": 22,
+      "end_page": 22,
+      "is_atom": false,
+      "parent_id": null,
+      "ref_key": null,
+      "mcids": [
+        {
+          "mcid": 453,
+          "page": 22
+        }
+      ],
+      "cross_page": false
+    }
+  ]
+}

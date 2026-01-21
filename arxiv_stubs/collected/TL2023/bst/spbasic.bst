@@ -234,7 +234,7 @@ FUNCTION {bbl.and}
 { "and"}
 
 FUNCTION {bbl.etal}
-{ "et~al." }
+{ "et~al" }
 
 FUNCTION {bbl.editors}
 { "eds" }
@@ -706,6 +706,7 @@ FUNCTION {n.separate}
 }
 FUNCTION {n.dashify}
 {
+  n.separate
   't :=
   ""
     { t empty$ not }
@@ -1655,4 +1656,3 @@ EXECUTE {end.bib}
 %% End of customized bst file
 %%
 %% End of file `spbasic.bst'.
-

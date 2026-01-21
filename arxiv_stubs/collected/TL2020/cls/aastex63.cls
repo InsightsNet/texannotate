@@ -1740,6 +1740,7 @@ APPENDIX}\hfill\mbox{}\par
 \renewcommand\apj{\ref@jnl{ApJ}}%    % Astrophysical Journal 
 \newcommand\apjl{\ref@jnl{ApJL}}     % Astrophysical Journal, Letters 
 \newcommand\apjs{\ref@jnl{ApJS}}%    % Astrophysical Journal, Supplement 
+\newcommand\psj{\ref@jnl{PSJ}}%      % Planetary Science Journal
 \renewcommand\ao{\ref@jnl{ApOpt}}%   % Applied Optics 
 \newcommand\apss{\ref@jnl{Ap\&SS}}%  % Astrophysics and Space Science 
 \newcommand\aap{\ref@jnl{A\&A}}%     % Astronomy and Astrophysics 

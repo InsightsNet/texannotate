@@ -553,6 +553,68 @@ def fix_empty_p_tags(content_stream, verbose=False):
     return text.encode('latin-1'), len(removals)
 
 
+def fix_orphan_emcs(content_stream, verbose=False):
+    """Remove orphan EMC markers that have no matching BDC.
+    
+    This fixes a structural issue where cross-page or cross-column handling
+    produces EMC markers without corresponding BDC markers, causing PDF
+    structure imbalance.
+    
+    Strategy:
+    1. Parse all BDC/BMC/EMC markers
+    2. Track nesting level
+    3. Identify EMCs that would make level go negative (orphans)
+    4. Remove those orphan EMCs
+    
+    Returns: (new_stream, removed_count)
+    """
+    try:
+        text = content_stream.decode('latin-1')
+    except:
+        text = content_stream.decode('utf-8', errors='replace')
+    
+    # Parse all markers with their positions
+    markers = []
+    for m in re.finditer(r'/(\w+)\s*<<\s*/MCID\s*(\d+)\s*>>\s*BDC', text):
+        markers.append((m.start(), m.end(), 'BDC', m.group(1), int(m.group(2))))
+    for m in re.finditer(r'/Artifact\s+BMC', text):
+        markers.append((m.start(), m.end(), 'BMC', 'Artifact', None))
+    for m in re.finditer(r'\bEMC\b', text):
+        markers.append((m.start(), m.end(), 'EMC', None, None))
+    
+    markers.sort(key=lambda x: x[0])
+    
+    # Track nesting and find orphan EMCs
+    level = 0
+    orphan_emcs = []  # List of (start_pos, end_pos) for orphan EMCs
+    
+    for start, end, mtype, tag, mcid in markers:
+        if mtype == 'BDC' or mtype == 'BMC':
+            level += 1
+        elif mtype == 'EMC':
+            if level > 0:
+                level -= 1
+            else:
+                # This EMC is orphan - no matching BDC
+                orphan_emcs.append((start, end))
+                if verbose:
+                    print(f"  Found orphan EMC at position {start}")
+    
+    if not orphan_emcs:
+        return content_stream, 0
+    
+    # Remove orphans from end to start to preserve positions
+    orphan_emcs.sort(key=lambda x: x[0], reverse=True)
+    for start, end in orphan_emcs:
+        # Replace with whitespace to maintain stream positions for other fixes
+        text = text[:start] + ' ' * (end - start) + text[end:]
+    
+    if verbose:
+        print(f"  Removed {len(orphan_emcs)} orphan EMC markers")
+    
+    return text.encode('latin-1'), len(orphan_emcs)
+
+
 def fix_untagged_page_start(content_stream, page_mcid_base=1000, verbose=False):
     """Fix pages that start with untagged text (cross-page continuation issue).
     
@@ -877,6 +939,37 @@ def process_pdf(pdf_path, aux_path, output_path=None, verbose=True):
         print(f"Pages with untagged text: {pages_with_untagged}")
         print(f"Combined pages to fix: {all_pages_to_check}")
     
+    # === Phase 0: Fix orphan EMCs on ALL pages ===
+    if verbose:
+        print("\n--- Phase 0: Fixing orphan EMC markers ---")
+    
+    orphan_fix_count = 0
+    for page_idx in range(len(doc)):
+        page = doc[page_idx]
+        try:
+            xref = page.xref
+            contents_ref = doc.xref_get_key(xref, "Contents")
+            if contents_ref[0] != 'xref':
+                continue
+            contents_xref = int(contents_ref[1].split()[0])
+            content_stream = doc.xref_stream(contents_xref)
+            if not content_stream:
+                continue
+            
+            new_stream, removed = fix_orphan_emcs(content_stream, verbose=False)
+            if removed > 0:
+                doc.update_stream(contents_xref, new_stream)
+                orphan_fix_count += removed
+                if verbose:
+                    print(f"  Page {page_idx + 1}: removed {removed} orphan EMC(s)")
+        except Exception as e:
+            if verbose:
+                print(f"  Page {page_idx + 1}: error - {e}")
+    
+    if verbose:
+        print(f"  Total orphan EMCs removed: {orphan_fix_count}")
+    
+    # === Phase 1: Inject missing BDC markers ===
     fixed_count = 0
     for page_num in all_pages_to_check:
         if page_num > len(doc):
@@ -1093,5 +1186,6 @@ Examples:
     return 0
 
 
-if __name__ == '__main__':
-    exit(main())
+# Standalone execution entrypoints are intentionally removed.
+# Use repo root `main.py` instead:
+#   python3 main.py fix-crosspage-mcid ...

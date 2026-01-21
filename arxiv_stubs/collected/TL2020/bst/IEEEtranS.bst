@@ -3,9 +3,9 @@
 %% BibTeX Bibliography Style file
 %% Sorting version of IEEEtran.bst
 %% *** Not for normal IEEE work ***
-%% Version 1.12 (2007/01/11)
+%% Version 1.13 (2008/09/30)
 %% 
-%% Copyright (c) 2003-2007 Michael Shell
+%% Copyright (c) 2003-2008 Michael Shell
 %% 
 %% Original starting code base and algorithms obtained from the output of
 %% Patrick W. Daly's makebst package as well as from prior versions of
@@ -86,6 +86,10 @@
 %     label width.
 %  9. Added alias www for electronic/online.
 % 10. Added CTLname_url_prefix control entry type.
+% 
+% 1.13 (2008/09/30)
+%  1. Fixed bug with edition number to ordinal conversion. Thanks to
+%     Michael Roland for reporting this and correcting the algorithm.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,7 +137,7 @@ FUNCTION {default.is.forced.et.al} { #0 }
 % Note: There are many instances of references in IEEE journals which have
 % a very large number of authors as well as instances in which "et al." is
 % used profusely.
-FUNCTION {default.max.num.names.before.forced.et.al} { #10 }
+FUNCTION {default.max.num.names.before.forced.et.al} { #1000 }
 
 % The number of names that will be shown with a forced "et al.".
 % Must be less than or equal to max.num.names.before.forced.et.al
@@ -158,7 +162,7 @@ FUNCTION {default.ALTinterwordstretchfactor} { "4" }
 % #0 turns off the "dashification" of repeated (i.e., identical to those
 % of the previous entry) names. IEEE normally does this.
 % #1 enables
-FUNCTION {default.is.dash.repeated.names} { #1 }
+FUNCTION {default.is.dash.repeated.names} { #0 }
 
 
 % The default name format control string.
@@ -187,8 +191,8 @@ FUNCTION {is.print.banners.to.terminal} { #1 }
 %% FILE VERSION AND BANNER %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-FUNCTION{bst.file.version} { "1.12" }
-FUNCTION{bst.file.date} { "2007/01/11" }
+FUNCTION{bst.file.version} { "1.13" }
+FUNCTION{bst.file.date} { "2008/09/30" }
 FUNCTION{bst.file.website} { "http://www.michaelshell.org/tex/ieeetran/bibtex/" }
 
 FUNCTION {banner.message}
@@ -933,20 +937,24 @@ FUNCTION {name.or.dash}
 % Converts the number string on the top of the stack to
 % "numerical ordinal form" (e.g., "7" to "7th"). There is
 % no artificial limit to the upper bound of the numbers as the
-% least significant digit always determines the ordinal form.
+% two least significant digits determine the ordinal form.
 FUNCTION {num.to.ordinal}
-{ duplicate$ #-1 #1 substring$ "1" =
-     { bbl.st * }
-     { duplicate$ #-1 #1 substring$ "2" =
-         { bbl.nd * }
-         { duplicate$ #-1 #1 substring$ "3" =
-             { bbl.rd * }
-             { bbl.th * }
-           if$
-         }
-       if$
-     }
-   if$
+{ duplicate$ #-2 #1 substring$ "1" =
+      { bbl.th * }
+      { duplicate$ #-1 #1 substring$ "1" =
+          { bbl.st * }
+          { duplicate$ #-1 #1 substring$ "2" =
+              { bbl.nd * }
+              { duplicate$ #-1 #1 substring$ "3" =
+                  { bbl.rd * }
+                  { bbl.th * }
+                if$
+              }
+            if$
+          }
+        if$
+      }
+    if$
 }
 
 % If the string on the top of the stack begins with a number,

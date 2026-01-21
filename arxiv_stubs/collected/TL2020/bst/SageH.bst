@@ -930,7 +930,7 @@ FUNCTION {article}
   if$
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -968,7 +968,7 @@ FUNCTION {book}
   format.isbn output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -986,7 +986,7 @@ FUNCTION {booklet}
   format.isbn output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1031,7 +1031,7 @@ FUNCTION {inbook}
   format.pages "pages" output.check
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1061,7 +1061,7 @@ FUNCTION {incollection}
   format.pages "pages" output.check
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1092,7 +1092,7 @@ FUNCTION {inproceedings}
   format.pages "pages" output.check
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1111,7 +1111,7 @@ FUNCTION {manual}
   format.edition output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1131,7 +1131,7 @@ FUNCTION {mastersthesis}
   address "address" bibinfo.check output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1148,7 +1148,7 @@ FUNCTION {misc}
   howpublished "howpublished" bibinfo.check output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1167,7 +1167,7 @@ FUNCTION {phdthesis}
   address "address" bibinfo.check output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1192,7 +1192,7 @@ FUNCTION {proceedings}
   format.isbn output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1212,7 +1212,7 @@ FUNCTION {techreport}
   address "address" bibinfo.check output
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note output
   fin.entry
@@ -1227,7 +1227,7 @@ FUNCTION {unpublished}
   format.title "title" output.check
   format.doi output
   new.block
-  %% format.url output
+  format.url output
   new.block
   format.note "note" output.check
   fin.entry
@@ -1519,16 +1519,16 @@ FUNCTION {begin.bib}
   write$ newline$
   "\providecommand{\natexlab}[1]{#1}"
   write$ newline$
-  %%"\providecommand{\url}[1]{\texttt{#1}}"
-  %%write$ newline$
-  %%"\providecommand{\urlprefix}{URL }"
-  %% write$ newline$
-  %% "\expandafter\ifx\csname urlstyle\endcsname\relax"
-  %%write$ newline$
-  %%"  \providecommand{\doi}[1]{DOI:\discretionary{}{}{}#1}\else"
-  %%write$ newline$
-  %%"  \providecommand{\doi}{DOI:\discretionary{}{}{}\begingroup \urlstyle{rm}\Url}\fi"
-  %%write$ newline$
+  "\providecommand{\url}[1]{\texttt{#1}}"
+  write$ newline$
+  "\providecommand{\urlprefix}{URL }"
+  write$ newline$
+  "\expandafter\ifx\csname urlstyle\endcsname\relax"
+  write$ newline$
+  "  \providecommand{\doi}[1]{DOI:\discretionary{}{}{}#1}\else"
+  write$ newline$
+  "  \providecommand{\doi}{DOI:\discretionary{}{}{}\begingroup \urlstyle{rm}\Url}\fi"
+  write$ newline$
 }
 EXECUTE {begin.bib}
 EXECUTE {init.state.consts}

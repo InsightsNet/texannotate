@@ -21,17 +21,9 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
 
-try:
-    import fitz  # PyMuPDF
-    HAS_PYMUPDF = True
-except ImportError:
-    HAS_PYMUPDF = False
+import fitz  # PyMuPDF
+import pdfplumber
 
-try:
-    import pdfplumber
-    HAS_PDFPLUMBER = True
-except ImportError:
-    HAS_PDFPLUMBER = False
 
 
 @dataclass
@@ -178,10 +170,6 @@ def extract_mcid_bboxes(pdf_path: Path) -> Dict[int, Dict[int, List[float]]]:
     Returns:
         Dict of {mcid: {page: [x0, y0, x1, y1]}}
     """
-    if not HAS_PDFPLUMBER:
-        print("Warning: pdfplumber not available for MCID extraction", file=sys.stderr)
-        return {}
-    
     bboxes = {}
     
     try:
@@ -242,6 +230,53 @@ def elements_to_json(elements: List[TaggedElement], summary: Dict) -> dict:
     }
 
 
+
+def reconcile_element_pages(elements: List[TaggedElement], pdf_path: Path, verbose: bool = False):
+    """Reconcile element page numbers with actual MCID locations from PDF.
+    
+    Fixes "Phantom Figures" where floats appear on Page N in source/Aux 
+    but render on Page N+1 in PDF (due to asynchronous floating).
+    """
+    if not pdf_path.exists():
+        return
+
+    print(f"Extracting MCID bboxes from {pdf_path}...")
+    bboxes = extract_mcid_bboxes(pdf_path)
+    if verbose and bboxes:
+        print(f"Extracted {len(bboxes)} MCID bboxes from PDF")
+    
+    reconciled_count = 0
+    for elem in elements:
+        real_pages = set()
+        
+        # Check each MCID in the element
+        for m_entry in getattr(elem, "mcids", []):
+            real_page = None
+            # bboxes is {mcid: {page: bbox}}
+            if m_entry.mcid in bboxes:
+                # Find which page holds this MCID
+                item_pages = list(bboxes[m_entry.mcid].keys())
+                if item_pages:
+                    # Use the first found page (MCID should be unique)
+                    real_page = item_pages[0]
+            
+            if real_page is not None and real_page != m_entry.page:
+                if verbose:
+                    print(f"  [Reconcile] MCID {m_entry.mcid} moved from Pg {m_entry.page} -> Pg {real_page}")
+                m_entry.page = real_page
+                reconciled_count += 1
+            
+            real_pages.add(m_entry.page)
+        
+        # Update element start/end pages if we found valid pages
+        if real_pages:
+            elem.start_page = min(real_pages)
+            elem.end_page = max(real_pages)
+    
+    if reconciled_count > 0:
+        print(f"✓ Reconciled {reconciled_count} MCID page mismatches (Float/Async correction)")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Parse LPSB MCID data from aux file"
@@ -279,13 +314,11 @@ def main():
             print(f"      Pages: {elem.start_page} to {elem.end_page}")
             print(f"      MCIDs: {[m.mcid for m in elem.mcids]}")
     
+    
     # Extract bboxes from PDF if provided
     if args.pdf:
         pdf_path = Path(args.pdf)
-        if pdf_path.exists():
-            bboxes = extract_mcid_bboxes(pdf_path)
-            if args.verbose and bboxes:
-                print(f"\nExtracted {len(bboxes)} MCID bboxes from PDF")
+        reconcile_element_pages(elements, pdf_path, verbose=args.verbose)
     
     # Generate output JSON
     output_data = elements_to_json(elements, summary)
