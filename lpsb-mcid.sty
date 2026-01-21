@@ -3042,6 +3042,79 @@
   \@ifundefined{caption@subtypehook}{}{%
     \g@addto@macro\caption@subtypehook{\lpsb@patch@subfigure@caption}%
   }%
+
+  % Fallback: Hook internal \@caption as well.
+  %
+  % Rationale:
+  % - Some float packages (notably algorithm/float-based environments) bypass our
+  %   user-level \caption wrapper by calling \@caption directly or rebinding
+  %   \caption locally.
+  % - \caption normally expands to \@caption, so we must avoid double-tagging.
+  %   The recursion guard (@lpsb@in@caption) handles this: when \caption wrapper
+  %   is active, \@caption sees the flag and passes through.
+  \@ifundefined{@caption}{}{%
+    \let\lpsb@orig@@caption\@caption
+    \long\def\@caption#1[#2]#3{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@in@caption
+            \lpsb@orig@@caption{#1}[#2]{#3}%
+          \else
+            \global\@lpsb@lock@block@tagstrue
+            \lpsbTagAtom{Caption}{%
+              \global\@lpsb@in@captiontrue
+              \lpsb@orig@@caption{#1}[#2]{#3}%
+              \global\@lpsb@in@captionfalse
+            }%
+            \global\@lpsb@lock@block@tagsfalse
+          \fi
+        \else
+          \lpsb@orig@@caption{#1}[#2]{#3}%
+        \fi
+      \else
+        \lpsb@orig@@caption{#1}[#2]{#3}%
+      \fi
+    }%
+  }%
+
+  % float.sty / newfloat support: tag \@floatcapt at UNBOX time, not at CAPTURE time.
+  %
+  % float.sty stores the formatted caption into the \@floatcapt box and later
+  % unboxes it inside \float@makebox. Tagging at capture time can subtly change
+  % layout (e.g. algorithm captions becoming centered). To keep TeX output
+  % identical, we tag the unboxed caption content instead.
+  \@ifundefined{float@makebox}{}{%
+    \let\lpsb@orig@float@makebox\float@makebox
+    % Re-implement float@makebox with only one change: wrap \unvbox\@floatcapt
+    % in a Caption atom tag.
+    \renewcommand\float@makebox[1]{%
+      \vbox{\hsize=#1 \@parboxrestore
+        \@fs@pre\@fs@iftopcapt
+          \ifvoid\@floatcapt\else
+            \global\@lpsb@lock@block@tagstrue
+            \lpsbTagAtom{Caption}{%
+              \global\@lpsb@in@captiontrue
+              \unvbox\@floatcapt
+              \global\@lpsb@in@captionfalse
+            }%
+            \global\@lpsb@lock@block@tagsfalse
+            \par\@fs@mid
+          \fi
+          \unvbox\@currbox
+        \else\unvbox\@currbox
+          \ifvoid\@floatcapt\else
+            \par\@fs@mid
+            \global\@lpsb@lock@block@tagstrue
+            \lpsbTagAtom{Caption}{%
+              \global\@lpsb@in@captiontrue
+              \unvbox\@floatcapt
+              \global\@lpsb@in@captionfalse
+            }%
+            \global\@lpsb@lock@block@tagsfalse
+          \fi
+        \fi\par\@fs@post\vskip\z@}%
+    }%
+  }%
 }
 
 % --- Footnote → Note ---
