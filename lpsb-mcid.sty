@@ -317,10 +317,10 @@
         % We're inside a float - use P for any subsequent content
         \xdef\lpsb@actual@reopen@type{P}%
       \else
-        % Check if we're inside a section heading that spans pages
+        % Headings should not span pages; always reopen as P.
         \if@lpsb@in@section
-          % Section heading crosses page - reopen with heading tag, not P
-          \xdef\lpsb@actual@reopen@type{\lpsb@pending@heading@level}%
+          \xdef\lpsb@actual@reopen@type{P}%
+          \global\@lpsb@in@sectionfalse
         \else
           \xdef\lpsb@actual@reopen@type{\lpsb@reopen@type}%
         \fi
@@ -1193,32 +1193,78 @@
 
 % Flag to suppress inline tags (Strong, Em, etc.) inside certain environments
 \newif\if@lpsb@suppress@inline \@lpsb@suppress@inlinefalse
+\newif\if@lpsb@in@algorithm \@lpsb@in@algorithmfalse
+
+\newif\if@lpsb@algorithm@hooked \@lpsb@algorithm@hookedfalse
 
 % algorithm2e package
 \AtBeginDocument{%
   \@ifpackageloaded{algorithm2e}{%
-    \BeforeBeginEnvironment{algorithm}{%
-      \lpsbTagBegin{Algorithm}%
-      \global\@lpsb@suppress@inlinetrue
-    }%
-    \AfterEndEnvironment{algorithm}{%
-      \global\@lpsb@suppress@inlinefalse
-      \lpsbTagEnd
-    }%
+    \if@lpsb@algorithm@hooked\else
+      \global\@lpsb@algorithm@hookedtrue
+      \BeforeBeginEnvironment{algorithm}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \AfterEndEnvironment{algorithm}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+      }%
+    \fi
   }{}%
 }
 
-% algorithmicx package
+% algorithm package (algorithm + algorithmic)
 \AtBeginDocument{%
-  \@ifpackageloaded{algorithmicx}{%
+  \@ifpackageloaded{algorithm}{%
+    \if@lpsb@algorithm@hooked\else
+      \global\@lpsb@algorithm@hookedtrue
+      \BeforeBeginEnvironment{algorithm}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \AfterEndEnvironment{algorithm}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+      }%
+    \fi
+  }{}%
+  \@ifpackageloaded{algorithmic}{%
     \BeforeBeginEnvironment{algorithmic}{%
-      \lpsbTagBegin{Algorithm}%
-      \global\@lpsb@suppress@inlinetrue
+      \global\@lpsb@in@algorithmtrue
     }%
     \AfterEndEnvironment{algorithmic}{%
-      \global\@lpsb@suppress@inlinefalse
-      \lpsbTagEnd
+      % Close any dangling LI from algorithmic list.
+      \if@lpsb@active
+        \def\lpsb@tmp@li{LI}%
+        \ifx\lpsb@current@tag@type\lpsb@tmp@li
+          \lpsbTagEndForce
+          \global\@lpsb@P@pending@after@listtrue
+        \fi
+      \fi
+      \global\@lpsb@in@algorithmfalse
     }%
+  }{}%
+  \@ifpackageloaded{algorithmicx}{%
+    \BeforeBeginEnvironment{algorithmic}{%
+      \global\@lpsb@in@algorithmtrue
+    }%
+    \AfterEndEnvironment{algorithmic}{%
+      % Close any dangling LI from algorithmic list.
+      \if@lpsb@active
+        \def\lpsb@tmp@li{LI}%
+        \ifx\lpsb@current@tag@type\lpsb@tmp@li
+          \lpsbTagEndForce
+          \global\@lpsb@P@pending@after@listtrue
+        \fi
+      \fi
+      \global\@lpsb@in@algorithmfalse
+    }%
+  }{}%
   }{}%
 }
 
@@ -1456,6 +1502,30 @@
   \fi % @typeset@protect
 }
 
+% Force-begin a tag even if \protect is not in typeset mode.
+% Use sparingly for cases like floats where we need a P to resume.
+\newcommand{\lpsbTagBeginForce}[1]{%
+  \if@lpsb@active
+    % If already in a tag, save current state to stack
+    \if@lpsb@in@tag
+      \lpsb@push@tag{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
+      \lpsb@pdfliteralcmd{ EMC }%
+    \fi
+    % Start new element
+    \stepcounter{lpsb@logicalElemID}%
+    \stepcounter{lpsb@globalMCID}%
+    \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
+    \xdef\lpsb@current@tag@type{#1}%
+    \global\@lpsb@in@tagtrue
+    % Insert BDC into content stream
+    \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
+    % Record to aux file
+    \immediate\write\@auxout{%
+      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+    }%
+  \fi
+}
+
 % End current tagged element
 \newcommand{\lpsbTagEnd}{%
   % CRITICAL: Skip in non-typesetting contexts (moving arguments)
@@ -1479,6 +1549,25 @@
           % NOT reopen the heading - start P instead.
           \lpsb@maybe@close@heading@or@reopen
         \fi
+      \fi
+    \fi
+  \fi
+}
+
+% Force-end a tag even if \protect is not in typeset mode.
+% Use sparingly for section headings that must not leak into body text.
+\newcommand{\lpsbTagEndForce}{%
+  \if@lpsb@active
+    \if@lpsb@in@tag
+      \lpsb@pdfliteralcmd{ EMC }%
+      \immediate\write\@auxout{%
+        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+      }%
+      \ifx\lpsb@tag@stack\empty
+        \global\@lpsb@in@tagfalse
+      \else
+        \lpsb@pop@tag
+        \lpsb@maybe@close@heading@or@reopen
       \fi
     \fi
   \fi
@@ -1509,23 +1598,15 @@
 \def\lpsb@check@heading@prefix#1#2\@nil{%
   \def\lpsb@tmp@first{#1}%
   \ifx\lpsb@tmp@first\lpsb@const@H
-    % It's a heading tag - check if heading text has been output
-    % If @lpsb@heading@deferred is TRUE, heading is still pending - keep H1 open
-    % If @lpsb@heading@deferred is FALSE, heading was output - close H1
-    \if@lpsb@heading@deferred
-      % Heading text is still pending output - keep H1 open
-      % This ensures the heading is captured by H1 even across page breaks
-      \lpsb@reopen@parent@tag
-    \else
-      % Heading text was output - close H1 and start P instead
-      \immediate\write\@auxout{%
-        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
-      }%
-      \global\@lpsb@in@sectionfalse
-      % Start new P for content after the block element
-      \lpsbTagBegin{P}%
-      \global\@lpsb@first@paratrue
-    \fi
+    % Headings should not continue as parents for following text.
+    % Always close H* and start a fresh P.
+    \immediate\write\@auxout{%
+      \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+    }%
+    \global\@lpsb@in@sectionfalse
+    % Start new P for content after the block element
+    \lpsbTagBegin{P}%
+    \global\@lpsb@first@paratrue
   \else
     % Not a heading - reopen parent normally
     \lpsb@reopen@parent@tag
@@ -1731,31 +1812,8 @@
   \fi
 }
 
-% NOTE: We NO LONGER disable atom tagging for subfigure.sty.
-% With the \@typeset@protect guard at the top of \lpsbTagAtom,
-% all internal \def and \write operations are protected from
-% running during argument expansion. The flag is kept only for
-% informational/debugging purposes.
-
-% Flag to track if subfigure was detected (informational only)
-\newif\if@lpsb@subfigure@detected
-
-% Check for subfigure - informational only, no longer disables tagging
-\AtEndOfPackage{%
-  \@ifpackageloaded{subfigure}{%
-    \typeout{LPSB-MCID Info: Legacy subfigure.sty detected - using protected tagging}%
-    \@lpsb@subfigure@detectedtrue
-  }{}%
-}
-
-\AtBeginDocument{%
-  \if@lpsb@subfigure@detected\else
-    \@ifpackageloaded{subfigure}{%
-      \typeout{LPSB-MCID Info: Legacy subfigure.sty detected - using protected tagging}%
-      \@lpsb@subfigure@detectedtrue
-    }{}%
-  \fi
-}
+% NOTE: Legacy subfigure.sty compatibility is handled by the \@typeset@protect
+% guard at the top of \lpsbTagAtom - no special detection or handling needed.
 
 % Reference atom that also records citation keys (for downstream parent/child structure).
 % #1 = cite key string (verbatim-ish), #2 = content (expands to printed citation)
@@ -1935,6 +1993,7 @@
 % Phase 2: List Transition Protection  
 % Prevents empty P tags after itemize/enumerate/description
 \newif\if@lpsb@P@pending@after@list \@lpsb@P@pending@after@listfalse
+\newif\if@lpsb@P@pending@after@float \@lpsb@P@pending@after@floatfalse
 %
 % Phase 3: Layout Environment Suppression
 % Prevents spurious P tags inside center/minipage layout environments
@@ -1978,16 +2037,14 @@
       % Now check if heading is deferred (display-style)
       % \@nobreak is true for display headings, false for run-in
       \if@nobreak
-        % Display heading - title will be output by everypar on next paragraph
-        % Keep H1 open so the deferred title text is tagged correctly
-        \global\@lpsb@heading@deferredtrue
+        % Display heading - title is already typeset; do NOT defer heading tag.
+        \global\@lpsb@heading@deferredfalse
       \else
-        % Run-in heading - heading text already output, close H1 now
+        % Run-in heading - title is still output via \everypar (\@svsechd).
+        % Do NOT close the heading tag here; let our everypar hook close the H*
+        % immediately after the run-in title is actually typeset, then start P.
         \if@lpsb@in@section
-          \lpsbTagEnd
-          \lpsbTagBegin{P}%
-          \global\@lpsb@in@sectionfalse
-          \global\@lpsb@first@paratrue
+          \global\@lpsb@heading@deferredtrue
         \fi
       \fi
     }%
@@ -2000,9 +2057,145 @@
     \def\@sect#1#2#3#4#5#6[#7]#8{%
       % Call original \@sect
       \lpsb@orig@@sect{#1}{#2}{#3}{#4}{#5}{#6}[#7]{#8}%
-      % After \@sect returns, if heading was deferred, the H1 is still open
-      % and will be closed when everypar outputs the heading
+      % For display headings (after-skip > 0), close H* here to avoid leaking.
+      \if@lpsb@in@section
+        \ifdim\@tempskipa>\z@
+          \lpsb@set@current@heading@flag
+          \if@lpsb@current@is@heading
+            \lpsbTagEndForce
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+            \global\@lpsb@heading@closedin@secttrue
+          \fi
+        \fi
+      \fi
     }%
+  }%
+  % Hook \@sict (icml-style numbered sections)
+  \@ifundefined{@sict}{}{%
+    \def\@sict#1#2#3#4#5#6[#7]#8{%
+      \lpsb@set@heading@level@from@num{#2}%
+      \ifnum #2>\c@secnumdepth
+        \def\@svsec{}%
+      \else
+        \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 0.4em }%
+      \fi
+      \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@
+        \begingroup #6\relax
+          \global\@lpsb@in@sectiontrue
+          \global\@lpsb@runin@heading@guardtrue
+          \lpsbTagBegin{\lpsb@tmp@heading@level}%
+          \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}%
+          \lpsbTagEndForce
+          \global\@lpsb@runin@heading@guardfalse
+          \global\@lpsb@in@sectionfalse
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}%
+      \else
+        \def\@svsechd{#6\hskip #3\relax\global\@lpsb@in@sectiontrue\global\@lpsb@runin@heading@guardtrue\lpsbTagBegin{\lpsb@tmp@heading@level}\@svsec #8\lpsbTagEndForce\global\@lpsb@runin@heading@guardfalse\global\@lpsb@in@sectionfalse\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}%
+      \fi
+      \@xsect{#5}%
+    }%
+  }%
+
+  % No-op: older attempt to wrap \@svsechd was unreliable because LaTeX redefines
+  % it in multiple places. We handle run-in headings by hooking \@xsect instead.
+  \def\lpsb@wrap@svsechd{}%
+
+  % Run-in heading capture (e.g. \paragraph): the title is output via \everypar.
+  \newif\if@lpsb@runin@heading@pending \@lpsb@runin@heading@pendingfalse
+  \newif\if@lpsb@runin@heading@armed \@lpsb@runin@heading@armedfalse
+  \newif\if@lpsb@runin@heading@guard \@lpsb@runin@heading@guardfalse
+  \newif\if@lpsb@heading@closedin@sect \@lpsb@heading@closedin@sectfalse
+  \newif\if@lpsb@use@sict@heading \@lpsb@use@sict@headingfalse
+  \@ifundefined{@sict}{}{\global\@lpsb@use@sict@headingtrue}
+  \gdef\lpsb@runin@heading@level{H4}%
+  \newif\if@lpsb@current@is@heading \@lpsb@current@is@headingfalse
+  \def\lpsb@set@current@heading@flag{%
+    \global\@lpsb@current@is@headingfalse
+    \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
+    \expandafter\lpsb@check@heading@prefix@flag\lpsb@tmp@chk@type\@nil
+  }%
+  \def\lpsb@check@heading@prefix@flag#1#2\@nil{%
+    \def\lpsb@tmp@first{#1}%
+    \ifx\lpsb@tmp@first\lpsb@const@H
+      \global\@lpsb@current@is@headingtrue
+    \fi
+  }%
+  \def\lpsb@set@heading@level@from@num#1{%
+    \ifnum#1=1\gdef\lpsb@tmp@heading@level{\lpsb@H@section}\else
+    \ifnum#1=2\gdef\lpsb@tmp@heading@level{\lpsb@H@subsection}\else
+    \ifnum#1=3\gdef\lpsb@tmp@heading@level{\lpsb@H@subsubsection}\else
+      \gdef\lpsb@tmp@heading@level{\lpsb@H@paragraph}%
+    \fi\fi\fi
+  }%
+
+  % Hook \@xsect to handle run-in headings (\paragraph etc.).
+  % For afterskip < 0, LaTeX outputs the title via \everypar (\@svsechd).
+  % We patch \@xsect itself (kernel macro) so we can bracket \@svsechd precisely:
+  % - before \@svsechd: start H4 (pending)
+  % - after \hskip -\@tempskipa: end H4 and start P so the body continues in P
+  \@ifundefined{@xsect}{}{%
+    \let\lpsb@orig@@xsect\@xsect
+    \def\@xsect#1{%
+      \@tempskipa #1\relax
+      \ifdim \@tempskipa>\z@
+        \par \nobreak
+        \vskip \@tempskipa
+        \@afterheading
+      \else
+        \@nobreakfalse
+        \global\@noskipsectrue
+        \everypar{%
+          \if@noskipsec
+            \global\@noskipsecfalse
+            {\setbox\z@\lastbox}%
+            \clubpenalty\@M
+            % LPSB: start run-in heading tag right before \@svsechd outputs the title.
+            \if@lpsb@active
+              \if@lpsb@runin@heading@pending
+                \lpsbTagEnd
+                \lpsbTagBegin{\lpsb@runin@heading@level}%
+                \global\@lpsb@runin@heading@pendingfalse
+                \global\@lpsb@runin@heading@armedtrue
+                \global\@lpsb@runin@heading@guardtrue
+              \else
+                \lpsb@set@current@heading@flag
+                \if@lpsb@in@section\if@lpsb@current@is@heading
+                  \global\@lpsb@runin@heading@armedtrue
+                  \global\@lpsb@runin@heading@guardtrue
+                \fi\fi
+              \fi
+            \fi
+            \begingroup \@svsechd \endgroup
+            \unskip
+            \@tempskipa #1\relax
+            \hskip -\@tempskipa
+            % LPSB: immediately switch back to P for the paragraph body.
+            \if@lpsb@active\if@lpsb@runin@heading@armed
+              \lpsbTagEnd
+              \lpsbTagBegin{P}%
+              \global\@lpsb@first@paratrue
+              \global\@lpsb@heading@deferredfalse
+              \global\@lpsb@in@sectionfalse
+              \global\@lpsb@runin@heading@armedfalse
+              \global\@lpsb@runin@heading@guardfalse
+            \fi\fi
+          \else
+            \clubpenalty \@clubpenalty
+            \everypar{}%
+          \fi}%
+      \fi
+      \ignorespaces}%
   }%
   %
   % Dynamic heading levels based on document class:
@@ -2079,6 +2272,7 @@
       \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
       \lpsb@orig@chapter[#1]{#2}%
       \lpsbTagEnd
+      \global\@lpsb@heading@deferredfalse
       \lpsbTagBegin{P}%
       \global\@lpsb@in@sectionfalse
     }%
@@ -2092,130 +2286,78 @@
       \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
       \lpsb@orig@chapter{#1}%
       \lpsbTagEnd
+      \global\@lpsb@heading@deferredfalse
       \lpsbTagBegin{P}%
       \global\@lpsb@in@sectionfalse
     }%
   }%
   %
-  % Hook \section / \subsection.
+  % Hook \section / \subsection / \subsubsection.
   %
   % CRITICAL: Preserve the star form (\section*{...}). If we don't, LaTeX will
   % mis-parse \section*{References} as \section{*} and you'll literally typeset
   % "6 *" (section 6 with title '*'), with "References" falling into the next P.
   %
+  % --- GENERIC SECTION HANDLER (TL2016 compatible) ---
+  % Consolidates the common logic shared by \section, \subsection, \subsubsection.
+  % #1 = Heading level constant (e.g., \lpsb@H@section)
+  % #2 = Original command (e.g., \lpsb@orig@section)
+  % #3 = Arguments to pass (pre-packaged as [opt]{mand} or {mand})
+  \long\def\lpsb@generic@section@handler#1#2#3{%
+    \if@lpsb@use@sict@heading
+      #2#3%
+    \else
+      \global\@lpsb@runin@heading@pendingfalse
+      \global\@lpsb@runin@heading@armedfalse
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{#1}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{#1}%
+      #2#3%
+      % Defer P tag creation - everypar will handle it when real content appears
+      % This prevents empty P tags when floats immediately follow \section{...}
+      \if@lpsb@heading@closedin@sect
+        \global\@lpsb@heading@closedin@sectfalse
+      \else
+        \if@lpsb@runin@heading@armed\else
+          \if@lpsb@runin@heading@pending\else
+            \lpsbTagEndForce
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+          \fi
+        \fi
+      \fi
+    \fi
+  }%
+  %
   \@ifundefined{ACM@format}{\@ifundefined{section}{}{%
     \let\lpsb@orig@section\section
     \def\section{\@ifstar\lpsb@section@star\lpsb@section@nostar}%
-    % Use \long\def for all sectioning hooks to handle titles with \par
-    \long\def\lpsb@section@star#1{%
-      % Delegate to the original starred section; our \@ssect hook handles tagging.
-      \lpsb@orig@section*{#1}%
-    }%
-    \def\lpsb@section@nostar{%
-      \@ifnextchar[\lpsb@section@opt\lpsb@section@noopt
-    }%
-    \long\def\lpsb@section@opt[#1]#2{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@section}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
-      \lpsb@orig@section[#1]{#2}%
-      % Defer P tag creation - everypar will handle it when real content appears
-      % This prevents empty P tags when floats immediately follow \section{...}
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
-    \long\def\lpsb@section@noopt#1{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@section}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
-      \lpsb@orig@section{#1}%
-      % Defer P tag creation - everypar will handle it when real content appears
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
+    \long\def\lpsb@section@star#1{\lpsb@orig@section*{#1}}%
+    \def\lpsb@section@nostar{\@ifnextchar[\lpsb@section@opt\lpsb@section@noopt}%
+    \long\def\lpsb@section@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@section}{\lpsb@orig@section}{[#1]{#2}}}%
+    \long\def\lpsb@section@noopt#1{\lpsb@generic@section@handler{\lpsb@H@section}{\lpsb@orig@section}{{#1}}}%
   }}{}%
   \@ifundefined{ACM@format}{\@ifundefined{subsection}{}{%
     \let\lpsb@orig@subsec\subsection
     \def\subsection{\@ifstar\lpsb@subsection@star\lpsb@subsection@nostar}%
-    \long\def\lpsb@subsection@star#1{%
-      \lpsb@orig@subsec*{#1}%
-    }%
-    \def\lpsb@subsection@nostar{%
-      \@ifnextchar[\lpsb@subsection@opt\lpsb@subsection@noopt
-    }%
-    \long\def\lpsb@subsection@opt[#1]#2{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@subsection}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
-      \lpsb@orig@subsec[#1]{#2}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
-    \long\def\lpsb@subsection@noopt#1{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@subsection}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
-      \lpsb@orig@subsec{#1}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
+    \long\def\lpsb@subsection@star#1{\lpsb@orig@subsec*{#1}}%
+    \def\lpsb@subsection@nostar{\@ifnextchar[\lpsb@subsection@opt\lpsb@subsection@noopt}%
+    \long\def\lpsb@subsection@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@subsection}{\lpsb@orig@subsec}{[#1]{#2}}}%
+    \long\def\lpsb@subsection@noopt#1{\lpsb@generic@section@handler{\lpsb@H@subsection}{\lpsb@orig@subsec}{{#1}}}%
   }}{}%
   % Hook \subsubsection
   \@ifundefined{ACM@format}{\@ifundefined{subsubsection}{}{%
     \let\lpsb@orig@subsubsec\subsubsection
     \def\subsubsection{\@ifstar\lpsb@subsubsection@star\lpsb@subsubsection@nostar}%
-    \long\def\lpsb@subsubsection@star#1{%
-      \lpsb@orig@subsubsec*{#1}%
-    }%
-    \def\lpsb@subsubsection@nostar{%
-      \@ifnextchar[\lpsb@subsubsection@opt\lpsb@subsubsection@noopt
-    }%
-    \long\def\lpsb@subsubsection@opt[#1]#2{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@subsubsection}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
-      \lpsb@orig@subsubsec[#1]{#2}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
-    \long\def\lpsb@subsubsection@noopt#1{%
-      \stepcounter{lpsb@sectionID}%
-      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-      \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@subsubsection}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
-      \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
-      \lpsb@orig@subsubsec{#1}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
-    }%
+    \long\def\lpsb@subsubsection@star#1{\lpsb@orig@subsubsec*{#1}}%
+    \def\lpsb@subsubsection@nostar{\@ifnextchar[\lpsb@subsubsection@opt\lpsb@subsubsection@noopt}%
+    \long\def\lpsb@subsubsection@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@subsubsection}{\lpsb@orig@subsubsec}{[#1]{#2}}}%
+    \long\def\lpsb@subsubsection@noopt#1{\lpsb@generic@section@handler{\lpsb@H@subsubsection}{\lpsb@orig@subsubsec}{{#1}}}%
   }}{}%
   % Hook \paragraph
   \@ifundefined{ACM@format}{\@ifundefined{paragraph}{}{%
@@ -2231,33 +2373,30 @@
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@paragraph}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
+      % Mark a pending run-in heading; \@xsect/\everypar will do the actual tagging.
+      \global\@lpsb@runin@heading@pendingtrue
+      \global\@lpsb@runin@heading@guardtrue
+      \gdef\lpsb@runin@heading@level{\lpsb@H@paragraph}%
       \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
       \lpsb@orig@paragraph[#1]{#2}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
     }%
     \long\def\lpsb@paragraph@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       \lpsbTagEnd
-      \lpsbTagBegin{\lpsb@H@paragraph}%
-      \global\@lpsb@in@sectiontrue
-      \global\@lpsb@heading@deferredfalse
+      \global\@lpsb@runin@heading@pendingtrue
+      \global\@lpsb@runin@heading@guardtrue
+      \gdef\lpsb@runin@heading@level{\lpsb@H@paragraph}%
       \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
       \lpsb@orig@paragraph{#1}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
     }%
   }}{}%
   % Hook \@ssect for starred sections (\section*, \subsection*)
   \@ifundefined{@ssect}{}{%
     \let\lpsb@orig@@ssect\@ssect
     \def\@ssect#1#2#3#4#5{%
+      \global\@lpsb@runin@heading@pendingfalse
+      \global\@lpsb@runin@heading@armedfalse
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
       %
@@ -2273,9 +2412,18 @@
         \gdef\lpsb@pending@heading@level{H2}%
       \fi
       \lpsb@orig@@ssect{#1}{#2}{#3}{#4}{#5}%
-      \lpsbTagEnd
-      \global\@lpsb@P@pending@after@sectiontrue
-      \global\@lpsb@in@sectionfalse
+      \if@lpsb@heading@closedin@sect
+        \global\@lpsb@heading@closedin@sectfalse
+      \else
+        \if@lpsb@runin@heading@armed\else
+          \if@lpsb@runin@heading@pending\else
+            \lpsbTagEndForce
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+          \fi
+        \fi
+      \fi
     }%
   }%
   \fi % @lpsb@skip@sectionhooks
@@ -2326,7 +2474,19 @@
 % Implements the "deferred decision" pattern for robust tagging
 \newcommand{\lpsb@para@hook@inner}{%
   % Filter: skip section formatting (to prevent H1/H2 from being interrupted)
-  \if@lpsb@in@section\else
+  \if@lpsb@in@section
+    \lpsb@set@current@heading@flag
+    \if@lpsb@current@is@heading
+      % Still inside a heading - do nothing here.
+    \else
+      \lpsb@para@hook@inner@body
+    \fi
+  \else
+    \lpsb@para@hook@inner@body
+  \fi
+}
+
+\newcommand{\lpsb@para@hook@inner@body}{%
   %
   % [CRITICAL] Skip paragraph cycling inside abstract to keep it as one logical element
   % This prevents cross-column abstract content from being split into multiple P elements
@@ -2366,6 +2526,14 @@
       \global\@lpsb@first@parafalse
     \fi
   \else
+  % [Phase 2] Deferred P after float
+  \if@lpsb@P@pending@after@float
+    \global\@lpsb@P@pending@after@floatfalse
+    \if@lpsb@in@tag\else
+      \lpsbTagBegin{P}%
+      \global\@lpsb@first@parafalse
+    \fi
+  \else
     % Normal paragraph logic (no pending flags set)
     \if@lpsb@in@tag
       % Already in a tag
@@ -2384,12 +2552,11 @@
       \lpsbTagBegin{P}%
       \global\@lpsb@first@parafalse
     \fi
-  \fi\fi\fi % end pending flag checks
+  \fi\fi\fi\fi % end pending flag checks
   %
   \fi % @lpsb@lock@block@tags
   \fi % @lpsb@suppress@pending@trigger
   \fi % @lpsb@in@abstract
-  \fi % @lpsb@in@section
 }
 
 % Re-entrancy guard flag for paragraph hook
@@ -2442,20 +2609,33 @@
       \fi
     \fi
     %%
-    %% --- 2. Handle deferred heading output ---
-    \if@lpsb@heading@deferred
-      \if@nobreak
-        % Still in no-break zone after heading - do nothing
-      \else
-        % @nobreak is false - heading text was output, close H and start P
+    %% --- 2. Auto-close headings before paragraph body ---
+    \if@lpsb@in@tag
+      \if@lpsb@runin@heading@guard\else
         \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
         \expandafter\lpsb@check@if@heading@type\lpsb@tmp@chk@type\@nil
       \fi
     \fi
     %%
-    %% --- 3. Normal paragraph detection ---
+    %% --- 3. Handle deferred heading output ---
+    \if@lpsb@heading@deferred
+    % Display headings: title already typeset; close H and start P here.
+    % Run-in headings are handled in \@xsect (pending/armed flags).
+    \if@lpsb@runin@heading@pending\else
+      \if@lpsb@runin@heading@armed\else
+        \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
+        \expandafter\lpsb@check@if@heading@type\lpsb@tmp@chk@type\@nil
+      \fi
+    \fi
+    \fi
+    %%
+    %% --- 4. Normal paragraph detection ---
     \ifnum\@listdepth=0
-      \if@minipage\else
+      \if@minipage
+        \if@lpsb@in@float\else
+          \lpsb@para@hook@inner
+        \fi
+      \else
         \lpsb@para@hook@inner
       \fi
     \fi
@@ -2765,6 +2945,8 @@
         \lpsbTagEndFloat  % EMC inside float box, don't restore parent
         % Set first_para flag to prevent everypar from cycling P immediately
         \global\@lpsb@first@paratrue
+        % Defer P start until the next real paragraph
+        \global\@lpsb@P@pending@after@floattrue
       \fi
       \global\@lpsb@in@floatfalse
       \lpsb@orig@enddblfloat
@@ -2801,72 +2983,50 @@
 % SMART LOGIC (Pass 2 with pass-one data):
 % - If float lands on SAME page: close P (conservative, correct)
 % - If float lands on DIFFERENT page: DON'T close P (the P content is not interrupted)
-\AtBeginEnvironment{figure}{%
-  % Clear ALL pending P flags - floats don't need empty P before them
-  \global\@lpsb@P@pending@after@sectionfalse
-  \global\@lpsb@P@pending@after@mathfalse
-  \global\@lpsb@P@pending@after@listfalse
-  \if@lpsb@active\if@lpsb@in@tag%
-    \lpsb@check@float@page  % Check where this float will land
-    \if@lpsb@float@same@page
-      % Float on same page - close P to avoid incorrect nesting
-      \lpsb@pdfliteralcmd{ EMC }%
-      \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
-      \gdef\lpsb@tag@stack{}%
-      \global\@lpsb@in@tagfalse%
-    \fi
-  \fi\fi%
+%
+% --- UNIFIED FLOAT HOOKS (TL2016 compatible) ---
+% Helper macro for float begin hooks
+\newcommand{\lpsb@register@float@begin@hook}[1]{%
+  \AtBeginEnvironment{#1}{%
+    % Clear ALL pending P flags - floats don't need empty P before them
+    \global\@lpsb@P@pending@after@sectionfalse
+    \global\@lpsb@P@pending@after@mathfalse
+    \global\@lpsb@P@pending@after@listfalse
+    \if@lpsb@active\if@lpsb@in@tag%
+      \lpsb@check@float@page  % Check where this float will land
+      \if@lpsb@float@same@page
+        % Float on same page - close P to avoid incorrect nesting
+        \lpsb@pdfliteralcmd{ EMC }%
+        \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
+        \gdef\lpsb@tag@stack{}%
+        \global\@lpsb@in@tagfalse%
+      \fi
+    \fi\fi%
+  }%
 }
-\AtBeginEnvironment{figure*}{%
-  \global\@lpsb@P@pending@after@sectionfalse
-  \global\@lpsb@P@pending@after@mathfalse
-  \global\@lpsb@P@pending@after@listfalse
-  \if@lpsb@active\if@lpsb@in@tag%
-    \lpsb@check@float@page
-    \if@lpsb@float@same@page
-      \lpsb@pdfliteralcmd{ EMC }%
-      \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
-      \gdef\lpsb@tag@stack{}%
-      \global\@lpsb@in@tagfalse%
-    \fi
-  \fi\fi%
-}
-\AtBeginEnvironment{table}{%
-  \global\@lpsb@P@pending@after@sectionfalse
-  \global\@lpsb@P@pending@after@mathfalse
-  \global\@lpsb@P@pending@after@listfalse
-  \if@lpsb@active\if@lpsb@in@tag%
-    \lpsb@check@float@page
-    \if@lpsb@float@same@page
-      \lpsb@pdfliteralcmd{ EMC }%
-      \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
-      \gdef\lpsb@tag@stack{}%
-      \global\@lpsb@in@tagfalse%
-    \fi
-  \fi\fi%
-}
-\AtBeginEnvironment{table*}{%
-  \global\@lpsb@P@pending@after@sectionfalse
-  \global\@lpsb@P@pending@after@mathfalse
-  \global\@lpsb@P@pending@after@listfalse
-  \if@lpsb@active\if@lpsb@in@tag%
-    \lpsb@check@float@page
-    \if@lpsb@float@same@page
-      \lpsb@pdfliteralcmd{ EMC }%
-      \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
-      \gdef\lpsb@tag@stack{}%
-      \global\@lpsb@in@tagfalse%
-    \fi
-  \fi\fi%
-}
+% Apply to all float types using etoolbox loop
+\forcsvlist{\lpsb@register@float@begin@hook}{figure,figure*,table,table*}
 
 % At source location: start P after float definition if not already in a tag
 % Note: end@float handles the EMC+tag closure at shipout time, not here.
 % Here we ensure a P is open for content after the \end{figure} in source.
-\AtEndEnvironment{figure}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}
-\AtEndEnvironment{figure*}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}
-\AtEndEnvironment{table}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}
-\AtEndEnvironment{table*}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}
+%
+% Helper for single-column float end hooks (immediate P start)
+\newcommand{\lpsb@register@float@end@hook@single}[1]{%
+  \AtEndEnvironment{#1}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}%
+}
+% Helper for double-column float end hooks (deferred P via pending flag)
+\newcommand{\lpsb@register@float@end@hook@double}[1]{%
+  \AtEndEnvironment{#1}{%
+    \if@lpsb@active
+      \global\@lpsb@P@pending@after@floattrue
+      \global\@lpsb@first@paratrue
+    \fi
+  }%
+}
+% Apply to appropriate float types
+\forcsvlist{\lpsb@register@float@end@hook@single}{figure,table,table*}
+\lpsb@register@float@end@hook@double{figure*}
 % --- RECURSION GUARDS ---
 % Flags to prevent infinite loops when hooks call each other
 % (e.g. \caption calling \subcaption calling \caption)

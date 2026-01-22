@@ -236,6 +236,84 @@ def _safe_union_bbox(
         return _merge_bbox(base, extra)
 
 
+def _estimate_mcid_anchor_bboxes(
+    doc: fitz.Document,
+    page_num: int,
+    mcid_tags: Dict[int, str],
+    mcids: List[int],
+) -> Dict[int, Tuple[float, float, float, float]]:
+    """Estimate a tiny bbox for MCIDs that have no extracted chars.
+
+    This is a visualization-only fallback for cases where:
+    - MCID exists in content stream (we can label it), but
+    - pdfplumber fails to extract chars for that MCID (font/path issues).
+
+    We approximate anchor position by finding the nearest BT block and the first
+    Td/Tm inside that block before the MCID's BDC.
+    """
+    if not mcids:
+        return {}
+
+    page = doc[page_num]
+    page_h = float(page.rect.height)
+    text = _get_page_content_text(doc, page_num)
+    if not text:
+        return {}
+
+    out: Dict[int, Tuple[float, float, float, float]] = {}
+
+    # Patterns for text positioning operators.
+    tm_re = re.compile(r"([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)\\s+Tm")
+    td_re = re.compile(r"([\\d.-]+)\\s+([\\d.-]+)\\s+Td")
+
+    for mcid in mcids:
+        tag = mcid_tags.get(mcid)
+        if not tag:
+            continue
+        # Locate the BDC for this MCID.
+        m = re.search(rf"/{re.escape(tag)}\\s*<<\\s*/MCID\\s*{mcid}\\s*>>\\s*BDC", text)
+        if not m:
+            continue
+
+        # Find a nearby BT block start.
+        bt = text.rfind("BT", 0, m.start())
+        if bt < 0:
+            continue
+        seg = text[bt:m.start()]
+
+        x = None
+        y = None
+        # Prefer the first Td in this BT block (absolute-ish position).
+        td = td_re.search(seg)
+        if td:
+            try:
+                x = float(td.group(1))
+                y = float(td.group(2))
+            except Exception:
+                x = None
+                y = None
+        if x is None or y is None:
+            # Fallback to first Tm.
+            tm = tm_re.search(seg)
+            if tm:
+                try:
+                    x = float(tm.group(5))
+                    y = float(tm.group(6))
+                except Exception:
+                    x = None
+                    y = None
+        if x is None or y is None:
+            continue
+
+        # Convert PDF user-space (origin bottom-left) to fitz/page space (origin top-left).
+        y_top = page_h - y
+        # Tiny anchor box.
+        bb = (x, max(0.0, y_top - 8.0), x + 8.0, y_top)
+        out[mcid] = bb
+
+    return out
+
+
 def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int, Tuple[float, float, float, float]]:
     """Infer Figure MCID bboxes from XObject draws inside Figure marked-content.
 
@@ -929,6 +1007,16 @@ def visualize_mcid(
                     mcid_bboxes[mcid] = {"bbox": pick, "line_bboxes": [pick], "text_preview": "", "char_count": 0}
                     used.append(pick)
 
+        # Final fallback: if an MCID exists in the content stream but has no text
+        # bbox (pdfplumber couldn't extract chars), draw a tiny anchor box so the
+        # label doesn't look like the structure "breaks" after atoms like Reference.
+        missing_any = [mc for mc in mcid_tags.keys() if mc not in mcid_bboxes]
+        if missing_any:
+            anchors = _estimate_mcid_anchor_bboxes(doc, page_num, mcid_tags, missing_any)
+            for mcid, bb in anchors.items():
+                if mcid not in mcid_bboxes:
+                    mcid_bboxes[mcid] = {"bbox": bb, "line_bboxes": [bb], "text_preview": "", "char_count": 0}
+
         if not mcid_bboxes and not math_spans:
             continue
 
@@ -1131,6 +1219,14 @@ def visualize_mcid(
                     if bbox is None:
                         # Final fallback: use hint itself.
                         bbox = hint
+
+                    # If the detected bbox is suspiciously small vs hint, use hint.
+                    if hint and bbox:
+                        try:
+                            if _bbox_area(bbox) < 0.4 * _bbox_area(hint) or _iou(bbox, hint) < 0.10:
+                                bbox = hint
+                        except Exception:
+                            bbox = hint
 
                     if not bbox:
                         continue
