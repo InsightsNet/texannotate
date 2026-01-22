@@ -33,7 +33,7 @@ class MCIDEntry:
     page: int
 
 
-@dataclass  
+@dataclass
 class TaggedElement:
     """A logical tagged element (may span multiple pages/MCIDs)."""
     elem_id: int
@@ -45,6 +45,7 @@ class TaggedElement:
     parent_id: Optional[int] = None  # Parent element ID for nested atoms
     ref_key: Optional[str] = None  # Citation key string for Reference atoms
     bbox: Optional[Dict] = None  # {page: [x0, y0, x1, y1]}
+    source_line: int = 0  # Source code line number for reading order
 
 
 def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
@@ -62,9 +63,10 @@ def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
     
     content = aux_path.read_text(errors="ignore")
     
-    # Pattern: \lpsb@tag@data{elem_id}{type}{mcid}{page}
+    # Pattern: \lpsb@tag@data{elem_id}{type}{mcid}{page}{source_line}
+    # source_line is optional for backward compatibility
     tag_data_pattern = re.compile(
-        r"\\lpsb@tag@data\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}"
+        r"\\lpsb@tag@data\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}(?:\{(\d+)\})?"
     )
     
     # Pattern: \lpsb@tag@atom{elem_id}{type}{mcid}{page}{parent_id}
@@ -99,12 +101,14 @@ def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
         tag_type = m.group(2)
         mcid = int(m.group(3))
         page = int(m.group(4))
-        
+        source_line = int(m.group(5)) if m.group(5) else 0
+
         elem = TaggedElement(
             elem_id=elem_id,
             tag_type=tag_type,
             start_page=page,
-            is_atom=False
+            is_atom=False,
+            source_line=source_line
         )
         elem.mcids.append(MCIDEntry(mcid=mcid, page=page))
         elements[elem_id] = elem

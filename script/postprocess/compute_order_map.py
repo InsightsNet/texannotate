@@ -362,185 +362,176 @@ def compute_order_map_layout(aux_path: Path, pdf_path: Path, verbose: bool = Fal
 
 
 def compute_order_map_synctex(
-    aux_path: Path, 
+    aux_path: Path,
     pdf_path: Path,
     synctex_path: Optional[Path] = None,
     verbose: bool = False
 ) -> Dict[int, int]:
-    """Compute elem_id -> order_index using SyncTeX source line numbers.
-    
-    This mode uses SyncTeX data to determine reading order:
-    1. For each element, find its primary MCID's position in the PDF
-    2. Query SyncTeX to get source file:line for that position
-    3. Sort elements by (page, column, source_line) to get reading order
-    
-    The column ordering ensures left-column-first for two-column layouts.
+    """Compute elem_id -> order_index using SyncTeX source code mapping.
+
+    Strategy:
+    1. For each element, use the FIRST MCID's FIRST CHARACTER position
+    2. Reverse-lookup this PDF position to get (file_id, source_line) via SyncTeX
+    3. Sort by (file_id, source_line) to get reading order
+
+    This correctly handles:
+    - Cross-page P elements: all MCIDs trace back to same source line
+    - Cross-column P elements: all MCIDs trace back to same source line
+    - Floats: Figure/Table content has its own source line
+    - Multiple \\input files: each file has unique file_id
     """
-    # Auto-detect synctex path if not provided
+    # Parse aux to get elements
+    elements, _summary = parse_aux_file(aux_path)
+
+    # Find synctex file
     if synctex_path is None:
-        synctex_path = aux_path.with_suffix('.synctex.gz')
-        if not synctex_path.exists():
-            synctex_path = aux_path.with_name('main.synctex.gz')
-    
+        # Try multiple possible locations
+        candidates = [
+            pdf_path.with_suffix('.synctex.gz'),
+            pdf_path.with_suffix('.synctex'),
+            pdf_path.parent / 'main.synctex.gz',  # Common case: main.synctex.gz
+            pdf_path.parent / 'main.synctex',
+        ]
+        # If pdf is main_fixed.pdf, also try main.synctex.gz
+        if 'fixed' in pdf_path.stem:
+            base_name = pdf_path.stem.replace('_fixed', '')
+            candidates.insert(0, pdf_path.parent / f'{base_name}.synctex.gz')
+            candidates.insert(1, pdf_path.parent / f'{base_name}.synctex')
+
+        synctex_path = None
+        for candidate in candidates:
+            if candidate.exists():
+                synctex_path = candidate
+                break
+
     if not synctex_path.exists():
-        if verbose:
-            print(f"[order-map/synctex] SyncTeX file not found: {synctex_path}, falling back to latex mode")
-        return compute_order_map_latex(aux_path, pdf_path, verbose=verbose)
-    
-    # Parse SyncTeX data
+        raise FileNotFoundError(f"SyncTeX file not found: {synctex_path}")
+
+    # Parse SyncTeX
     synctex_data = parse_synctex(synctex_path)
     if verbose:
         print(f"[order-map/synctex] Parsed {len(synctex_data.files)} files, {len(synctex_data.records)} records")
-    
-    # Parse aux to get elements
-    elements, _summary = parse_aux_file(aux_path)
-    
-    # Extract MCID bboxes from PDF
-    mcid_bboxes = _extract_mcid_bboxes(pdf_path)
-    
-    # Get layout info for column detection
-    layout = _get_layout_from_aux(aux_path)
+
+    # Get page heights for Y coordinate conversion
     doc = fitz.open(str(pdf_path))
-    
-    # Cache column boundary per page
-    boundary_cache: Dict[int, Optional[float]] = {}
-    
-    def get_boundary(page_num: int) -> Optional[float]:
-        if page_num not in boundary_cache:
-            page_mode = _page_layout(page_num, layout)
-            if page_mode == "twocolumn":
-                boundary_cache[page_num] = _detect_column_boundary(doc, page_num - 1)
-            else:
-                boundary_cache[page_num] = None
-        return boundary_cache[page_num]
-    
-    # Cache page heights for Y-coordinate conversion
-    # SyncTeX uses bottom-origin (Y=0 at bottom), pdfplumber uses top-origin (Y=0 at top)
-    page_heights: Dict[int, float] = {}
-    for page_idx in range(len(doc)):
-        page_heights[page_idx + 1] = float(doc[page_idx].rect.height)
-    
-    # Build mapping: position -> source line (for faster lookup)
-    # Group SyncTeX records by (page, x-region, y-region) for efficient querying
-    # IMPORTANT: Convert Y from bottom-origin to top-origin
-    page_line_map: Dict[int, List[Tuple[float, float, int, int]]] = {}  # page -> [(x, y_top, file_id, line)]
+    page_heights = {i+1: float(doc[i].rect.height) for i in range(len(doc))}
+    doc.close()
+
+    # Build SyncTeX lookup index: group by page, convert to PDF coordinates
+    page_synctex: Dict[int, List[Tuple[float, float, int, int]]] = {}
     for rec in synctex_data.records:
-        if rec.page not in page_line_map:
-            page_line_map[rec.page] = []
-        x_pdf = sp_to_pdf_points(rec.x)
-        y_pdf_bottom = sp_to_pdf_points(rec.y)
-        # Convert to top-origin Y
+        filename = synctex_data.files.get(rec.file_id, '')
+        # Skip TeX system files
+        if '/texmf-dist/' in filename or '/texlive/' in filename:
+            continue
+        if rec.page not in page_synctex:
+            page_synctex[rec.page] = []
         page_h = page_heights.get(rec.page, 792.0)
-        y_pdf_top = page_h - y_pdf_bottom
-        page_line_map[rec.page].append((x_pdf, y_pdf_top, rec.file_id, rec.line))
-    
-    # For each element, find its source line via MCID position
+        x_pdf = sp_to_pdf_points(rec.x)
+        y_pdf = page_h - sp_to_pdf_points(rec.y)  # Convert to top-origin
+        page_synctex[rec.page].append((x_pdf, y_pdf, rec.file_id, rec.line))
+
+    # Extract MCID character positions from PDF
+    mcid_first_char: Dict[Tuple[int, int], Tuple[float, float]] = {}  # (page, mcid) -> (x, y)
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        for page_idx, page in enumerate(pdf.pages):
+            page_num = page_idx + 1
+            mcid_chars: Dict[int, List] = {}
+            for ch in (page.chars or []):
+                mcid = ch.get('mcid')
+                if mcid is not None:
+                    mcid_chars.setdefault(int(mcid), []).append(ch)
+
+            for mcid, chars in mcid_chars.items():
+                # Get first character position (reading order: top-left)
+                first = sorted(chars, key=lambda c: (c['top'], c['x0']))[0]
+                mcid_first_char[(page_num, mcid)] = (float(first['x0']), float(first['top']))
+
+    def find_source_location(page: int, x: float, y: float, tolerance: float = 25.0) -> Tuple[int, int]:
+        """Reverse-lookup PDF position to (file_id, source_line) via SyncTeX."""
+        if page not in page_synctex:
+            return None  # No match
+
+        best = None
+        best_dist = float('inf')
+        for sx, sy, file_id, line in page_synctex[page]:
+            dist = ((sx - x)**2 + (sy - y)**2)**0.5
+            if dist < best_dist:
+                best_dist = dist
+                best = (file_id, line)
+
+        if best and best_dist <= tolerance:
+            return best
+        # If no match within tolerance, still use best match
+        if best:
+            return best
+        return None
+
+    # Find main.tex file_id for template elements
+    main_file_id = 1  # Default
+    for fid, fpath in synctex_data.files.items():
+        if fpath.endswith('main.tex') or fpath.endswith('/main.tex'):
+            main_file_id = fid
+            break
+
+    # Template-generated tags that should use main.tex ordering
+    TEMPLATE_TAGS = {'Title', 'Author', 'Note', 'Affil'}
+
+    # Build sorted list by (file_id, source_line, elem_id)
     keyed: List[Tuple[Tuple, int]] = []
-    
+
     for e in elements:
         if getattr(e, "is_atom", False):
             continue
-        
+
         start_page = int(getattr(e, "start_page", 0) or 0)
         if start_page == 0:
             continue
-        
-        # Get primary MCID bbox
-        mcids = list(getattr(e, "mcids", []) or [])
-        bbox = None
-        if mcids:
-            m0 = mcids[0]
-            bbox = mcid_bboxes.get(int(m0.mcid), {}).get(start_page)
-        
-        if bbox is None:
-            # No bbox - use a large order to sort last
-            keyed.append(((start_page, 0, 999999, 999999, int(e.elem_id)), int(e.elem_id)))
+
+        tag_type = getattr(e, "tag_type", "")
+
+        # For template-generated elements, use main.tex with elem_id ordering
+        # This ensures Title, Author, Note etc. are sorted by their LaTeX processing order
+        if tag_type in TEMPLATE_TAGS:
+            # Use (main_file_id, elem_id) - elem_id reflects LaTeX processing order
+            key = (main_file_id, int(e.elem_id), int(e.elem_id))
+            keyed.append((key, int(e.elem_id)))
             continue
-        
-        x0, y0, x1, y1 = bbox
-        cx = (x0 + x1) / 2
-        cy = (y0 + y1) / 2
-        elem_width = x1 - x0
-        
-        # Determine column
-        boundary = get_boundary(start_page)
-        col = 0
-        if boundary is not None:
-            # Check if element spans both columns (wide element like title)
-            # If width > 60% of page width, treat as spanning (column 0)
-            page_width = page_heights.get(start_page, 612.0)  # Use page height dict as proxy
-            try:
-                page_width = float(doc[start_page - 1].rect.width)
-            except Exception:
-                pass
-            
-            if elem_width > 0.6 * page_width:
-                # Spanning element - treat as column 0 (first in reading order)
-                col = 0
-            elif cx < boundary:
-                col = 0
-            else:
-                col = 1
-        
-        # Find nearest SyncTeX record to get source file and line
-        # Priority: Y-coordinate proximity (same line band), then X-proximity
-        source_file_id = 0
-        source_line = 999999
-        y_tolerance = 15.0  # PDF points - records within this Y are considered same line
-        
-        if start_page in page_line_map:
-            # First pass: find records within Y tolerance
-            candidates = []
-            for sx, sy, file_id, line in page_line_map[start_page]:
-                # Skip package files
-                filename = synctex_data.files.get(file_id, "")
-                if '/texmf-dist/' in filename or '/texlive/' in filename:
-                    continue
-                
-                y_dist = abs(sy - cy)
-                if y_dist <= y_tolerance:
-                    x_dist = abs(sx - cx)
-                    candidates.append((y_dist, x_dist, file_id, line))
-            
-            if candidates:
-                # Sort by Y first, then X
-                candidates.sort(key=lambda c: (c[0], c[1]))
-                best = candidates[0]
-                source_file_id = best[2]
-                source_line = best[3]
-            else:
-                # Fallback: find nearest by Y distance only
-                min_y_dist = float('inf')
-                for sx, sy, file_id, line in page_line_map[start_page]:
-                    filename = synctex_data.files.get(file_id, "")
-                    if '/texmf-dist/' in filename or '/texlive/' in filename:
-                        continue
-                    
-                    y_dist = abs(sy - cy)
-                    if y_dist < min_y_dist:
-                        min_y_dist = y_dist
-                        source_file_id = file_id
-                        source_line = line
-        
-        # Sort key: (page, column, y, source_line, x, elem_id)
-        # Within each column, Y-coordinate gives visual reading order (top to bottom)
-        # source_line is used as tiebreaker for elements at same Y
-        key = (start_page, col, y0, source_line, x0, int(e.elem_id))
+
+        # Get first MCID's first character position
+        mcids = list(getattr(e, "mcids", []) or [])
+        source_loc = None
+
+        if mcids:
+            # Use FIRST MCID to determine source location
+            first_mcid = mcids[0]
+            pos = mcid_first_char.get((first_mcid.page, int(first_mcid.mcid)))
+            if pos:
+                source_loc = find_source_location(first_mcid.page, pos[0], pos[1])
+
+        if source_loc:
+            file_id, source_line = source_loc
+            # Sort key: (file_id, source_line, elem_id as tiebreaker)
+            # This is the TRUE reading order from source code
+            key = (file_id, source_line, int(e.elem_id))
+        else:
+            # No SyncTeX match: use elem_id only (LaTeX processing order)
+            # Put at end with max file_id
+            key = (999999, 999999, int(e.elem_id))
+
         keyed.append((key, int(e.elem_id)))
-    
-    doc.close()
-    
+
     # Sort by key
     keyed.sort(key=lambda t: t[0])
-    
+
     # Assign order
     order_map: Dict[int, int] = {}
     for idx, (_key, eid) in enumerate(keyed, 1):
         order_map[eid] = idx
-    
+
     if verbose:
         print(f"[order-map/synctex] Ordered {len(order_map)} elements")
-    
+
     return order_map
 
 

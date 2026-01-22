@@ -356,12 +356,17 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
             else:
                 name_to_bbox[name] = bb
 
-    # 2) Form XObjects: PyMuPDF can provide their page-space bbox directly.
-    # This is crucial for figures included as PDF (vector) where there is no /Image.
+    # 2) Form XObjects: Try to get page-space bbox.
+    # CAUTION: get_xobjects() returns the XObject's INTERNAL definition bbox,
+    # NOT the transformed position on the page. Bboxes starting at (0,0) are
+    # almost certainly in object-space and will create incorrect huge figure boxes.
+    # We only use XObject bboxes if they look like valid page positions.
     try:
         xobjs = page.get_xobjects() or []
     except Exception:
         xobjs = []
+    page_w = float(page.rect.width)
+    page_h = float(page.rect.height)
     for xo in xobjs:
         try:
             # (xref, name, inv, bbox)
@@ -374,6 +379,13 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
         try:
             x0, y0, x1, y1 = map(float, bb)
         except Exception:
+            continue
+        # Skip bboxes that are clearly object-space (start at origin or exceed page bounds)
+        if x0 <= 1.0 and y0 <= 1.0:
+            # Likely an untransformed XObject definition bbox, not page position
+            continue
+        if x1 > page_w * 1.1 or y1 > page_h * 1.1:
+            # Exceeds page bounds - likely object-space dimensions
             continue
         bb2 = (x0, y0, x1, y1)
         if name in name_to_bbox:
@@ -432,6 +444,110 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
             fig_mcid_to_bbox[fig_mcid] = bb
 
     return fig_mcid_to_bbox
+
+
+def get_lpsbimg_bboxes(doc: fitz.Document, page_num: int) -> Dict[int, Tuple[float, float, float, float]]:
+    r"""Extract image bboxes from /LPSBImg markers in the PDF content stream.
+    
+    LPSB injects /LPSBImg N BDC ... EMC markers around \includegraphics content.
+    By parsing the CTM (current transformation matrix) before each /ImX Do command
+    inside these markers, we can compute accurate image bounding boxes even for
+    embedded PDF Form XObjects where standard extraction fails.
+    
+    Returns:
+        Dict mapping LPSBImg ID -> (x0, y0, x1, y1) in page coordinates (top-left origin)
+    """
+    page = doc[page_num]
+    page_h = float(page.rect.height)
+    
+    # Get content stream
+    content = _get_page_content_text(doc, page_num)
+    if not content:
+        return {}
+    
+    # Get Form XObject BBox sizes from resources
+    form_bbox: Dict[str, Tuple[float, float, float, float]] = {}
+    try:
+        xobjs = page.get_xobjects() or []
+        for xo in xobjs:
+            try:
+                name = str(xo[1])
+                bb = xo[3]
+                if name and bb and len(bb) == 4:
+                    form_bbox[name] = tuple(float(x) for x in bb)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    
+    # Parse: /LPSBImg N BDC ... translation_cm ... scale_cm ... /ImX Do
+    # The structure is:
+    #   /LPSBImg N BDC
+    #   a b c d tx ty cm      <- translation matrix
+    #   q
+    #   sx 0 0 sy 0 0 cm      <- scale matrix
+    #   q
+    #   1 0 0 1 0 0 cm
+    #   /ImX Do
+    #   Q Q EMC
+    #
+    # Variant 2 (subfigures with ET before BDC):
+    #   ET
+    #   /LPSBImg N BDC
+    #   1 0 0 1 tx ty cm       <- translation (note: first 4 values may vary)
+    #   q
+    #   sx 0 0 sy 0 0 cm       <- scale
+    #   ...
+    #   /ImX Do
+    
+    # Flexible pattern that captures any cm before the scale cm and Do
+    pattern = re.compile(
+        r'/LPSBImg\s+(\d+)\s+BDC\s*'       # LPSBImg marker
+        r'(?:ET\s*)?'                        # Optional ET
+        r'([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+cm\s*'  # translation cm
+        r'q\s*'
+        r'([0-9.-]+)\s+[0-9.-]+\s+[0-9.-]+\s+([0-9.-]+)\s+[0-9.-]+\s+[0-9.-]+\s+cm\s*'  # scale cm (capture sx and sy)
+        r'[^/]*?/(Im\d+)\s+Do',              # /ImX Do
+        re.DOTALL
+    )
+    
+    lpsbimg_to_bbox: Dict[int, Tuple[float, float, float, float]] = {}
+    
+    for m in pattern.finditer(content):
+        try:
+            imgid = int(m.group(1))
+            # Translation matrix: last two values are tx, ty
+            tx, ty = float(m.group(6)), float(m.group(7))
+            # Scale matrix: first and fourth values are sx, sy
+            sx, sy = float(m.group(8)), float(m.group(9))
+            im_name = m.group(10)
+            
+            # Get form bbox (internal dimensions)
+            fb = form_bbox.get(im_name, (0, 0, 100, 100))
+            fw, fh = fb[2] - fb[0], fb[3] - fb[1]
+            
+            # Compute actual rendered size
+            actual_w = fw * abs(sx)
+            actual_h = fh * abs(sy)
+            
+            # Position in PDF coords (origin bottom-left)
+            x0_pdf = tx
+            y0_pdf = ty
+            x1_pdf = tx + actual_w
+            y1_pdf = ty + actual_h
+            
+            # Convert to page coords (origin top-left)
+            x0 = x0_pdf
+            y0 = page_h - y1_pdf
+            x1 = x1_pdf
+            y1 = page_h - y0_pdf
+            
+            lpsbimg_to_bbox[imgid] = (x0, y0, x1, y1)
+        except Exception:
+            continue
+    
+    return lpsbimg_to_bbox
+
 
 
 def get_elements_from_aux(aux_path: str) -> List[Dict]:
@@ -964,6 +1080,67 @@ def visualize_mcid(
                 else:
                     mcid_bboxes[mcid] = {"bbox": bb, "line_bboxes": [bb], "text_preview": "", "char_count": 0}
 
+        # Also use LPSBImg markers for more accurate image positions.
+        # LPSBImg markers are injected by LPSB around \includegraphics content
+        # and contain precise CTM-based bounding boxes.
+        lpsbimg_bboxes = get_lpsbimg_bboxes(doc, page_num)
+        if lpsbimg_bboxes:
+            # Map LPSBImg IDs to their containing Figure MCIDs by parsing content stream
+            content = _get_page_content_text(doc, page_num)
+            if content:
+                # Parse content stream using proper BDC/EMC stack tracking
+                fig_lpsbimg_map: Dict[int, List[int]] = {}
+                stack: List[Tuple[str, Optional[int]]] = []  # (tag_type, mcid_or_imgid)
+                
+                # Match BDC markers and EMC
+                token_re = re.compile(
+                    r'/Figure\s*<<\s*/MCID\s*(\d+)\s*>>\s*BDC'
+                    r'|/LPSBImg\s+(\d+)\s+BDC'
+                    r'|/\w+\s*<<[^>]*>>\s*BDC'  # Other BDC markers
+                    r'|/\w+\s+\d+\s+BDC'         # Simple BDC markers (like /LPSBImg N BDC)
+                    r'|\bEMC\b'
+                )
+                
+                for m in token_re.finditer(content):
+                    matched = m.group(0)
+                    if m.group(1):  # Figure MCID
+                        mcid = int(m.group(1))
+                        stack.append(('Figure', mcid))
+                        if mcid not in fig_lpsbimg_map:
+                            fig_lpsbimg_map[mcid] = []
+                    elif m.group(2):  # LPSBImg
+                        imgid = int(m.group(2))
+                        stack.append(('LPSBImg', imgid))
+                        # Find containing Figure MCID in stack
+                        for tag, val in reversed(stack[:-1]):
+                            if tag == 'Figure':
+                                fig_lpsbimg_map[val].append(imgid)
+                                break
+                    elif 'BDC' in matched:  # Other BDC
+                        stack.append(('Other', None))
+                    elif 'EMC' in matched:  # EMC - pop stack
+                        if stack:
+                            stack.pop()
+                
+                # Now assign LPSBImg bboxes to their Figure MCIDs
+                for fig_mcid, imgids in fig_lpsbimg_map.items():
+                    if not imgids:
+                        continue
+                    # Compute union of all LPSBImg bboxes for this Figure
+                    fig_bb = None
+                    for imgid in imgids:
+                        img_bb = lpsbimg_bboxes.get(imgid)
+                        if img_bb:
+                            if fig_bb is None:
+                                fig_bb = img_bb
+                            else:
+                                fig_bb = _merge_bbox(fig_bb, img_bb)
+                    
+                    if fig_bb:
+                        # LPSBImg bboxes are more accurate than other sources
+                        # (they come from CTM parsing), so REPLACE instead of merge
+                        mcid_bboxes[fig_mcid] = {"bbox": fig_bb, "line_bboxes": [fig_bb], "text_preview": "", "char_count": 0}
+
         # Second-level fallback for image-only Figures:
         # If a Figure MCID exists (from content stream) but we still have no bbox
         # (e.g. due to XObject/Form indirection), assign a plausible image block bbox.
@@ -1027,10 +1204,14 @@ def visualize_mcid(
         # This allows us to show reading order based on logical elements, not MCID numbers
         mcid_to_elem_id: Dict[int, int] = {}
         elem_id_to_info: Dict[int, Dict] = {}
+        elem_id_to_parent: Dict[int, int] = {}  # For atoms: elem_id -> parent_id
         if aux_elements:
             for elem in aux_elements:
                 elem_id = elem.get("elem_id")
                 role = elem.get("role", "?")
+                parent_id = elem.get("parent_id")
+                if parent_id is not None:
+                    elem_id_to_parent[elem_id] = parent_id
                 for m in elem.get("mcids", []):
                     mcid_val = m.get("mcid")
                     page_val = m.get("page")
@@ -1195,7 +1376,10 @@ def visualize_mcid(
                     if hint:
                         bbox = _detect_table_bbox_near_hint(page, hint)
 
-                    if hint and unused:
+                    # Only use rule-based candidates if _detect_table_bbox_near_hint returned None.
+                    # This prevents incorrect rule-boxes (which may group multiple tables together)
+                    # from overwriting the accurate hint-based detection.
+                    if bbox is None and hint and unused:
                         # Pick the rule-box that overlaps the table text bbox best.
                         best = None
                         best_iou = 0.0
@@ -1204,8 +1388,8 @@ def visualize_mcid(
                             if sc > best_iou:
                                 best_iou = sc
                                 best = cand
-                        # Require some overlap; otherwise the rule box is likely a header/footer rule.
-                        if best is not None and best_iou >= 0.05:
+                        # Require significant overlap; otherwise the rule box is likely wrong.
+                        if best is not None and best_iou >= 0.20:
                             bbox = best
                             try:
                                 unused.remove(best)

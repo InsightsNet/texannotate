@@ -5,6 +5,14 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{lpsb-mcid}[2026/01/11 LPSB MCID-based Tagging]
 
+% Prevent multiple loading
+\@ifundefined{lpsb@mcid@loaded}{%
+  \global\let\lpsb@mcid@loaded\relax
+}{%
+  \PackageWarning{lpsb-mcid}{Package already loaded, skipping}%
+  \endinput
+}
+
 \RequirePackage{atbegshi}
 \RequirePackage{etoolbox}
 
@@ -38,7 +46,7 @@
 %% 1b. Aux File Command Definitions (No-ops)
 %% =========================================
 % These commands are used within the package for the current run.
-\providecommand{\lpsb@tag@data}[4]{}
+\providecommand{\lpsb@tag@data}[5]{}
 \providecommand{\lpsb@tag@atom}[5]{}
 \providecommand{\lpsb@tag@end}[2]{}
 \providecommand{\lpsb@mcid@cont}[3]{}
@@ -51,6 +59,7 @@
 \providecommand{\lpsb@pass@section}[4]{}
 \providecommand{\lpsb@layout}[1]{}
 \providecommand{\lpsb@layout@switch}[2]{}
+\providecommand{\lpsb@img@pos}[6]{}  % {img_id}{x0}{y0}{x1}{y1}{page} - image bbox in sp
 
 % FIX: "Self-Healing" Aux File Strategy.
 % We explicitly write \providecommand definitions into the .aux file itself.
@@ -60,7 +69,7 @@
 \AtBeginDocument{%
   \if@filesw
     \immediate\write\@auxout{%
-      \string\providecommand\string\lpsb@tag@data[4]{}^^J%
+      \string\providecommand\string\lpsb@tag@data[5]{}^^J%
       \string\providecommand\string\lpsb@tag@atom[5]{}^^J%
       \string\providecommand\string\lpsb@tag@end[2]{}^^J%
       \string\providecommand\string\lpsb@mcid@cont[3]{}^^J%
@@ -72,7 +81,8 @@
       \string\providecommand\string\lpsb@pass@elempage[3]{}^^J%
       \string\providecommand\string\lpsb@pass@section[4]{}^^J%
       \string\providecommand\string\lpsb@layout[1]{}^^J%
-      \string\providecommand\string\lpsb@layout@switch[2]{}%
+      \string\providecommand\string\lpsb@layout@switch[2]{}^^J%
+      \string\providecommand\string\lpsb@img@pos[6]{}%
     }%
   \fi
 }
@@ -94,6 +104,10 @@
 % Counter for section tracking in pass-one
 \newcounter{lpsb@sectionID}
 \setcounter{lpsb@sectionID}{0}
+
+% Counter for image tracking (for bbox recording)
+\newcounter{lpsb@imgID}
+\setcounter{lpsb@imgID}{0}
 
 % Storage for pass-one float placement data (read from aux)
 % Format: \lpsb@float@page@{float_id} -> rendered_page
@@ -204,8 +218,8 @@
 }
 
 % Define aux readers (no-op, just for parsing by Python)
-\newcommand{\lpsb@layout}[1]{}
-\newcommand{\lpsb@layout@switch}[2]{}
+\providecommand{\lpsb@layout}[1]{}
+\providecommand{\lpsb@layout@switch}[2]{}
 
 
 % Smart float handling: check if float lands on same page
@@ -990,6 +1004,8 @@
   \AtBeginDocument{%
     \@ifundefined{abstract}{}{%
       \renewenvironment{abstract}{%
+        % CRITICAL: Set flag BEFORE \begin{quote} to prevent quote hook from interfering
+        \global\@lpsb@in@abstracttrue
         % Close any open P tag first
         \lpsbTagEnd
         % Output "Abstract" title with H1 tag
@@ -1001,15 +1017,12 @@
         \begin{quote}%
         % Open P tag for abstract content
         \lpsbTagBegin{P}%
-        % CRITICAL: Set flag to prevent everypar from creating new P elements
-        % This ensures abstract content stays as one logical element across columns
-        \global\@lpsb@in@abstracttrue
       }{%
-        % Clear the abstract flag
-        \global\@lpsb@in@abstractfalse
-        % Close P tag for abstract content
+        % Close P tag for abstract content BEFORE \end{quote}
         \lpsbTagEnd
         \par\end{quote}%
+        % Clear the abstract flag AFTER \end{quote} to prevent quote hook from interfering
+        \global\@lpsb@in@abstractfalse
         \vskip 0.12in
         % Reopen P for content after abstract
         \lpsbTagBegin{P}%
@@ -1211,6 +1224,8 @@
         \global\@lpsb@suppress@inlinefalse
         \global\@lpsb@in@algorithmfalse
         \lpsbTagEnd
+        % Start P for text immediately following \end{algorithm} (no blank line)
+        \lpsb@start@P@after@float
       }%
     \fi
   }{}%
@@ -1230,6 +1245,8 @@
         \global\@lpsb@suppress@inlinefalse
         \global\@lpsb@in@algorithmfalse
         \lpsbTagEnd
+        % Start P for text immediately following \end{algorithm} (no blank line)
+        \lpsb@start@P@after@float
       }%
     \fi
   }{}%
@@ -1425,31 +1442,42 @@
 % Suppress inline tags to avoid fragmentation.
 \AtBeginEnvironment{quote}{%
   \if@lpsb@active
-    \lpsbTagEnd
-    \lpsbTagBegin{BlockQuote}%
-    \global\@lpsb@suppress@inlinetrue
+    % Skip if inside abstract (ICML abstract uses quote internally)
+    \if@lpsb@in@abstract\else
+      \lpsbTagEnd
+      \lpsbTagBegin{BlockQuote}%
+      \global\@lpsb@suppress@inlinetrue
+    \fi
   \fi
 }
 \AtEndEnvironment{quote}{%
   \if@lpsb@active
-    \global\@lpsb@suppress@inlinefalse
-    \lpsbTagEnd
-    \lpsbTagBegin{P}%
+    % Skip if inside abstract (ICML abstract uses quote internally)
+    \if@lpsb@in@abstract\else
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    \fi
   \fi
 }
 
 \AtBeginEnvironment{quotation}{%
   \if@lpsb@active
-    \lpsbTagEnd
-    \lpsbTagBegin{BlockQuote}%
-    \global\@lpsb@suppress@inlinetrue
+    % Skip if inside abstract
+    \if@lpsb@in@abstract\else
+      \lpsbTagEnd
+      \lpsbTagBegin{BlockQuote}%
+      \global\@lpsb@suppress@inlinetrue
+    \fi
   \fi
 }
 \AtEndEnvironment{quotation}{%
   \if@lpsb@active
-    \global\@lpsb@suppress@inlinefalse
-    \lpsbTagEnd
-    \lpsbTagBegin{P}%
+    % Skip if inside abstract
+    \if@lpsb@in@abstract\else
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
   \fi
 }
 
@@ -1494,9 +1522,9 @@
       % Insert BDC into content stream
       \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
       %
-      % Record to aux file
+      % Record to aux file with source line number for reading order
       \immediate\write\@auxout{%
-        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\the\inputlineno}%
       }%
     \fi % @lpsb@active
   \fi % @typeset@protect
@@ -1519,9 +1547,9 @@
     \global\@lpsb@in@tagtrue
     % Insert BDC into content stream
     \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-    % Record to aux file
+    % Record to aux file with source line number for reading order
     \immediate\write\@auxout{%
-      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\the\inputlineno}%
     }%
   \fi
 }
@@ -1660,9 +1688,9 @@
       \global\@lpsb@in@tagtrue
       % Insert BDC
       \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-      % Record to aux file
+      % Record to aux file with source line number
       \immediate\write\@auxout{%
-        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}%
+        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\the\inputlineno}%
       }%
     \fi
   \fi
@@ -1792,6 +1820,17 @@
       #2%
     \else
       % Text mode: proceed with normal tagging logic
+      % CRITICAL: Check pending P flags BEFORE checking @lpsb@in@tag
+      % This handles atoms (e.g. citations) immediately after floats
+      \if@lpsb@active
+        \if@lpsb@in@tag\else
+          \if@lpsb@P@pending@after@float
+            \global\@lpsb@P@pending@after@floatfalse
+            \lpsbTagBegin{P}%
+            \global\@lpsb@first@parafalse
+          \fi
+        \fi
+      \fi
       % Check if we're in a float and handle accordingly
       \def\lpsb@atom@type{#1}%
       \if@lpsb@in@float
@@ -1822,6 +1861,15 @@
   % CRITICAL: Skip in non-typesetting contexts (moving arguments)
   \ifx\protect\@typeset@protect
     \if@lpsb@active
+      % CRITICAL: Check pending P flags BEFORE checking @lpsb@in@tag
+      % This handles citations immediately after floats (which don't trigger everypar)
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+          \global\@lpsb@first@parafalse
+        \fi
+      \fi
       \if@lpsb@in@tag
         % Inside a parent tag: emit proper Reference atom with EMC/BDC
         % CRITICAL: Use \edef with \the to get counter values, store in global macros
@@ -2311,6 +2359,17 @@
       \global\@lpsb@runin@heading@armedfalse
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      % This ensures text between previous section/float and this section has a P tag
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
       \lpsbTagEnd
       \lpsbTagBegin{#1}%
       \global\@lpsb@in@sectiontrue
@@ -2372,6 +2431,17 @@
     \long\def\lpsb@paragraph@opt[#1]#2{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      % This ensures text between previous section and this paragraph has a P tag
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
       \lpsbTagEnd
       % Mark a pending run-in heading; \@xsect/\everypar will do the actual tagging.
       \global\@lpsb@runin@heading@pendingtrue
@@ -2383,6 +2453,16 @@
     \long\def\lpsb@paragraph@noopt#1{%
       \stepcounter{lpsb@sectionID}%
       \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
       \lpsbTagEnd
       \global\@lpsb@runin@heading@pendingtrue
       \global\@lpsb@runin@heading@guardtrue
@@ -2903,6 +2983,17 @@
   %
   % Patch \end@float - close tag before box ends
   \let\lpsb@orig@endfloat\end@float
+  % Helper command to start P after float group ends
+  \def\lpsb@start@P@after@float{%
+    \if@lpsb@active
+      \if@lpsb@in@tag\else
+        \if@lpsb@in@float\else
+          \lpsbTagBeginForce{P}%
+        \fi
+      \fi
+    \fi
+  }%
+  %
   \def\end@float{%
     \if@lpsb@active
       \if@lpsb@pass@one\else
@@ -2910,6 +3001,9 @@
       \fi
       % Set first_para flag to prevent everypar from cycling P immediately
       \global\@lpsb@first@paratrue
+      % Use aftergroup to start P immediately after the float group ends
+      % This catches text that follows \end{figure} without blank line
+      \aftergroup\lpsb@start@P@after@float
     \fi
     \global\@lpsb@in@floatfalse
     \lpsb@orig@endfloat
@@ -3012,8 +3106,10 @@
 % Here we ensure a P is open for content after the \end{figure} in source.
 %
 % Helper for single-column float end hooks (immediate P start)
+% CRITICAL: Use AfterEndEnvironment (not AtEndEnvironment) because end@float
+% closes the Figure tag inside AtEndEnvironment. We need to start P AFTER that.
 \newcommand{\lpsb@register@float@end@hook@single}[1]{%
-  \AtEndEnvironment{#1}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}%
+  \AfterEndEnvironment{#1}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}%
 }
 % Helper for double-column float end hooks (deferred P via pending flag)
 \newcommand{\lpsb@register@float@end@hook@double}[1]{%
@@ -3025,8 +3121,9 @@
   }%
 }
 % Apply to appropriate float types
-\forcsvlist{\lpsb@register@float@end@hook@single}{figure,table,table*}
-\lpsb@register@float@end@hook@double{figure*}
+% CRITICAL: ALL floats need immediate P start, because deferred P only works
+% when everypar or lpsbTagAtom is triggered. Plain text after floats won't trigger either.
+\forcsvlist{\lpsb@register@float@end@hook@single}{figure,figure*,table,table*}
 % --- RECURSION GUARDS ---
 % Flags to prevent infinite loops when hooks call each other
 % (e.g. \caption calling \subcaption calling \caption)
@@ -3201,6 +3298,68 @@
   % swaps \caption behind our back).
   \@ifundefined{caption@subtypehook}{}{%
     \g@addto@macro\caption@subtypehook{\lpsb@patch@subfigure@caption}%
+  }%
+  %
+  % LEGACY subfigure.sty support: Hook \@thesubfigure and \@thesubtable
+  % These commands generate the (a), (b), (c) labels that appear below subfigures.
+  % By wrapping them in Caption atoms, we ensure the labels are correctly tagged.
+  %
+  % Hook \@thesubfigure - generates "(a)", "(b)", etc. for subfigure labels
+  \@ifundefined{@thesubfigure}{}{%
+    \let\lpsb@orig@@thesubfigure\@thesubfigure
+    \def\@thesubfigure{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@in@float
+            % Inside float: wrap label in Caption tag
+            \lpsbTagAtom{Caption}{\lpsb@orig@@thesubfigure}%
+          \else
+            \lpsb@orig@@thesubfigure
+          \fi
+        \else
+          \lpsb@orig@@thesubfigure
+        \fi
+      \else
+        \lpsb@orig@@thesubfigure
+      \fi
+    }%
+  }%
+  % Hook \@thesubtable - same for subtables
+  \@ifundefined{@thesubtable}{}{%
+    \let\lpsb@orig@@thesubtable\@thesubtable
+    \def\@thesubtable{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@in@float
+            \lpsbTagAtom{Caption}{\lpsb@orig@@thesubtable}%
+          \else
+            \lpsb@orig@@thesubtable
+          \fi
+        \else
+          \lpsb@orig@@thesubtable
+        \fi
+      \else
+        \lpsb@orig@@thesubtable
+      \fi
+    }%
+  }%
+  %
+  % Hook \sf@subcaption which outputs the full caption text (label + text)
+  \@ifundefined{sf@subcaption}{}{%
+    \let\lpsb@orig@sf@subcaption\sf@subcaption
+    \long\def\sf@subcaption#1#2{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \lpsbTagAtom{Caption}{%
+            \lpsb@orig@sf@subcaption{#1}{#2}%
+          }%
+        \else
+          \lpsb@orig@sf@subcaption{#1}{#2}%
+        \fi
+      \else
+        \lpsb@orig@sf@subcaption{#1}{#2}%
+      \fi
+    }%
   }%
 
   % Fallback: Hook internal \@caption as well.
@@ -3598,77 +3757,19 @@
 
 % AMS math environments: align, gather, multline, flalign, alignat
 % These should all be tagged as Formula
-\AtBeginEnvironment{align}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
+% --- UNIFIED AMS MATH HOOKS (using etoolbox loop) ---
+\newcommand{\lpsb@register@ams@math@hook}[1]{%
+  \AtBeginEnvironment{#1}{%
+    \lpsbTagEnd
+    \lpsbTagBegin{Formula}%
+  }%
+  \AfterEndEnvironment{#1}{%
+    \lpsbTagEnd
+    \global\@lpsb@P@pending@after@mathtrue
+  }%
 }
-\AfterEndEnvironment{align}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{align*}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{align*}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{gather}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{gather}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{gather*}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{gather*}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{multline}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{multline}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{multline*}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{multline*}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{flalign}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{flalign}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
-
-\AtBeginEnvironment{flalign*}{%
-  \lpsbTagEnd
-  \lpsbTagBegin{Formula}%
-}
-\AfterEndEnvironment{flalign*}{%
-  \lpsbTagEnd
-  \global\@lpsb@P@pending@after@mathtrue
-}
+% Apply to all AMS math environments
+\forcsvlist{\lpsb@register@ams@math@hook}{align,align*,gather,gather*,multline,multline*,flalign,flalign*}
 
 % --- Wrapfigure/Wraptable Tagging ---
 % wrapfig does NOT behave like a normal float:
@@ -3908,7 +4009,7 @@
 %% =========================================
 %% 8. Aux File Placeholders (for aux re-read)
 %% =========================================
-\providecommand{\lpsb@tag@data}[4]{}   % {elem_id}{type}{mcid}{page}
+\providecommand{\lpsb@tag@data}[5]{}   % {elem_id}{type}{mcid}{page}{order_seq}
 \providecommand{\lpsb@tag@end}[2]{}    % {elem_id}{page}
 \providecommand{\lpsb@tag@atom}[5]{}   % {elem_id}{type}{mcid}{page}{parent_id}
 \providecommand{\lpsb@mcid@cont}[3]{}  % {elem_id}{mcid}{page}
@@ -3934,6 +4035,46 @@
       \def\lpsb@tag@atom#1#2#3#4#5{}%
       \def\lpsb@tag@end#1#2{}%
       \def\lpsb@mcid@cont#1#2#3{}%
+    }%
+  }{}%
+}
+
+%% =========================================
+%% 10. Image Position Tracking (\includegraphics)
+%% =========================================
+% Hook \includegraphics to emit image-specific MCID markers.
+% This allows accurate image bbox extraction from the PDF content stream
+% even for embedded PDF/Form XObjects where standard extraction fails.
+%
+% Approach: Wrap the image in a dedicated MCID marker:
+%   /LPSBImg << /MCID N /ImgID M >> BDC ... EMC
+% The Python visualizer can then detect these markers and extract accurate
+% bounding boxes from the marked content.
+%
+\AtBeginDocument{%
+  \@ifpackageloaded{graphicx}{%
+    \let\lpsb@orig@includegraphics\includegraphics
+    \renewcommand{\includegraphics}[2][]{%
+      \stepcounter{lpsb@imgID}%
+      % Only emit markers if active and inside a figure
+      \if@lpsb@active
+        \if@lpsb@in@float
+          % Emit custom BDC with image ID for tracking
+          \lpsb@pdfliteralcmd{ /LPSBImg \thelpsb@imgID\space BDC }%
+          \lpsb@orig@includegraphics[#1]{#2}%
+          \lpsb@pdfliteralcmd{ EMC }%
+          % Record image info to aux (page known at shipout, use current estimate)
+          \immediate\write\@auxout{%
+            \string\lpsb@img@pos{\thelpsb@imgID}{0}{0}{0}{0}{\thelpsb@currentPage}%
+          }%
+        \else
+          % Not in float - just render normally
+          \lpsb@orig@includegraphics[#1]{#2}%
+        \fi
+      \else
+        % LPSB not active - just render normally
+        \lpsb@orig@includegraphics[#1]{#2}%
+      \fi
     }%
   }{}%
 }

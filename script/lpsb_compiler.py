@@ -39,7 +39,7 @@ import atexit
 from .postprocess.fix_split_headings import merge_split_headings_aux
 from .postprocess.merge_split_paragraphs import merge_split_paragraphs as merge_split_paragraphs_func
 from .parsing.parse_lpsb_mcid import parse_aux_file, elements_to_json, reconcile_element_pages
-from .postprocess.synctex_enhanced_fix import process_pdf_synctex as fix_crosspage_process_pdf
+from .postprocess.fix_crosspage_mcid import process_pdf_synctex as fix_crosspage_process_pdf
 from .postprocess.inject_structtree import inject_structtree as inject_structtree_func
 from .visualization.visualize_mcid import visualize_mcid as visualize_mcid_func
 
@@ -2434,12 +2434,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
 
         # Merge cross-column split paragraphs in aux (two-column layout).
         aux_merged = pd_tex_dir / f"{main_base}.aux.merged"
+        synctex_file = pd_tex_dir / f"{main_base}.synctex.gz"
         if not (aux_for_downstream.exists() and pdf_file.exists()):
             raise SystemExit("[postprocess] ERROR: cannot merge split paragraphs: missing aux/pdf")
-        try:
-            merge_count = merge_split_paragraphs_func(aux_for_downstream, pdf_file, aux_merged)
-        except Exception as e:
-            raise SystemExit(f"[postprocess] ERROR: merge-split-paragraphs failed: {e}")
+        merge_count = merge_split_paragraphs_func(aux_for_downstream, pdf_file, synctex_file, aux_merged)
         if not aux_merged.exists():
             raise SystemExit(f"[postprocess] ERROR: merge-split-paragraphs produced no output: {aux_merged}")
         aux_for_downstream = aux_merged
@@ -2450,15 +2448,12 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
         if not aux_for_downstream.exists():
             raise SystemExit(f"[postprocess] ERROR: aux for downstream not found: {aux_for_downstream}")
-        try:
-            elements, summary = parse_aux_file(aux_for_downstream)
-            # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
-            reconcile_element_pages(elements, pdf_file, verbose=False)
-            output_data = elements_to_json(elements, summary)
-            with open(mcid_json, "w") as f:
-                json.dump(output_data, f, indent=2)
-        except Exception as e:
-            raise SystemExit(f"[postprocess] ERROR: parse-mcid failed: {e}")
+        elements, summary = parse_aux_file(aux_for_downstream)
+        # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
+        reconcile_element_pages(elements, pdf_file, verbose=False)
+        output_data = elements_to_json(elements, summary)
+        with open(mcid_json, "w") as f:
+            json.dump(output_data, f, indent=2)
         if not mcid_json.exists():
             raise SystemExit(f"[postprocess] ERROR: parse-mcid produced no output: {mcid_json}")
         with open(log_file, "a") as log:
@@ -2472,16 +2467,13 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         synctex_file = pd_tex_dir / f"{main_base}.synctex.gz"
         if not synctex_file.exists():
             raise SystemExit(f"[postprocess] ERROR: synctex not found (required): {synctex_file}")
-        try:
-            fix_crosspage_process_pdf(
-                str(pdf_file),
-                str(aux_for_downstream),
-                str(synctex_file),
-                str(pdf_fixed),
-                verbose=False,
-            )
-        except Exception as e:
-            raise SystemExit(f"[postprocess] ERROR: fix-crosspage-mcid failed: {e}")
+        fix_crosspage_process_pdf(
+            str(pdf_file),
+            str(aux_for_downstream),
+            str(synctex_file),
+            str(pdf_fixed),
+            verbose=False,
+        )
         if not pdf_fixed.exists():
             raise SystemExit(f"[postprocess] ERROR: fix-crosspage-mcid produced no output: {pdf_fixed}")
         with open(log_file, "a") as log:
@@ -2498,12 +2490,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
         if not (pdf_fixed.exists() and aux_for_downstream.exists()):
             raise SystemExit("[postprocess] ERROR: cannot inject StructTree: missing fixed pdf or aux")
-        try:
-            success = inject_structtree_func(str(pdf_fixed), str(aux_for_downstream), str(pdf_tagged), verbose=False)
-            if not success:
-                raise RuntimeError("inject_structtree returned False")
-        except Exception as e:
-            raise SystemExit(f"[postprocess] ERROR: inject-structtree failed: {e}")
+        success = inject_structtree_func(str(pdf_fixed), str(aux_for_downstream), str(pdf_tagged), verbose=False)
+        if not success:
+            raise RuntimeError("inject_structtree returned False")
         if not pdf_tagged.exists():
             raise SystemExit(f"[postprocess] ERROR: inject-structtree produced no output: {pdf_tagged}")
         with open(log_file, "a") as log:

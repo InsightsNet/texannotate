@@ -113,7 +113,7 @@ def _get_order_map(pdf_path: Path, aux_path: Path, verbose: bool = False) -> Opt
     except ImportError:
         from compute_order_map import compute_order_map  # type: ignore
 
-    m = compute_order_map(aux_path, pdf_path, mode="latex", verbose=bool(verbose))
+    m = compute_order_map(aux_path, pdf_path, mode="synctex", verbose=bool(verbose))
     if not m:
         raise RuntimeError("[structtree] computed order-map is empty (unexpected)")
 
