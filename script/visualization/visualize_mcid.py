@@ -1221,6 +1221,45 @@ def visualize_mcid(
                             elem_id_to_info[elem_id] = {"role": role, "mcids": [], "first_mcid": mcid_val}
                         elem_id_to_info[elem_id]["mcids"].append(mcid_val)
 
+        # Compute a simple layout order for the page (left column top-down, then right).
+        def _page_layout_order():
+            local_order: Dict[int, int] = {}
+            items: List[Tuple[int, float, float, int]] = []
+            boundary = 0.5 * float(page.rect.width)
+            for mcid, data in mcid_bboxes.items():
+                bb = data.get("bbox")
+                if not bb:
+                    continue
+                try:
+                    x0, y0, x1, y1 = map(float, bb)
+                except Exception:
+                    continue
+                col = 0 if (x0 + x1) * 0.5 < boundary else 1
+                items.append((col, y0, x0, mcid))
+            items.sort()
+            for idx, (_c, _y, _x, mcid) in enumerate(items, 1):
+                local_order[mcid] = idx
+            return local_order
+
+        # If aux/MCID coverage is poor (e.g., postprocess-injected MCIDs),
+        # use layout order for labels to avoid misleading order numbers.
+        mapped_count = sum(1 for mc in mcid_bboxes.keys() if mc in mcid_to_elem_id)
+        coverage = mapped_count / max(1, len(mcid_bboxes))
+        use_layout_order = coverage < 0.80
+
+        local_order_by_mcid: Dict[int, int] = {}
+        elem_layout_order: Dict[int, int] = {}
+        if use_layout_order:
+            local_order_by_mcid = _page_layout_order()
+            for mcid, elem_id in mcid_to_elem_id.items():
+                o = local_order_by_mcid.get(mcid)
+                if o is None:
+                    continue
+                if elem_id not in elem_layout_order:
+                    elem_layout_order[elem_id] = o
+                else:
+                    elem_layout_order[elem_id] = min(elem_layout_order[elem_id], o)
+
         # Sort MCIDs by logical element order (prefer external order_map when provided),
         # and within the same element, follow two-column reading order (left column before right).
         # NOTE: MCID numeric order is NOT reliable inside an element due to LaTeX's async output routine.
@@ -1253,23 +1292,24 @@ def visualize_mcid(
         # Assign order numbers based on logical elements (same elem = same order)
         elem_order_map: Dict[int, int] = {}
         current_order = 0
-        for mcid in sorted_mcids:
-            elem_id = mcid_to_elem_id.get(mcid)
-            if elem_id is not None:
-                if elem_id not in elem_order_map:
-                    try:
-                        eid_int = int(elem_id)
-                    except Exception:
-                        eid_int = None
-                    if eid_int is not None and eid_int in order_map:
-                        elem_order_map[elem_id] = int(order_map[eid_int])
-                    else:
-                        current_order += 1
-                        elem_order_map[elem_id] = current_order
-            else:
-                # No elem_id mapping - assign unique order
-                current_order += 1
-                elem_order_map[mcid] = current_order  # Use mcid as key for unmapped
+        if not use_layout_order:
+            for mcid in sorted_mcids:
+                elem_id = mcid_to_elem_id.get(mcid)
+                if elem_id is not None:
+                    if elem_id not in elem_order_map:
+                        try:
+                            eid_int = int(elem_id)
+                        except Exception:
+                            eid_int = None
+                        if eid_int is not None and eid_int in order_map:
+                            elem_order_map[elem_id] = int(order_map[eid_int])
+                        else:
+                            current_order += 1
+                            elem_order_map[elem_id] = current_order
+                else:
+                    # No elem_id mapping - assign unique order
+                    current_order += 1
+                    elem_order_map[mcid] = current_order  # Use mcid as key for unmapped
 
         # Draw boxes for each MCID
         for mcid in sorted_mcids:
@@ -1285,10 +1325,16 @@ def visualize_mcid(
 
             # Get logical order
             elem_id = mcid_to_elem_id.get(mcid)
-            if elem_id is not None:
-                order = elem_order_map.get(elem_id, mcid)
+            if use_layout_order:
+                if elem_id is not None and elem_id in elem_layout_order:
+                    order = elem_layout_order[elem_id]
+                else:
+                    order = local_order_by_mcid.get(mcid, mcid)
             else:
-                order = elem_order_map.get(mcid, mcid)
+                if elem_id is not None:
+                    order = elem_order_map.get(elem_id, mcid)
+                else:
+                    order = elem_order_map.get(mcid, mcid)
 
             # Generate color based on tag type for consistency
             tag_colors = {
@@ -1453,6 +1499,8 @@ def visualize_mcid(
         legend_text += f" | {len(math_spans)} math spans"
         legend_text += " | merged tables"
         legend_text += " | Format: TagType#ReadingOrder"
+        if use_layout_order:
+            legend_text += " (layout)"
         page.insert_text(fitz.Point(10, legend_y), legend_text, fontsize=10, color=(0, 0, 0))
     
     # Save

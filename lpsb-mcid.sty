@@ -2080,13 +2080,28 @@
   \@ifundefined{@afterheading}{}{%
     \let\lpsb@orig@@afterheading\@afterheading
     \def\@afterheading{%
-      % Call original FIRST - it sets \@nobreaktrue for display headings
+      % Call original FIRST - it sets \@nobreaktrue and OVERWRITES \everypar
       \lpsb@orig@@afterheading
       % Now check if heading is deferred (display-style)
       % \@nobreak is true for display headings, false for run-in
       \if@nobreak
         % Display heading - title is already typeset; do NOT defer heading tag.
         \global\@lpsb@heading@deferredfalse
+        % CRITICAL: LaTeX's @afterheading just OVERWROTE \everypar.
+        % We must re-inject our P-pending logic into the NEW everypar.
+        \if@lpsb@P@pending@after@section
+          \edef\lpsb@saved@everypar{\the\everypar}%
+          \everypar{%
+            \lpsb@saved@everypar
+            % After LaTeX's everypar content runs, handle our P tag
+            \if@lpsb@P@pending@after@section
+              \global\@lpsb@P@pending@after@sectionfalse
+              \if@lpsb@in@tag\lpsbTagEnd\fi
+              \lpsbTagBegin{P}%
+              \global\@lpsb@first@parafalse
+            \fi
+          }%
+        \fi
       \else
         % Run-in heading - title is still output via \everypar (\@svsechd).
         % Do NOT close the heading tag here; let our everypar hook close the H*
@@ -2139,6 +2154,8 @@
           \lpsbTagEndForce
           \global\@lpsb@runin@heading@guardfalse
           \global\@lpsb@in@sectionfalse
+          \global\@lpsb@P@pending@after@sectiontrue
+          \typeout{LPSB-DEBUG: @sict display heading done, P@pending=TRUE}%
         \endgroup
        \csname #1mark\endcsname{#7}\addcontentsline
          {toc}{#1}{\ifnum #2>\c@secnumdepth \else
@@ -2584,11 +2601,15 @@
   %
   % [Phase 1] Deferred P after section heading
   \if@lpsb@P@pending@after@section
+    \typeout{LPSB-DEBUG: everypar triggered with P@pending=TRUE, in@tag=\if@lpsb@in@tag TRUE\else FALSE\fi}%
     \global\@lpsb@P@pending@after@sectionfalse
-    \if@lpsb@in@tag\else
-      \lpsbTagBegin{P}%
-      \global\@lpsb@first@parafalse
+    % Force close any existing tag and start fresh P after section heading
+    \if@lpsb@in@tag
+      \lpsbTagEnd
     \fi
+    \lpsbTagBegin{P}%
+    \global\@lpsb@first@parafalse
+    \typeout{LPSB-DEBUG: Started new P tag after section}%
   \else
   % [Phase 1] Deferred P after display math
   \if@lpsb@P@pending@after@math

@@ -105,9 +105,14 @@ def match_mcid_to_source(
 def get_mcid_first_char_position(
     pdf_path: Path,
     page_num: int,
-    mcid: int
+    mcid: int,
+    _cache: Dict = None
 ) -> Optional[Tuple[float, float]]:
-    """Get first character position for an MCID."""
+    """Get first character position for an MCID.
+
+    Uses a cache to avoid reopening the PDF for each call.
+    """
+    # This function is deprecated - use batch version instead
     with pdfplumber.open(str(pdf_path)) as pdf:
         if page_num < 1 or page_num > len(pdf.pages):
             return None
@@ -117,6 +122,31 @@ def get_mcid_first_char_position(
             return None
         first = sorted(chars, key=lambda c: (c['top'], c['x0']))[0]
         return (float(first['x0']), float(first['top']))
+
+
+def get_all_mcid_positions(pdf_path: Path) -> Dict[Tuple[int, int], Tuple[float, float]]:
+    """Get first character position for all MCIDs in the PDF.
+
+    Returns:
+        Dict mapping (page_num, mcid) -> (x, y) position
+    """
+    result = {}
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        for page_idx, page in enumerate(pdf.pages):
+            page_num = page_idx + 1
+            # Group chars by MCID
+            mcid_chars: Dict[int, List] = {}
+            for c in page.chars:
+                mcid = c.get('mcid')
+                if mcid is not None:
+                    mcid_chars.setdefault(mcid, []).append(c)
+
+            # Get first char position for each MCID
+            for mcid, chars in mcid_chars.items():
+                first = min(chars, key=lambda c: (c['top'], c['x0']))
+                result[(page_num, mcid)] = (float(first['x0']), float(first['top']))
+
+    return result
 
 
 # =============================================================================
@@ -143,13 +173,16 @@ def find_merges_synctex(
     page: int,
     crosscolumn_lines: Set[Tuple[str, int]],
     synctex_data: SyncTeXData,
-    pdf_path: Path,
+    mcid_positions: Dict[Tuple[int, int], Tuple[float, float]],
     page_height: float,
     verbose: bool = False
 ) -> List[Tuple[int, int]]:
     """Find elements to merge based on SyncTeX source line matching.
 
     Elements that map to the same cross-column source line should be merged.
+
+    Args:
+        mcid_positions: Pre-computed dict mapping (page, mcid) -> (x, y)
 
     Returns:
         List of (keep_eid, drop_eid) pairs
@@ -161,7 +194,7 @@ def find_merges_synctex(
     elem_source: Dict[int, Tuple[str, int]] = {}
 
     for e in elems:
-        pos = get_mcid_first_char_position(pdf_path, page, e.primary_mcid)
+        pos = mcid_positions.get((page, e.primary_mcid))
         if pos is None:
             continue
 
@@ -268,6 +301,13 @@ def merge_split_paragraphs(
     page_heights = {i+1: float(doc[i].rect.height) for i in range(len(doc))}
     doc.close()
 
+    # Pre-compute all MCID positions (batch operation - much faster than per-element)
+    if verbose:
+        print("[merge-split] Pre-computing MCID positions...")
+    mcid_positions = get_all_mcid_positions(pdf_path)
+    if verbose:
+        print(f"[merge-split] Cached {len(mcid_positions)} MCID positions")
+
     # Find merges for each cross-column page
     all_merges: List[Tuple[int, int]] = []
 
@@ -281,7 +321,7 @@ def merge_split_paragraphs(
 
         merges = find_merges_synctex(
             elems, page_num, crosscolumn_lines,
-            synctex_data, pdf_path, page_height,
+            synctex_data, mcid_positions, page_height,
             verbose=verbose
         )
         all_merges.extend(merges)

@@ -25,6 +25,7 @@ from ..parsing.parse_synctex import (
     sp_to_pdf_points,
     SyncTeXData,
 )
+from ..parsing.parse_lpsb_mcid import parse_aux_file
 
 # Tag types that represent floats (should not receive cross-page continuation)
 FLOAT_TAG_TYPES = {'Figure', 'Table', 'Algorithm'}
@@ -284,7 +285,7 @@ def inject_bdc_for_untagged_regions(
     allocator: MCIDAllocator,
     tag_type: str = 'P',
     verbose: bool = False
-) -> Tuple[bytes, int]:
+) -> Tuple[bytes, int, List[Dict]]:
     """Inject BDC/EMC pairs for untagged text regions that match SyncTeX targets.
 
     Returns (new_stream, injection_count)
@@ -297,10 +298,10 @@ def inject_bdc_for_untagged_regions(
     # Find untagged regions
     untagged = find_untagged_text_regions(text)
     if not untagged:
-        return content_stream, 0
+        return content_stream, 0, []
 
     # For each untagged region, check if it matches a target source line
-    injections = []  # (bdc_pos, emc_pos)
+    injections = []  # (bdc_pos, emc_pos, source)
 
     for start_pos, end_pos in untagged:
         # Get text position from content stream
@@ -320,7 +321,7 @@ def inject_bdc_for_untagged_regions(
         for target_fname, target_line in target_lines:
             target_base = Path(target_fname).name if target_fname else ''
             if target_base == fname and target_line == source[1]:
-                injections.append((start_pos, end_pos))
+                injections.append((start_pos, end_pos, source))
                 if verbose:
                     print(f"    Page {page_num}: matched untagged text at ({x_pdf:.0f}, {y_pdf:.0f}) to {fname}:{source[1]}")
                 break
@@ -330,7 +331,7 @@ def inject_bdc_for_untagged_regions(
         # This handles cases where SyncTeX coordinate matching isn't precise
         if target_lines and untagged:
             start_pos, end_pos = untagged[0]
-            injections.append((start_pos, end_pos))
+            injections.append((start_pos, end_pos, None))
             if verbose:
                 print(f"    Page {page_num}: fallback injection for first untagged region")
 
@@ -342,7 +343,8 @@ def inject_bdc_for_untagged_regions(
 
     insert_ops = []  # (pos, priority, text) - higher priority applied first at same pos
 
-    for bdc_pos, _ in injections:
+    injected_info: List[Dict] = []
+    for bdc_pos, _, source in injections:
         mcid = allocator.allocate()
 
         # Find where to insert EMC
@@ -354,13 +356,20 @@ def inject_bdc_for_untagged_regions(
 
         insert_ops.append((bdc_pos, 1, f'/{tag_type} << /MCID {mcid} >> BDC\n'))
         insert_ops.append((emc_pos, 0, ' EMC\n'))
+        injected_info.append(
+            {
+                "mcid": mcid,
+                "page": page_num,
+                "source": source,  # (filename, line) or None
+            }
+        )
 
     # Apply insertions from end to start
     insert_ops.sort(key=lambda x: (x[0], x[1]), reverse=True)
     for pos, _, ins_text in insert_ops:
         text = text[:pos] + ins_text + text[pos:]
 
-    return text.encode('latin-1'), len(injections)
+    return text.encode('latin-1'), len(injections), injected_info
 
 
 def fix_orphan_emcs(content_stream: bytes, verbose: bool = False) -> Tuple[bytes, int]:
@@ -403,7 +412,7 @@ def split_cross_column_tags(
     boundary_x: float,
     allocator: MCIDAllocator,
     verbose: bool = False
-) -> Tuple[bytes, int]:
+) -> Tuple[bytes, int, List[Tuple[int, int]]]:
     """Split tags that span both columns at the column boundary."""
     try:
         text = content_stream.decode('latin-1')
@@ -418,7 +427,7 @@ def split_cross_column_tags(
     emc_matches = list(emc_pattern.finditer(text))
 
     if not bdc_matches:
-        return content_stream, 0
+        return content_stream, 0, []
 
     # Match BDCs with EMCs
     tag_regions = []
@@ -468,22 +477,25 @@ def split_cross_column_tags(
                     break
 
     if not splits_needed:
-        return content_stream, 0
+        return content_stream, 0, []
 
     # Apply splits from end to start
     splits_needed.sort(key=lambda x: x['split_pos'], reverse=True)
 
+    split_info: List[Tuple[int, int]] = []
     for split in splits_needed:
         pos = split['split_pos']
         tag_type = split['region']['type']
+        orig_mcid = int(split['region']['mcid'])
         new_mcid = allocator.allocate()
         injection = f'EMC\n/{tag_type} << /MCID {new_mcid} >> BDC\n'
         text = text[:pos] + injection + text[pos:]
+        split_info.append((orig_mcid, new_mcid))
 
     if verbose:
         print(f"  Split {len(splits_needed)} cross-column tags")
 
-    return text.encode('latin-1'), len(splits_needed)
+    return text.encode('latin-1'), len(splits_needed), split_info
 
 
 # =============================================================================
@@ -541,7 +553,7 @@ def process_pdf_synctex(
 
     Args:
         pdf_path: Input PDF path
-        aux_path: AUX file path (for reference, not used for MCID allocation)
+        aux_path: AUX file path (updated with injected/split MCID continuations)
         synctex_path: SyncTeX file path
         output_path: Output PDF path (default: input_fixed.pdf)
         verbose: Print progress
@@ -576,6 +588,8 @@ def process_pdf_synctex(
     total_injections = 0
     total_splits = 0
     total_orphans = 0
+    injected_records: List[Dict] = []
+    split_records: List[Tuple[int, int, int]] = []  # (orig_mcid, new_mcid, page)
 
     for page_num in sorted(pages_to_process):
         if page_num < 1 or page_num > len(doc):
@@ -605,27 +619,111 @@ def process_pdf_synctex(
         target_lines = get_target_lines_for_page(disc, page_num)
 
         # Phase 3: Inject BDC for untagged regions
-        stream, n_inject = inject_bdc_for_untagged_regions(
+        stream, n_inject, injected_info = inject_bdc_for_untagged_regions(
             stream, page_num, page_height,
             synctex_data, target_lines, allocator,
             tag_type='P', verbose=verbose
         )
         total_injections += n_inject
+        if injected_info:
+            injected_records.extend(injected_info)
 
         # Phase 4: Split cross-column tags
         if page_num in disc['crosscolumn_pages']:
             boundary = find_column_boundary(doc, page_num - 1)
             if boundary:
-                stream, n_split = split_cross_column_tags(
+                stream, n_split, split_info = split_cross_column_tags(
                     stream, boundary, allocator, verbose=verbose
                 )
                 total_splits += n_split
+                for orig_mcid, new_mcid in split_info:
+                    split_records.append((orig_mcid, new_mcid, page_num))
 
         # Update stream
         doc.update_stream(contents_xref, stream)
 
     doc.save(str(output_path))
     doc.close()
+
+    # Update aux with injected/split MCIDs so StructTree can map them.
+    try:
+        elements, _summary = parse_aux_file(Path(aux_path))
+        mcid_to_elem: Dict[int, int] = {}
+        line_to_elem: Dict[int, List[int]] = {}
+        elem_meta: Dict[int, Dict] = {}
+
+        for e in elements:
+            elem_id = int(e.elem_id)
+            elem_meta[elem_id] = {
+                "tag": getattr(e, "tag_type", ""),
+                "start_page": int(getattr(e, "start_page", 0) or 0),
+                "is_atom": bool(getattr(e, "is_atom", False)),
+                "source_line": int(getattr(e, "source_line", 0) or 0),
+                "pages": {int(m.page) for m in getattr(e, "mcids", [])},
+            }
+            for m in getattr(e, "mcids", []):
+                mcid_to_elem[int(m.mcid)] = elem_id
+            src_line = elem_meta[elem_id]["source_line"]
+            if src_line > 0:
+                line_to_elem.setdefault(src_line, []).append(elem_id)
+
+        def pick_elem_for_line(line: int, page: int) -> Optional[int]:
+            cands = line_to_elem.get(line, [])
+            if not cands:
+                return None
+            # Prefer non-atom, non-float, and elements that started earlier.
+            for eid in cands:
+                meta = elem_meta.get(eid, {})
+                if meta.get("is_atom"):
+                    continue
+                if meta.get("tag") in FLOAT_TAG_TYPES:
+                    continue
+                start_page = int(meta.get("start_page") or 0)
+                if start_page > 0 and start_page <= page:
+                    return eid
+            # Fallback: first candidate
+            return cands[0]
+
+        aux_lines = Path(aux_path).read_text(errors="replace").splitlines(keepends=True)
+        appended = 0
+        existing = set()
+        for e in elements:
+            for m in getattr(e, "mcids", []):
+                existing.add((int(e.elem_id), int(m.mcid), int(m.page)))
+
+        for rec in injected_records:
+            src = rec.get("source")
+            if not src:
+                continue
+            _fname, line = src
+            page = int(rec.get("page") or 0)
+            mcid = int(rec.get("mcid"))
+            eid = pick_elem_for_line(int(line), page)
+            if eid is None:
+                continue
+            if (eid, mcid, page) in existing:
+                continue
+            aux_lines.append(f"\\lpsb@mcid@cont{{{eid}}}{{{mcid}}}{{{page}}}\n")
+            existing.add((eid, mcid, page))
+            appended += 1
+
+        for orig_mcid, new_mcid, page in split_records:
+            eid = mcid_to_elem.get(int(orig_mcid))
+            if eid is None:
+                continue
+            if (eid, int(new_mcid), int(page)) in existing:
+                continue
+            aux_lines.append(f"\\lpsb@mcid@cont{{{eid}}}{{{int(new_mcid)}}}{{{int(page)}}}\n")
+            existing.add((eid, int(new_mcid), int(page)))
+            appended += 1
+
+        if appended:
+            Path(aux_path).write_text("".join(aux_lines))
+            if verbose:
+                print(f"[synctex-fix] Aux updated: +{appended} continuations")
+    except Exception as e:
+        if verbose:
+            print(f"[synctex-fix] WARN: failed to update aux: {e}")
 
     if verbose:
         print(f"[synctex-fix] Injections: {total_injections}, Splits: {total_splits}, Orphans removed: {total_orphans}")

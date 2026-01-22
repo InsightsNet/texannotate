@@ -458,13 +458,14 @@ ARXIV_TEXLIVE_DEFAULT = "2025"
 TEXLIVE_MIN_DEFAULT = "2020"
 
 # Two-pass compilation for accurate float/cross-page tagging
-# Set LPSB_TWO_PASS=1 to enable (adds one extra pdflatex pass)
-LPSB_TWO_PASS_DEFAULT = False
+# Set LPSB_TWO_PASS=0 to disable (adds one extra pdflatex pass)
+LPSB_TWO_PASS_DEFAULT = True
 
 
 def _is_two_pass_enabled() -> bool:
     """Check if two-pass compilation mode is enabled."""
-    env_val = os.environ.get("LPSB_TWO_PASS", "0").strip().lower()
+    default_val = "1" if LPSB_TWO_PASS_DEFAULT else "0"
+    env_val = os.environ.get("LPSB_TWO_PASS", default_val).strip().lower()
     return env_val in ("1", "true", "yes", "on")
 
 def _scan_compile_log_for_issues(log_path: Path):

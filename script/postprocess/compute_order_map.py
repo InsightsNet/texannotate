@@ -2,19 +2,19 @@
 """
 compute_order_map.py - Compute a stable reading-order map for LPSB elements.
 
-Unified Approach (SyncTeX-primary):
-  The reading order is computed using SyncTeX source line numbers as the PRIMARY
-  sorting key, with column position detection as a SECONDARY key for two-column
-  layouts. This ensures:
-  
-  1. Elements are ordered by their source code line numbers (author's writing order)
-  2. Within the same source line, left column content comes before right column
-  3. Fallback to geometric heuristics only when SyncTeX data is unavailable
+Default Approach (mixed):
+  - Non-float elements follow LaTeX emission order from the aux file.
+  - Float elements (Figure/Table/Algorithm/Listing) are interleaved by page
+    position using their primary MCID bbox.
 
-Algorithm:
-  - Sort by: (file_id, source_line, page, column, y, x)
-  - SyncTeX provides file:line mapping for each PDF position
-  - Column detection uses page width center or detected gutter
+This matches the expected reading order for typical papers:
+  - Body text follows author writing order.
+  - Floats appear where they are visually placed on the page.
+
+Alternate modes:
+  - latex   : pure aux emission order
+  - layout  : pure geometric layout order
+  - synctex : SyncTeX source mapping order (debug/diagnostic)
 """
 
 
@@ -361,6 +361,146 @@ def compute_order_map_layout(aux_path: Path, pdf_path: Path, verbose: bool = Fal
     return order_map
 
 
+_FLOAT_TAGS = {"Figure", "Table", "Algorithm", "Listing"}
+
+
+def _primary_bbox_for_element(
+    e,
+    mcid_bboxes: Dict[int, Dict[int, Tuple[float, float, float, float]]],
+) -> Optional[Tuple[float, float, float, float]]:
+    start_page = int(getattr(e, "start_page", 0) or 0)
+    mcids = list(getattr(e, "mcids", []) or [])
+    if mcids:
+        m0 = mcids[0]
+        try:
+            if int(m0.page) == start_page:
+                bb = mcid_bboxes.get(int(m0.mcid), {}).get(start_page)
+                if bb is not None:
+                    return bb
+        except Exception:
+            pass
+    # Fallback: union of bboxes on start page.
+    page_bbs: List[Tuple[float, float, float, float]] = []
+    for m in mcids:
+        try:
+            if int(m.page) != start_page:
+                continue
+            bb = mcid_bboxes.get(int(m.mcid), {}).get(start_page)
+            if bb is not None:
+                page_bbs.append(bb)
+        except Exception:
+            continue
+    return _union_bbox(page_bbs)
+
+
+def compute_order_map_mixed(aux_path: Path, pdf_path: Path, verbose: bool = False) -> Dict[int, int]:
+    """Mixed reading order: LaTeX order for non-floats + page-position for floats."""
+    elements, _summary = parse_aux_file(aux_path)
+    mcid_bboxes = _extract_mcid_bboxes(pdf_path)
+
+    # Base LaTeX emission order for non-floats (global).
+    latex_order = compute_order_map_latex(aux_path, pdf_path, verbose=False)
+
+    def latex_rank(eid: int) -> int:
+        if eid in latex_order:
+            return int(latex_order[eid])
+        return 10**12 + int(eid)
+
+    # Group elements by start_page (1-based).
+    by_page: Dict[int, List] = {}
+    skipped = 0
+    for e in elements:
+        if getattr(e, "is_atom", False):
+            continue
+        page = int(getattr(e, "start_page", 0) or 0)
+        if page <= 0:
+            skipped += 1
+            continue
+        by_page.setdefault(page, []).append(e)
+
+    ordered: List[int] = []
+    for page in sorted(by_page.keys()):
+        page_elems = by_page[page]
+        non_floats = []
+        floats = []
+        for e in page_elems:
+            tag = (getattr(e, "tag_type", "") or "").strip()
+            if tag in _FLOAT_TAGS:
+                floats.append(e)
+            else:
+                non_floats.append(e)
+
+        # Non-floats keep LaTeX order within the page.
+        non_floats.sort(key=lambda e: latex_rank(int(e.elem_id)))
+
+        # Sort floats by top-left position on the page (if available).
+        float_items = []
+        for e in floats:
+            bb = _primary_bbox_for_element(e, mcid_bboxes)
+            if bb is None:
+                float_items.append((1e9, 1e9, latex_rank(int(e.elem_id)), e))
+            else:
+                x0, y0, _x1, _y1 = bb
+                float_items.append((y0, x0, latex_rank(int(e.elem_id)), e))
+        float_items.sort(key=lambda t: (t[0], t[1], t[2]))
+
+        # Prepare non-float anchors with y position for interleaving.
+        nonfloat_items = []
+        for e in non_floats:
+            bb = _primary_bbox_for_element(e, mcid_bboxes)
+            if bb is None:
+                nonfloat_items.append((1e9, 1e9, e))
+            else:
+                x0, y0, _x1, _y1 = bb
+                nonfloat_items.append((y0, x0, e))
+
+        # Start with non-floats in LaTeX order; insert floats by y position.
+        merged = list(non_floats)
+        # Build a lookup dict for nonfloat positions
+        nonfloat_pos = {ee.elem_id: (yy, xx) for (yy, xx, ee) in nonfloat_items}
+        for fy, fx, _r, fe in float_items:
+            insert_at = len(merged)
+            for idx, nf in enumerate(merged):
+                yx = nonfloat_pos.get(nf.elem_id)
+                if yx is None:
+                    continue  # Skip if position not found
+                if yx[0] > fy:
+                    insert_at = idx
+                    break
+            merged.insert(insert_at, fe)
+
+        ordered.extend([int(e.elem_id) for e in merged])
+
+    # Assign order indices.
+    order_map: Dict[int, int] = {}
+    for idx, eid in enumerate(ordered, 1):
+        order_map[eid] = idx
+
+    if verbose:
+        print(f"[order-map/mixed] ordered={len(order_map)} pages={len(by_page)} skipped={skipped}")
+
+    return order_map
+
+
+def _apply_atom_orders(order_map: Dict[int, int], aux_path: Path, verbose: bool = False) -> Dict[int, int]:
+    """Assign atom elements the same order as their parent (when available)."""
+    elements, _summary = parse_aux_file(aux_path)
+    added = 0
+    skipped = 0
+    for e in elements:
+        if not getattr(e, "is_atom", False):
+            continue
+        pid = getattr(e, "parent_id", None)
+        if pid is not None and int(pid) in order_map:
+            order_map[int(e.elem_id)] = int(order_map[int(pid)])
+            added += 1
+        else:
+            skipped += 1
+    if verbose:
+        print(f"[order-map/atoms] added={added} skipped={skipped}")
+    return order_map
+
+
 def compute_order_map_synctex(
     aux_path: Path,
     pdf_path: Path,
@@ -536,19 +676,25 @@ def compute_order_map_synctex(
 
 
 def compute_order_map(
-    aux_path: Path, 
-    pdf_path: Path, 
-    mode: str = "synctex",  # Changed default to synctex
+    aux_path: Path,
+    pdf_path: Path,
+    mode: str = "mixed",
     synctex_path: Optional[Path] = None,
     verbose: bool = False
 ) -> Dict[int, int]:
-    mode = (mode or "synctex").strip().lower()
+    mode = (mode or "mixed").strip().lower()
+    if mode == "mixed":
+        order_map = compute_order_map_mixed(aux_path, pdf_path, verbose=verbose)
+        return _apply_atom_orders(order_map, aux_path, verbose=verbose)
     if mode == "layout":
-        return compute_order_map_layout(aux_path, pdf_path, verbose=verbose)
+        order_map = compute_order_map_layout(aux_path, pdf_path, verbose=verbose)
+        return _apply_atom_orders(order_map, aux_path, verbose=verbose)
     if mode == "latex":
-        return compute_order_map_latex(aux_path, pdf_path, verbose=verbose)
+        order_map = compute_order_map_latex(aux_path, pdf_path, verbose=verbose)
+        return _apply_atom_orders(order_map, aux_path, verbose=verbose)
     # Default: synctex
-    return compute_order_map_synctex(aux_path, pdf_path, synctex_path=synctex_path, verbose=verbose)
+    order_map = compute_order_map_synctex(aux_path, pdf_path, synctex_path=synctex_path, verbose=verbose)
+    return _apply_atom_orders(order_map, aux_path, verbose=verbose)
 
 
 
@@ -557,7 +703,12 @@ def main() -> int:
     ap.add_argument("pdf", help="Tagged PDF (with MCIDs) to extract geometry from")
     ap.add_argument("--aux", required=True, help="Aux file with LPSB element/MCID data")
     ap.add_argument("-o", "--output", required=True, help="Output JSON path")
-    ap.add_argument("--mode", choices=["latex", "layout"], default="latex", help="Ordering mode (default: latex)")
+    ap.add_argument(
+        "--mode",
+        choices=["mixed", "latex", "layout", "synctex"],
+        default="mixed",
+        help="Ordering mode (default: mixed)",
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
