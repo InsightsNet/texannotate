@@ -34,6 +34,7 @@ import fitz  # PyMuPDF
 try:
     from script.parsing.parse_lpsb_mcid import parse_aux_file  # type: ignore
     from script.parsing.parse_synctex import parse_synctex, sp_to_pdf_points, SyncTeXData  # type: ignore
+    from script.utils.pdf_cache import get_mcid_bboxes_by_mcid, get_mcid_char_stats  # type: ignore
 except Exception:
     import sys
 
@@ -42,6 +43,7 @@ except Exception:
     sys.path.insert(0, str(repo_root))
     from script.parsing.parse_lpsb_mcid import parse_aux_file  # type: ignore
     from script.parsing.parse_synctex import parse_synctex, sp_to_pdf_points, SyncTeXData  # type: ignore
+    from script.utils.pdf_cache import get_mcid_bboxes_by_mcid, get_mcid_char_stats  # type: ignore
 
 
 @dataclass
@@ -132,6 +134,13 @@ def _detect_column_boundary(doc: fitz.Document, page_idx0: int) -> Optional[floa
 
 def _extract_mcid_bboxes(pdf_path: Path) -> Dict[int, Dict[int, Tuple[float, float, float, float]]]:
     """Return {mcid: {page: (x0,y0,x1,y1)}} using pdfplumber chars."""
+    try:
+        cached = get_mcid_bboxes_by_mcid(pdf_path)
+        if cached:
+            return cached
+    except Exception:
+        pass
+
     out: Dict[int, Dict[int, Tuple[float, float, float, float]]] = {}
     with pdfplumber.open(str(pdf_path)) as pdf:
         for page_idx0, page in enumerate(pdf.pages):
@@ -183,6 +192,13 @@ _TAG_ATOM_RE = re.compile(r"\\lpsb@tag@atom\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\
 
 def _primary_mcid_char_stats(pdf_path: Path) -> Dict[Tuple[int, int], Tuple[int, str]]:
     """Return {(page, mcid): (char_count, preview)} using pdfplumber chars."""
+    try:
+        cached = get_mcid_char_stats(pdf_path)
+        if cached:
+            return cached
+    except Exception:
+        pass
+
     out: Dict[Tuple[int, int], Tuple[int, str]] = {}
     with pdfplumber.open(str(pdf_path)) as pdf:
         for page_idx0, page in enumerate(pdf.pages):

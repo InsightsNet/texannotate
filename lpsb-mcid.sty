@@ -28,6 +28,22 @@
 
 \RequirePackage{iftex}
 
+% Debug mode flag - controls verbose debug output
+% Use \usepackage[debug]{lpsb-mcid} to enable
+\newif\if@lpsb@debug \@lpsb@debugfalse
+
+% Debug output macro - only outputs when debug mode is enabled
+% Usage: \lpsb@debug{message text}
+\newcommand{\lpsb@debug}[1]{%
+  \if@lpsb@debug
+    \typeout{[LPSB-DEBUG] #1}%
+  \fi
+}
+
+% Package option: debug (enables verbose debug output)
+\DeclareOption{debug}{%
+  \AtEndOfPackage{\global\@lpsb@debugtrue}%
+}
 % Package option: pass-one (enables positioning collection mode)
 \DeclareOption{pass-one}{%
   \AtEndOfPackage{\global\@lpsb@pass@onetrue}%
@@ -299,13 +315,16 @@
 \gdef\lpsb@reopen@type{}
 \gdef\lpsb@reopen@id{}
 
-\AtBeginShipout{%
-  % CRITICAL FIX: Reset shipout flag from previous page first.
-  % AtBeginShipoutNext only runs once (page 2), so without this reset,
-  % @lpsb@in@shipout stays true forever after page 2, causing para hook
-  % to be skipped and potentially contributing to infinite loop issues.
+% Helper macro to reset shipout flag after shipout completes
+\def\lpsb@reset@shipout@flag{%
   \global\@lpsb@in@shipoutfalse
-  \global\@lpsb@in@shipouttrue  % Now set it true for this shipout
+}
+
+\AtBeginShipout{%
+  % Set shipout flag true during shipout processing
+  \global\@lpsb@in@shipouttrue
+  % Schedule reset after shipout group ends
+  \aftergroup\lpsb@reset@shipout@flag
   \if@lpsb@active
     \stepcounter{lpsb@currentPage}%  % Increment page counter at each shipout
     \if@lpsb@in@tag
@@ -1224,8 +1243,10 @@
         \global\@lpsb@suppress@inlinefalse
         \global\@lpsb@in@algorithmfalse
         \lpsbTagEnd
-        % Start P for text immediately following \end{algorithm} (no blank line)
-        \lpsb@start@P@after@float
+        % CRITICAL FIX: Use deferred P mechanism instead of direct call
+        % Direct lpsb@start@P@after@float inserts BDC at wrong PDF position
+        \global\@lpsb@P@pending@after@floattrue
+        \global\@lpsb@first@paratrue
       }%
     \fi
   }{}%
@@ -1245,7 +1266,7 @@
         \global\@lpsb@suppress@inlinefalse
         \global\@lpsb@in@algorithmfalse
         \lpsbTagEnd
-        % Start P for text immediately following \end{algorithm} (no blank line)
+        % Start P immediately - same pattern as equation environments
         \lpsb@start@P@after@float
       }%
     \fi
@@ -1264,6 +1285,10 @@
         \fi
       \fi
       \global\@lpsb@in@algorithmfalse
+      % Start P after algorithmic ends (if not inside algorithm wrapper)
+      \if@lpsb@in@algorithm\else
+        \lpsb@start@P@after@float
+      \fi
     }%
   }{}%
   \@ifpackageloaded{algorithmicx}{%
@@ -1532,25 +1557,32 @@
 
 % Force-begin a tag even if \protect is not in typeset mode.
 % Use sparingly for cases like floats where we need a P to resume.
+% IMPORTANT: Skip in math mode to avoid spurious P tags in inline math
 \newcommand{\lpsbTagBeginForce}[1]{%
   \if@lpsb@active
-    % If already in a tag, save current state to stack
-    \if@lpsb@in@tag
-      \lpsb@push@tag{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
-      \lpsb@pdfliteralcmd{ EMC }%
+    % Skip in math mode - inline math ($...$) and display math ($$...$$, \[...\])
+    % should not create P tags for subscripts/superscripts
+    \ifmmode
+      \lpsb@debug{lpsbTagBeginForce: SKIPPED in math mode}%
+    \else
+      % If already in a tag, save current state to stack
+      \if@lpsb@in@tag
+        \lpsb@push@tag{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
+        \lpsb@pdfliteralcmd{ EMC }%
+      \fi
+      % Start new element
+      \stepcounter{lpsb@logicalElemID}%
+      \stepcounter{lpsb@globalMCID}%
+      \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
+      \xdef\lpsb@current@tag@type{#1}%
+      \global\@lpsb@in@tagtrue
+      % Insert BDC into content stream
+      \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
+      % Record to aux file with source line number for reading order
+      \immediate\write\@auxout{%
+        \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\the\inputlineno}%
+      }%
     \fi
-    % Start new element
-    \stepcounter{lpsb@logicalElemID}%
-    \stepcounter{lpsb@globalMCID}%
-    \xdef\lpsb@current@logical@id{\thelpsb@logicalElemID}%
-    \xdef\lpsb@current@tag@type{#1}%
-    \global\@lpsb@in@tagtrue
-    % Insert BDC into content stream
-    \lpsb@pdfliteralcmd{ /#1 << /MCID \thelpsb@globalMCID >> BDC }%
-    % Record to aux file with source line number for reading order
-    \immediate\write\@auxout{%
-      \string\lpsb@tag@data{\thelpsb@logicalElemID}{#1}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\the\inputlineno}%
-    }%
   \fi
 }
 
@@ -2042,6 +2074,9 @@
 % Prevents empty P tags after itemize/enumerate/description
 \newif\if@lpsb@P@pending@after@list \@lpsb@P@pending@after@listfalse
 \newif\if@lpsb@P@pending@after@float \@lpsb@P@pending@after@floatfalse
+% Phase 2b: Protection flag for P tag just started before a float
+% Prevents the P tag from being immediately closed by AtBeginEnvironment
+\newif\if@lpsb@just@started@P@before@float \@lpsb@just@started@P@before@floatfalse
 %
 % Phase 3: Layout Environment Suppression
 % Prevents spurious P tags inside center/minipage layout environments
@@ -2155,7 +2190,7 @@
           \global\@lpsb@runin@heading@guardfalse
           \global\@lpsb@in@sectionfalse
           \global\@lpsb@P@pending@after@sectiontrue
-          \typeout{LPSB-DEBUG: @sict display heading done, P@pending=TRUE}%
+          \lpsb@debug{@sict display heading done, P@pending=TRUE}%
         \endgroup
        \csname #1mark\endcsname{#7}\addcontentsline
          {toc}{#1}{\ifnum #2>\c@secnumdepth \else
@@ -2601,7 +2636,7 @@
   %
   % [Phase 1] Deferred P after section heading
   \if@lpsb@P@pending@after@section
-    \typeout{LPSB-DEBUG: everypar triggered with P@pending=TRUE, in@tag=\if@lpsb@in@tag TRUE\else FALSE\fi}%
+    \lpsb@debug{everypar triggered with P@pending=TRUE, in@tag=\if@lpsb@in@tag TRUE\else FALSE\fi}%
     \global\@lpsb@P@pending@after@sectionfalse
     % Force close any existing tag and start fresh P after section heading
     \if@lpsb@in@tag
@@ -2609,7 +2644,7 @@
     \fi
     \lpsbTagBegin{P}%
     \global\@lpsb@first@parafalse
-    \typeout{LPSB-DEBUG: Started new P tag after section}%
+    \lpsb@debug{Started new P tag after section}%
   \else
   % [Phase 1] Deferred P after display math
   \if@lpsb@P@pending@after@math
@@ -3005,28 +3040,49 @@
   % Patch \end@float - close tag before box ends
   \let\lpsb@orig@endfloat\end@float
   % Helper command to start P after float group ends
+  % FIX: Remove conditional checks - after a float ends, we ALWAYS need to start P
+  % for any following text. The conditions were causing failures when flag states
+  % were corrupted by nested environments (e.g., \resizebox inside table).
   \def\lpsb@start@P@after@float{%
+    \lpsb@debug{lpsb@start@P@after@float called}%
+    \lpsb@debug{  @lpsb@active = \if@lpsb@active TRUE\else FALSE\fi}%
+    \lpsb@debug{  @lpsb@in@float = \if@lpsb@in@float TRUE\else FALSE\fi}%
+    \lpsb@debug{  @lpsb@in@tag = \if@lpsb@in@tag TRUE\else FALSE\fi}%
+    \lpsb@debug{  @lpsb@pass@one = \if@lpsb@pass@one TRUE\else FALSE\fi}%
     \if@lpsb@active
-      \if@lpsb@in@tag\else
-        \if@lpsb@in@float\else
-          \lpsbTagBeginForce{P}%
+      \if@lpsb@in@float
+        \lpsb@debug{  -> SKIPPED: still in float}%
+      \else
+        % Force close any existing tag and start fresh P
+        \if@lpsb@in@tag
+          \lpsb@debug{  -> Closing existing tag first}%
+          \lpsbTagEnd
         \fi
+        \lpsb@debug{  -> Starting P tag with lpsbTagBeginForce}%
+        \lpsbTagBeginForce{P}%
       \fi
+    \else
+      \lpsb@debug{  -> SKIPPED: lpsb not active}%
     \fi
   }%
   %
   \def\end@float{%
+    \lpsb@debug{end@float called}%
     \if@lpsb@active
+      \lpsb@debug{  lpsb is active}%
       \if@lpsb@pass@one\else
         \lpsbTagEndFloat  % EMC inside float box, don't restore parent
       \fi
       % Set first_para flag to prevent everypar from cycling P immediately
       \global\@lpsb@first@paratrue
-      % Use aftergroup to start P immediately after the float group ends
-      % This catches text that follows \end{figure} without blank line
-      \aftergroup\lpsb@start@P@after@float
+      % Set pending flag as backup for cases where aftergroup doesn't work
+      \global\@lpsb@P@pending@after@floattrue
     \fi
     \global\@lpsb@in@floatfalse
+    % CRITICAL: Use aftergroup to start P IMMEDIATELY after float group closes
+    % This must be AFTER setting @lpsb@in@floatfalse so the check passes
+    % and BEFORE \lpsb@orig@endfloat which closes the float's vbox
+    \aftergroup\lpsb@start@P@after@float
     \lpsb@orig@endfloat
   }%
   %
@@ -3102,21 +3158,45 @@
 % --- UNIFIED FLOAT HOOKS (TL2016 compatible) ---
 % Helper macro for float begin hooks
 \newcommand{\lpsb@register@float@begin@hook}[1]{%
+  % CRITICAL FIX: Use BeforeBeginEnvironment to start deferred P BEFORE the float group
+  % AtBeginEnvironment runs INSIDE the float group, causing BDC to be in wrong place
+  \BeforeBeginEnvironment{#1}{%
+    \if@lpsb@active
+      \if@lpsb@P@pending@after@float
+        \global\@lpsb@P@pending@after@floatfalse
+        \lpsb@debug{BeforeBeginEnvironment #1: starting deferred P before new float}%
+        \lpsbTagBeginForce{P}%
+        \global\@lpsb@first@parafalse
+        % Set protection flag to prevent AtBeginEnvironment from closing this P immediately
+        \global\@lpsb@just@started@P@before@floattrue
+      \fi
+    \fi
+  }%
   \AtBeginEnvironment{#1}{%
     % Clear ALL pending P flags - floats don't need empty P before them
     \global\@lpsb@P@pending@after@sectionfalse
     \global\@lpsb@P@pending@after@mathfalse
     \global\@lpsb@P@pending@after@listfalse
-    \if@lpsb@active\if@lpsb@in@tag%
-      \lpsb@check@float@page  % Check where this float will land
-      \if@lpsb@float@same@page
-        % Float on same page - close P to avoid incorrect nesting
-        \lpsb@pdfliteralcmd{ EMC }%
-        \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
-        \gdef\lpsb@tag@stack{}%
-        \global\@lpsb@in@tagfalse%
-      \fi
-    \fi\fi%
+    % Check if we just started a P tag in BeforeBeginEnvironment
+    % If so, DON'T close it - the P tag wraps the text before this float
+    % and will be closed properly when the float content starts
+    \if@lpsb@just@started@P@before@float
+      \global\@lpsb@just@started@P@before@floatfalse
+      \lpsb@debug{AtBeginEnvironment #1: preserving P tag for inter-float text}%
+      % Do NOT close the P tag here - let it wrap the text content
+      % The @xfloat hook will handle entering float context
+    \else
+      \if@lpsb@active\if@lpsb@in@tag%
+        \lpsb@check@float@page  % Check where this float will land
+        \if@lpsb@float@same@page
+          % Float on same page - close P to avoid incorrect nesting
+          \lpsb@pdfliteralcmd{ EMC }%
+          \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
+          \gdef\lpsb@tag@stack{}%
+          \global\@lpsb@in@tagfalse%
+        \fi
+      \fi\fi%
+    \fi
   }%
 }
 % Apply to all float types using etoolbox loop
@@ -3129,8 +3209,17 @@
 % Helper for single-column float end hooks (immediate P start)
 % CRITICAL: Use AfterEndEnvironment (not AtEndEnvironment) because end@float
 % closes the Figure tag inside AtEndEnvironment. We need to start P AFTER that.
+% FIX: Use lpsbTagBeginForce instead of conditional lpsbTagBegin to ensure
+% P tag is created even when condition flags are in unexpected states after floats.
 \newcommand{\lpsb@register@float@end@hook@single}[1]{%
-  \AfterEndEnvironment{#1}{\if@lpsb@active\if@lpsb@in@tag\else\lpsbTagBegin{P}\fi\global\@lpsb@first@paratrue\fi}%
+  \AfterEndEnvironment{#1}{%
+    \if@lpsb@active
+      \if@lpsb@in@tag\else
+        \lpsbTagBeginForce{P}%
+      \fi
+      \global\@lpsb@first@paratrue
+    \fi
+  }%
 }
 % Helper for double-column float end hooks (deferred P via pending flag)
 \newcommand{\lpsb@register@float@end@hook@double}[1]{%
@@ -3688,11 +3777,18 @@
 \gdef\lpsb@math@parent@type{}
 
 \newcommand{\lpsb@inline@math@begin}{%
+  % UNCONDITIONAL TRACE: Write to log for every \( invocation
+  \typeout{[LPSB-TRACE] InlineMath BEGIN called on page \thelpsb@currentPage}%
+  \typeout{[LPSB-TRACE] InlineMath: checking protect...}%
   % CRITICAL: Skip in non-typesetting contexts (moving arguments like \section{})
   % This prevents "Missing \endcsname" errors when \(...\) appears in titles
   \ifx\protect\@typeset@protect
+    \typeout{[LPSB-TRACE] InlineMath: protect OK}%
     \if@lpsb@active
-      \if@lpsb@in@shipout\else
+      \typeout{[LPSB-TRACE] InlineMath: active OK}%
+      \if@lpsb@in@shipout
+        \typeout{[LPSB-TRACE] InlineMath: SKIPPED in shipout}%
+      \else
         \if@lpsb@in@tag
           \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
           \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
@@ -3710,8 +3806,13 @@
           \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
         }%
         \global\@lpsb@in@inline@mathtrue
+        \typeout{[LPSB-TRACE] InlineMath: CREATED MCID=\thelpsb@globalMCID}%
       \fi
+    \else
+      \typeout{[LPSB-TRACE] InlineMath: SKIPPED - not active}%
     \fi
+  \else
+    \typeout{[LPSB-TRACE] InlineMath: SKIPPED - protect mismatch}%
   \fi
 }
 
@@ -3738,20 +3839,88 @@
   \fi
 }
 
-% Reliable inline-math hook: \(...\) is a macro pair, unlike $...$.
-% If sources are preprocessed to use \(...\), this gives stable inline-math tagging
-% without touching catcodes or low-level math internals.
-\AtBeginDocument{%
-  \@ifundefined{(}{}{%
-    \let\lpsb@orig@lparen\(
-    \let\lpsb@orig@rparen\)
-    \def\({\lpsb@inline@math@begin\lpsb@orig@lparen}%
-    \def\){\lpsb@orig@rparen\lpsb@inline@math@end}%
-  }%
+% Reliable inline-math hook using \everymath (TeX primitive, TL 2016 compatible).
+% \everymath is executed at the START of every math mode.
+% We use an explicit @lpsb@in@display@math flag to distinguish inline from display math.
+% Display math environments set this flag, so \everymath knows to skip.
+%
+% IMPORTANT: We append to \everymath rather than replacing it, so other packages
+% (like amsmath) can also use \everymath without conflict.
+
+% Flag to track if we're in display math (set by equation/align hooks)
+\newif\if@lpsb@in@display@math \@lpsb@in@display@mathfalse
+
+% Flag to track if we already started an InlineMath tag in this math group
+\newif\if@lpsb@everymath@started \@lpsb@everymath@startedfalse
+
+\def\lpsb@everymath@hook{%
+  % Only process if LPSB is active and we're in typeset mode
+  \if@lpsb@active
+    \ifx\protect\@typeset@protect
+      % Skip during shipout (header/footer processing)
+      % NOTE: We check @lpsb@in@shipout but it should be false during normal
+      % body content processing. If this check fails, the shipout flag reset
+      % logic in \AtBeginShipout needs to be verified.
+      \if@lpsb@in@shipout\else
+        % Skip if we're in display math (equation, align, etc.)
+        \if@lpsb@in@display@math\else
+          % Avoid double-starting if already in InlineMath
+          \if@lpsb@in@inline@math\else
+            \if@lpsb@everymath@started\else
+              \global\@lpsb@everymath@startedtrue
+              % Close parent tag temporarily
+              \if@lpsb@in@tag
+                \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
+                \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
+                \lpsb@pdfliteralcmd{ EMC }%
+              \else
+                \gdef\lpsb@math@parent@id{}%
+                \gdef\lpsb@math@parent@type{}%
+              \fi
+              % Start InlineMath atom
+              \stepcounter{lpsb@logicalElemID}%
+              \stepcounter{lpsb@globalMCID}%
+              \lpsb@pdfliteralcmd{ /InlineMath << /MCID \thelpsb@globalMCID >> BDC }%
+              \immediate\write\@auxout{%
+                \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
+              }%
+              \global\@lpsb@in@inline@mathtrue
+              % Use \aftergroup to close InlineMath when math mode ends
+              \aftergroup\lpsb@everymath@end@hook
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
 }
 
-% Hook equation/align environments instead (more reliable)
+\def\lpsb@everymath@end@hook{%
+  \global\@lpsb@everymath@startedfalse
+  \if@lpsb@in@inline@math
+    % Close InlineMath MCID
+    \lpsb@pdfliteralcmd{ EMC }%
+    \global\@lpsb@in@inline@mathfalse
+    % Reopen parent MCID with a continuation MCID
+    \ifx\lpsb@math@parent@id\@empty\else
+      \stepcounter{lpsb@globalMCID}%
+      \lpsb@pdfliteralcmd{ /\lpsb@math@parent@type\space << /MCID \thelpsb@globalMCID >> BDC }%
+      \edef\lpsb@cont@parentid{\lpsb@math@parent@id}%
+      \edef\lpsb@cont@mcid{\thelpsb@globalMCID}%
+      \edef\lpsb@cont@page{\thelpsb@currentPage}%
+      \immediate\write\@auxout{\string\lpsb@mcid@cont{\lpsb@cont@parentid}{\lpsb@cont@mcid}{\lpsb@cont@page}}%
+    \fi
+  \fi
+}
+
+% Install the \everymath hook at begin document (after all packages loaded)
+\AtBeginDocument{%
+  \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+}
+
+% Hook equation/align environments to set display math flag
 \AtBeginEnvironment{equation}{%
+  \global\@lpsb@in@display@mathtrue
   \lpsbTagEnd
   \lpsbTagBegin{Formula}%
 }
@@ -3764,15 +3933,23 @@
     \@ifundefined{endequation}{}{%
       \apptocmd{\endequation}{%
         \lpsbTagEnd
-        % Defer P - everypar will start it when real content arrives
-        \global\@lpsb@P@pending@after@mathtrue
+        \global\@lpsb@in@display@mathfalse
+        % Reinstall everymath hook (amsmath clears it during equation processing)
+        \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+        % Start P immediately for text following \end{equation} without blank line
+        % Using aftergroup ensures it runs after the environment group closes
+        \aftergroup\lpsb@start@P@after@float
       }{}{}%
     }%
   }%
 }{%
   \AfterEndEnvironment{equation}{%
     \lpsbTagEnd
-    \global\@lpsb@P@pending@after@mathtrue
+    \global\@lpsb@in@display@mathfalse
+    % Reinstall everymath hook (amsmath clears it during equation processing)
+    \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+    % Start P immediately - don't rely on everypar which may not trigger
+    \lpsb@start@P@after@float
   }%
 }
 
@@ -3781,12 +3958,17 @@
 % --- UNIFIED AMS MATH HOOKS (using etoolbox loop) ---
 \newcommand{\lpsb@register@ams@math@hook}[1]{%
   \AtBeginEnvironment{#1}{%
+    \global\@lpsb@in@display@mathtrue
     \lpsbTagEnd
     \lpsbTagBegin{Formula}%
   }%
   \AfterEndEnvironment{#1}{%
     \lpsbTagEnd
-    \global\@lpsb@P@pending@after@mathtrue
+    \global\@lpsb@in@display@mathfalse
+    % Reinstall everymath hook (amsmath clears it during equation processing)
+    \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+    % Start P immediately - don't rely on everypar which may not trigger
+    \lpsb@start@P@after@float
   }%
 }
 % Apply to all AMS math environments
@@ -3870,9 +4052,16 @@
               \global\@lpsb@in@tagfalse
             \fi
             \global\@lpsb@wf@boxingfalse
+            % Start P tag for text following wraptable/wrapfigure
+            \global\@lpsb@P@pending@after@floattrue
+            \global\@lpsb@first@paratrue
           \fi
         \fi
         \lpsb@orig@endwrapfloat
+        % Call lpsb@start@P@after@float AFTER original endwrapfloat completes
+        \if@lpsb@active
+          \lpsb@start@P@after@float
+        \fi
       }%
     }%
     % Patch \WF@floathand: wrapfig injects \WF@box later via \everypar.

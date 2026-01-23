@@ -79,6 +79,94 @@ def _default_order_map_output(aux_path: Path, pdf_path: Path) -> Path:
         return pdf_path.with_suffix(".order.json")
 
 
+def _guess_mcid_json_paths(aux_path: Path, pdf_path: Path) -> List[Path]:
+    cands: List[Path] = []
+    try:
+        cands.append(aux_path.with_name("main.mcid.json"))
+        cands.append(aux_path.with_suffix(".mcid.json"))
+    except Exception:
+        pass
+    try:
+        cands.append(pdf_path.with_name("main.mcid.json"))
+        cands.append(pdf_path.with_suffix(".mcid.json"))
+    except Exception:
+        pass
+    out: List[Path] = []
+    seen = set()
+    for p in cands:
+        s = str(p)
+        if s in seen:
+            continue
+        seen.add(s)
+        out.append(p)
+    return out
+
+
+def _apply_mcid_json_pages(elements: List, aux_path: Path, pdf_path: Path, verbose: bool = False) -> bool:
+    """Update element mcid page numbers from precomputed mcid.json (no pdfplumber)."""
+    mcid_json = None
+    for p in _guess_mcid_json_paths(aux_path, pdf_path):
+        if p.exists():
+            mcid_json = p
+            break
+    if mcid_json is None:
+        return False
+
+    try:
+        raw = json.loads(mcid_json.read_text(errors="replace"))
+    except Exception:
+        return False
+
+    elems = raw.get("elements")
+    if not isinstance(elems, list):
+        return False
+
+    by_id: Dict[int, Dict[int, int]] = {}
+    for e in elems:
+        try:
+            eid = int(e.get("id"))
+        except Exception:
+            continue
+        mcids = e.get("mcids") or []
+        for m in mcids:
+            try:
+                mcid = int(m.get("mcid"))
+                page = int(m.get("page"))
+            except Exception:
+                continue
+            by_id.setdefault(eid, {})[mcid] = page
+
+    if not by_id:
+        return False
+
+    updated = 0
+    for e in elements:
+        try:
+            eid = int(e.elem_id)
+        except Exception:
+            continue
+        mp = by_id.get(eid)
+        if not mp:
+            continue
+        pages = set()
+        for m in getattr(e, "mcids", []):
+            try:
+                mcid = int(m.mcid)
+            except Exception:
+                continue
+            if mcid in mp:
+                m.page = int(mp[mcid])
+                updated += 1
+            pages.add(int(m.page))
+        if pages:
+            e.start_page = min(pages)
+            e.end_page = max(pages)
+
+    if verbose:
+        print(f"[structtree] mcid.json applied: {mcid_json} (updated {updated} mcids)")
+    return True
+
+
 def _get_order_map(pdf_path: Path, aux_path: Path, verbose: bool = False) -> Optional[Dict[int, int]]:
     """
     Resolve reading-order map in this priority:
@@ -242,7 +330,9 @@ def inject_structtree(pdf_path: str, aux_path: str, output_path: str, verbose: b
     elements, summary = parse_aux_file(Path(aux_path))
     
     # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
-    reconcile_element_pages(elements, Path(pdf_path), verbose=bool(verbose))
+    # Prefer precomputed mcid.json to avoid a full pdfplumber pass.
+    if not _apply_mcid_json_pages(elements, Path(aux_path), Path(pdf_path), verbose=bool(verbose)):
+        reconcile_element_pages(elements, Path(pdf_path), verbose=bool(verbose))
     
     order_map = _get_order_map(Path(pdf_path), Path(aux_path), verbose=bool(verbose))
 

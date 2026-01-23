@@ -30,6 +30,7 @@ from ..parsing.parse_synctex import (
     sp_to_pdf_points,
     SyncTeXData,
 )
+from ..utils.pdf_cache import get_mcid_first_char_positions
 
 
 _TAG_DATA_RE = re.compile(r"\\lpsb@tag@data\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}")
@@ -70,30 +71,71 @@ def get_crosscolumn_source_lines(synctex_path: Path) -> Dict[int, Set[Tuple[str,
     return result, data
 
 
+def _build_synctex_index(
+    synctex_data: SyncTeXData,
+    page_heights: Dict[int, float],
+    cell_size: float = 50.0,
+) -> Dict[int, Dict]:
+    """Build a page-level grid index for fast SyncTeX nearest lookup."""
+    index: Dict[int, Dict] = {}
+
+    def _cell(x: float, y: float) -> Tuple[int, int]:
+        return (int(x // cell_size), int(y // cell_size))
+
+    for rec in synctex_data.records:
+        page = rec.page
+        if page not in page_heights:
+            continue
+        filename = synctex_data.files.get(rec.file_id, '')
+        if '/texmf-dist/' in filename or '/texlive/' in filename:
+            continue
+        sx = sp_to_pdf_points(rec.x)
+        sy_top = page_heights[page] - sp_to_pdf_points(rec.y)
+        gx, gy = _cell(sx, sy_top)
+        page_idx = index.setdefault(page, {"cell": cell_size, "grid": {}})
+        page_idx["grid"].setdefault((gx, gy), []).append((sx, sy_top, filename, rec.line))
+
+    return index
+
+
 def match_mcid_to_source(
     synctex_data: SyncTeXData,
     page: int,
     x_pdf: float,
     y_pdf: float,
     page_height: float,
-    tolerance: float = 25.0
+    tolerance: float = 25.0,
+    index: Optional[Dict[int, Dict]] = None
 ) -> Optional[Tuple[str, int]]:
     """Match PDF position to source (filename, line) via SyncTeX."""
     candidates = []
 
-    for rec in synctex_data.records:
-        if rec.page != page:
-            continue
-        filename = synctex_data.files.get(rec.file_id, '')
-        if '/texmf-dist/' in filename or '/texlive/' in filename:
-            continue
+    if index and page in index:
+        page_idx = index[page]
+        cell_size = float(page_idx["cell"])
+        grid = page_idx["grid"]
+        gx = int(x_pdf // cell_size)
+        gy = int(y_pdf // cell_size)
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for sx, sy, filename, line in grid.get((gx + dx, gy + dy), []):
+                    dist = ((sx - x_pdf)**2 + (sy - y_pdf)**2)**0.5
+                    if dist <= tolerance:
+                        candidates.append((dist, filename, line))
+    else:
+        for rec in synctex_data.records:
+            if rec.page != page:
+                continue
+            filename = synctex_data.files.get(rec.file_id, '')
+            if '/texmf-dist/' in filename or '/texlive/' in filename:
+                continue
 
-        sx = sp_to_pdf_points(rec.x)
-        sy_top = page_height - sp_to_pdf_points(rec.y)
+            sx = sp_to_pdf_points(rec.x)
+            sy_top = page_height - sp_to_pdf_points(rec.y)
 
-        dist = ((sx - x_pdf)**2 + (sy_top - y_pdf)**2)**0.5
-        if dist <= tolerance:
-            candidates.append((dist, filename, rec.line))
+            dist = ((sx - x_pdf)**2 + (sy_top - y_pdf)**2)**0.5
+            if dist <= tolerance:
+                candidates.append((dist, filename, rec.line))
 
     if candidates:
         candidates.sort(key=lambda x: x[0])
@@ -124,16 +166,30 @@ def get_mcid_first_char_position(
         return (float(first['x0']), float(first['top']))
 
 
-def get_all_mcid_positions(pdf_path: Path) -> Dict[Tuple[int, int], Tuple[float, float]]:
+def get_all_mcid_positions(
+    pdf_path: Path,
+    pages: Optional[Set[int]] = None
+) -> Dict[Tuple[int, int], Tuple[float, float]]:
     """Get first character position for all MCIDs in the PDF.
 
     Returns:
         Dict mapping (page_num, mcid) -> (x, y) position
     """
+    try:
+        cached = get_mcid_first_char_positions(pdf_path)
+        if cached:
+            if not pages:
+                return cached
+            return {k: v for k, v in cached.items() if k[0] in pages}
+    except Exception:
+        pass
+
     result = {}
     with pdfplumber.open(str(pdf_path)) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             page_num = page_idx + 1
+            if pages and page_num not in pages:
+                continue
             # Group chars by MCID
             mcid_chars: Dict[int, List] = {}
             for c in page.chars:
@@ -175,6 +231,7 @@ def find_merges_synctex(
     synctex_data: SyncTeXData,
     mcid_positions: Dict[Tuple[int, int], Tuple[float, float]],
     page_height: float,
+    synctex_index: Optional[Dict[int, Dict]],
     verbose: bool = False
 ) -> List[Tuple[int, int]]:
     """Find elements to merge based on SyncTeX source line matching.
@@ -199,7 +256,7 @@ def find_merges_synctex(
             continue
 
         source = match_mcid_to_source(
-            synctex_data, page, pos[0], pos[1], page_height
+            synctex_data, page, pos[0], pos[1], page_height, index=synctex_index
         )
         if source is None:
             continue
@@ -301,12 +358,16 @@ def merge_split_paragraphs(
     page_heights = {i+1: float(doc[i].rect.height) for i in range(len(doc))}
     doc.close()
 
-    # Pre-compute all MCID positions (batch operation - much faster than per-element)
+    # Pre-compute MCID positions for cross-column pages only
     if verbose:
         print("[merge-split] Pre-computing MCID positions...")
-    mcid_positions = get_all_mcid_positions(pdf_path)
+    pages_to_scan = set(crosscolumn_by_page.keys())
+    mcid_positions = get_all_mcid_positions(pdf_path, pages=pages_to_scan)
     if verbose:
         print(f"[merge-split] Cached {len(mcid_positions)} MCID positions")
+
+    # Build SyncTeX index for fast nearest lookup
+    synctex_index = _build_synctex_index(synctex_data, page_heights)
 
     # Find merges for each cross-column page
     all_merges: List[Tuple[int, int]] = []
@@ -322,6 +383,7 @@ def merge_split_paragraphs(
         merges = find_merges_synctex(
             elems, page_num, crosscolumn_lines,
             synctex_data, mcid_positions, page_height,
+            synctex_index,
             verbose=verbose
         )
         all_merges.extend(merges)

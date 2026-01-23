@@ -16,6 +16,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
@@ -778,8 +779,226 @@ def _detect_native_tagged_class(tex_file: Path) -> str | None:
         classname = match.group(1).strip()
         if classname in NATIVE_TAGGED_CLASSES:
             return classname
-    
+
     return None
+
+
+def _convert_dollar_math_to_latex(tex_file: Path) -> bool:
+    r"""Convert $...$ to \(...\) and $$...$$ to \[...\] for robust math mode detection.
+
+    This conversion is necessary because:
+    1. $...$ is a TeX primitive that's hard to hook into
+    2. \(...\) and \[...\] are LaTeX commands that can be properly detected
+    3. This allows lpsb-mcid.sty to correctly identify math mode and avoid
+       creating spurious P tags for subscripts/superscripts
+
+    IMPORTANT: This function carefully avoids converting dollar signs in:
+    - Comments (% ... to end of line)
+    - Verbatim environments (\verb, \begin{verbatim}, \begin{lstlisting}, etc.)
+    - Already escaped dollar signs (\$)
+    - Minted/listings code blocks
+
+    Args:
+        tex_file: Path to the .tex file to process
+
+    Returns:
+        True if conversion was successful, False otherwise
+    """
+    try:
+        content = tex_file.read_text(errors="ignore")
+    except Exception:
+        return False
+
+    original_content = content
+
+    # Use a state machine approach for robust parsing
+    result = []
+    i = 0
+    n = len(content)
+
+    # Verbatim-like environments that should not be processed
+    VERBATIM_ENVS = {
+        'verbatim', 'Verbatim', 'lstlisting', 'minted', 'alltt',
+        'filecontents', 'filecontents*', 'comment'
+    }
+
+    def is_escaped(pos: int) -> bool:
+        """Check if character at pos is escaped by counting preceding backslashes."""
+        count = 0
+        p = pos - 1
+        while p >= 0 and content[p] == '\\':
+            count += 1
+            p -= 1
+        return count % 2 == 1  # Odd number of backslashes = escaped
+
+    def skip_to_end_of_line(pos: int) -> int:
+        """Skip to end of line (for comments)."""
+        while pos < n and content[pos] != '\n':
+            pos += 1
+        return pos
+
+    def find_verb_end(pos: int, delimiter: str) -> int:
+        """Find end of \verb|...| construct."""
+        while pos < n and content[pos] != delimiter:
+            pos += 1
+        return pos + 1 if pos < n else pos
+
+    def find_env_end(pos: int, env_name: str) -> int:
+        r"""Find \end{env_name} and return position after it."""
+        end_pattern = f"\\end{{{env_name}}}"
+        idx = content.find(end_pattern, pos)
+        if idx == -1:
+            return n  # Not found, skip to end
+        return idx + len(end_pattern)
+
+    while i < n:
+        # Check for comment (unescaped %)
+        if content[i] == '%' and not is_escaped(i):
+            # Copy everything to end of line
+            line_end = skip_to_end_of_line(i)
+            result.append(content[i:line_end])
+            i = line_end
+            continue
+
+        # Check for \verb
+        if content[i:i+5] == '\\verb' and i + 5 < n:
+            # \verb|...| or \verb*|...|
+            j = i + 5
+            if j < n and content[j] == '*':
+                j += 1
+            if j < n:
+                delimiter = content[j]
+                j += 1
+                end_pos = find_verb_end(j, delimiter)
+                result.append(content[i:end_pos])
+                i = end_pos
+                continue
+
+        # Check for verbatim-like environments
+        if content[i:i+7] == '\\begin{':
+            # Find environment name
+            j = i + 7
+            env_end = content.find('}', j)
+            if env_end != -1:
+                env_name = content[j:env_end]
+                # Handle optional arguments like \begin{lstlisting}[...]
+                base_env = env_name.split('[')[0].split(']')[0].strip()
+                if base_env in VERBATIM_ENVS:
+                    # Skip entire environment
+                    close_brace = env_end + 1
+                    env_content_end = find_env_end(close_brace, base_env)
+                    result.append(content[i:env_content_end])
+                    i = env_content_end
+                    continue
+
+        # Check for escaped dollar sign
+        if content[i:i+2] == '\\$':
+            result.append('\\$')
+            i += 2
+            continue
+
+        # Check for display math $$...$$
+        if content[i:i+2] == '$$':
+            # Find closing $$
+            j = i + 2
+            depth = 0  # Track nested braces for safety
+            while j < n - 1:
+                if content[j] == '\\' and j + 1 < n:
+                    # Skip escaped character
+                    j += 2
+                    continue
+                if content[j:j+2] == '$$' and depth == 0:
+                    # Found closing $$
+                    inner = content[i+2:j]
+                    result.append('\\[')
+                    result.append(inner)
+                    result.append('\\]')
+                    i = j + 2
+                    break
+                if content[j] == '{':
+                    depth += 1
+                elif content[j] == '}':
+                    depth = max(0, depth - 1)
+                j += 1
+            else:
+                # No closing $$ found, keep original
+                result.append('$$')
+                i += 2
+            continue
+
+        # Check for inline math $...$
+        if content[i] == '$':
+            # Make sure it's not $$ (already handled above)
+            if i + 1 < n and content[i+1] == '$':
+                # This shouldn't happen as $$ is handled above, but be safe
+                result.append('$')
+                i += 1
+                continue
+
+            # Find closing $
+            j = i + 1
+            while j < n:
+                if content[j] == '\\' and j + 1 < n:
+                    # Skip escaped character
+                    j += 2
+                    continue
+                if content[j] == '$':
+                    # Found closing $
+                    inner = content[i+1:j]
+                    # Sanity check: inner should not be empty or just whitespace
+                    if inner and not inner.isspace():
+                        result.append('\\(')
+                        result.append(inner)
+                        result.append('\\)')
+                    else:
+                        # Keep original if empty
+                        result.append(content[i:j+1])
+                    i = j + 1
+                    break
+                if content[j] == '\n':
+                    # Inline math shouldn't span lines in most cases
+                    # Keep original $ and continue
+                    result.append('$')
+                    i += 1
+                    break
+                j += 1
+            else:
+                # No closing $ found, keep original
+                result.append('$')
+                i += 1
+            continue
+
+        # Regular character
+        result.append(content[i])
+        i += 1
+
+    new_content = ''.join(result)
+
+    # Only write if content changed
+    if new_content != original_content:
+        try:
+            tex_file.write_text(new_content)
+            return True
+        except Exception:
+            return False
+
+    return True  # No changes needed is also success
+
+
+def _convert_dollar_math_in_directory(tex_dir: Path) -> int:
+    """Convert dollar math notation in all .tex files in a directory.
+
+    Args:
+        tex_dir: Directory containing .tex files
+
+    Returns:
+        Number of files processed
+    """
+    count = 0
+    for tex_file in tex_dir.rglob("*.tex"):
+        if _convert_dollar_math_to_latex(tex_file):
+            count += 1
+    return count
 
 
 def _inject_lpsb_mcid_after_packages(tex_file: Path, options: str = "") -> None:
@@ -1729,9 +1948,18 @@ def _rewrite_tree_inline_dollar_math(work_dir: Path, log_file: Path) -> _DollarM
 
     return stats
 
-def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_bbl_underscore_fix=False, container_name=None, final_output_dir=None):
+
+def _log_duration(log_file: Path, label: str, start: float, end: float = None) -> None:
+    try:
+        dur = (end if end is not None else time.perf_counter()) - start
+        with open(log_file, "a") as log:
+            log.write(f"[timing] {label}: {dur:.2f}s\n")
+    except Exception:
+        pass
+
+def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_bbl_underscore_fix=False, container_name=None, final_output_dir=None, lpsb_debug=False):
     """Process a single paper directory or file.
-    
+
     Args:
         src_path: Path to paper source (directory, .tex, or .gz file)
         out_dir: Output directory for build/work files (may be shared_vol in container reuse mode)
@@ -1741,6 +1969,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         container_name: Optional pre-started Docker container name for reuse.
                         If provided, uses docker exec instead of docker run.
         final_output_dir: Directory for final outputs (PDF, JSON). If None, uses out_dir.
+        lpsb_debug: Enable debug mode for lpsb-mcid.sty
     """
     src_path = Path(src_path).resolve()
     out_dir = Path(out_dir).resolve()
@@ -1790,6 +2019,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
     
     main_tex_override = None
 
+    total_start = time.perf_counter()
     try:
         # 1. Copy/Extract source
         if src_path.is_file():
@@ -2070,13 +2300,23 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             # LPSB tagging: use lpsb-mcid.sty exclusively (modern MCID-based approach)
             # Note: lpsb.sty (archive) is legacy and should NOT be used
             _copy_if_exists("lpsb-mcid.sty", pd_tex_dir)
-            
+
+            # Convert $...$ to \(...\) and $$...$$ to \[...\] for robust math mode detection
+            # This allows lpsb-mcid.sty to correctly identify math mode via \ifmmode
+            _convert_dollar_math_in_directory(pd_tex_dir)
+
             # Two-pass compilation: first pass uses pass-one option to collect positioning info
             two_pass_enabled = _is_two_pass_enabled()
+
+            # Build options string for lpsb-mcid
+            lpsb_options = []
             if two_pass_enabled:
-                _inject_lpsb_mcid_after_packages(pd_main_tex_full, options="pass-one")
-            else:
-                _inject_lpsb_mcid_after_packages(pd_main_tex_full)
+                lpsb_options.append("pass-one")
+            if lpsb_debug:
+                lpsb_options.append("debug")
+            options_str = ",".join(lpsb_options)
+
+            _inject_lpsb_mcid_after_packages(pd_main_tex_full, options=options_str)
 
         docker_image, selected_tl, selected_reason = _select_docker_image(work_dir, tex_dir_rel, main_base, paper_id)
 
@@ -2213,6 +2453,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                         log.write("\nInfo: Preflight detected '_' in bibliography \\bibitem keys; enabled LPSB_BBL_UNDERSCORE_FIX\n")
 
         # Stage A: pdflatex gold (3 passes)
+        stage_a_start = time.perf_counter()
         with open(log_file, "a") as log:
             log.write("\n=== Stage A: pdflatex (gold) ===\n")
         had_rc_error = False
@@ -2264,10 +2505,12 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         had_rc_error |= (rc != 0)
         rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-synctex=1", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
         had_rc_error |= (rc != 0)
+        _log_duration(log_file, "stage_a_pdflatex", stage_a_start)
 
         # Two-pass compilation: Second pass uses the collected positioning data
         # to emit accurate BDC markers for float/cross-page elements
         if (not skip_lpsb_injection) and two_pass_enabled:
+            two_pass_start = time.perf_counter()
             with open(log_file, "a") as log:
                 log.write("\n=== Two-Pass: Pass 2 (using collected positioning data) ===\n")
             
@@ -2281,6 +2524,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             had_rc_error |= (rc != 0)
             rc = _run(pdflatex_dir, pd_container_wd, ["pdflatex", "-synctex=1", "-interaction=nonstopmode", f"-jobname={main_base}", main_tex_basename], TIMEOUT_SEC)
             had_rc_error |= (rc != 0)
+            _log_duration(log_file, "two_pass_pdflatex", two_pass_start)
 
         aux_file = pd_tex_dir / f"{main_base}.aux"
         pdf_file = pd_tex_dir / f"{main_base}.pdf"
@@ -2438,7 +2682,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         synctex_file = pd_tex_dir / f"{main_base}.synctex.gz"
         if not (aux_for_downstream.exists() and pdf_file.exists()):
             raise SystemExit("[postprocess] ERROR: cannot merge split paragraphs: missing aux/pdf")
+        merge_start = time.perf_counter()
         merge_count = merge_split_paragraphs_func(aux_for_downstream, pdf_file, synctex_file, aux_merged)
+        _log_duration(log_file, "merge_split_paragraphs", merge_start)
         if not aux_merged.exists():
             raise SystemExit(f"[postprocess] ERROR: merge-split-paragraphs produced no output: {aux_merged}")
         aux_for_downstream = aux_merged
@@ -2468,6 +2714,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         synctex_file = pd_tex_dir / f"{main_base}.synctex.gz"
         if not synctex_file.exists():
             raise SystemExit(f"[postprocess] ERROR: synctex not found (required): {synctex_file}")
+        crosspage_start = time.perf_counter()
         fix_crosspage_process_pdf(
             str(pdf_file),
             str(aux_for_downstream),
@@ -2475,6 +2722,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             str(pdf_fixed),
             verbose=False,
         )
+        _log_duration(log_file, "fix_crosspage_mcid", crosspage_start)
         if not pdf_fixed.exists():
             raise SystemExit(f"[postprocess] ERROR: fix-crosspage-mcid produced no output: {pdf_fixed}")
         with open(log_file, "a") as log:
@@ -2491,7 +2739,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
         if not (pdf_fixed.exists() and aux_for_downstream.exists()):
             raise SystemExit("[postprocess] ERROR: cannot inject StructTree: missing fixed pdf or aux")
+        structtree_start = time.perf_counter()
         success = inject_structtree_func(str(pdf_fixed), str(aux_for_downstream), str(pdf_tagged), verbose=False)
+        _log_duration(log_file, "inject_structtree", structtree_start)
         if not success:
             raise RuntimeError("inject_structtree returned False")
         if not pdf_tagged.exists():
@@ -2520,6 +2770,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             log.write(f"\nError: EXCEPTION {str(e)}\n")
         return "ERROR"
     finally:
+        _log_duration(log_file, "total", total_start)
         if work_dir_obj:
             try:
                 work_dir_obj.cleanup()
@@ -2592,15 +2843,17 @@ def main():
                         help="Generate MCID visualization after successful compile (default: enabled)")
     parser.add_argument('--no-visualize', action='store_false', dest='visualize',
                         help="Disable MCID visualization output")
+    parser.add_argument('--debug', action='store_true', default=False,
+                        help="Enable debug mode for lpsb-mcid.sty (outputs verbose debug info to log)")
 
     args = parser.parse_args()
-    
+
     # Determine LPSB root (parent of script dir)
     script_dir = Path(__file__).parent.resolve()
     lpsb_root = script_dir.parent # usually LPSB/script/.. -> LPSB
     if args.single:
         print(f"Processing SINGLE paper: {args.single}")
-        res = process_one_paper(args.single, args.output, lpsb_root, not args.no_ramdisk)
+        res = process_one_paper(args.single, args.output, lpsb_root, not args.no_ramdisk, lpsb_debug=args.debug)
         print(f"Result: {res}")
         
         # Optional visualization of MCID tags

@@ -24,6 +24,10 @@ from typing import List, Dict, Optional, Tuple
 import fitz  # PyMuPDF
 import pdfplumber
 
+try:
+    from ..utils.pdf_cache import get_mcid_bboxes_by_mcid
+except Exception:
+    get_mcid_bboxes_by_mcid = None
 
 
 @dataclass
@@ -174,6 +178,19 @@ def extract_mcid_bboxes(pdf_path: Path) -> Dict[int, Dict[int, List[float]]]:
     Returns:
         Dict of {mcid: {page: [x0, y0, x1, y1]}}
     """
+    if get_mcid_bboxes_by_mcid is not None:
+        try:
+            cached = get_mcid_bboxes_by_mcid(pdf_path)
+            if cached:
+                # Convert tuples to lists for JSON compatibility
+                out: Dict[int, Dict[int, List[float]]] = {}
+                for mcid, by_page in cached.items():
+                    for page, bb in by_page.items():
+                        out.setdefault(mcid, {})[page] = [float(bb[0]), float(bb[1]), float(bb[2]), float(bb[3])]
+                return out
+        except Exception:
+            raise "get_mcid_bboxes_by_mcid not imported"
+
     bboxes = {}
     
     try:
