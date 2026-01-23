@@ -1,2 +1,0 @@
-design_size := 4;
-input b-cmr;
