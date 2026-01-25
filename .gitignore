@@ -85,7 +85,6 @@ archive/
 _*/
 compile_test*
 script/cluster/
-archive/
 results*/
 output/
 debug_*/

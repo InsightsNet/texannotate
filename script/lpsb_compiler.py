@@ -1001,6 +1001,60 @@ def _convert_dollar_math_in_directory(tex_dir: Path) -> int:
     return count
 
 
+def _disable_axessibility_package(tex_dir: Path) -> int:
+    """Disable the axessibility package in all .tex files.
+
+    The axessibility package embeds LaTeX source code as "alternate text" in the PDF,
+    which causes the text layer to contain raw LaTeX commands (like $^{*}$, $^{\dag}$)
+    instead of the rendered output. This creates a mismatch between the visual layer
+    and the text layer, breaking text selection and accessibility.
+
+    LPSB provides its own accessibility tagging via proper PDF structure trees,
+    so axessibility is redundant and harmful when LPSB is active.
+
+    Args:
+        tex_dir: Directory containing .tex files
+
+    Returns:
+        Number of files modified
+    """
+    count = 0
+    # Match \usepackage with optional arguments, for axessibility package
+    # Examples:
+    #   \usepackage{axessibility}
+    #   \usepackage[accsupp]{axessibility}
+    #   \usepackage[tagpdf, accsupp]{axessibility}
+    pattern = re.compile(
+        r'^(\s*)(\\usepackage\s*(?:\[[^\]]*\])?\s*\{axessibility\})',
+        re.MULTILINE
+    )
+
+    for tex_file in tex_dir.rglob("*.tex"):
+        try:
+            content = tex_file.read_text(errors="ignore")
+        except Exception:
+            continue
+
+        if not pattern.search(content):
+            continue
+
+        # Comment out the axessibility package line
+        new_content = pattern.sub(
+            r'\1% \2  % DISABLED BY LPSB: conflicts with LPSB tagging',
+            content
+        )
+
+        if new_content != content:
+            try:
+                tex_file.write_text(new_content)
+                count += 1
+                print(f"  [LPSB] Disabled axessibility package in {tex_file.name}")
+            except Exception:
+                pass
+
+    return count
+
+
 def _inject_lpsb_mcid_after_packages(tex_file: Path, options: str = "") -> None:
     """Inject lpsb-mcid after the LAST \\usepackage, before \\title/\\author.
 
@@ -2305,6 +2359,10 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             # This allows lpsb-mcid.sty to correctly identify math mode via \ifmmode
             _convert_dollar_math_in_directory(pd_tex_dir)
 
+            # Disable axessibility package - it embeds LaTeX source in text layer,
+            # causing mismatch between visual and text layers (breaks text selection)
+            _disable_axessibility_package(pd_tex_dir)
+
             # Two-pass compilation: first pass uses pass-one option to collect positioning info
             two_pass_enabled = _is_two_pass_enabled()
 
@@ -2690,24 +2748,9 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         aux_for_downstream = aux_merged
         with open(log_file, "a") as log:
             log.write(f"\nInfo: Cross-column split paragraphs merged (aux): {aux_merged} (merged {merge_count})\n")
-        
-        # 1. Parse MCID data from aux file to JSON
-        mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
-        if not aux_for_downstream.exists():
-            raise SystemExit(f"[postprocess] ERROR: aux for downstream not found: {aux_for_downstream}")
-        elements, summary = parse_aux_file(aux_for_downstream)
-        # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
-        reconcile_element_pages(elements, pdf_file, verbose=False)
-        output_data = elements_to_json(elements, summary)
-        with open(mcid_json, "w") as f:
-            json.dump(output_data, f, indent=2)
-        if not mcid_json.exists():
-            raise SystemExit(f"[postprocess] ERROR: parse-mcid produced no output: {mcid_json}")
-        with open(log_file, "a") as log:
-            log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
-        
-        # 2. Fix cross-page / cross-column MCID issues in PDF (SyncTeX-driven injection/splitting)
-        # We always require SyncTeX output in this pipeline.
+
+        # 1. Fix cross-page / cross-column MCID issues in PDF (SyncTeX-driven injection/splitting)
+        # IMPORTANT: This must run BEFORE parse_aux_file because it adds continuation MCIDs to aux
         pdf_fixed = pd_tex_dir / f"{main_base}_fixed.pdf"
         if not pdf_file.exists():
             raise SystemExit(f"[postprocess] ERROR: pdf not found for crosspage fix: {pdf_file}")
@@ -2730,13 +2773,30 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # Replace the output PDF with the fixed version
         shutil.copy(pdf_fixed, final_pdf)
 
-        # 3.5. Reading order map:
+        # 2. Parse MCID data from aux file to JSON
+        # NOTE: Must run AFTER fix_crosspage because it reads the updated aux with continuation MCIDs
+        mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
+        if not aux_for_downstream.exists():
+            raise SystemExit(f"[postprocess] ERROR: aux for downstream not found: {aux_for_downstream}")
+        elements, summary = parse_aux_file(aux_for_downstream)
+        # Reconcile element pages with PDF (fixes "Phantom Figure" float issues)
+        reconcile_element_pages(elements, pdf_file, verbose=False)
+        output_data = elements_to_json(elements, summary)
+        with open(mcid_json, "w") as f:
+            json.dump(output_data, f, indent=2)
+        if not mcid_json.exists():
+            raise SystemExit(f"[postprocess] ERROR: parse-mcid produced no output: {mcid_json}")
+        with open(log_file, "a") as log:
+            log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
+
+        # 3. Reading order map:
         # Inject StructTree auto-detects an adjacent *.order.json, and will compute one
         # on-demand if missing. We keep the conventional path here for log/copy only.
         order_map_json = pd_tex_dir / f"{main_base}.order.json"
         
         # 3. Inject StructTree into PDF (for PDF/UA compliance)
-        pdf_tagged = pd_tex_dir / f"{main_base}_tagged.pdf"
+        # Keep fixed PDF name in the output for clarity.
+        pdf_tagged = pd_tex_dir / f"{main_base}_fixed_tagged.pdf"
         if not (pdf_fixed.exists() and aux_for_downstream.exists()):
             raise SystemExit("[postprocess] ERROR: cannot inject StructTree: missing fixed pdf or aux")
         structtree_start = time.perf_counter()
@@ -2791,12 +2851,14 @@ def _run_visualization(output_dir: str, script_dir: Path) -> None:
     output_path = Path(output_dir)
     
     # Find the paper subdirectory (output_dir may be parent containing paper_id subdir)
-    # Look for main_tagged.pdf or the output PDF
-    pdf_candidates = list(output_path.rglob("main_tagged.pdf"))
+    # Prefer fixed_tagged output, fallback to main_tagged or any PDF.
+    pdf_candidates = list(output_path.rglob("main_fixed_tagged.pdf"))
+    if not pdf_candidates:
+        pdf_candidates = list(output_path.rglob("main_tagged.pdf"))
     if not pdf_candidates:
         pdf_candidates = list(output_path.rglob("*.pdf"))
-        # Filter out visualization outputs
-        pdf_candidates = [p for p in pdf_candidates if "_mcid_viz" not in p.name]
+    # Filter out visualization outputs
+    pdf_candidates = [p for p in pdf_candidates if "_mcid_viz" not in p.name]
     
     if not pdf_candidates:
         print("[Visualize] No PDF found to visualize")

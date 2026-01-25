@@ -11,7 +11,7 @@ import colorsys
 import argparse
 import json
 import re
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Set
 
 # pdfplumber/pdfminer can choke on malformed font dicts (e.g. missing Length1).
 # Relax strictness to keep bbox extraction working on real-world PDFs.
@@ -81,7 +81,8 @@ def get_mcid_bboxes(pdf_path: str, line_based: bool = True) -> dict:
     pdf = pdfplumber.open(pdf_path)
     page_data = {}
     
-    for page_num, page in enumerate(pdf.pages):
+    for page_idx, page in enumerate(pdf.pages):
+        page_num = page_idx + 1  # Use 1-based indexing to match aux files and cache
         try:
             mcid_chars = {}
             for char in page.chars:
@@ -1043,7 +1044,23 @@ def visualize_mcid(
                     continue
                 if mcid >= 0:
                     table_mcid_to_elem[mcid] = eid
-    
+
+    # Build MCID -> tag_type mapping from aux_elements
+    # This includes continuation MCIDs which inherit their parent element's type
+    aux_mcid_to_type: Dict[int, str] = {}
+    if aux_elements:
+        for e in aux_elements:
+            role = e.get("role", "")
+            if not role:
+                continue
+            for m in e.get("mcids", []):
+                try:
+                    mcid = int(m.get("mcid", -1))
+                except Exception:
+                    continue
+                if mcid >= 0:
+                    aux_mcid_to_type[mcid] = role
+
     # Open PDF with fitz for drawing
     doc = fitz.open(pdf_path)
     
@@ -1054,7 +1071,8 @@ def visualize_mcid(
     for page_num in range(len(doc)):
         page = doc[page_num]
         # Copy: we'll augment with image-derived bboxes below.
-        mcid_bboxes = dict(page_data.get(page_num, {}) or {})
+        # Use page_num + 1 because page_data uses 1-based indexing (matching aux files and cache)
+        mcid_bboxes = dict(page_data.get(page_num + 1, {}) or {})
         
         math_spans = []
         try:
@@ -1062,8 +1080,9 @@ def visualize_mcid(
         except Exception as e:
             raise SystemExit(f"[viz] ERROR: failed to extract math spans on page={page_num}: {e}") from e
         
-        # Get tag types from PDF content stream
-        mcid_tags = get_mcid_tag_types(doc, page_num)
+        # Get tag types from aux file (authoritative source including continuation MCIDs)
+        # Use aux_mcid_to_type directly instead of parsing PDF content stream
+        mcid_tags = dict(aux_mcid_to_type)
         table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
 
         # Augment Figure MCID bboxes with image rects (so figures don't look "missing").
@@ -1311,6 +1330,40 @@ def visualize_mcid(
                     current_order += 1
                     elem_order_map[mcid] = current_order  # Use mcid as key for unmapped
 
+        # Pre-merge Caption MCIDs by elem_id to avoid duplicate boxes per line
+        caption_line_bboxes: Dict[int, List[Tuple[float, float, float, float]]] = {}
+        caption_bbox_union: Dict[int, Tuple[float, float, float, float]] = {}
+        caption_drawn: Set[int] = set()
+        y_tol = 3.0
+        for mcid, data in mcid_bboxes.items():
+            if mcid_tags.get(mcid) != "Caption":
+                continue
+            elem_id = mcid_to_elem_id.get(mcid)
+            if elem_id is None:
+                continue
+            # Aggregate line bboxes across all MCIDs for the same Caption element
+            caption_line_bboxes.setdefault(elem_id, [])
+            caption_line_bboxes[elem_id].extend(data.get("line_bboxes", [data["bbox"]]))
+
+        for elem_id, bbs in caption_line_bboxes.items():
+            # Merge boxes per line (y proximity) to avoid stacked duplicates
+            merged_lines: List[Tuple[float, float, float, float]] = []
+            for bb in sorted(bbs, key=lambda b: (b[1], b[0])):
+                if not merged_lines:
+                    merged_lines.append(bb)
+                    continue
+                last = merged_lines[-1]
+                if abs(bb[1] - last[1]) <= y_tol:
+                    merged_lines[-1] = _merge_bbox(last, bb)
+                else:
+                    merged_lines.append(bb)
+            caption_line_bboxes[elem_id] = merged_lines
+            # Union bbox for label positioning
+            overall = merged_lines[0]
+            for bb in merged_lines[1:]:
+                overall = _merge_bbox(overall, bb)
+            caption_bbox_union[elem_id] = overall
+
         # Draw boxes for each MCID
         for mcid in sorted_mcids:
             data = mcid_bboxes[mcid]
@@ -1322,6 +1375,16 @@ def visualize_mcid(
             if tag_type == "Table":
                 # We'll draw a merged Table bbox using aux structure.
                 continue
+
+            # Collapse Caption MCIDs that belong to the same elem_id
+            if tag_type == "Caption":
+                elem_id = mcid_to_elem_id.get(mcid)
+                if elem_id is not None:
+                    if elem_id in caption_drawn:
+                        continue
+                    caption_drawn.add(elem_id)
+                    line_bboxes = caption_line_bboxes.get(elem_id, line_bboxes)
+                    bbox = caption_bbox_union.get(elem_id, bbox)
 
             # Get logical order
             elem_id = mcid_to_elem_id.get(mcid)
@@ -1351,13 +1414,11 @@ def visualize_mcid(
             }
             color = tag_colors.get(tag_type, generate_color(mcid, total_mcids))
 
-            # Float tags (Figure, Table, Caption) should use merged bbox, not line-based
-            float_tags = {'Figure', 'Table', 'Caption', 'Formula'}
+            # Float tags (Figure/Table/Formula) use merged bbox; Caption should be line-based
+            float_tags = {'Figure', 'Table', 'Formula'}
             if tag_type in float_tags:
-                # Use single merged bbox for floats
                 draw_bboxes = [bbox]
             else:
-                # Use per-line boxes for text elements
                 draw_bboxes = line_bboxes
 
             # Draw semi-transparent filled rectangle for each bbox
