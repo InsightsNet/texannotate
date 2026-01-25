@@ -1,0 +1,107 @@
+%% lpsb-footnotes.sty - Footnote Tagging Support for LPSB
+%% Handles \footnote, \footnotemark, \footnotetext, and \@makefntext
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-footnotes}[2026/01/25 LPSB Footnote Tagging]
+
+\RequirePackage{etoolbox}
+
+\makeatletter
+
+% --- Footnote → Note ---
+% Hook \footnote to tag as Note (PDF/UA)
+\AtBeginDocument{%
+  \@ifundefined{footnote}{}{%
+    \let\lpsb@orig@footnote\footnote
+    % \footnote produces both a mark (superscript) and text (at page bottom)
+    % We tag the mark as Lbl (label), the text will be tagged via @makefntext as Note
+    \renewcommand{\footnote}[2][]{%
+      \def\lpsb@fn@opt{#1}%
+      \ifx\lpsb@fn@opt\@empty
+        % The mark is tagged as Lbl, the text is tagged separately via @makefntext
+        \lpsb@orig@footnote{#2}%
+      \else
+        \lpsb@orig@footnote[#1]{#2}%
+      \fi
+    }%
+  }%
+  % Many papers use split footnotes: \footnotemark + \footnotetext.
+  % Footnotemark is the superscript reference - tag as Lbl (label)
+  \@ifundefined{footnotemark}{}{%
+    \let\lpsb@orig@footnotemark\footnotemark
+    \renewcommand{\footnotemark}{%
+      \@ifnextchar[\lpsb@fnmark@opt\lpsb@fnmark@noopt
+    }%
+    \def\lpsb@fnmark@opt[#1]{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark[#1]}}%
+    \def\lpsb@fnmark@noopt{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark}}%
+  }%
+  \@ifundefined{footnotetext}{}{%
+    % Hook \footnotetext for tagging. Use \long\def to handle paragraph breaks
+    % in the argument (common in complex macro content like ICML's \printAffiliationsAndNotice).
+    \let\lpsb@orig@footnotetext\footnotetext
+    %
+    % The challenge: \footnotetext[num]{text} has optional arg.
+    % We use \@ifnextchar to detect [...], then capture args with \long\def.
+    \renewcommand{\footnotetext}{%
+      \@ifnextchar[\lpsb@fntext@opt\lpsb@fntext@noopt
+    }%
+    % Optional argument version: \footnotetext[num]{text}
+    \long\def\lpsb@fntext@opt[#1]#2{%
+      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext[#1]{#2}}%
+    }%
+    % No optional argument: \footnotetext{text}
+    % IMPORTANT: Use \long to handle \par and complex macro content
+    \long\def\lpsb@fntext@noopt#1{%
+      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext{#1}}%
+    }%
+  }%
+  % Standard \footnote uses internal \@footnotemark/\@footnotetext; hook those too so the
+  % footnote text itself gets tagged (not just the mark in the paragraph).
+  %
+  % CRITICAL: \@footnotetext uses \insert\footins{...} which is async (like floats).
+  % The content is rendered at page bottom, not when the command is called.
+  % To properly tag, we hook \@makefntext which formats the actual footnote content.
+  %
+  % Footnote structure in PDF/UA:
+  % - Footnote mark (in paragraph): tagged as Lbl via \@footnotemark hook
+  % - Footnote text (at page bottom): tagged as Note via \@makefntext hook
+  %
+  \newif\if@lpsb@in@footnote \@lpsb@in@footnotefalse
+  %
+  % Hook \@footnotemark to tag the superscript mark as Lbl
+  \@ifundefined{@footnotemark}{}{%
+    \let\lpsb@orig@@footnotemark\@footnotemark
+    \def\@footnotemark{%
+      \lpsbTagAtom{Lbl}{\lpsb@orig@@footnotemark}%
+    }%
+  }%
+  %
+  \@ifundefined{@makefntext}{}{%
+    \let\lpsb@orig@@makefntext\@makefntext
+    \long\def\@makefntext#1{%
+      \if@lpsb@active
+        % Open Note tag for footnote text, close current P if any
+        \lpsbTagEnd
+        \lpsbTagBegin{Note}%
+        \global\@lpsb@in@footnotetrue
+        \lpsb@orig@@makefntext{#1}%
+        \lpsbTagEnd
+        % Restore P for any content after footnote
+        \lpsbTagBegin{P}%
+        \global\@lpsb@in@footnotefalse
+      \else
+        \lpsb@orig@@makefntext{#1}%
+      \fi
+    }%
+  }%
+  % Also hook minipage footnotes
+  \@ifundefined{@mpfootnotetext}{}{%
+    \let\lpsb@orig@@mpfootnotetext\@mpfootnotetext
+    \long\def\@mpfootnotetext#1{%
+      % minipage footnotes use similar mechanism
+      \lpsb@orig@@mpfootnotetext{#1}%
+    }%
+  }%
+}
+
+\makeatother
+\endinput

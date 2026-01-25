@@ -1,0 +1,227 @@
+%% lpsb-refs.sty - References & Links Tagging Support for LPSB
+%% Handles Bibliography, Citations, and Hyperlinks
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-refs}[2026/01/25 LPSB Refs Tagging]
+
+\RequirePackage{etoolbox}
+
+\makeatletter
+
+% --- Bibliography → BibList ---
+% Bibliography environment gets special treatment.
+% The \bibsection command (from natbib) uses \section* internally,
+% which will be handled by the @ssect hook. We just need to suppress
+% the empty P tags that appear during transition.
+\newif\if@lpsb@in@bib \@lpsb@in@bibfalse
+\newif\if@lpsb@biblist@pending \@lpsb@biblist@pendingfalse
+\def\lpsb@tmp@biblist{BibList}%
+
+\AtBeginDocument{%
+  % Hook \bibsection to start BibList AFTER the heading is output
+  % NOTE: Do NOT add H1 here - @ssect hook already handles that!
+  \@ifundefined{bibsection}{}{%
+    \let\lpsb@orig@bibsection\bibsection
+    \renewcommand{\bibsection}{%
+      % Call original - @ssect will handle the H1 tagging
+      \lpsb@orig@bibsection
+      % Defer BibList start to first \item to avoid closing P too early
+      \if@lpsb@active
+        \global\@lpsb@biblist@pendingtrue
+      \fi
+    }%
+  }%
+}
+
+\AtBeginEnvironment{thebibliography}{%
+  \global\@lpsb@in@bibtrue
+  \global\@lpsb@suppress@inlinetrue  % Suppress Em/Strong inside BibEntry
+  % Start BibList here
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{BibList}%
+  \fi
+}
+\AtEndEnvironment{thebibliography}{%
+  \global\@lpsb@in@bibfalse
+  \global\@lpsb@suppress@inlinefalse
+  \if@lpsb@active
+    \lpsbTagEnd  % Close last BibEntry
+    \lpsbTagEnd  % Close BibList
+    \lpsbTagBegin{P}%
+  \fi
+}
+
+% --- \bibitem -> BibEntry ---
+% Hook \bibitem to tag each bibliography entry
+% IMPORTANT: Must support optional argument for natbib author-year mode: \bibitem[Author(Year)]{key}
+\AtBeginDocument{%
+  \@ifundefined{bibitem}{}{%
+    \let\lpsb@orig@bibitem\bibitem
+    \def\bibitem{%
+      \@ifnextchar[{\lpsb@bibitem@opt}{\lpsb@bibitem@noopt}%
+    }%
+    \long\def\lpsb@bibitem@opt[#1]#2{%
+      \if@lpsb@active
+        \lpsbTagEnd  % Close previous BibEntry (or BibList opener)
+        \lpsbTagBegin{BibEntry}%
+      \fi
+      \lpsb@orig@bibitem[#1]{#2}%
+    }%
+    \long\def\lpsb@bibitem@noopt#1{%
+      \if@lpsb@active
+        \lpsbTagEnd  % Close previous BibEntry (or BibList opener)
+        \lpsbTagBegin{BibEntry}%
+      \fi
+      \lpsb@orig@bibitem{#1}%
+    }%
+  }%
+}
+
+% --- Citations → Reference ---
+% Keep citations as atom tags so they don't split /P into separate logical elements.
+% NOTE: natbib supports up to two optional args: \citep[pre][post]{key}.
+%
+% SOLUTION: Instead of hooking user-level commands (\cite, \citep, \citet),
+% we hook natbib's internal output primitive \NAT@citetp which is called
+% AFTER all argument parsing is complete. This avoids:
+% 1. Misplaced alignment tab errors from & in bibcodes
+% 2. Breaking natbib's complex argument scanning logic
+%
+% For non-natbib documents, we hook the standard \@citex command.
+%
+\AtBeginDocument{%
+  \@ifpackageloaded{natbib}{%
+    \typeout{LPSB-MCID Info: natbib detected - hooking internal citation output}%
+    % Hook \NAT@citetp - this is called to output the final citation text
+    % It receives the formatted citation as its argument
+    \ifdefined\NAT@citetp
+      \let\lpsb@orig@NAT@citetp\NAT@citetp
+      \long\def\NAT@citetp#1{%
+        \lpsbTagAtom{Reference}{\lpsb@orig@NAT@citetp{#1}}%
+      }%
+    \fi
+    % Also hook \NAT@citexnum for numeric citations
+    \ifdefined\NAT@citexnum
+      \let\lpsb@orig@NAT@citexnum\NAT@citexnum
+      % NAT@citexnum doesn't take an argument in the same way,
+      % it builds output internally. We hook at hyper@natlinkstart instead.
+    \fi
+  }{%
+    % Non-natbib: hook standard \@citex if available
+    \ifdefined\@citex
+      \let\lpsb@orig@citex\@citex
+      \long\def\@citex[#1]#2{%
+        \lpsbTagAtom{Reference}{\lpsb@orig@citex[#1]{#2}}%
+      }%
+      \typeout{LPSB-MCID Info: standard LaTeX citation hook installed}%
+    \fi
+  }%
+}
+
+% --- URL/Hyperlinks → Link ---
+% Tag \url and \href as Link (PDF/UA) for accessibility
+% Uses \UrlLeft/\UrlRight hooks from url.sty to safely inject tags
+% around URL content WITHOUT interfering with verbatim scanning.
+% This fixes "File ended while scanning use of \url" errors.
+
+\newif\if@lpsb@in@href \@lpsb@in@hreffalse
+
+\AtBeginDocument{%
+  % Check if url package is loaded (hyperref also loads it internally)
+  \@ifundefined{url}{}{%
+    
+    % 1. Define the left hook (start Link tag)
+    \def\lpsb@url@left{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@suppress@inline\else
+             \lpsb@pdfliteralcmd{ EMC }% Pause parent tag
+             \stepcounter{lpsb@logicalElemID}%
+             \stepcounter{lpsb@globalMCID}%
+             \lpsb@pdfliteralcmd{ /Link << /MCID \thelpsb@globalMCID >> BDC }%
+             \immediate\write\@auxout{%
+               \string\lpsb@tag@atom{\thelpsb@logicalElemID}{Link}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@current@logical@id}%
+             }%
+          \fi
+        \fi
+      \fi
+    }%
+
+    % 2. Define the right hook (end Link tag, reopen parent)
+    \def\lpsb@url@right{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@suppress@inline\else
+             \lpsb@pdfliteralcmd{ EMC }% Close Link
+             % Reopen parent (unless it's a container)
+             \lpsb@reopen@unless@container{\lpsb@current@logical@id}{\lpsb@current@tag@type}%
+          \fi
+        \fi
+      \fi
+    }%
+
+    % 3. Safely hook into url.sty's \UrlLeft/\UrlRight
+    \@ifundefined{UrlLeft}{%
+       % Not defined, create it
+       \gdef\UrlLeft{\lpsb@url@left}%
+    }{%
+       % Already defined, append to it
+       \g@addto@macro\UrlLeft{\lpsb@url@left}%
+    }%
+
+    \@ifundefined{UrlRight}{%
+       \gdef\UrlRight{\lpsb@url@right}%
+    }{%
+       % Append our closing operation at the end
+       \g@addto@macro\UrlRight{\lpsb@url@right}%
+    }%
+  }%
+  
+  % Hook \href from hyperref.sty
+  % (href takes normal arguments, not verbatim, so direct wrapping is safe)
+  % Use recursion guard to prevent infinite loops with RevTeX bibliography etc.
+  \@ifundefined{href}{}{%
+    \let\lpsb@orig@href\href
+    \renewcommand{\href}[2]{%
+      \if@lpsb@suppress@inline
+        \lpsb@orig@href{#1}{#2}%
+      \else
+        \if@lpsb@in@href
+          \lpsb@orig@href{#1}{#2}%  % Already inside href, skip tagging
+        \else
+          \lpsbTagAtom{Link}{%
+            \global\@lpsb@in@hreftrue
+            \lpsb@orig@href{#1}{#2}%
+            \global\@lpsb@in@hreffalse
+          }%
+        \fi
+      \fi
+    }%
+  }%
+  
+  % Hook \nolinkurl from hyperref.sty (uses url.sty mechanism, so UrlLeft/UrlRight handles it)
+  % No need for explicit hook here - \UrlLeft/\UrlRight already cover it
+}
+
+% --- PDF Metadata Safety (hyperref) ---
+% FIX: Prevent LPSB commands from corrupting PDF metadata (Title, Author)
+\AtBeginDocument{%
+  \@ifpackageloaded{hyperref}{%
+    \pdfstringdefDisableCommands{%
+      \def\lpsbTagBegin#1{}%
+      \def\lpsbTagEnd{}%
+      \def\lpsbTagAtom#1#2{#2}%
+      \def\lpsbTagReferenceAtom#1#2{#2}%
+      \def\lpsbTagBeginFloat#1{}%
+      \def\lpsbTagEndFloat{}%
+      % Also disable aux commands that might appear
+      \def\lpsb@tag@data#1#2#3#4{}%
+      \def\lpsb@tag@atom#1#2#3#4#5{}%
+      \def\lpsb@tag@end#1#2{}%
+      \def\lpsb@mcid@cont#1#2#3{}%
+    }%
+  }{}%
+}
+
+\makeatother
+\endinput

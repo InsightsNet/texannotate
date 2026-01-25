@@ -1,0 +1,88 @@
+%% lpsb-metadata.sty - Document Metadata Semantic Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-metadata}[2026/01/25 LPSB Metadata Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-metadata}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Title Area Semantic Tagging ---
+% Title, Author, Date, and Abstract need semantic tags instead of P
+% This section provides generic hooks for \author, \affiliation, \institute.
+% Template-specific handling (e.g. CVPR/ICLR) is in lpsb-templates.sty.
+
+\AtBeginDocument{%
+  \@ifundefined{maketitle}{}{%
+    % Disabled: \maketitle is one of the most class-specific and fragile macros.
+    % Wrapping it has caused stack overflows in real papers.
+    \typeout{LPSB-MCID Info: skipping maketitle hook}%
+  }%
+  % Hook \author to capture author info (supports optional parameter)
+  \@ifundefined{author}{}{%
+    \let\lpsb@orig@author\author
+    \renewcommand{\author}{%
+      \@ifnextchar[\lpsb@author@opt\lpsb@author@noopt
+    }%
+    % IMPORTANT: Use \long to handle args with \par (multi-line affiliations, \thanks, etc.)
+    \long\def\lpsb@author@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@author[#1]{#2}%
+    }%
+    \long\def\lpsb@author@noopt#1{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Author}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@author{#1}%
+    }%
+  }%
+  % Hook \affiliation (common in many class files, supports optional parameter)
+  \@ifundefined{affiliation}{}{%
+    \let\lpsb@orig@affiliation\affiliation
+    \renewcommand{\affiliation}{%
+      \@ifnextchar[\lpsb@affiliation@opt\lpsb@affiliation@noopt
+    }%
+    \long\def\lpsb@affiliation@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@affiliation[#1]{#2}%
+    }%
+    \long\def\lpsb@affiliation@noopt#1{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@affiliation{#1}%
+    }%
+  }%
+  % Hook \institute (common in some classes like beamer, svjour, supports optional parameter)
+  \@ifundefined{institute}{}{%
+    \let\lpsb@orig@institute\institute
+    \renewcommand{\institute}{%
+      \@ifnextchar[\lpsb@institute@opt\lpsb@institute@noopt
+    }%
+    \long\def\lpsb@institute@opt[#1]#2{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@institute[#1]{#2}%
+    }%
+    \long\def\lpsb@institute@noopt#1{%
+      \stepcounter{lpsb@logicalElemID}%
+      \immediate\write\@auxout{%
+        \string\lpsb@meta{Affiliation}{\thelpsb@logicalElemID}%
+      }%
+      \lpsb@orig@institute{#1}%
+    }%
+  }%
+}
+
+\endinput

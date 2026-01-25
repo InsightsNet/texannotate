@@ -37,7 +37,7 @@ import threading
 import atexit
 
 # Import post-processing modules for direct function calls (no subprocess overhead)
-from .postprocess.fix_split_headings import merge_split_headings_aux
+from .postprocess.fix_split_headings import merge_split_headings_aux, retag_pdf_mcid_types
 from .postprocess.merge_split_paragraphs import merge_split_paragraphs as merge_split_paragraphs_func
 from .parsing.parse_lpsb_mcid import parse_aux_file, elements_to_json, reconcile_element_pages
 from .postprocess.fix_crosspage_mcid import process_pdf_synctex as fix_crosspage_process_pdf
@@ -731,12 +731,9 @@ def _inject_pkg_after_documentclass(tex_file: Path, pkg: str, options: str = "")
         return  # No valid \documentclass{...} found
 
     opt = f"[{options}]" if options else ""
-    # Use deferred loading for lpsb-mcid to avoid hyperref/hyperxmp order conflicts
-    if pkg == "lpsb-mcid":
-        deferred_load = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt}{{{pkg}}}}}"
-        lines.insert(docclass_end_idx + 1, f"{deferred_load} % LPSB MCID - deferred{newline}")
-    else:
-        lines.insert(docclass_end_idx + 1, f"\\usepackage{opt}{{{pkg}}}{newline}")
+    # Insert usepackage directly - do NOT use AddToHook{begindocument/before}
+    # as it causes \AtBeginDocument hooks in lpsb-mcid modules to never execute
+    lines.insert(docclass_end_idx + 1, f"\\usepackage{opt}{{{pkg}}}{newline}")
 
     try:
         tex_file.write_text("".join(lines))
@@ -1001,16 +998,20 @@ def _convert_dollar_math_in_directory(tex_dir: Path) -> int:
     return count
 
 
-def _disable_axessibility_package(tex_dir: Path) -> int:
-    """Disable the axessibility package in all .tex files.
+def _disable_conflicting_packages(tex_dir: Path) -> int:
+    """Disable packages that are known to conflict with LPSB tagging.
 
-    The axessibility package embeds LaTeX source code as "alternate text" in the PDF,
-    which causes the text layer to contain raw LaTeX commands (like $^{*}$, $^{\dag}$)
-    instead of the rendered output. This creates a mismatch between the visual layer
-    and the text layer, breaking text selection and accessibility.
+    Some packages (like axessibility, tagpdf, etc.) modify the PDF structure or
+    hook into LaTeX internals in ways that conflict with LPSB's PDF tagging additions.
+    To ensure correct tagging, we disable these packages in the source.
 
-    LPSB provides its own accessibility tagging via proper PDF structure trees,
-    so axessibility is redundant and harmful when LPSB is active.
+    Conflicting packages handled:
+    - axessibility: Embeds raw LaTeX in PDF text layer
+    - accsupp: Similar to axessibility (used by it)
+    - tagpdf: Conflicts with our tagging primitives
+    - accessibility: Older accessibility package
+    - pdfcomment: Injects PDF annotations that can break tag structure
+    - floatrow: Often conflicts with float tagging hooks
 
     Args:
         tex_dir: Directory containing .tex files
@@ -1019,13 +1020,41 @@ def _disable_axessibility_package(tex_dir: Path) -> int:
         Number of files modified
     """
     count = 0
-    # Match \usepackage with optional arguments, for axessibility package
-    # Examples:
-    #   \usepackage{axessibility}
-    #   \usepackage[accsupp]{axessibility}
-    #   \usepackage[tagpdf, accsupp]{axessibility}
+    # List of conflicting packages to disable
+    conflicts = [
+        "axessibility",
+        "accsupp",
+        "tagpdf",
+        "accessibility",
+        "pdfcomment",
+        "floatrow"
+    ]
+    
+    # Check for both \usepackage and \RequirePackage
+    # Handles:
+    #   \usepackage{pkg}
+    #   \usepackage[opt]{pkg}
+    #   \usepackage[opt, multi=line]{pkg}
+    #   \RequirePackage...
+    package_list_pattern = "|".join(re.escape(pkg) for pkg in conflicts)
+    
+    # Regex breakdown:
+    # 1. ^(\s*) -> capture indentation (Group 1)
+    # 2. ( -> capture the whole command to comment out (Group 2)
+    # 3. \\(?:usepackage|RequirePackage) -> match command
+    # 4. \s* -> optional whitespace
+    # 5. (?:\[[^\]]*\])? -> optional [options] (non-capturing)
+    # 6. \s* -> optional whitespace
+    # 7. \{ -> open brace
+    # 8. \s* -> optional whitespace
+    # 9. (?: ... ) -> match the package name
+    # 10. \} -> close brace
+    # 11. ) -> end capture Group 2
+    #
+    # Flags: MULTILINE (for ^), DOTALL usually not needed if we iterate lines,
+    # but some style files span lines. To imply specific packages we match explicitly.
     pattern = re.compile(
-        r'^(\s*)(\\usepackage\s*(?:\[[^\]]*\])?\s*\{axessibility\})',
+        r'^(\s*)(\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\])?\s*\{(?:\s*(?:' + package_list_pattern + r')\s*)\})',
         re.MULTILINE
     )
 
@@ -1038,9 +1067,10 @@ def _disable_axessibility_package(tex_dir: Path) -> int:
         if not pattern.search(content):
             continue
 
-        # Comment out the axessibility package line
+        # Comment out the matching lines
+        # Replacement: \1% [LPSB DISABLED] \2
         new_content = pattern.sub(
-            r'\1% \2  % DISABLED BY LPSB: conflicts with LPSB tagging',
+            r'\1% [LPSB DISABLED] \2',
             content
         )
 
@@ -1048,7 +1078,7 @@ def _disable_axessibility_package(tex_dir: Path) -> int:
             try:
                 tex_file.write_text(new_content)
                 count += 1
-                print(f"  [LPSB] Disabled axessibility package in {tex_file.name}")
+                print(f"  [LPSB] Disabled conflicting packages in {tex_file.name}")
             except Exception:
                 pass
 
@@ -1070,80 +1100,49 @@ def _inject_lpsb_mcid_after_packages(tex_file: Path, options: str = "") -> None:
         content = tex_file.read_text(errors="ignore")
     except Exception:
         return
-    
+
     # Check if lpsb-mcid already present (with any options)
     if re.search(r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}", content):
         return
-    
     newline = "\r\n" if "\r\n" in content else "\n"
-    
-    # Strategy: Find the LAST completed \usepackage/\RequirePackage command (non-commented)
-    # and insert lpsb-mcid right after it.
+
+    # Strategy: Find a safe insertion point for lpsb-mcid.
+    # We prefer to insert just before \begin{document} to avoid conditional blocks.
     #
-    # IMPORTANT: both \usepackage and \RequirePackage can have multi-line optional
-    # arguments. Inserting after the *first line* of a multi-line command will
-    # corrupt the argument stream (common in biblatex samples).
+    # Problem: Some templates have \usepackage inside \if...\fi blocks (e.g., WACV).
+    # Inserting after the last \usepackage can place lpsb-mcid inside a conditional,
+    # causing it to not load in some modes.
+    #
+    # Solution: Insert just before \begin{document} which is always outside conditionals.
+    #
+    # CRITICAL: Do NOT use \AddToHook{begindocument/before} - this causes \AtBeginDocument
+    # hooks registered by lpsb-mcid modules to never execute because the hook queue
+    # has already been processed by the time lpsb-mcid loads.
     lines = content.splitlines(keepends=True)
 
-    cmd_start = re.compile(r"^\s*\\(usepackage|RequirePackage)\b")
-    in_cmd = False
-    bracket_depth = 0
-    brace_depth = 0
-    seen_open_brace = False
-    last_pkg_cmd_end_idx = -1
+    opt_str = f"[{options}]" if options else ""
+    usepackage_line = f"\\usepackage{opt_str}{{lpsb-mcid}}"
 
-    def _update_depths(s: str) -> None:
-        nonlocal bracket_depth, brace_depth, seen_open_brace
-        # Best-effort scanning; this is not a full TeX parser, but it is enough
-        # to avoid splitting multi-line package commands.
-        for ch in s:
-            if ch == "[":
-                bracket_depth += 1
-            elif ch == "]":
-                bracket_depth -= 1
-            elif ch == "{":
-                seen_open_brace = True
-                brace_depth += 1
-            elif ch == "}":
-                brace_depth -= 1
-
+    # Find \begin{document} line
+    begin_doc_idx = -1
+    begin_doc_pattern = re.compile(r"^\s*\\begin\s*\{\s*document\s*\}")
     for i, line in enumerate(lines):
         stripped = line.lstrip()
         if stripped.startswith("%"):
             continue
+        if begin_doc_pattern.match(line):
+            begin_doc_idx = i
+            break
 
-        if not in_cmd:
-            if not cmd_start.match(line):
-                continue
-            # Start of a package command (may span multiple lines).
-            in_cmd = True
-            bracket_depth = 0
-            brace_depth = 0
-            seen_open_brace = False
-
-        _update_depths(line)
-
-        # Command ends when optional args (if any) are closed and the mandatory
-        # {..} argument has closed.
-        if seen_open_brace and bracket_depth <= 0 and brace_depth <= 0:
-            in_cmd = False
-            last_pkg_cmd_end_idx = i
-    
-    opt_str = f"[{options}]" if options else ""
-    
-    if last_pkg_cmd_end_idx >= 0:
-        # Insert lpsb-mcid with DEFERRED loading to avoid hyperref/hyperxmp order conflicts.
-        # Many document classes (e.g., acmart) use AtEndPreamble hooks to load hyperref/hyperxmp.
-        # Using AddToHook{begindocument/before} ensures lpsb-mcid loads AFTER all such hooks.
-        # This hook is available in LaTeX2e from 2020-10-01 (TeX Live 2020+).
-        deferred_load = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}"
-        lines.insert(last_pkg_cmd_end_idx + 1, f"{deferred_load} % LPSB MCID - deferred load for hyperref compat{newline}")
+    if begin_doc_idx >= 0:
+        # Insert just before \begin{document}
+        lines.insert(begin_doc_idx, f"{usepackage_line} % LPSB MCID{newline}")
         try:
             tex_file.write_text("".join(lines))
         except Exception:
             pass
     else:
-        # No usepackage found, fall back to after documentclass
+        # No \begin{document} found, fall back to after documentclass
         _inject_pkg_after_documentclass(tex_file, "lpsb-mcid", options)
 
 
@@ -1164,21 +1163,20 @@ def _modify_lpsb_mcid_options(tex_file: Path, new_options: str) -> bool:
     except Exception:
         return False
     
-    # Pattern to match both old style \usepackage{lpsb-mcid} and new AddToHook style
-    old_pattern = r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}"
-    hook_pattern = r"\\AddToHook\{begindocument/before\}\{\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}\}"
-    
+    # Pattern to match lpsb-mcid usepackage (direct style only now)
+    pkg_pattern = r"\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}"
+    # Also match old AddToHook style for backwards compatibility during migration
+    old_hook_pattern = r"\\AddToHook\{begindocument/before\}\{\\usepackage(\[[^\]]*\])?\{lpsb-mcid\}\}"
+
     opt_str = f"[{new_options}]" if new_options else ""
-    
-    if re.search(hook_pattern, content):
-        # New AddToHook style
-        repl = f"\\AddToHook{{begindocument/before}}{{\\usepackage{opt_str}{{lpsb-mcid}}}}"
-        # IMPORTANT: use a function replacement so backslashes are not treated as escapes.
-        new_content = re.sub(hook_pattern, lambda _m: repl, content)
-    elif re.search(old_pattern, content):
-        # Old direct style (backwards compat)
-        repl = f"\\usepackage{opt_str}{{lpsb-mcid}}"
-        new_content = re.sub(old_pattern, lambda _m: repl, content)
+    repl = f"\\usepackage{opt_str}{{lpsb-mcid}}"
+
+    if re.search(old_hook_pattern, content):
+        # Convert old AddToHook style to direct usepackage
+        new_content = re.sub(old_hook_pattern, lambda _m: repl, content)
+    elif re.search(pkg_pattern, content):
+        # Direct usepackage style
+        new_content = re.sub(pkg_pattern, lambda _m: repl, content)
     else:
         return False  # lpsb-mcid not found
     
@@ -1805,12 +1803,6 @@ def extract_archive(src_file, dst_dir):
     if is_tar:
         try:
             with tarfile.open(src_file) as tar:
-                def is_within_directory(directory, target):
-                    abs_directory = os.path.abspath(directory)
-                    abs_target = os.path.abspath(target)
-                    prefix = os.path.commonprefix([abs_directory, abs_target])
-                    return prefix == abs_directory
-                
                 # Check for unsafe members (ZipSlip) - simplified
                 safe_members = [m for m in tar.getmembers() if not m.name.startswith('/') and '..' not in m.name]
                 tar.extractall(path=dst_dir, members=safe_members, filter='data')
@@ -2138,13 +2130,14 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             candidates = [
                 lpsb_root / name,
                 lpsb_root.parent / name,
-                lpsb_root / "archive" / name,
-                lpsb_root.parent / "archive" / name,
+                lpsb_root / "modules" / name,
+                lpsb_root.parent / "modules" / name,
             ]
             for src in candidates:
                 if src.exists():
                     shutil.copy(src, dst_dir / name)
                     return
+            print(f"Warning: {name} not found in {candidates}")
 
         def _collect_successful_packages(work_dir: Path, tl_version: str):
             """Collect custom .sty/.cls/.bst files from successful compilations."""
@@ -2165,7 +2158,6 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             # possibly mismatched package version that can break output (including producing
             # garbage text in the PDF).
             ignore_files = {
-                "lpsb.sty",
                 "lpsb-mcid.sty",
             }
             deny_exact = {
@@ -2354,14 +2346,32 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             # LPSB tagging: use lpsb-mcid.sty exclusively (modern MCID-based approach)
             # Note: lpsb.sty (archive) is legacy and should NOT be used
             _copy_if_exists("lpsb-mcid.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-templates.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-algorithms.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-subfigure.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-math.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-lists.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-refs.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-floats.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-footnotes.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-sections.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-headers.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-metadata.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-toc.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-graphics.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-theorems.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-code.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-tables.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-frames.sty", pd_tex_dir)
+            _copy_if_exists("lpsb-quotes.sty", pd_tex_dir)
 
             # Convert $...$ to \(...\) and $$...$$ to \[...\] for robust math mode detection
             # This allows lpsb-mcid.sty to correctly identify math mode via \ifmmode
             _convert_dollar_math_in_directory(pd_tex_dir)
 
             # Disable axessibility package - it embeds LaTeX source in text layer,
-            # causing mismatch between visual and text layers (breaks text selection)
-            _disable_axessibility_package(pd_tex_dir)
+            # causing mismatch between            # Step 1b: Disable conflicting packages (e.g. axessibility, tagpdf)
+            _disable_conflicting_packages(pd_tex_dir)
 
             # Two-pass compilation: first pass uses pass-one option to collect positioning info
             two_pass_enabled = _is_two_pass_enabled()
@@ -2726,7 +2736,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         if not aux_file.exists():
             raise SystemExit(f"[postprocess] ERROR: aux not found: {aux_file}")
         try:
-            merge_count = merge_split_headings_aux(aux_file, aux_fixed)
+            merge_count, promoted_mcid_map = merge_split_headings_aux(aux_file, aux_fixed)
         except Exception as e:
             raise SystemExit(f"[postprocess] ERROR: fix-split-headings failed: {e}")
         if not aux_fixed.exists():
@@ -2773,6 +2783,17 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # Replace the output PDF with the fixed version
         shutil.copy(pdf_fixed, final_pdf)
 
+        # 1b. Retag promoted split headings in the fixed PDF (keep MCIDs, fix tag name)
+        if promoted_mcid_map:
+            pdf_retagged = pd_tex_dir / f"{main_base}_fixed_retagged.pdf"
+            retag_start = time.perf_counter()
+            retag_count = retag_pdf_mcid_types(pdf_fixed, pdf_retagged, promoted_mcid_map)
+            _log_duration(log_file, "retag_split_headings_pdf", retag_start)
+            if retag_count:
+                shutil.copy(pdf_retagged, pdf_fixed)
+                with open(log_file, "a") as log:
+                    log.write(f"\nInfo: Retagged split headings in PDF: {pdf_fixed} (updated {retag_count} BDC markers)\n")
+
         # 2. Parse MCID data from aux file to JSON
         # NOTE: Must run AFTER fix_crosspage because it reads the updated aux with continuation MCIDs
         mcid_json = pd_tex_dir / f"{main_base}.mcid.json"
@@ -2818,6 +2839,14 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
                     shutil.copy(src_file, res_dir / src_file.name)
                 except Exception:
                     pass
+        
+        # Support visualization: copy the best aux file to match paper_id
+        # match the PDF name so visualize_mcid can find it
+        if aux_merged.exists():
+            try:
+                shutil.copy(aux_merged, res_dir / f"{paper_id}.aux")
+            except Exception:
+                pass
 
         return "SUCCESS"
         
@@ -2843,26 +2872,37 @@ _CONTAINER_NAMES = []  # List of container names for workers to use
 
 def _run_visualization(output_dir: str, script_dir: Path) -> None:
     """Run MCID visualization on the compiled PDF.
-    
+
     Finds the main_tagged.pdf in the output directory and generates
     a visualization with colored MCID boxes.
     Uses direct function call instead of subprocess.
     """
     output_path = Path(output_dir)
-    
-    # Find the paper subdirectory (output_dir may be parent containing paper_id subdir)
-    # Prefer fixed_tagged output, fallback to main_tagged or any PDF.
-    pdf_candidates = list(output_path.rglob("main_fixed_tagged.pdf"))
-    if not pdf_candidates:
-        pdf_candidates = list(output_path.rglob("main_tagged.pdf"))
-    if not pdf_candidates:
-        pdf_candidates = list(output_path.rglob("*.pdf"))
+
+    # Find *_fixed_tagged.pdf first (preferred - has matching mcid.json)
+    pdf_candidates: list[Path] = list(output_path.glob("**/*_fixed_tagged.pdf"))
+
+    # Fallback: look for <paper_id>.pdf
+    if not pdf_candidates and output_path.is_dir():
+        # If output_dir is the paper dir, look for <paper_id>.pdf.
+        paper_id = output_path.name
+        final_pdf = output_path / f"{paper_id}.pdf"
+        if final_pdf.exists():
+            pdf_candidates = [final_pdf]
+        else:
+            # If output_dir is a parent, require <subdir>/<subdir>.pdf.
+            for sub in output_path.iterdir():
+                if not sub.is_dir():
+                    continue
+                cand = sub / f"{sub.name}.pdf"
+                if cand.exists():
+                    pdf_candidates.append(cand)
+
     # Filter out visualization outputs
     pdf_candidates = [p for p in pdf_candidates if "_mcid_viz" not in p.name]
-    
+
     if not pdf_candidates:
-        print("[Visualize] No PDF found to visualize")
-        return
+        raise SystemExit("[Visualize] ERROR: No final post-processed PDF found to visualize")
     
     # Use the first found PDF
     pdf_path = pdf_candidates[0]
@@ -2876,10 +2916,14 @@ def _run_visualization(output_dir: str, script_dir: Path) -> None:
     try:
         visualize_mcid_func(str(pdf_path), str(viz_output))
         print(f"[Visualize] Success: {viz_output}")
-    except Exception as e:
+    except BaseException as e:
+        import traceback
+        traceback.print_exc()
         # Ensure we don't leave behind a stale/incorrect visualization file.
         if viz_output.exists():
             viz_output.unlink()
+        if isinstance(e, SystemExit):
+             raise
         raise SystemExit(f"[Visualize] ERROR: visualize-mcid failed: {e}")
 
 def batch_worker(args):
@@ -2901,6 +2945,8 @@ def main():
                         help="Reuse Docker containers across papers (default: enabled)")
     parser.add_argument('--no-reuse-containers', action='store_false', dest='reuse_containers',
                         help="Disable container reuse (start new container per command)")
+    parser.add_argument('--flat', action='store_true',
+                        help="Treat all top-level subdirectories in --batch path as papers (disable recursive search)")
     parser.add_argument('--visualize', action='store_true', default=True,
                         help="Generate MCID visualization after successful compile (default: enabled)")
     parser.add_argument('--no-visualize', action='store_false', dest='visualize',
@@ -2928,22 +2974,35 @@ def main():
         # Prefer directory-per-paper layout when present (common for extracted corpora
         # and for our own cached build dirs). This avoids treating every auxiliary
         # *.tex file inside a paper as a separate "paper".
-        try:
-            paper_dirs = [
-                p for p in src_root.iterdir()
-                if p.is_dir() and re.fullmatch(r"\d{4}\.\d{5}", p.name or "")
-            ]
-        except Exception:
-            paper_dirs = []
-
-        if paper_dirs:
-            papers = sorted(paper_dirs)
+        if args.flat:
+            # Explicit flat mode: accept all subdirectories
+            try:
+                papers = [
+                    p for p in src_root.iterdir()
+                    if p.is_dir() and not p.name.startswith(('.', '_'))
+                ]
+                papers = sorted(papers)
+            except Exception:
+                papers = []
         else:
-            # Recursive discovery (archive or single-tex layout)
-            papers.extend(src_root.rglob("*.gz"))
-            papers.extend(src_root.rglob("*.tex"))
-            # Remove duplicates
-            papers = sorted(list(set(papers)))
+            # Auto-detection mode
+            try:
+                paper_dirs = [
+                    p for p in src_root.iterdir()
+                    if p.is_dir() and re.fullmatch(r"\d{4}\.\d{5}", p.name or "")
+                ]
+            except Exception:
+                paper_dirs = []
+
+            if paper_dirs:
+                papers = sorted(paper_dirs)
+            else:
+                # Recursive discovery (archive or single-tex layout)
+                papers.extend(src_root.rglob("*.gz"))
+                papers.extend(src_root.rglob("*.tex"))
+                # Remove duplicates
+                papers = sorted(list(set(papers)))
+        
         if args.limit and args.limit > 0:
             papers = papers[:args.limit]
         
@@ -3047,3 +3106,6 @@ def main():
         
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()

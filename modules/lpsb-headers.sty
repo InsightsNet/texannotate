@@ -1,0 +1,194 @@
+%% lpsb-headers.sty - Header/Footer Tagging Support
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-headers}[2026/01/25 LPSB Header/Footer Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-headers}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Header/Footer: Mark as Artifact (non-structural content) ---
+% Page numbers, running heads, etc. should be marked as /Artifact (PDF/UA standard)
+% not as P. This is cleaner than trying to suppress MCIDs entirely.
+
+% Flag: building header/footer content (output routine, not shipout)
+\newif\if@lpsb@in@headfoot \@lpsb@in@headfootfalse
+\newif\if@lpsb@in@artifact \@lpsb@in@artifactfalse
+
+% Wrap header/footer content as /Artifact and suppress paragraph tagging inside.
+\long\def\lpsb@headfoot@artifact#1{%
+  \begingroup
+    \@lpsb@in@headfoottrue
+    \@ifundefined{lpsb@seen@headfoot@artifact}{%
+      \gdef\lpsb@seen@headfoot@artifact{1}%
+      \typeout{LPSB-MCID Info: head/foot artifact wrapper EXECUTED}%
+    }{}%
+    \if@lpsb@in@artifact
+      #1%
+    \else
+      \@lpsb@in@artifacttrue
+      \lpsb@pdfliteralcmd{ /Artifact BMC }%
+      #1%
+      \lpsb@pdfliteralcmd{ EMC }%
+    \fi
+  \endgroup
+}
+
+% Wrap header/footer at the output routine level via \@thehead/\@thefoot.
+% This captures fancyhdr, custom pagestyles, and templates that redefine \@oddhead
+% after begin document.
+\AtBeginDocument{%
+  \@ifundefined{@outputpage}{}{%
+    \@ifundefined{lpsb@orig@@outputpage}{%
+      \let\lpsb@orig@@outputpage\@outputpage
+      \typeout{LPSB-MCID Info: outputpage wrapped for head/foot artifacts}%
+      \def\@outputpage{%
+        \begingroup
+          \@ifundefined{lpsb@seen@outputpage}{%
+            \gdef\lpsb@seen@outputpage{1}%
+            \typeout{LPSB-MCID Info: outputpage CALLED (shipout path uses @outputpage)}%
+          }{}%
+          \@ifundefined{@oddhead}{}{%
+            \let\lpsb@orig@oddhead\@oddhead
+            \def\@oddhead{\lpsb@headfoot@artifact{\lpsb@orig@oddhead}}%
+          }%
+          \@ifundefined{@evenhead}{}{%
+            \let\lpsb@orig@evenhead\@evenhead
+            \def\@evenhead{\lpsb@headfoot@artifact{\lpsb@orig@evenhead}}%
+          }%
+          \@ifundefined{@oddfoot}{}{%
+            \let\lpsb@orig@oddfoot\@oddfoot
+            \def\@oddfoot{\lpsb@headfoot@artifact{\lpsb@orig@oddfoot}}%
+          }%
+          \@ifundefined{@evenfoot}{}{%
+            \let\lpsb@orig@evenfoot\@evenfoot
+            \def\@evenfoot{\lpsb@headfoot@artifact{\lpsb@orig@evenfoot}}%
+          }%
+          \@ifundefined{@thehead}{}{%
+            \let\lpsb@orig@thehead\@thehead
+            \def\@thehead{\lpsb@headfoot@artifact{\lpsb@orig@thehead}}%
+          }%
+          \@ifundefined{@thefoot}{}{%
+            \let\lpsb@orig@thefoot\@thefoot
+            \def\@thefoot{\lpsb@headfoot@artifact{\lpsb@orig@thefoot}}%
+          }%
+          \lpsb@orig@@outputpage
+        \endgroup
+      }%
+    }{}%
+  }%
+  % NOTE: We do NOT wrap \@outputdblcol separately because it internally calls
+  % \@outputpage, which already handles header/footer artifact wrapping.
+  %
+  % HOWEVER: We text flow tracking is handled in lpsb-mcid.sty's output routine hook
+  
+  % Patch standard pagestyles so they wrap headers/footers after defining them
+  % This is critical for first page where \thispagestyle{plain} overwrites our wrapping
+  \lpsb@patch@pagestyles
+}
+
+% Fallback: wrap standard LaTeX header/footer commands with Artifact
+\newcommand{\lpsb@wrap@headfoot@artifact}{%
+  \@ifundefined{@oddfoot}{}{%
+    \let\lpsb@orig@oddfoot\@oddfoot
+    \def\@oddfoot{\lpsb@headfoot@artifact{\lpsb@orig@oddfoot}}%
+  }%
+  \@ifundefined{@evenfoot}{}{%
+    \let\lpsb@orig@evenfoot\@evenfoot
+    \def\@evenfoot{\lpsb@headfoot@artifact{\lpsb@orig@evenfoot}}%
+  }%
+  \@ifundefined{@oddhead}{}{%
+    \let\lpsb@orig@oddhead\@oddhead
+    \def\@oddhead{\lpsb@headfoot@artifact{\lpsb@orig@oddhead}}%
+  }%
+  \@ifundefined{@evenhead}{}{%
+    \let\lpsb@orig@evenhead\@evenhead
+    \def\@evenhead{\lpsb@headfoot@artifact{\lpsb@orig@evenhead}}%
+  }%
+}
+
+% Wrap current header/footer definitions with Artifact markers using \edef
+\newcommand{\lpsb@wrap@current@headfoot}{%
+  \@ifundefined{@oddfoot}{}{%
+    \ifx\@oddfoot\@empty\else
+      \edef\@oddfoot{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@oddfoot}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@evenfoot}{}{%
+    \ifx\@evenfoot\@empty\else
+      \edef\@evenfoot{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@evenfoot}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@oddhead}{}{%
+    \ifx\@oddhead\@empty\else
+      \edef\@oddhead{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@oddhead}%
+        }%
+      }%
+    \fi
+  }%
+  \@ifundefined{@evenhead}{}{%
+    \ifx\@evenhead\@empty\else
+      \edef\@evenhead{%
+        \noexpand\lpsb@headfoot@artifact{%
+          \unexpanded\expandafter{\@evenhead}%
+        }%
+      }%
+    \fi
+  }%
+}
+
+% Patch standard pagestyles to wrap headers/footers after they are defined
+% This is necessary because \thispagestyle{plain} etc. redefine \@oddfoot,
+% overwriting any previous wrapping done at \AtBeginDocument.
+\newcommand{\lpsb@patch@pagestyles}{%
+  % Skip if fancyhdr is loaded - it uses complex macros that break with \edef wrapping
+  \@ifpackageloaded{fancyhdr}{%
+    \typeout{LPSB-MCID Info: fancyhdr detected - skipping pagestyle patches (outputpage wrapper handles artifacts)}%
+  }{%
+    % Patch \ps@plain
+    \@ifundefined{ps@plain}{}{%
+      \let\lpsb@orig@ps@plain\ps@plain
+      \def\ps@plain{%
+        \lpsb@orig@ps@plain
+        \lpsb@wrap@current@headfoot
+      }%
+    }%
+    % Patch \ps@empty
+    \@ifundefined{ps@empty}{}{%
+      \let\lpsb@orig@ps@empty\ps@empty
+      \def\ps@empty{%
+        \lpsb@orig@ps@empty
+        \lpsb@wrap@current@headfoot
+      }%
+    }%
+    % Patch \ps@headings
+    \@ifundefined{ps@headings}{}{%
+      \let\lpsb@orig@ps@headings\ps@headings
+      \def\ps@headings{%
+        \lpsb@orig@ps@headings
+        \lpsb@wrap@current@headfoot
+      }%
+    }%
+    % Patch \ps@myheadings
+    \@ifundefined{ps@myheadings}{}{%
+      \let\lpsb@orig@ps@myheadings\ps@myheadings
+      \def\ps@myheadings{%
+        \lpsb@orig@ps@myheadings
+        \lpsb@wrap@current@headfoot
+      }%
+    }%
+  }%
+}
+
+\endinput

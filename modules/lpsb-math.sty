@@ -1,0 +1,246 @@
+%% lpsb-math.sty - Math Tagging Support for LPSB
+%% Handles InlineMath and Formula (Display Math) tagging
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-math}[2026/01/25 LPSB Math Tagging]
+
+\RequirePackage{etoolbox}
+
+\makeatletter
+
+% --- Math → Formula/InlineMath ---
+% Inline math tagging:
+% Do NOT play games with catcodes (making '$' active breaks real papers).
+% Instead, use TeX's math entry hooks and close the tag using \aftergroup,
+% which runs at the end of the math group.
+\newif\if@lpsb@in@inline@math \@lpsb@in@inline@mathfalse
+\gdef\lpsb@math@parent@id{}
+\gdef\lpsb@math@parent@type{}
+
+\newcommand{\lpsb@inline@math@begin}{%
+  % UNCONDITIONAL TRACE: Write to log for every \( invocation
+  \typeout{[LPSB-TRACE] InlineMath BEGIN called on page \thelpsb@currentPage}%
+  \typeout{[LPSB-TRACE] InlineMath: checking protect...}%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments like \section{})
+  % This prevents "Missing \endcsname" errors when \(...\) appears in titles
+  \ifx\protect\@typeset@protect
+    \typeout{[LPSB-TRACE] InlineMath: protect OK}%
+    \if@lpsb@active
+      \typeout{[LPSB-TRACE] InlineMath: active OK}%
+      \if@lpsb@in@shipout
+        \typeout{[LPSB-TRACE] InlineMath: SKIPPED in shipout}%
+      \else
+        \if@lpsb@in@tag
+          \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
+          \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
+          % Close parent MCID temporarily
+          \lpsb@pdfliteralcmd{ EMC }%
+        \else
+          \gdef\lpsb@math@parent@id{}%
+          \gdef\lpsb@math@parent@type{}%
+        \fi
+        % Start InlineMath atom
+        \stepcounter{lpsb@logicalElemID}%
+        \stepcounter{lpsb@globalMCID}%
+        \lpsb@pdfliteralcmd{ /InlineMath << /MCID \thelpsb@globalMCID >> BDC }%
+        \immediate\write\@auxout{%
+          \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
+        }%
+        \global\@lpsb@in@inline@mathtrue
+        \typeout{[LPSB-TRACE] InlineMath: CREATED MCID=\thelpsb@globalMCID}%
+      \fi
+    \else
+      \typeout{[LPSB-TRACE] InlineMath: SKIPPED - not active}%
+    \fi
+  \else
+    \typeout{[LPSB-TRACE] InlineMath: SKIPPED - protect mismatch}%
+  \fi
+}
+
+\newcommand{\lpsb@inline@math@end}{%
+  % CRITICAL: Skip in non-typesetting contexts (moving arguments like \section{})
+  \ifx\protect\@typeset@protect
+    \if@lpsb@active
+      \if@lpsb@in@inline@math
+        % Close InlineMath MCID
+        \lpsb@pdfliteralcmd{ EMC }%
+        \global\@lpsb@in@inline@mathfalse
+        % Reopen parent MCID (unless it's a container)
+        \ifx\lpsb@math@parent@id\@empty\else
+          \lpsb@reopen@unless@container{\lpsb@math@parent@id}{\lpsb@math@parent@type}%
+        \fi
+      \fi
+    \fi
+  \fi
+}
+
+% Reliable inline-math hook using \everymath (TeX primitive, TL 2016 compatible).
+% \everymath is executed at the START of every math mode.
+% We use an explicit @lpsb@in@display@math flag to distinguish inline from display math.
+% Display math environments set this flag, so \everymath knows to skip.
+%
+% IMPORTANT: We append to \everymath rather than replacing it, so other packages
+% (like amsmath) can also use \everymath without conflict.
+
+% Flag to track if we're in display math (set by equation/align hooks)
+\newif\if@lpsb@in@display@math \@lpsb@in@display@mathfalse
+
+% Flag to track if we already started an InlineMath tag in this math group
+\newif\if@lpsb@everymath@started \@lpsb@everymath@startedfalse
+
+\def\lpsb@everymath@hook{%
+  % Only process if LPSB is active and we're in typeset mode
+  \if@lpsb@active
+    \ifx\protect\@typeset@protect
+      % Skip during shipout (header/footer processing)
+      \if@lpsb@in@shipout\else
+        % Skip if we're inside maketitle (author area with $^{...}$ superscripts)
+        \if@lpsb@in@maketitle\else
+          % Skip if we're inside a tabular environment
+          \if@lpsb@in@tabular\else
+            % Skip if we're in display math (equation, align, etc.)
+            \if@lpsb@in@display@math\else
+              % CRITICAL: Skip inside Caption to prevent content duplication
+              % Caption with inline math ($\mathcal{L}_{...}$) should flow continuously
+              \if@lpsb@in@caption\else
+              % Avoid double-starting if already in InlineMath
+              \if@lpsb@in@inline@math\else
+                \if@lpsb@everymath@started\else
+                  \global\@lpsb@everymath@startedtrue
+                  % Close parent tag temporarily
+                  \if@lpsb@in@tag
+                    \xdef\lpsb@math@parent@id{\lpsb@current@logical@id}%
+                    \xdef\lpsb@math@parent@type{\lpsb@current@tag@type}%
+                    \lpsb@pdfliteralcmd{ EMC }%
+                  \else
+                    \gdef\lpsb@math@parent@id{}%
+                    \gdef\lpsb@math@parent@type{}%
+                  \fi
+                % Start InlineMath atom
+                \stepcounter{lpsb@logicalElemID}%
+                \stepcounter{lpsb@globalMCID}%
+                \lpsb@pdfliteralcmd{ /InlineMath << /MCID \thelpsb@globalMCID >> BDC }%
+                \immediate\write\@auxout{%
+                  \string\lpsb@tag@atom{\thelpsb@logicalElemID}{InlineMath}{\thelpsb@globalMCID}{\thelpsb@currentPage}{\lpsb@math@parent@id}%
+                }%
+                \global\@lpsb@in@inline@mathtrue
+                % Use \aftergroup to close InlineMath when math mode ends
+              \aftergroup\lpsb@everymath@end@hook
+            \fi
+          \fi
+        \fi
+      \fi
+  \fi
+  \fi
+  \fi
+  \fi
+  \fi
+}
+
+\def\lpsb@everymath@end@hook{%
+  \global\@lpsb@everymath@startedfalse
+  \if@lpsb@in@inline@math
+    % Close InlineMath MCID
+    \lpsb@pdfliteralcmd{ EMC }%
+    \global\@lpsb@in@inline@mathfalse
+    % Reopen parent MCID with a continuation MCID (unless it's a container or caption)
+    % CRITICAL: Skip reopen inside Caption to prevent content duplication
+    % Caption content should flow continuously without continuation MCIDs
+    \if@lpsb@in@caption
+      % Inside Caption: do NOT reopen - just continue the Caption's MCID stream
+    \else
+      \ifx\lpsb@math@parent@id\@empty\else
+        % Use helper to avoid reopening Table/Figure containers
+        \lpsb@reopen@unless@container{\lpsb@math@parent@id}{\lpsb@math@parent@type}%
+      \fi
+    \fi
+  \fi
+}
+
+% Install the \everymath hook at begin document (after all packages loaded)
+\AtBeginDocument{%
+  \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+}
+
+% Hook equation/align environments to set display math flag
+\AtBeginEnvironment{equation}{%
+  \global\@lpsb@in@display@mathtrue
+  \lpsbTagEnd
+  \lpsbTagBegin{Formula}%
+}
+% IMPORTANT:
+% etoolbox's \AtEndEnvironment runs at the START of \end{equation}, which is
+% too early for amsmath: equation numbers/tags may be typeset during \endequation.
+% Use \AfterEndEnvironment when available; otherwise patch \endequation.
+\@ifundefined{AfterEndEnvironment}{%
+  \AtBeginDocument{%
+    \@ifundefined{endequation}{}{%
+      \apptocmd{\endequation}{%
+        \lpsbTagEnd
+        \global\@lpsb@in@display@mathfalse
+        % Reinstall everymath hook (amsmath clears it during equation processing)
+        \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+        % Start P immediately for text following \end{equation} without blank line
+        % Using aftergroup ensures it runs after the environment group closes
+        \aftergroup\lpsb@start@P@after@float
+      }{}{}%
+    }%
+  }%
+}{%
+  \AfterEndEnvironment{equation}{%
+    \lpsbTagEnd
+    \global\@lpsb@in@display@mathfalse
+    % Reinstall everymath hook (amsmath clears it during equation processing)
+    \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+    % Start P immediately - don't rely on everypar which may not trigger
+    \lpsb@start@P@after@float
+  }%
+}
+
+% AMS math environments: align, gather, multline, flalign, alignat
+% These should all be tagged as Formula
+% --- UNIFIED AMS MATH HOOKS (using etoolbox loop) ---
+\newcommand{\lpsb@register@ams@math@hook}[1]{%
+  \AtBeginEnvironment{#1}{%
+    \global\@lpsb@in@display@mathtrue
+    \lpsbTagEnd
+    \lpsbTagBegin{Formula}%
+  }%
+  \AfterEndEnvironment{#1}{%
+    \lpsbTagEnd
+    \global\@lpsb@in@display@mathfalse
+    % Reinstall everymath hook (amsmath clears it during equation processing)
+    \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+    % Start P immediately - don't rely on everypar which may not trigger
+    \lpsb@start@P@after@float
+  }%
+}
+% Apply to all AMS math environments
+\forcsvlist{\lpsb@register@ams@math@hook}{align,align*,gather,gather*,multline,multline*,flalign,flalign*,equation*}
+
+% Plain display math: \[ ... \]
+% Some templates use display math in Algorithm without equation/align environments.
+\AtBeginDocument{%
+  \@ifundefined{[}{}{%
+    \let\lpsb@orig@display@lbrack\[
+    \def\[{%
+      \global\@lpsb@in@display@mathtrue
+      \lpsbTagEnd
+      \lpsbTagBegin{Formula}%
+      \lpsb@orig@display@lbrack
+    }%
+  }%
+  \@ifundefined{]}{}{%
+    \let\lpsb@orig@display@rbrack\]
+    \def\]{%
+      \lpsb@orig@display@rbrack
+      \lpsbTagEnd
+      \global\@lpsb@in@display@mathfalse
+      % Reinstall everymath hook (amsmath can clear it)
+      \everymath\expandafter{\the\everymath\lpsb@everymath@hook}%
+      \lpsb@start@P@after@float
+    }%
+  }%
+}
+
+\makeatother
+\endinput

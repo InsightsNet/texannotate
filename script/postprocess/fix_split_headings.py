@@ -32,6 +32,7 @@ from typing import Dict, List, Tuple
 _TAG_DATA_RE = re.compile(r'\\lpsb@tag@data\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}')
 _MCID_CONT_RE = re.compile(r'\\lpsb@mcid@cont\{(\d+)\}\{(\d+)\}\{(\d+)\}')
 _TAG_END_RE = re.compile(r'\\lpsb@tag@end\{(\d+)\}\{(\d+)\}')
+_TAG_ATOM_RE = re.compile(r'\\lpsb@tag@atom\{(\d+)\}\{([^}]+)\}\{(\d+)\}\{(\d+)\}(?:\{(\d+)\})?')
 
 
 def _parse_aux_records(aux_path: Path) -> Tuple[List[Tuple[int, str, int, int]], Dict[int, List[Tuple[int, int]]]]:
@@ -58,6 +59,23 @@ def _parse_aux_records(aux_path: Path) -> Tuple[List[Tuple[int, str, int, int]],
         cont.setdefault(elem_id, []).append((mcid, page))
 
     return ordered, cont
+
+
+def _collect_atom_parents(aux_path: Path) -> Dict[int, List[str]]:
+    """Map parent element id -> list of atom tag types under it."""
+    parents: Dict[int, List[str]] = {}
+    content = aux_path.read_text(errors="replace")
+    for m in _TAG_ATOM_RE.finditer(content):
+        tag_type = m.group(2)
+        parent_id = m.group(5)
+        if not parent_id:
+            continue
+        try:
+            pid = int(parent_id)
+        except Exception:
+            continue
+        parents.setdefault(pid, []).append(tag_type)
+    return parents
 
 
 def _detect_split_headings_aux(ordered: List[Tuple[int, str, int, int]]) -> List[Tuple[int, int]]:
@@ -173,7 +191,89 @@ def merge_split_headings_json(json_path: Path, output_path: Path) -> int:
     return merged_count
 
 
-def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
+def _collect_promoted_mcid_map(
+    ordered: List[Tuple[int, str, int, int]],
+    cont: Dict[int, List[Tuple[int, int]]],
+    promote: Dict[int, str],
+) -> Dict[int, str]:
+    """Build MCID -> new heading type mapping for promoted elements."""
+    primary_mcid: Dict[int, int] = {}
+    for eid, _etype, emcid, _epage in ordered:
+        primary_mcid.setdefault(eid, emcid)
+
+    mcid_to_tag: Dict[int, str] = {}
+    for pid, new_type in promote.items():
+        mcid = primary_mcid.get(pid)
+        if mcid is not None:
+            mcid_to_tag[mcid] = new_type
+        for cont_mcid, _page in cont.get(pid, []):
+            mcid_to_tag[cont_mcid] = new_type
+    return mcid_to_tag
+
+
+def _collect_swap_mcid_map(
+    ordered: List[Tuple[int, str, int, int]],
+    cont: Dict[int, List[Tuple[int, int]]],
+    swap: Dict[int, str],
+) -> Dict[int, str]:
+    """Build MCID -> new tag mapping for swapped elements."""
+    primary_mcid: Dict[int, int] = {}
+    for eid, _etype, emcid, _epage in ordered:
+        primary_mcid.setdefault(eid, emcid)
+    mcid_to_tag: Dict[int, str] = {}
+    for eid, new_type in swap.items():
+        mcid = primary_mcid.get(eid)
+        if mcid is not None:
+            mcid_to_tag[mcid] = new_type
+        for cont_mcid, _page in cont.get(eid, []):
+            mcid_to_tag[cont_mcid] = new_type
+    return mcid_to_tag
+
+
+def retag_pdf_mcid_types(pdf_in: Path, pdf_out: Path, mcid_to_tag: Dict[int, str]) -> int:
+    """Rewrite BDC tag names for specific MCIDs in a PDF content stream."""
+    if not mcid_to_tag:
+        pdf_out.write_bytes(pdf_in.read_bytes())
+        return 0
+
+    import fitz  # PyMuPDF
+
+    doc = fitz.open(str(pdf_in))
+    bdc_re = re.compile(r'/([A-Za-z0-9]+)\s*<<\s*/MCID\s*(\d+)\s*>>\s*BDC')
+    replacements = 0
+
+    for page in doc:
+        xrefs = page.get_contents() or []
+        for xref in xrefs:
+            try:
+                stream = doc.xref_stream(int(xref))
+            except Exception:
+                continue
+            if not stream:
+                continue
+            text = stream.decode("latin-1", errors="replace")
+
+            def _repl(m: re.Match) -> str:
+                nonlocal replacements
+                mcid = int(m.group(2))
+                new_tag = mcid_to_tag.get(mcid)
+                if not new_tag:
+                    return m.group(0)
+                if m.group(1) == new_tag:
+                    return m.group(0)
+                replacements += 1
+                return f"/{new_tag} << /MCID {mcid} >> BDC"
+
+            new_text = bdc_re.sub(_repl, text)
+            if new_text != text:
+                doc.update_stream(int(xref), new_text.encode("latin-1"))
+
+    doc.save(str(pdf_out))
+    doc.close()
+    return replacements
+
+
+def merge_split_headings_aux(aux_path: Path, output_path: Path) -> Tuple[int, Dict[int, str]]:
     r"""
     Merge split headings directly in the aux file by:
       - moving the title P's MCIDs into the heading via \lpsb@mcid@cont
@@ -183,9 +283,29 @@ def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
     """
     ordered, cont = _parse_aux_records(aux_path)
     splits = _detect_split_headings_aux(ordered)
-    if not splits:
+    atom_parents = _collect_atom_parents(aux_path)
+    swap_types: Dict[int, str] = {}
+    # Detect mis-tagged headings where the body is Hn and the title is P.
+    for i, (eid, etype, emcid, epage) in enumerate(ordered):
+        if etype not in ("H1", "H2", "H3"):
+            continue
+        atoms = atom_parents.get(eid, [])
+        if "Reference" not in atoms:
+            continue
+        if i == 0:
+            continue
+        prev_id, prev_type, prev_mcid, prev_page = ordered[i - 1]
+        if prev_type != "P":
+            continue
+        if prev_page != epage:
+            continue
+        if emcid - prev_mcid != 1:
+            continue
+        swap_types[prev_id] = etype
+        swap_types[eid] = "P"
+    if not splits and not swap_types:
         output_path.write_text(aux_path.read_text(errors="replace"))
-        return 0
+        return 0, {}
 
     # Build a quick lookup for primary mcid/page per elem_id.
     primary: Dict[int, Tuple[str, int, int]] = {}  # id -> (type, mcid, page)
@@ -201,15 +321,31 @@ def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
     # guess/modify the PDF content stream.
     promote: Dict[int, str] = {}  # pid -> heading type (H1/H2/H3)
     remove_ids = set()            # element IDs to delete entirely (stub headings)
+    primary: Dict[int, Tuple[str, int, int]] = {}  # id -> (type, mcid, page)
+    mcid_to_elem: Dict[int, int] = {}
+    for eid, etype, emcid, epage in ordered:
+        primary.setdefault(eid, (etype, emcid, epage))
+        mcid_to_elem.setdefault(emcid, eid)
 
     for hid, pid in splits:
         hinfo = primary.get(hid)
         if not hinfo:
             continue
-        htype = hinfo[0]
+        htype, hmcid, hpage = hinfo
         if htype not in ("H1", "H2", "H3"):
             continue
-        promote[pid] = htype
+        chosen_pid = pid
+        # WACV-style: title sits at MCID N+1, body (with citations) at N+2.
+        # If the promoted P has Reference atoms, prefer the N+1 P without references.
+        pid_atoms = atom_parents.get(pid, [])
+        if "Reference" in pid_atoms:
+            p1_id = mcid_to_elem.get(hmcid + 1)
+            if p1_id is not None:
+                p1_info = primary.get(p1_id)
+                if p1_info and p1_info[0] == "P" and p1_info[2] == hpage:
+                    if "Reference" not in atom_parents.get(p1_id, []):
+                        chosen_pid = p1_id
+        promote[chosen_pid] = htype
         remove_ids.add(hid)
 
     # Rewrite aux: filter out removed heading elements; rewrite promoted P -> Hn.
@@ -227,6 +363,10 @@ def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
                 new_type = promote[eid]
                 ln = re.sub(r'(\\lpsb@tag@data\{\d+\}\{)([^}]+)(\}\{\d+\}\{\d+\})',
                             r'\g<1>' + new_type + r'\g<3>', ln, count=1)
+            elif eid in swap_types:
+                new_type = swap_types[eid]
+                ln = re.sub(r'(\\lpsb@tag@data\{\d+\}\{)([^}]+)(\}\{\d+\}\{\d+\})',
+                            r'\g<1>' + new_type + r'\g<3>', ln, count=1)
         m = _MCID_CONT_RE.search(ln)
         if m and int(m.group(1)) in remove_ids:
             continue
@@ -237,9 +377,12 @@ def merge_split_headings_aux(aux_path: Path, output_path: Path) -> int:
 
     out_lines.append("\n% --- LPSB: merged split headings ---\n")
     out_lines.append(f"% Promoted {len(promote)} title P elements into headings; dropped {len(remove_ids)} stub headings.\n")
+    out_lines.append(f"% Swapped {len(swap_types)//2} misplaced heading/body pairs.\n")
 
     output_path.write_text("".join(out_lines))
-    return len(splits)
+    mcid_map = _collect_promoted_mcid_map(ordered, cont, promote)
+    mcid_map.update(_collect_swap_mcid_map(ordered, cont, swap_types))
+    return len(splits), mcid_map
 
 
 def main():
@@ -270,7 +413,7 @@ def main():
     if is_aux_like:
         if args.verbose:
             print(f"Processing AUX: {args.input}")
-        count = merge_split_headings_aux(args.input, output)
+        count, _mcid_map = merge_split_headings_aux(args.input, output)
         if args.verbose:
             print(f"✓ Merged {count} split headings -> {output}")
         return 0

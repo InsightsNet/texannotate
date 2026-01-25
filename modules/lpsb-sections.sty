@@ -1,0 +1,630 @@
+%% lpsb-sections.sty - Sectioning Semantic Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-sections}[2026/01/25 LPSB Sectioning Support]
+
+% Requirement: lpsb-mcid must be loaded (for \lpsbTagBegin etc.)
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-sections}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Sections → H1, H2, H3, etc. ---
+% Section titles only - H1 wraps title text, then P starts for content
+%
+% IMPORTANT: LaTeX may defer section headings to the next page if there's
+% insufficient space. For display-style headings (not run-in), the title
+% is stored in \@svsechd and output via \everypar on the NEXT paragraph.
+%
+% Strategy: We hook into the actual heading output mechanism:
+% 1. When \section is called, we DON'T emit H1 immediately
+% 2. We set a flag indicating "next everypar should be H1"
+% 3. In everypar, if the flag is set, we emit H1 for that content
+% 4. After the heading content, we close H1 and start P
+%
+% This ensures H1 wraps the actual heading text, even across page breaks.
+
+\newif\if@lpsb@in@section \@lpsb@in@sectionfalse
+\newif\if@lpsb@section@pending \@lpsb@section@pendingfalse
+% Flag: defer P tag creation after section heading until real content appears
+% This prevents empty P tags when floats immediately follow \section{...}
+\newif\if@lpsb@P@pending@after@section \@lpsb@P@pending@after@sectionfalse
+
+% Flag to track if we need to emit heading tag at next everypar
+\newif\if@lpsb@heading@deferred \@lpsb@heading@deferredfalse
+
+% Flag to skip section hooks for incompatible templates
+\newif\if@lpsb@skip@sectionhooks \@lpsb@skip@sectionhooksfalse
+
+\AtBeginDocument{%
+  % Check for incompatible section handling templates
+  % smf (Société Mathématique de France) uses complex \smf@sf and \smf@eebox
+  \def\lpsb@tmp@smf{smf}%
+  \ifx\lpsb@detected@template\lpsb@tmp@smf\global\@lpsb@skip@sectionhookstrue\fi
+  % smfart class files define \smf@sf
+  \@ifundefined{smf@sf}{}{\global\@lpsb@skip@sectionhookstrue}%
+  %
+  \if@lpsb@skip@sectionhooks
+    \typeout{LPSB-MCID Info: Skipping section hooks (incompatible package detected)}%
+  \else
+  %
+  % Hook \@afterheading - this is called after \@xsect but BEFORE
+  % the heading text is actually output (for display headings).
+  % We use this to set up deferred heading tagging.
+  %
+  % CRITICAL: The original \@afterheading SETS \@nobreaktrue for display headings.
+  % We must call it FIRST, then check the flag, otherwise we always get false!
+  % Flag to skip @afterheading processing when WACV hooks are handling sections
+  \newif\if@lpsb@wacv@in@section \@lpsb@wacv@in@sectionfalse
+  \@ifundefined{@afterheading}{}{%
+    \let\lpsb@orig@@afterheading\@afterheading
+    \def\@afterheading{%
+      % Call original FIRST - it sets \@nobreaktrue and OVERWRITES \everypar
+      \lpsb@orig@@afterheading
+      % Skip our processing if WACV hooks are handling it
+      \if@lpsb@wacv@in@section\else
+      % Now check if heading is deferred (display-style)
+      % \@nobreak is true for display headings, false for run-in
+      \if@nobreak
+        % Display heading - title is already typeset; do NOT defer heading tag.
+        \global\@lpsb@heading@deferredfalse
+        % CRITICAL: LaTeX's @afterheading just OVERWROTE \everypar.
+        % We must re-inject our P-pending logic into the NEW everypar.
+        \if@lpsb@P@pending@after@section
+          \edef\lpsb@saved@everypar{\the\everypar}%
+          \everypar{%
+            \lpsb@saved@everypar
+            % After LaTeX's everypar content runs, handle our P tag
+            \if@lpsb@P@pending@after@section
+              \global\@lpsb@P@pending@after@sectionfalse
+              % Only close heading if we're still in a heading tag
+              % Check if current tag is H* before closing
+              \lpsb@set@current@heading@flag
+              \if@lpsb@current@is@heading
+                \lpsbTagEnd
+              \fi
+              \lpsbTagBegin{P}%
+              \global\@lpsb@first@parafalse
+              \global\@lpsb@in@sectionfalse
+            \fi
+          }%
+        \fi
+      \else
+        % Run-in heading - title is still output via \everypar (\@svsechd).
+        % Do NOT close the heading tag here; let our everypar hook close the H*
+        % immediately after the run-in title is actually typeset, then start P.
+        \if@lpsb@in@section
+          \global\@lpsb@heading@deferredtrue
+        \fi
+      \fi
+      \fi % @lpsb@wacv@in@section
+    }%
+  }%
+  %
+  % Hook \@sect to capture when heading text is about to be stored
+  % \@sect handles numbered sections: \@sect{name}{level}{indent}{beforeskip}{afterskip}{style}{*heading}
+  % Skip for WACV - it has its own wacvsect/wacvsubsect hooks
+  \def\lpsb@tmp@wacv@sect{wacv}%
+  \ifx\lpsb@detected@template\lpsb@tmp@wacv@sect
+    \typeout{LPSB-MCID Info: Skipping @sect hook for WACV (uses wacvsect hooks)}%
+  \else
+  \@ifundefined{@sect}{}{%
+    \let\lpsb@orig@@sect\@sect
+    \def\@sect#1#2#3#4#5#6[#7]#8{%
+      \typeout{[LPSB-SECT] @sect CALLED: name=#1 level=#2 in@section=\if@lpsb@in@section TRUE\else FALSE\fi}%
+      % Call original \@sect
+      \lpsb@orig@@sect{#1}{#2}{#3}{#4}{#5}{#6}[#7]{#8}%
+      % For display headings (after-skip > 0), close H* here to avoid leaking.
+      \if@lpsb@in@section
+        \typeout{[LPSB-SECT] @sect: in@section=TRUE, tempskipa=\the\@tempskipa}%
+        \ifdim\@tempskipa>\z@
+          \typeout{[LPSB-SECT] @sect: tempskipa>0, checking current@is@heading}%
+          \lpsb@set@current@heading@flag
+          \if@lpsb@current@is@heading
+            \typeout{[LPSB-SECT] @sect: closing heading, setting P@pending=TRUE}%
+            \lpsbTagEndForce
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+            \global\@lpsb@heading@closedin@secttrue
+          \else
+            \typeout{[LPSB-SECT] @sect: current@is@heading=FALSE, NOT closing}%
+          \fi
+        \else
+          \typeout{[LPSB-SECT] @sect: tempskipa<=0, skipping (run-in heading)}%
+        \fi
+      \else
+        \typeout{[LPSB-SECT] @sect: in@section=FALSE, heading not tagged by LPSB}%
+      \fi
+    }%
+  }%
+  \fi
+
+  % No-op: older attempt to wrap \@svsechd was unreliable because LaTeX redefines
+  % it in multiple places. We handle run-in headings by hooking \@xsect instead.
+  \def\lpsb@wrap@svsechd{}%
+
+  % Run-in heading capture (e.g. \paragraph): the title is output via \everypar.
+  \newif\if@lpsb@runin@heading@pending \@lpsb@runin@heading@pendingfalse
+  \newif\if@lpsb@runin@heading@armed \@lpsb@runin@heading@armedfalse
+  \newif\if@lpsb@runin@heading@guard \@lpsb@runin@heading@guardfalse
+  \newif\if@lpsb@heading@closedin@sect \@lpsb@heading@closedin@sectfalse
+  \newif\if@lpsb@use@sict@heading \@lpsb@use@sict@headingfalse
+  \@ifundefined{@sict}{}{\global\@lpsb@use@sict@headingtrue}
+  \gdef\lpsb@runin@heading@level{H4}%
+  \newif\if@lpsb@current@is@heading \@lpsb@current@is@headingfalse
+  \def\lpsb@set@current@heading@flag{%
+    \global\@lpsb@current@is@headingfalse
+    \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
+    \expandafter\lpsb@check@heading@prefix@flag\lpsb@tmp@chk@type\@nil
+  }%
+  \def\lpsb@check@heading@prefix@flag#1#2\@nil{%
+    \def\lpsb@tmp@first{#1}%
+    \ifx\lpsb@tmp@first\lpsb@const@H
+      \global\@lpsb@current@is@headingtrue
+    \fi
+  }%
+  \def\lpsb@set@heading@level@from@num#1{%
+    \ifnum#1=1\gdef\lpsb@tmp@heading@level{\lpsb@H@section}\else
+    \ifnum#1=2\gdef\lpsb@tmp@heading@level{\lpsb@H@subsection}\else
+    \ifnum#1=3\gdef\lpsb@tmp@heading@level{\lpsb@H@subsubsection}\else
+      \gdef\lpsb@tmp@heading@level{\lpsb@H@paragraph}%
+    \fi\fi\fi
+  }%
+
+  % Hook \@xsect to handle run-in headings (\paragraph etc.).
+  % For afterskip < 0, LaTeX outputs the title via \everypar (\@svsechd).
+  % We patch \@xsect itself (kernel macro) so we can bracket \@svsechd precisely:
+  % - before \@svsechd: start H4 (pending)
+  % - after \hskip -\@tempskipa: end H4 and start P so the body continues in P
+  % Skip for WACV - it has its own wacvsect/wacvsubsect hooks
+  \def\lpsb@tmp@wacv@xsect{wacv}%
+  \ifx\lpsb@detected@template\lpsb@tmp@wacv@xsect
+    \typeout{LPSB-MCID Info: Skipping @xsect hook for WACV (uses wacvsect hooks)}%
+  \else
+  \@ifundefined{@xsect}{}{%
+    \let\lpsb@orig@@xsect\@xsect
+    \def\@xsect#1{%
+      \@tempskipa #1\relax
+      \ifdim \@tempskipa>\z@
+        \par \nobreak
+        \vskip \@tempskipa
+        \@afterheading
+      \else
+        \@nobreakfalse
+        \global\@noskipsectrue
+        \everypar{%
+          \if@noskipsec
+            \global\@noskipsecfalse
+            {\setbox\z@\lastbox}%
+            \clubpenalty\@M
+            % LPSB: start run-in heading tag right before \@svsechd outputs the title.
+            \if@lpsb@active
+              \if@lpsb@runin@heading@pending
+                \lpsbTagEnd
+                \lpsbTagBegin{\lpsb@runin@heading@level}%
+                \global\@lpsb@runin@heading@pendingfalse
+                \global\@lpsb@runin@heading@armedtrue
+                \global\@lpsb@runin@heading@guardtrue
+              \else
+                \lpsb@set@current@heading@flag
+                \if@lpsb@in@section\if@lpsb@current@is@heading
+                  \global\@lpsb@runin@heading@armedtrue
+                  \global\@lpsb@runin@heading@guardtrue
+                \fi\fi
+              \fi
+            \fi
+            \begingroup \@svsechd \endgroup
+            \unskip
+            \@tempskipa #1\relax
+            \hskip -\@tempskipa
+            % LPSB: immediately switch back to P for the paragraph body.
+            \if@lpsb@active\if@lpsb@runin@heading@armed
+              \lpsbTagEnd
+              \lpsbTagBegin{P}%
+              \global\@lpsb@first@paratrue
+              \global\@lpsb@heading@deferredfalse
+              \global\@lpsb@in@sectionfalse
+              \global\@lpsb@runin@heading@armedfalse
+              \global\@lpsb@runin@heading@guardfalse
+            \fi\fi
+          \else
+            \clubpenalty \@clubpenalty
+            \everypar{}%
+          \fi}%
+      \fi
+      \ignorespaces}%
+  }%
+  \fi % skip @xsect for WACV
+  %
+  % Dynamic heading levels based on document class:
+  % - If \chapter is defined (book/report): chapter=H1, section=H2, subsection=H3, etc.
+  % - If \chapter is NOT defined (article): section=H1, subsection=H2, etc.
+  %
+  \@ifundefined{chapter}{%
+    % Article-style: no chapter
+    \def\lpsb@H@chapter{H1}%   (not used)
+    \def\lpsb@H@section{H1}%
+    \def\lpsb@H@subsection{H2}%
+    \def\lpsb@H@subsubsection{H3}%
+    \def\lpsb@H@paragraph{H4}%
+    \def\lpsb@H@subparagraph{H5}%
+  }{%
+    % Book/Report-style: chapter is highest
+    \def\lpsb@H@chapter{H1}%
+    \def\lpsb@H@section{H2}%
+    \def\lpsb@H@subsection{H3}%
+    \def\lpsb@H@subsubsection{H4}%
+    \def\lpsb@H@paragraph{H5}%
+    \def\lpsb@H@subparagraph{H6}%
+  }%
+  %
+  % acmart/WACV/IEEETran compatibility:
+  % Use kernel-level \@startsection hook for templates that use it but have issues with generic hook
+  \newif\if@lpsb@use@startsection@hook \@lpsb@use@startsection@hookfalse
+  \@ifundefined{ACM@format}{}{\global\@lpsb@use@startsection@hooktrue}%
+  \def\lpsb@tmp@wacv{wacv}%
+  \def\lpsb@tmp@ieeetran{ieeetran}%
+  \ifx\lpsb@detected@template\lpsb@tmp@ieeetran \global\@lpsb@use@startsection@hooktrue \fi
+  % Note: WACV uses custom wacvsect/wacvsubsect hooks - do NOT use @startsection hook
+  
+  \if@lpsb@use@startsection@hook
+     \@ifundefined{@startsection}{}{%
+       \let\lpsb@orig@@startsection\@startsection
+       \def\@startsection#1#2#3#4#5#6{%
+         \lpsb@debug{@startsection hook: #1 level #2}%
+         \@tempskipa #5\relax
+         % Run-in headings (afterskip <= 0): let \@xsect handle the tag switch.
+         \ifdim\@tempskipa>\z@
+           \lpsbTagEnd
+           \ifnum#2=1
+             \lpsbTagBegin{\lpsb@H@section}%
+             \gdef\lpsb@pending@heading@level{\lpsb@H@section}%
+           \else\ifnum#2=2
+             \lpsbTagBegin{\lpsb@H@subsection}%
+             \gdef\lpsb@pending@heading@level{\lpsb@H@subsection}%
+           \else\ifnum#2=3
+             \lpsbTagBegin{\lpsb@H@subsubsection}%
+             \gdef\lpsb@pending@heading@level{\lpsb@H@subsubsection}%
+           \else\ifnum#2=4
+             \lpsbTagBegin{\lpsb@H@paragraph}%
+             \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+           \else
+             \lpsbTagBegin{\lpsb@H@paragraph}%
+             \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+           \fi\fi\fi\fi
+           \global\@lpsb@in@sectiontrue
+           \global\@lpsb@heading@deferredfalse
+           % Ensure \@afterheading sees the pending P flag for display headings.
+           \global\@lpsb@P@pending@after@sectiontrue
+         \else
+           \lpsbTagEnd
+           \global\@lpsb@runin@heading@pendingtrue
+           \global\@lpsb@runin@heading@guardtrue
+           \ifnum#2=1
+             \gdef\lpsb@runin@heading@level{\lpsb@H@section}%
+           \else\ifnum#2=2
+             \gdef\lpsb@runin@heading@level{\lpsb@H@subsection}%
+           \else\ifnum#2=3
+             \gdef\lpsb@runin@heading@level{\lpsb@H@subsubsection}%
+           \else
+             \gdef\lpsb@runin@heading@level{\lpsb@H@paragraph}%
+           \fi\fi\fi
+           \gdef\lpsb@pending@heading@level{\lpsb@runin@heading@level}%
+         \fi
+         \lpsb@orig@@startsection{#1}{#2}{#3}{#4}{#5}{#6}%
+         % Signal that next P should close the H tag (same as CVPR/ICML hooks)
+         \global\@lpsb@P@pending@after@sectiontrue
+       }%
+     }%
+  \fi
+  %
+  % Hook \chapter (for book/report document classes)
+  %
+  \@ifundefined{chapter}{}{%
+    \let\lpsb@orig@chapter\chapter
+    \def\chapter{\@ifstar\lpsb@chapter@star\lpsb@chapter@nostar}%
+    \def\lpsb@chapter@star#1{%
+      \lpsb@orig@chapter*{#1}%
+    }%
+    \def\lpsb@chapter@nostar{%
+      \@ifnextchar[\lpsb@chapter@opt\lpsb@chapter@noopt
+    }%
+    \def\lpsb@chapter@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@chapter}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
+      \lpsb@orig@chapter[#1]{#2}%
+      \lpsbTagEnd
+      \global\@lpsb@heading@deferredfalse
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+    \def\lpsb@chapter@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      \lpsbTagEnd
+      \lpsbTagBegin{\lpsb@H@chapter}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{\lpsb@H@chapter}%
+      \lpsb@orig@chapter{#1}%
+      \lpsbTagEnd
+      \global\@lpsb@heading@deferredfalse
+      \lpsbTagBegin{P}%
+      \global\@lpsb@in@sectionfalse
+    }%
+  }%
+  %
+  % Hook \section / \subsection / \subsubsection.
+  %
+  % CRITICAL: Preserve the star form (\section*{...}). If we don't, LaTeX will
+  % mis-parse \section*{References} as \section{*} and you'll literally typeset
+  % "6 *" (section 6 with title '*'), with "References" falling into the next P.
+  %
+  % --- GENERIC SECTION HANDLER (TL2016 compatible) ---
+  % Consolidates the common logic shared by \section, \subsection, \subsubsection.
+  % #1 = Heading level constant (e.g., \lpsb@H@section)
+  % #2 = Original command (e.g., \lpsb@orig@section)
+  % #3 = Arguments to pass (pre-packaged as [opt]{mand} or {mand})
+  \long\def\lpsb@generic@section@handler#1#2#3{%
+    \lpsb@debug{generic@section@handler CALLED: level=#1}%
+    \if@lpsb@use@sict@heading
+      #2#3%
+    \else
+      \global\@lpsb@runin@heading@pendingfalse
+      \global\@lpsb@runin@heading@armedfalse
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      % This ensures text between previous section/float and this section has a P tag
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
+      \lpsbTagEnd
+      \lpsbTagBegin{#1}%
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      \gdef\lpsb@pending@heading@level{#1}%
+      #2#3%
+      % Defer P tag creation - everypar will handle it when real content appears
+      % This prevents empty P tags when floats immediately follow \section{...}
+      \if@lpsb@heading@closedin@sect
+        \global\@lpsb@heading@closedin@sectfalse
+      \else
+        \if@lpsb@runin@heading@armed\else
+          \if@lpsb@runin@heading@pending\else
+            \lpsbTagEndForce
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+            \lpsb@debug{generic@section@handler: H closed, P@pending@after@section=TRUE}%
+          \fi
+        \fi
+      \fi
+    \fi
+  }%
+  %
+  % Flag to skip generic section hooks for templates with custom section handling
+  \newif\if@lpsb@skip@generic@section@hook \@lpsb@skip@generic@section@hookfalse
+  \def\lpsb@tmp@wacv{wacv}%
+  \ifx\lpsb@detected@template\lpsb@tmp@wacv \global\@lpsb@skip@generic@section@hooktrue \fi
+  %
+  % WACV-specific section hooks
+  % WACV uses wacvsection/wacvsubsection which call \@startsection internally.
+  % Strategy: Set wacv@in@section flag to prevent @afterheading interference,
+  % close H tag immediately after original returns, then set up everypar for P.
+  \ifx\lpsb@detected@template\lpsb@tmp@wacv
+    \typeout{LPSB-MCID Info: Installing WACV-specific section hooks}%
+    % Helper to setup everypar for starting P tag only (H already closed)
+    \def\lpsb@wacv@setup@P@everypar{%
+      \edef\lpsb@wacv@saved@everypar{\the\everypar}%
+      \everypar{%
+        \lpsb@wacv@saved@everypar
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+          \global\@lpsb@in@sectionfalse
+        \fi
+        \everypar{\lpsb@wacv@saved@everypar}%
+      }%
+    }%
+    \@ifundefined{wacvsect}{}{%
+      \let\lpsb@orig@wacvsect\wacvsect
+      \def\wacvsect#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \lpsbTagBegin{\lpsb@H@section}%
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        \lpsb@orig@wacvsect{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        % Close H tag immediately after original returns
+        \lpsbTagEnd
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@setup@P@everypar
+      }%
+    }%
+    \@ifundefined{wacvssect}{}{%
+      \let\lpsb@orig@wacvssect\wacvssect
+      \def\wacvssect#1{%
+        \lpsbTagEnd
+        \lpsbTagBegin{\lpsb@H@section}%
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        \lpsb@orig@wacvssect{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \lpsbTagEnd
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@setup@P@everypar
+      }%
+    }%
+    \@ifundefined{wacvsubsect}{}{%
+      \let\lpsb@orig@wacvsubsect\wacvsubsect
+      \def\wacvsubsect#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \lpsbTagBegin{\lpsb@H@subsection}%
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        \lpsb@orig@wacvsubsect{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \lpsbTagEnd
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@setup@P@everypar
+      }%
+    }%
+    \@ifundefined{wacvssubsect}{}{%
+      \let\lpsb@orig@wacvssubsect\wacvssubsect
+      \def\wacvssubsect#1{%
+        \lpsbTagEnd
+        \lpsbTagBegin{\lpsb@H@subsection}%
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        \lpsb@orig@wacvssubsect{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \lpsbTagEnd
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@setup@P@everypar
+      }%
+    }%
+  \fi
+
+  \@ifundefined{ACM@format}{\if@lpsb@use@startsection@hook\else\if@lpsb@skip@generic@section@hook\else\@ifundefined{section}{%
+    \typeout{LPSB-MCID Info: section NOT defined, skipping hook}%
+  }{%
+    \typeout{LPSB-MCID Info: Hooking section command}%
+    \let\lpsb@orig@section\section
+    \def\section{\@ifstar\lpsb@section@star\lpsb@section@nostar}%
+    \long\def\lpsb@section@star#1{\lpsb@orig@section*{#1}}%
+    \def\lpsb@section@nostar{\@ifnextchar[\lpsb@section@opt\lpsb@section@noopt}%
+    \long\def\lpsb@section@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@section}{\lpsb@orig@section}{[#1]{#2}}}%
+    \long\def\lpsb@section@noopt#1{\lpsb@generic@section@handler{\lpsb@H@section}{\lpsb@orig@section}{{#1}}}%
+  }\fi\fi}{%
+    \typeout{LPSB-MCID Info: ACM@format defined, skipping section hook}%
+  }%
+  \@ifundefined{ACM@format}{\if@lpsb@use@startsection@hook\else\if@lpsb@skip@generic@section@hook\else\@ifundefined{subsection}{}{%
+    \let\lpsb@orig@subsec\subsection
+    \def\subsection{\@ifstar\lpsb@subsection@star\lpsb@subsection@nostar}%
+    \long\def\lpsb@subsection@star#1{\lpsb@orig@subsec*{#1}}%
+    \def\lpsb@subsection@nostar{\@ifnextchar[\lpsb@subsection@opt\lpsb@subsection@noopt}%
+    \long\def\lpsb@subsection@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@subsection}{\lpsb@orig@subsec}{[#1]{#2}}}%
+    \long\def\lpsb@subsection@noopt#1{\lpsb@generic@section@handler{\lpsb@H@subsection}{\lpsb@orig@subsec}{{#1}}}%
+  }\fi\fi}{}%
+  % Hook \subsubsection
+  \@ifundefined{ACM@format}{\if@lpsb@use@startsection@hook\else\@ifundefined{subsubsection}{}{%
+    \let\lpsb@orig@subsubsec\subsubsection
+    \def\subsubsection{\@ifstar\lpsb@subsubsection@star\lpsb@subsubsection@nostar}%
+    \long\def\lpsb@subsubsection@star#1{\lpsb@orig@subsubsec*{#1}}%
+    \def\lpsb@subsubsection@nostar{\@ifnextchar[\lpsb@subsubsection@opt\lpsb@subsubsection@noopt}%
+    \long\def\lpsb@subsubsection@opt[#1]#2{\lpsb@generic@section@handler{\lpsb@H@subsubsection}{\lpsb@orig@subsubsec}{[#1]{#2}}}%
+    \long\def\lpsb@subsubsection@noopt#1{\lpsb@generic@section@handler{\lpsb@H@subsubsection}{\lpsb@orig@subsubsec}{{#1}}}%
+  }\fi}{}%
+  % Hook \paragraph
+  \@ifundefined{ACM@format}{\if@lpsb@use@startsection@hook\else\@ifundefined{paragraph}{}{%
+    \let\lpsb@orig@paragraph\paragraph
+    \def\paragraph{\@ifstar\lpsb@paragraph@star\lpsb@paragraph@nostar}%
+    \long\def\lpsb@paragraph@star#1{%
+      \lpsb@orig@paragraph*{#1}%
+    }%
+    \def\lpsb@paragraph@nostar{%
+      \@ifnextchar[\lpsb@paragraph@opt\lpsb@paragraph@noopt
+    }%
+    \long\def\lpsb@paragraph@opt[#1]#2{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      % This ensures text between previous section and this paragraph has a P tag
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
+      \lpsbTagEnd
+      % Mark a pending run-in heading; \@xsect/\everypar will do the actual tagging.
+      \global\@lpsb@runin@heading@pendingtrue
+      \global\@lpsb@runin@heading@guardtrue
+      \gdef\lpsb@runin@heading@level{\lpsb@H@paragraph}%
+      \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+      \lpsb@orig@paragraph[#1]{#2}%
+    }%
+    \long\def\lpsb@paragraph@noopt#1{%
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      % CRITICAL: Check pending P flags BEFORE lpsbTagEnd
+      \if@lpsb@in@tag\else
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagBegin{P}%
+        \else\if@lpsb@P@pending@after@float
+          \global\@lpsb@P@pending@after@floatfalse
+          \lpsbTagBegin{P}%
+        \fi\fi
+      \fi
+      \lpsbTagEnd
+      \global\@lpsb@runin@heading@pendingtrue
+      \global\@lpsb@runin@heading@guardtrue
+      \gdef\lpsb@runin@heading@level{\lpsb@H@paragraph}%
+      \gdef\lpsb@pending@heading@level{\lpsb@H@paragraph}%
+      \lpsb@orig@paragraph{#1}%
+    }%
+  }\fi}{}%
+  % Hook \@ssect for starred sections (\section*, \subsection*)
+  \@ifundefined{@ssect}{}{%
+    \let\lpsb@orig@@ssect\@ssect
+    \def\@ssect#1#2#3#4#5{%
+      \if@lpsb@manual@star@section
+        \global\@lpsb@manual@star@sectionfalse
+        \lpsb@orig@@ssect{#1}{#2}{#3}{#4}{#5}%
+      \else
+      \global\@lpsb@runin@heading@pendingfalse
+      \global\@lpsb@runin@heading@armedfalse
+      \stepcounter{lpsb@sectionID}%
+      \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+      %
+      \lpsbTagEnd
+      \global\@lpsb@in@sectiontrue
+      \global\@lpsb@heading@deferredfalse
+      % Determine heading level based on indent
+      \ifdim#1<1em
+        \gdef\lpsb@pending@heading@level{H1}%
+        \gdef\lpsb@tmp@heading@level{H1}%
+      \else
+        \gdef\lpsb@pending@heading@level{H2}%
+        \gdef\lpsb@tmp@heading@level{H2}%
+      \fi
+      % Wrap the heading text directly so tags are inside the typeset box
+      \lpsb@orig@@ssect{#1}{#2}{#3}{#4}{\lpsbTagBegin{\lpsb@tmp@heading@level}#5\lpsbTagEnd}%
+      \if@lpsb@heading@closedin@sect
+        \global\@lpsb@heading@closedin@sectfalse
+      \else
+        \if@lpsb@runin@heading@armed\else
+          \if@lpsb@runin@heading@pending\else
+            \global\@lpsb@heading@deferredfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+            \global\@lpsb@in@sectionfalse
+          \fi
+        \fi
+      \fi
+      \fi
+    }%
+  }%
+  \fi % @lpsb@skip@sectionhooks
+}
+
+\endinput

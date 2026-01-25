@@ -1,0 +1,456 @@
+%% lpsb-floats.sty - Float Tagging Support for LPSB
+%% Handles Figures, Tables, Wrapfig, and Floating Environments
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-floats}[2026/01/25 LPSB Float Tagging]
+
+\RequirePackage{etoolbox}
+
+\makeatletter
+
+% --- Figure/Table → Figure/Table ---
+% SOLUTION: Patch \@xfloat and \end@float to inject BDC/EMC INSIDE the float box.
+% This ensures markers appear at the actual placement position, not source location.
+
+% Save float type for use in BDC
+\newcommand{\lpsb@current@float@type}{}
+
+% Flag to track if P tag was just started before float (for BeforeBeginEnvironment/AtBeginEnvironment coordination)
+\newif\if@lpsb@just@started@P@before@float \@lpsb@just@started@P@before@floatfalse
+
+% Helper command to start P after float group ends
+% CRITICAL: Must be defined OUTSIDE \AtBeginDocument so etoolbox hooks can reference it
+% FIX: Remove conditional checks - after a float ends, we ALWAYS need to start P
+% for any following text. The conditions were causing failures when flag states
+% were corrupted by nested environments (e.g., \resizebox inside table).
+\def\lpsb@start@P@after@float{%
+  \lpsb@debug{lpsb@start@P@after@float called}%
+  \lpsb@debug{  @lpsb@active = \if@lpsb@active TRUE\else FALSE\fi}%
+  \lpsb@debug{  @lpsb@in@float = \if@lpsb@in@float TRUE\else FALSE\fi}%
+  \lpsb@debug{  @lpsb@in@tag = \if@lpsb@in@tag TRUE\else FALSE\fi}%
+  \lpsb@debug{  @lpsb@pass@one = \if@lpsb@pass@one TRUE\else FALSE\fi}%
+  \if@lpsb@active
+    \if@lpsb@in@float
+      \lpsb@debug{  -> SKIPPED: still in float}%
+    \else
+      % Force close any existing tag and start fresh P
+      \if@lpsb@in@tag
+        \lpsb@debug{  -> Closing existing tag first}%
+        \lpsbTagEnd
+      \fi
+      \lpsb@debug{  -> Starting P tag with lpsbTagBeginForce}%
+      \lpsbTagBeginForce{P}%
+    \fi
+  \else
+    \lpsb@debug{  -> SKIPPED: lpsb not active}%
+  \fi
+}%
+
+\typeout{LPSB-DEBUG: lpsb-floats.sty - registering AtBeginDocument hook}%
+\AtBeginDocument{%
+  \typeout{LPSB-DEBUG: lpsb-floats.sty AtBeginDocument EXECUTING}%
+  % Patch \@xfloat - this is called after the float box is opened
+  \let\lpsb@orig@@xfloat\@xfloat
+  \def\@xfloat#1[#2]{%
+    \lpsb@orig@@xfloat{#1}[#2]%
+    % Now we're INSIDE the float's vbox - BDC here will be in the float!
+    \global\@lpsb@in@floattrue
+    %
+    % Two-pass: assign float ID and record source page
+    \stepcounter{lpsb@floatID}%
+    \edef\lpsb@this@float@id{\thelpsb@floatID}%
+    \edef\lpsb@this@float@source@page{\thelpsb@currentPage}%
+    %
+    % Store float ID in the box for shipout tracking
+    % We use \special or \pdfliteral to embed a marker
+    \if@lpsb@pass@one
+      % In pass-one, record the float ID and source page
+      % The rendered page will be recorded at shipout
+      \immediate\write\@auxout{%
+        \string\lpsb@pass@float{\lpsb@this@float@id}{\lpsb@this@float@source@page}{\thelpsb@currentPage}{#1}%
+      }%
+    \fi
+    %
+    \if@lpsb@active
+      % Skip BDC emission in pass-one mode
+      \if@lpsb@pass@one\else
+        \def\lpsb@temp@a{#1}%
+        \def\lpsb@temp@figure{figure}%
+        \def\lpsb@temp@table{table}%
+        \ifx\lpsb@temp@a\lpsb@temp@figure
+          \gdef\lpsb@current@float@type{Figure}%
+          % In pass-2 with data: check if float lands on different page
+          \if@lpsb@has@pass@data
+            % We have positioning data - use smart tagging
+            \lpsbTagBeginFloat{Figure}%
+          \else
+            % No pass data - use original behavior
+            \lpsbTagBeginFloat{Figure}%
+          \fi
+        \else\ifx\lpsb@temp@a\lpsb@temp@table
+          \gdef\lpsb@current@float@type{Table}%
+          \if@lpsb@has@pass@data
+            \lpsbTagBeginFloat{Table}%
+          \else
+            \lpsbTagBeginFloat{Table}%
+          \fi
+        \else
+          % Unknown float type
+          \gdef\lpsb@current@float@type{Figure}%
+          \lpsbTagBeginFloat{Figure}%
+        \fi\fi
+      \fi
+    \fi
+  }%
+  %
+  % Patch \end@float - close tag before box ends
+  \let\lpsb@orig@endfloat\end@float
+  % Note: \lpsb@start@P@after@float is defined OUTSIDE \AtBeginDocument
+  % so etoolbox environment hooks can reference it at package load time
+  %
+  \def\end@float{%
+    \lpsb@debug{end@float called}%
+    \if@lpsb@active
+      \lpsb@debug{  lpsb is active}%
+      \if@lpsb@pass@one\else
+        \lpsbTagEndFloat  % EMC inside float box, don't restore parent
+      \fi
+      % Set first_para flag to prevent everypar from cycling P immediately
+      \global\@lpsb@first@paratrue
+      % Set pending flag as backup for cases where aftergroup doesn't work
+      \global\@lpsb@P@pending@after@floattrue
+    \fi
+    \global\@lpsb@in@floatfalse
+    % CRITICAL: Use aftergroup to start P IMMEDIATELY after float group closes
+    % This must be AFTER setting @lpsb@in@floatfalse so the check passes
+    % and BEFORE \lpsb@orig@endfloat which closes the float's vbox
+    \aftergroup\lpsb@start@P@after@float
+    \lpsb@orig@endfloat
+  }%
+  %
+  % Double-column float variants
+  \@ifundefined{@dbfloat}{}{%
+    \let\lpsb@orig@@dbfloat\@dbfloat
+    \def\@dbfloat#1{%
+      \lpsb@orig@@dbfloat{#1}%
+      \global\@lpsb@in@floattrue
+      \if@lpsb@active
+        \def\lpsb@temp@a{#1}%
+        \def\lpsb@temp@figure{figure}%
+        \def\lpsb@temp@table{table}%
+        \ifx\lpsb@temp@a\lpsb@temp@figure
+          \gdef\lpsb@current@float@type{Figure}%
+          \lpsbTagBeginFloat{Figure}%
+        \else\ifx\lpsb@temp@a\lpsb@temp@table
+          \gdef\lpsb@current@float@type{Table}%
+          \lpsbTagBeginFloat{Table}%
+        \else
+          \gdef\lpsb@current@float@type{Figure}%
+          \lpsbTagBeginFloat{Figure}%
+        \fi\fi
+      \fi
+    }%
+  }%
+  \@ifundefined{end@dblfloat}{}{%
+    \let\lpsb@orig@enddblfloat\end@dblfloat
+    \def\end@dblfloat{%
+      \if@lpsb@active
+        \lpsbTagEndFloat  % EMC inside float box, don't restore parent
+        % Set first_para flag to prevent everypar from cycling P immediately
+        \global\@lpsb@first@paratrue
+        % Defer P start until the next real paragraph
+        \global\@lpsb@P@pending@after@floattrue
+      \fi
+      \global\@lpsb@in@floatfalse
+      \lpsb@orig@enddblfloat
+    }%
+  }%
+  % Hook float package's float@endH for [H] option floats.
+  % These bypass standard end@float and use float@endH instead, which otherwise
+  % leaves our float tag open and can mis-tag captions/algorithm content as /P.
+  %
+  % NOTE: This used to be disabled due to reports of parsing-state corruption in
+  % some documents. We keep the wrapper as minimal as possible and mirror the
+  % end@float behavior: close the tag inside the float box (pass-2 only), then
+  % reset in-float state.
+  \@ifundefined{float@endH}{}{%
+    \let\lpsb@orig@floatendH\float@endH
+    \def\float@endH{%
+      \if@lpsb@active
+        \if@lpsb@pass@one\else
+          \lpsbTagEndFloat
+        \fi
+        \global\@lpsb@first@paratrue
+      \fi
+      \global\@lpsb@in@floatfalse
+      \lpsb@orig@floatendH
+    }%
+  }%
+}
+
+% At source location: CLOSE current P before float definition starts
+% This is critical because P tags at source location would otherwise
+% span across the async float placement, incorrectly wrapping content
+% that appears after the float in the rendered PDF.
+%
+% SMART LOGIC (Pass 2 with pass-one data):
+% - If float lands on SAME page: close P (conservative, correct)
+% - If float lands on DIFFERENT page: DON'T close P (the P content is not interrupted)
+%
+% --- UNIFIED FLOAT HOOKS (TL2016 compatible) ---
+% Helper macro for float begin hooks
+\newcommand{\lpsb@register@float@begin@hook}[1]{%
+  % CRITICAL FIX: Use BeforeBeginEnvironment to start deferred P BEFORE the float group
+  % AtBeginEnvironment runs INSIDE the float group, causing BDC to be in wrong place
+  \BeforeBeginEnvironment{#1}{%
+    \if@lpsb@active
+      \if@lpsb@P@pending@after@float
+        \global\@lpsb@P@pending@after@floatfalse
+        \lpsb@debug{BeforeBeginEnvironment #1: starting deferred P before new float}%
+        \lpsbTagBeginForce{P}%
+        \global\@lpsb@first@parafalse
+        % Set protection flag to prevent AtBeginEnvironment from closing this P immediately
+        \global\@lpsb@just@started@P@before@floattrue
+      \fi
+    \fi
+  }%
+  \AtBeginEnvironment{#1}{%
+    % Clear ALL pending P flags - floats don't need empty P before them
+    \global\@lpsb@P@pending@after@sectionfalse
+    \global\@lpsb@P@pending@after@mathfalse
+    \global\@lpsb@P@pending@after@listfalse
+    % Reset main caption emission guard for this float
+    \global\@lpsb@caption@emittedfalse
+    \gdef\lpsb@last@caption@text{}%
+    % Check if we just started a P tag in BeforeBeginEnvironment
+    % If so, DON'T close it - the P tag wraps the text before this float
+    % and will be closed properly when the float content starts
+    \if@lpsb@just@started@P@before@float
+      \global\@lpsb@just@started@P@before@floatfalse
+      \lpsb@debug{AtBeginEnvironment #1: preserving P tag for inter-float text}%
+      % Do NOT close the P tag here - let it wrap the text content
+      % The @xfloat hook will handle entering float context
+    \else
+      \if@lpsb@active\if@lpsb@in@tag%
+        \lpsb@check@float@page  % Check where this float will land
+        \if@lpsb@float@same@page
+          % Float on same page - close P to avoid incorrect nesting
+          \lpsb@pdfliteralcmd{ EMC }%
+          \immediate\write\@auxout{\string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}}%
+          \gdef\lpsb@tag@stack{}%
+          \global\@lpsb@in@tagfalse%
+          % Ensure next page/column continuation opens a new P
+          \global\@lpsb@P@pending@after@floattrue
+        \fi
+      \fi\fi%
+    \fi
+  }%
+}
+% Apply to all float types using etoolbox loop
+\forcsvlist{\lpsb@register@float@begin@hook}{figure,figure*,table,table*}
+
+% At source location: start P after float definition if not already in a tag
+% Note: end@float handles the EMC+tag closure at shipout time, not here.
+% Here we ensure a P is open for content after the \end{figure} in source.
+%
+% Helper for single-column float end hooks (immediate P start)
+% CRITICAL: Use AfterEndEnvironment (not AtEndEnvironment) because end@float
+% closes the Figure tag inside AtEndEnvironment. We need to start P AFTER that.
+% FIX: Use lpsbTagBeginForce instead of conditional lpsbTagBegin to ensure
+% P tag is created even when condition flags are in unexpected states after floats.
+\newcommand{\lpsb@register@float@end@hook@single}[1]{%
+  \AfterEndEnvironment{#1}{%
+    \if@lpsb@active
+      \if@lpsb@in@tag\else
+        \lpsbTagBeginForce{P}%
+      \fi
+      \global\@lpsb@first@paratrue
+    \fi
+  }%
+}
+% Helper for double-column float end hooks (deferred P via pending flag)
+\newcommand{\lpsb@register@float@end@hook@double}[1]{%
+  \AtEndEnvironment{#1}{%
+    \if@lpsb@active
+      \global\@lpsb@P@pending@after@floattrue
+      \global\@lpsb@first@paratrue
+    \fi
+  }%
+}
+% Apply to appropriate float types
+% CRITICAL: ALL floats need immediate P start, because deferred P only works
+% when everypar or lpsbTagAtom is triggered. Plain text after floats won't trigger either.
+\forcsvlist{\lpsb@register@float@end@hook@single}{figure,figure*,table,table*}
+
+% --- Wrapfigure/Wraptable Tagging ---
+% wrapfig does NOT behave like a normal float:
+% - It builds the wrapped object into \WF@box, then injects that box later via \everypar.
+% - In collision cases it can also "force to float".
+%
+% Environment-level tagging (BeforeBeginEnvironment/AfterEndEnvironment) is wrong here:
+% it tends to tag the wrapped *text* as Table/Figure and the wrapped object as P,
+% swapping semantics (e.g. Table 8 on page 13 in 2401.00006).
+%
+% Correct approach: tag INSIDE the wrapped object box (\WF@box), not around the env.
+\AtBeginDocument{%
+  \@ifpackageloaded{wrapfig}{%
+    \typeout{LPSB-MCID Info: wrapfig detected - tagging wrap box via WF@rapt/endwrapfloat}%
+    % Tracks whether we isolated tagging state for a wrap box.
+    \newif\if@lpsb@wf@boxing \@lpsb@wf@boxingfalse
+    % Tracks whether we need to resume a P after wrap box injection.
+    \newif\if@lpsb@wf@resumeP \@lpsb@wf@resumePfalse
+    % True only while wrapfig injects \WF@box via \everypar.
+    \newif\if@lpsb@wrapfig@inject \@lpsb@wrapfig@injectfalse
+    % Patch \WF@rapt: called after placement args are parsed, right before
+    % wrap content starts. At this point wrapfig has opened \WF@box (vtop/hbox)
+    % and is about to read the environment body into it.
+    \@ifundefined{WF@rapt}{}{%
+      \let\lpsb@orig@WF@rapt\WF@rapt
+      \def\WF@rapt[#1]#2{%
+        \lpsb@orig@WF@rapt[#1]{#2}%
+        \if@lpsb@active
+          % CRITICAL:
+          % wrapfig builds content into \WF@box (a \vtop/\hbox) using \setbox.
+          % Our tagging state (\lpsb@current@logical@id/type, stack, in@tag) is GLOBAL.
+          % If we mutate it inside \WF@box without restoring, we corrupt the outer
+          % document state and can swap Table/P semantics in the surrounding text.
+          %
+          % So: snapshot outer state, isolate box state, tag inside the box, and
+          % restore the outer state in \endwrapfloat.
+          \xdef\lpsb@wf@saved@tag@stack{\lpsb@tag@stack}%
+          \xdef\lpsb@wf@saved@curid{\lpsb@current@logical@id}%
+          \xdef\lpsb@wf@saved@curtype{\lpsb@current@tag@type}%
+          \if@lpsb@in@tag
+            \gdef\lpsb@wf@saved@in@tag{1}%
+          \else
+            \gdef\lpsb@wf@saved@in@tag{0}%
+          \fi
+          \global\@lpsb@wf@boxingtrue
+          % Isolate state for box tagging: start from a clean stack.
+          \gdef\lpsb@tag@stack{}%
+          \global\@lpsb@in@tagfalse
+          % Determine Figure vs Table from \@captype (set by wrapfig)
+          \edef\lpsb@wf@captype{\@captype}%
+          \def\lpsb@wf@table{table}%
+          \ifx\lpsb@wf@captype\lpsb@wf@table
+            \lpsbTagBegin{Table}%
+          \else
+            \lpsbTagBegin{Figure}%
+          \fi
+          \global\@lpsb@suppress@inlinetrue
+        \fi
+      }%
+    }%
+    % Patch \endwrapfloat: close Table/Figure tag inside \WF@box before
+    % wrapfig finalizes and stores the box.
+    \@ifundefined{endwrapfloat}{}{%
+      \let\lpsb@orig@endwrapfloat\endwrapfloat
+      \def\endwrapfloat{%
+        \if@lpsb@active
+          \global\@lpsb@suppress@inlinefalse
+          \lpsbTagEnd
+          % Restore outer tagging state if we isolated it in \WF@rapt.
+          \if@lpsb@wf@boxing
+            \xdef\lpsb@tag@stack{\lpsb@wf@saved@tag@stack}%
+            \xdef\lpsb@current@logical@id{\lpsb@wf@saved@curid}%
+            \xdef\lpsb@current@tag@type{\lpsb@wf@saved@curtype}%
+            \ifnum\lpsb@wf@saved@in@tag=1\relax
+              \global\@lpsb@in@tagtrue
+            \else
+              \global\@lpsb@in@tagfalse
+            \fi
+            \global\@lpsb@wf@boxingfalse
+            % Start P tag for text following wraptable/wrapfigure
+            \global\@lpsb@P@pending@after@floattrue
+            \global\@lpsb@first@paratrue
+          \fi
+        \fi
+        \lpsb@orig@endwrapfloat
+        % Call lpsb@start@P@after@float AFTER original endwrapfloat completes
+        \if@lpsb@active
+          \lpsb@start@P@after@float
+        \fi
+      }%
+    }%
+    % Patch \WF@floathand: wrapfig injects \WF@box later via \everypar.
+    % If we leave a /P BDC open, the injected box (and its tagging) can end up
+    % splitting the paragraph stream, causing Table/P semantics to swap.
+    % Close any open tag before injection, then resume P for the paragraph text.
+    \@ifundefined{WF@floathand}{}{%
+      \let\lpsb@orig@WF@floathand\WF@floathand
+      \def\WF@floathand{%
+        \if@lpsb@active
+          \if@lpsb@in@tag
+            \lpsbTagEnd
+          \fi
+        \fi
+        \global\@lpsb@wrapfig@injecttrue
+        \lpsb@orig@WF@floathand
+        \global\@lpsb@wrapfig@injectfalse
+        \if@lpsb@active
+          % Ensure paragraph text after wrapfig injection is tagged.
+          \if@lpsb@in@tag\else
+            \lpsbTagBegin{P}%
+            \global\@lpsb@first@paratrue
+          \fi
+        \fi
+      }%
+    }%
+  }{}%
+}
+
+% --- Tabular/TabularX Outside Float ---
+% When tabular environments appear outside of table floats, they should
+% still be tagged as Table and have inline suppression.
+% Note: We detect this by checking if we're NOT inside a float.
+\AtBeginDocument{%
+  \@ifpackageloaded{tabularx}{%
+    \BeforeBeginEnvironment{tabularx}{%
+      \if@lpsb@active
+        \if@lpsb@in@float\else
+          \lpsbTagEnd
+          \lpsbTagBegin{Table}%
+          \global\@lpsb@suppress@inlinetrue
+        \fi
+      \fi
+    }%
+    \AfterEndEnvironment{tabularx}{%
+      \if@lpsb@active
+        \if@lpsb@in@float\else
+          \global\@lpsb@suppress@inlinefalse
+          \lpsbTagEnd
+          \lpsbTagBegin{P}%
+        \fi
+      \fi
+    }%
+  }{}%
+}
+
+% Standard tabular: suppress inline when outside float, set tabular flag
+% CRITICAL: Skip tabular flag during maketitle so author content gets tagged
+\BeforeBeginEnvironment{tabular}{%
+  \if@lpsb@active
+    \if@lpsb@in@maketitle\else
+      \global\@lpsb@in@tabulartrue
+    \fi
+    \if@lpsb@in@float\else
+      \if@lpsb@in@maketitle\else
+        \global\@lpsb@suppress@inlinetrue
+      \fi
+    \fi
+  \fi
+}
+\AfterEndEnvironment{tabular}{%
+  \if@lpsb@active
+    \if@lpsb@in@maketitle\else
+      \global\@lpsb@in@tabularfalse
+    \fi
+    \if@lpsb@in@float\else
+      \if@lpsb@in@maketitle\else
+        \global\@lpsb@suppress@inlinefalse
+      \fi
+    \fi
+  \fi
+}
+
+\makeatother
+\endinput

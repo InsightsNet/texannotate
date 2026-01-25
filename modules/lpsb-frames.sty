@@ -1,0 +1,45 @@
+%% lpsb-frames.sty - Framed Box Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-frames}[2026/01/25 LPSB Frames Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-frames}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Tcolorbox/Mdframed Environment Tagging ---
+% These packages create colored/framed boxes. Suppress inline tags inside.
+
+\AtBeginDocument{%
+  \@ifpackageloaded{tcolorbox}{%
+    \BeforeBeginEnvironment{tcolorbox}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Aside}%  % Use Aside for informational boxes
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{tcolorbox}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+  \@ifpackageloaded{mdframed}{%
+    \BeforeBeginEnvironment{mdframed}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Aside}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{mdframed}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+\endinput

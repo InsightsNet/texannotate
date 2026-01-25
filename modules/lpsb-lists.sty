@@ -1,0 +1,115 @@
+%% lpsb-lists.sty - List Tagging Support for LPSB
+%% Handles itemize, enumerate, and description environments
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-lists}[2026/01/25 LPSB List Tagging]
+
+\RequirePackage{etoolbox}
+
+\makeatletter
+
+% --- Lists → L, LI ---
+% Note: These hooks must check @lpsb@active because they can fire
+% before \begin{document} (e.g., inside conference style file definitions)
+\AtBeginEnvironment{itemize}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{L}%
+  \fi
+}
+\AtEndEnvironment{itemize}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    % Defer P - everypar will start it when real content arrives
+    \global\@lpsb@P@pending@after@listtrue
+  \fi
+}
+
+\AtBeginEnvironment{enumerate}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{L}%
+  \fi
+}
+\AtEndEnvironment{enumerate}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \global\@lpsb@P@pending@after@listtrue
+  \fi
+}
+
+\AtBeginEnvironment{description}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{L}%
+    \global\@lpsb@suppress@inlinetrue  % Suppress inline in description lists
+  \fi
+}
+\AtEndEnvironment{description}{%
+  \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
+    \lpsbTagEnd
+    \global\@lpsb@P@pending@after@listtrue
+  \fi
+}
+
+% Hook \item for LI - but NOT inside Abstract
+% MUST handle optional argument correctly: \item[label] vs \item
+% CRITICAL: Check \@listdepth to ensure we're inside a real list environment
+% FIX: Check for beamer class to prevent crash (beamer redefines item complexly for overlays)
+\AtBeginDocument{%
+  \@ifclassloaded{beamer}{%
+    \PackageWarning{lpsb-lists}{Beamer class detected. List tagging (LI) disabled to prevent conflicts.}%
+  }{%
+    % Only hook item if NOT beamer
+    \let\lpsb@orig@item\item
+    \def\item{%
+      \@ifnextchar[\lpsb@item@opt\lpsb@item@noopt
+    }%
+    \def\lpsb@item@opt[#1]{%
+      \if@lpsb@in@abstract
+        \lpsb@orig@item[#1]%
+      \else\if@lpsb@in@bib
+        \if@lpsb@biblist@pending
+          \global\@lpsb@biblist@pendingfalse
+          \if@lpsb@in@tag\lpsbTagEnd\fi
+          \lpsbTagBegin{BibList}%
+        \fi
+        % Inside bibliography: use BibEntry tag
+        \lpsbTagEnd
+        \lpsbTagBegin{BibEntry}%
+        \lpsb@orig@item[#1]%
+      \else
+        % Only tag as LI if we're actually inside a list (\@listdepth > 0)
+        \ifnum\@listdepth>0
+          \lpsbTagEnd
+          \lpsbTagBegin{LI}%
+        \fi
+        \lpsb@orig@item[#1]%
+      \fi\fi
+    }%
+    \def\lpsb@item@noopt{%
+      \if@lpsb@in@abstract
+        \lpsb@orig@item
+      \else\if@lpsb@in@bib
+        \if@lpsb@biblist@pending
+          \global\@lpsb@biblist@pendingfalse
+          \if@lpsb@in@tag\lpsbTagEnd\fi
+          \lpsbTagBegin{BibList}%
+        \fi
+        \lpsbTagEnd
+        \lpsbTagBegin{BibEntry}%
+        \lpsb@orig@item
+      \else
+        % Only tag as LI if we're actually inside a list (\@listdepth > 0)
+        \ifnum\@listdepth>0
+          \lpsbTagEnd
+          \lpsbTagBegin{LI}%
+        \fi
+        \lpsb@orig@item
+      \fi\fi
+    }%
+  }%
+}
+
+\makeatother
+\endinput

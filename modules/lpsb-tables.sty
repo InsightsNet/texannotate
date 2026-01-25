@@ -1,0 +1,53 @@
+%% lpsb-tables.sty - Complex Table & Column Support
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-tables}[2026/01/25 LPSB Tables Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-tables}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Multicol Environment Tagging ---
+% multicols environment collects content in a vbox before splitting into columns
+% This can suppress normal everypar behavior. We explicitly start a P tag.
+
+\AtBeginDocument{%
+  \@ifpackageloaded{multicol}{%
+    \BeforeBeginEnvironment{multicols}{%
+      % End any active tag and start fresh P for multicol content
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{P}%
+    }%
+    \AfterEndEnvironment{multicols}{%
+      \lpsbTagEnd
+      % Start new P for content after multicol
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+% --- Longtable Environment Tagging ---
+% longtable creates multi-page tables outside of float environments.
+% Tag as Table and suppress inline formatting to avoid fragmentation.
+
+\AtBeginDocument{%
+  \@ifpackageloaded{longtable}{%
+    \BeforeBeginEnvironment{longtable}{%
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Table}%
+      \global\@lpsb@suppress@inlinetrue
+    }%
+    \AfterEndEnvironment{longtable}{%
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    }%
+  }{}%
+}
+
+\endinput

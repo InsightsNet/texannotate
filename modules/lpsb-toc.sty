@@ -1,0 +1,55 @@
+%% lpsb-toc.sty - Table of Contents Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-toc}[2026/01/25 LPSB TOC Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-toc}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Table of Contents Tagging ---
+% TOC entries should be tagged as TOCI (TOC Item) instead of P
+% We hook \@starttoc to set a flag, then modify tag emission in contentsline
+
+\newif\if@lpsb@in@toc \@lpsb@in@tocfalse
+
+% Hook \@starttoc to set TOC flag
+\AtBeginDocument{%
+  \@ifundefined{@starttoc}{}{%
+    \let\lpsb@orig@starttoc\@starttoc
+    \def\@starttoc#1{%
+      \global\@lpsb@in@toctrue
+      \lpsb@orig@starttoc{#1}%
+      \global\@lpsb@in@tocfalse
+    }%
+  }%
+}
+
+% Hook \contentsline to wrap each entry with TOCI tag
+\AtBeginDocument{%
+  \@ifundefined{contentsline}{}{%
+    \let\lpsb@orig@contentsline\contentsline
+    \def\contentsline#1#2#3#4{%
+      % #1 = level (section, subsection, etc.)
+      % #2 = title text
+      % #3 = page number
+      % #4 = hyperref destination
+      \if@lpsb@in@toc
+        % End any active P tag first
+        \if@lpsb@active
+          \lpsbTagEnd
+        \fi
+        % Start TOCI tag
+        \lpsbTagBegin{TOCI}%
+        \lpsb@orig@contentsline{#1}{#2}{#3}{#4}%
+        % End TOCI tag
+        \lpsbTagEnd
+      \else
+        \lpsb@orig@contentsline{#1}{#2}{#3}{#4}%
+      \fi
+    }%
+  }%
+}
+
+\endinput

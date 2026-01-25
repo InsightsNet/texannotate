@@ -1,0 +1,78 @@
+%% lpsb-theorems.sty - Theorem Tagging Support
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-theorems}[2026/01/25 LPSB Theorem Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-theorems}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Theorem Environment Tagging ---
+% Theorem-like environments (theorem, lemma, definition, etc.) should
+% suppress inline tags to avoid fragmentation. We use a generic approach
+% that hooks into amsthm's \@thm command.
+
+\AtBeginDocument{%
+  % Check for incompatible theorem packages
+  \newif\if@lpsb@skip@thmhooks \@lpsb@skip@thmhooksfalse
+  \@ifpackageloaded{smfthm}{\global\@lpsb@skip@thmhookstrue}{}%
+  \@ifpackageloaded{thmtools}{\global\@lpsb@skip@thmhookstrue}{}%
+  % smf class also uses incompatible theorem handling
+  \def\lpsb@tmp@smf{smf}%
+  \ifx\lpsb@detected@template\lpsb@tmp@smf\global\@lpsb@skip@thmhookstrue\fi
+  %
+  \if@lpsb@skip@thmhooks
+    \typeout{LPSB-MCID Info: Skipping theorem hooks (incompatible package detected)}%
+  \else
+    \@ifpackageloaded{amsthm}{%
+      % Hook \@thm which is called for all theorem environments
+      \@ifundefined{@thm}{}{%
+        \let\lpsb@orig@@thm\@thm
+        \def\@thm#1#2#3{%
+          \if@lpsb@active
+            \lpsbTagEnd
+            \lpsbTagBegin{P}%  % Use P for theorem content (semantic role unclear in PDF/UA)
+            \global\@lpsb@suppress@inlinetrue
+          \fi
+          \lpsb@orig@@thm{#1}{#2}{#3}%
+        }%
+      }%
+      % Hook \@endtheorem to restore inline tagging
+      \@ifundefined{@endtheorem}{}{%
+        \let\lpsb@orig@@endtheorem\@endtheorem
+        \def\@endtheorem{%
+          \lpsb@orig@@endtheorem
+          \global\@lpsb@suppress@inlinefalse
+        }%
+      }%
+    }{}%
+    % Also handle old-style theorem package
+    \@ifpackageloaded{theorem}{%
+      \@ifundefined{@thm}{}{%
+        \@ifundefined{lpsb@orig@@thm}{%  % Don't double-hook if amsthm already did
+          \let\lpsb@orig@@thm\@thm
+          \def\@thm#1#2#3{%
+            \if@lpsb@active
+              \lpsbTagEnd
+              \lpsbTagBegin{P}%
+              \global\@lpsb@suppress@inlinetrue
+            \fi
+            \lpsb@orig@@thm{#1}{#2}{#3}%
+          }%
+        }{}%
+      }%
+      \@ifundefined{@endtheorem}{}{%
+        \@ifundefined{lpsb@orig@@endtheorem}{%
+          \let\lpsb@orig@@endtheorem\@endtheorem
+          \def\@endtheorem{%
+            \lpsb@orig@@endtheorem
+            \global\@lpsb@suppress@inlinefalse
+          }%
+        }{}%
+      }%
+    }{}%
+  \fi
+}
+
+\endinput

@@ -1,0 +1,753 @@
+%% lpsb-templates.sty - Template-specific logic for LPSB
+%% Handles CVPR, ICLR, NeurIPS, AAAI, ICML, etc.
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-templates}[2026/01/25 LPSB Template Support]
+
+\makeatletter
+
+% Flag to skip \ifinner check for templates that need caption tagging inside float vboxes
+% (e.g., WACV, IEEEtran). Used by lpsb-subfigure.sty.
+\newif\if@lpsb@skip@ifinner@check \@lpsb@skip@ifinner@checkfalse
+
+% Helper: Detect template type based on defined macros/classes
+% Uses smart detection based on characteristic macros instead of explicit package names
+\newcommand{\lpsb@detect@template}{%
+  % Default to article
+  \gdef\lpsb@detected@template{article}%
+  \global\@lpsb@template@detectedfalse
+  %
+  % Strategy: Detect by characteristic internal macros that each template family defines
+  %
+  % Check for specific class files first (these are stable names)
+  \@ifclassloaded{llncs}{\gdef\lpsb@detected@template{llncs}\global\@lpsb@template@detectedtrue}{}%
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{IEEEtran}{\gdef\lpsb@detected@template{ieeetran}\global\@lpsb@template@detectedtrue}{}%
+    % Check for IEEEtran via defined macros if class not detected directly
+    \if@lpsb@template@detected\else
+       \@ifundefined{IEEEpars}{\@ifundefined{IEEEsection}{}{\gdef\lpsb@detected@template{ieeetran}\global\@lpsb@template@detectedtrue}}{\gdef\lpsb@detected@template{ieeetran}\global\@lpsb@template@detectedtrue}%
+    \fi
+  \fi
+  \if@lpsb@template@detected\else
+    % acmart loads amsart.cls internally; do NOT let amsart override acmart.
+    \@ifclassloaded{acmart}{\gdef\lpsb@detected@template{acmart}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{elsarticle}{\gdef\lpsb@detected@template{elsarticle}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{svjour3}{\gdef\lpsb@detected@template{svjour}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{svjour}{\gdef\lpsb@detected@template{svjour}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{amsart}{\gdef\lpsb@detected@template{amsart}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{revtex4-2}{\gdef\lpsb@detected@template{revtex}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  \if@lpsb@template@detected\else
+    \@ifclassloaded{revtex4-1}{\gdef\lpsb@detected@template{revtex}\global\@lpsb@template@detectedtrue}{}%
+  \fi
+  %
+  % Detect conference styles by characteristic macros (works for any year variant)
+  %
+  % NeurIPS: defines \@toptitlebar and \@bottomtitlebar for title decoration
+  \if@lpsb@template@detected\else
+    \@ifundefined{@toptitlebar}{}{%
+      \@ifundefined{@bottomtitlebar}{}{\gdef\lpsb@detected@template{neurips}\global\@lpsb@template@detectedtrue}%
+    }%
+  \fi
+  % ICLR: defines \iclrfinalcopy command (not the conditional \ificlrfinal)
+  \if@lpsb@template@detected\else
+    \@ifundefined{iclrfinalcopy}{}{\gdef\lpsb@detected@template{iclr}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % ACL/EMNLP/NAACL: defines \outauthor and \titlebox length
+  \if@lpsb@template@detected\else
+    \@ifundefined{outauthor}{}{%
+      \@ifundefined{titlebox}{}{\gdef\lpsb@detected@template{acl}\global\@lpsb@template@detectedtrue}%
+    }%
+  \fi
+  % CVPR: defines \cvprsection command (not the conditional \ifcvprfinal)
+  \if@lpsb@template@detected\else
+    \@ifundefined{cvprsection}{}{%
+      \gdef\lpsb@detected@template{cvpr}%
+      \global\@lpsb@template@detectedtrue
+      % Note: Author wrapping is handled in \lpsb@hook@maketitle@cvpr
+    }%
+  \fi
+  % AAAI: defines \copyrighttext command (more reliable than \affiliations_ which is defined later)
+  \if@lpsb@template@detected\else
+    \@ifundefined{copyrighttext}{}{\gdef\lpsb@detected@template{aaai}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % ICML: defines \icmltitle command
+  \if@lpsb@template@detected\else
+    \@ifundefined{icmltitle}{}{\gdef\lpsb@detected@template{icml}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % AASTeX/RevTeX family: defines \frontmatter@maketitle
+  \if@lpsb@template@detected\else
+    \@ifundefined{frontmatter@maketitle}{}{\gdef\lpsb@detected@template{aastex}\global\@lpsb@template@detectedtrue}%
+  \fi
+  %
+  % Additional conference templates
+  % ICCV: defines \iccvsection command
+  \if@lpsb@template@detected\else
+    \@ifundefined{iccvsection}{}{\gdef\lpsb@detected@template{iccv}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % WACV: detect via wacv package loading (simpler and more reliable)
+  \if@lpsb@template@detected\else
+    \@ifpackageloaded{wacv}{%
+      \gdef\lpsb@detected@template{wacv}\global\@lpsb@template@detectedtrue
+      \global\@lpsb@skip@ifinner@checktrue % WACV needs caption tagging inside float vboxes
+    }{}%
+  \fi
+  % AISTATS: defines \aistatstitle command
+  \if@lpsb@template@detected\else
+    \@ifundefined{aistatstitle}{}{\gdef\lpsb@detected@template{aistats}\global\@lpsb@template@detectedtrue}%
+  \fi
+  % TMLR (Transactions on ML Research): defines \interauthorskip (not \openreview which is user-defined)
+  \if@lpsb@template@detected\else
+    \@ifundefined{interauthorskip}{}{%
+      % Also check for \aftertitskip to distinguish from other templates
+      \@ifundefined{aftertitskip}{}{%
+        \gdef\lpsb@detected@template{tmlr}\global\@lpsb@template@detectedtrue
+      }%
+    }%
+  \fi
+  %
+  % Journal templates
+  % MNRAS (Monthly Notices of Royal Astronomical Society): defines \ion command
+  \if@lpsb@template@detected\else
+    \@ifundefined{ion}{}{\gdef\lpsb@detected@template{mnras}\global\@lpsb@template@detectedtrue}%
+  \fi
+  %
+  \typeout{LPSB-MCID Info: Detected template type: \lpsb@detected@template}%
+}
+
+% Hook \maketitle to suppress normal P tags and inline tags during title area
+% Also provides TitleArea semantic tag for templates without fine-grained hooks
+\AtBeginDocument{%
+  \lpsb@detect@template
+  \@ifundefined{maketitle}{}{%
+    \let\lpsb@orig@maketitle\maketitle
+    \def\maketitle{%
+      \global\@lpsb@in@maketitletrue
+      \global\@lpsb@suppress@inlinetrue  % Suppress inline tags during title
+      % End any active P tag before title area
+      \if@lpsb@active
+        \lpsbTagEnd
+        % Start TitleArea tag to wrap entire title block
+        % This provides semantic marking even for complex templates
+        \lpsbTagBegin{TitleArea}%
+      \fi
+      \lpsb@orig@maketitle
+      \if@lpsb@active
+        % Close TitleArea tag
+        \lpsbTagEnd
+      \fi
+      \global\@lpsb@suppress@inlinefalse
+      \global\@lpsb@in@maketitlefalse
+      % Start P for content after title
+      \if@lpsb@active
+        \lpsbTagBegin{P}%
+        \global\@lpsb@first@paratrue
+      \fi
+    }%
+  }%
+}
+
+% Helper: Wrap \@title and \@author for conference templates
+% These templates use simple {\LARGE\bf \@title\par} ... \@author patterns
+\newcommand{\lpsb@wrap@title@author@simple}{%
+  \@ifundefined{@title}{}{%
+    \let\lpsb@saved@title@conf\@title
+    \def\@title{%
+      \lpsbTagBegin{Title}%
+      \lpsb@saved@title@conf
+      \lpsbTagEnd
+    }%
+  }%
+  \@ifundefined{@author}{}{%
+    \let\lpsb@saved@author@conf\@author
+    \def\@author{%
+      \lpsbTagBegin{Author}%
+      \lpsb@saved@author@conf
+      \lpsbTagEnd
+    }%
+  }%
+}
+
+% Helper: Standard article class hook (wraps in \@maketitle with group)
+\newcommand{\lpsb@hook@maketitle@standard}{%
+  \let\lpsb@orig@@maketitle\@maketitle
+  \def\@maketitle{%
+    % Create a group to localize changes
+    \begingroup
+      % Wrap \@title with Title tag
+      \@ifundefined{@title}{}{%
+        \let\lpsb@saved@title\@title
+        \def\@title{%
+          \lpsbTagBegin{Title}%
+          \lpsb@saved@title
+          \lpsbTagEnd
+        }%
+      }%
+      % Wrap \@author with Author tag (check if it's not empty)
+      \@ifundefined{@author}{}{%
+        \let\lpsb@saved@author\@author
+        \def\@author{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@author
+          \lpsbTagEnd
+        }%
+      }%
+      % Wrap \@date with Date tag
+      \@ifundefined{@date}{}{%
+        \let\lpsb@saved@date\@date
+        \def\@date{%
+          \lpsbTagBegin{Date}%
+          \lpsb@saved@date
+          \lpsbTagEnd
+        }%
+      }%
+      % For Elsevier: wrap \elsauthors if present
+      \@ifundefined{elsauthors}{}{%
+        \let\lpsb@saved@elsauthors\elsauthors
+        \def\elsauthors{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@elsauthors
+          \lpsbTagEnd
+        }%
+      }%
+      % For AMS: wrap \authors if present (different from \@author)
+      \@ifundefined{authors}{}{%
+        \let\lpsb@saved@authors\authors
+        \def\authors{%
+          \lpsbTagBegin{Author}%
+          \lpsb@saved@authors
+          \lpsbTagEnd
+        }%
+      }%
+      % For Springer: wrap \@institute if present
+      \@ifundefined{@institute}{}{%
+        \let\lpsb@saved@institute\@institute
+        \def\@institute{%
+          \lpsbTagBegin{Affiliation}%
+          \lpsb@saved@institute
+          \lpsbTagEnd
+        }%
+      }%
+      % For templates with institutename (llncs)
+      \@ifundefined{institutename}{}{%
+        \let\lpsb@saved@institutename\institutename
+        \def\institutename{%
+          \lpsbTagBegin{Affiliation}%
+          \lpsb@saved@institutename
+          \lpsbTagEnd
+        }%
+      }%
+      % For templates with \@subtitle
+      \@ifundefined{@subtitle}{}{%
+        \let\lpsb@saved@subtitle\@subtitle
+        \def\@subtitle{%
+          \lpsbTagBegin{Subtitle}%
+          \lpsb@saved@subtitle
+          \lpsbTagEnd
+        }%
+      }%
+      \lpsb@orig@@maketitle
+    \endgroup
+  }%
+}
+
+% Helper: NeurIPS-style hook using \@toptitlebar/\@bottomtitlebar
+% Structure: \@toptitlebar ... {\LARGE\bf \@title\par} ... \@bottomtitlebar ... \@author
+\newcommand{\lpsb@hook@maketitle@neurips}{%
+  % Hook \@toptitlebar to start Title tag after it
+  \@ifundefined{@toptitlebar}{}{%
+    \let\lpsb@orig@toptitlebar\@toptitlebar
+    \def\@toptitlebar{%
+      \lpsb@orig@toptitlebar
+      \if@lpsb@active
+        \lpsbTagBegin{Title}%
+      \fi
+    }%
+  }%
+  % Hook \@bottomtitlebar to end Title tag and start Author tag
+  \@ifundefined{@bottomtitlebar}{}{%
+    \let\lpsb@orig@bottomtitlebar\@bottomtitlebar
+    \def\@bottomtitlebar{%
+      \if@lpsb@active
+        \lpsbTagEnd  % End Title
+        \lpsbTagBegin{Author}%  % Start Author (will be closed by TitleArea end)
+      \fi
+      \lpsb@orig@bottomtitlebar
+    }%
+  }%
+  \typeout{LPSB-MCID Info: neurips template - hooked @toptitlebar/@bottomtitlebar for Title/Author}%
+}
+
+% Helper: Conference template hook (ICLR, CVPR, ICML, etc.)
+% These templates use simple \@maketitle with direct \@title and \@author usage
+\newcommand{\lpsb@hook@maketitle@conference}{%
+  \@ifundefined{@maketitle}{}{%
+    \let\lpsb@orig@@maketitle@conf\@maketitle
+    \def\@maketitle{%
+      \begingroup
+        \lpsb@wrap@title@author@simple
+        % CRITICAL: Set maketitle flag so tabular hook skips setting tabular flag
+        % This allows author content inside tabular to be properly tagged
+        \global\@lpsb@in@maketitletrue
+        \@lpsb@in@tabularfalse
+        \lpsb@orig@@maketitle@conf
+        \global\@lpsb@in@maketitlefalse
+      \endgroup
+    }%
+  }%
+}
+
+% Helper: CVPR-specific hook for abstract (uses \def not environment)
+% Flags to prevent double-output of title/author content
+\newif\if@lpsb@title@done \@lpsb@title@donefalse
+\newif\if@lpsb@author@done \@lpsb@author@donefalse
+\newcommand{\lpsb@hook@maketitle@cvpr}{%
+  % Hook CVPR's \@maketitle - completely replace it to wrap tabular with Author tag
+  \@ifundefined{@maketitle}{}{%
+    % Save original content ONCE at hook time
+    \let\lpsb@saved@title@content\@title
+    \let\lpsb@saved@author@content\@author
+    % Redefine \@title to output ONCE with tags
+    \def\@title{%
+      \if@lpsb@title@done\else
+        \global\@lpsb@title@donetrue
+        \lpsbTagBegin{Title}%
+        \lpsb@saved@title@content
+        \lpsbTagEnd
+      \fi
+    }%
+    % Replace \@maketitle with our version that wraps tabular OUTSIDE
+    \def\@maketitle{%
+      % Set flags to prevent interference
+      \global\@lpsb@in@maketitletrue
+      \@lpsb@in@tabularfalse
+      \global\@lpsb@suppress@inlinefalse
+      \newpage
+      \null
+      \@ifpackageloaded{etoolbox}{%
+        \iftoggle{cvprrebuttal}{\vspace*{-.3in}}{\vskip .375in}%
+      }{\vskip .375in}%
+      \begin{center}%
+        % Title with tag
+        \@ifpackageloaded{etoolbox}{%
+          \iftoggle{cvprrebuttal}{{\large \bf \@title \par}}{{\Large \bf \@title \par}}%
+        }{{\Large \bf \@title \par}}%
+        % Author area - wrap the ENTIRE tabular with Author tag
+        \@ifpackageloaded{etoolbox}{%
+          \iftoggle{cvprrebuttal}{\vspace*{-22pt}}{\vspace*{24pt}}%
+        }{\vspace*{24pt}}%
+        {%
+          \large
+          \lineskip .5em
+          % Author area - wrap tabular with Author tag (tabular cell boundaries limit coverage)
+          \if@lpsb@author@done\else
+            \global\@lpsb@author@donetrue
+            \lpsbTagBegin{Author}%
+            \begin{tabular}[t]{c}%
+              \@ifpackageloaded{etoolbox}{%
+                \iftoggle{cvprfinal}{%
+                  \lpsb@saved@author@content
+                }{%
+                  \iftoggle{cvprrebuttal}{}{%
+                    Anonymous \@ifundefined{confName}{CVPR}{\confName}~submission\\
+                    \vspace*{1pt}\\
+                    Paper ID \@ifundefined{paperID}{???}{\paperID}%
+                  }%
+                }%
+              }{\lpsb@saved@author@content}%
+            \end{tabular}%
+            \lpsbTagEnd
+          \fi
+          \par
+        }%
+        \vskip .5em
+        \vspace*{12pt}%
+      \end{center}%
+      \global\@lpsb@in@maketitlefalse
+    }%
+  }%
+  % Hook CVPR abstract command (not environment)
+  \@ifundefined{abstract}{}{%
+    \let\lpsb@orig@abstract@cvpr\abstract
+    \def\abstract{%
+      \lpsbTagEnd% Close any open tag
+      \lpsbTagBegin{H1}%
+      \lpsb@orig@abstract@cvpr
+      \lpsbTagEnd% Close H1 after "Abstract" title
+      \lpsbTagBegin{P}%
+    }%
+  }%
+  \@ifundefined{endabstract}{}{%
+    \let\lpsb@orig@endabstract@cvpr\endabstract
+    \def\endabstract{%
+      \lpsbTagEnd% Close P
+      \lpsb@orig@endabstract@cvpr
+      \lpsbTagBegin{P}% Start new P for content after abstract
+    }%
+  }%
+}
+
+% Helper: ICML-specific hook
+% ICML uses \twocolumn[...] for title block, not \@maketitle.
+\newcommand{\lpsb@hook@maketitle@icml}{%
+  % Hook \icmltitle to wrap the stored title with Title BDC/EMC
+  \@ifundefined{icmltitle}{}{%
+    \let\lpsb@orig@icmltitle\icmltitle
+    \long\def\icmltitle##1{%
+      % Store wrapped version that includes Title tags
+      \lpsb@orig@icmltitle{%
+        \lpsbTagEnd% Close any open P tag
+        \lpsbTagBegin{Title}%
+        ##1%
+        \lpsbTagEnd% Close Title
+        \lpsbTagBegin{P}% Open P for content after title
+      }%
+    }%
+  }%
+  % Hook \icmlauthor to wrap stored author with Author BDC/EMC
+  \@ifundefined{icmlauthor}{}{%
+    \let\lpsb@orig@icmlauthor\icmlauthor
+    \long\def\icmlauthor##1##2{%
+      % Force accepted-style expansion to avoid conditional breakage.
+      \mbox{\bf ##1}\,\@for\theaffil:=##2\do{\@pa{\theaffil}}%
+      \addtofullauthorlist{##1}%
+    }%
+  }%
+  % Hook ICML abstract environment to tag "Abstract" title as H1
+  \AtBeginDocument{%
+    \@ifundefined{abstract}{}{%
+      \renewenvironment{abstract}{%
+        % CRITICAL: Set flag BEFORE \begin{quote} to prevent quote hook from interfering
+        \global\@lpsb@in@abstracttrue
+        % Close any open P tag first
+        \lpsbTagEnd
+        % Output "Abstract" title with H1 tag
+        \lpsbTagBegin{H1}%
+        \centerline{\large\bf Abstract}%
+        \lpsbTagEnd
+        % Start the quote environment for abstract content
+        \vspace{-0.12in}%
+        \begin{quote}%
+        % Open P tag for abstract content
+        \lpsbTagBegin{P}%
+      }{%
+        % Close P tag for abstract content BEFORE \end{quote}
+        \lpsbTagEnd
+        \par\end{quote}%
+        % Clear the abstract flag AFTER \end{quote} to prevent quote hook from interfering
+        \global\@lpsb@in@abstractfalse
+        \vskip 0.12in
+        % Reopen P for content after abstract
+        \lpsbTagBegin{P}%
+      }%
+    }%
+  }%
+}
+
+\AtBeginDocument{%
+  \@ifundefined{@maketitle}{%
+    % No @maketitle - check for alternative patterns
+    \typeout{LPSB-MCID Info: @maketitle not found, checking alternatives}%
+  }{%
+    % Template-specific hooks
+    \def\lpsb@tmp@revtex{revtex}%
+    \def\lpsb@tmp@aastex{aastex}%
+    \def\lpsb@tmp@acmart{acmart}%
+    \def\lpsb@tmp@amsart{amsart}%
+    \def\lpsb@tmp@llncs{llncs}%
+    \def\lpsb@tmp@iclr{iclr}%
+    \def\lpsb@tmp@neurips{neurips}%
+    \def\lpsb@tmp@cvpr{cvpr}%
+    \def\lpsb@tmp@icml{icml}%
+    \def\lpsb@tmp@acl{acl}%
+    \def\lpsb@tmp@aaai{aaai}%
+    \def\lpsb@tmp@iccv{iccv}%
+    \def\lpsb@tmp@tmlr{tmlr}%
+    \def\lpsb@tmp@wacv{wacv}%
+    \def\lpsb@tmp@aistats{aistats}%
+    %
+    % Complex frontmatter systems - passthrough (TitleArea from \maketitle still applies)
+    \ifx\lpsb@detected@template\lpsb@tmp@revtex
+      \typeout{LPSB-MCID Info: revtex detected - using TitleArea only (complex frontmatter)}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aastex
+      \typeout{LPSB-MCID Info: aastex detected - using TitleArea only (complex frontmatter)}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@acmart
+      \typeout{LPSB-MCID Info: acmart detected - using TitleArea only (complex frontmatter)}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@amsart
+      \typeout{LPSB-MCID Info: amsart detected - using TitleArea only (complex frontmatter)}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@llncs
+      \typeout{LPSB-MCID Info: llncs detected - using TitleArea only (complex frontmatter)}%
+    %
+    % NeurIPS family - use titlebar hooks
+    \else\ifx\lpsb@detected@template\lpsb@tmp@neurips
+      \lpsb@hook@maketitle@neurips
+    \else\ifx\lpsb@detected@template\lpsb@tmp@tmlr
+      % TMLR uses similar structure to NeurIPS
+      \lpsb@hook@maketitle@neurips
+      \typeout{LPSB-MCID Info: tmlr detected - using neurips-style hooks}%
+    %
+    % Conference templates - wrap \@title/\@author directly
+    \else\ifx\lpsb@detected@template\lpsb@tmp@iclr
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: iclr detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@cvpr
+      \lpsb@hook@maketitle@cvpr
+      \typeout{LPSB-MCID Info: cvpr detected - using CVPR-specific hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@icml
+      \lpsb@hook@maketitle@icml
+      \typeout{LPSB-MCID Info: icml detected - using icmltitle/icmlauthor hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@acl
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: acl detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aaai
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: aaai detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@ieeetran
+       % IEEETran has its own \maketitle which acts differently (often run-in or different buffering)
+       % But for now, let's try standard standard hook? No, IEEETran uses @maketitle too but complex.
+       % Let's use simple conference style hook for safety.
+       \lpsb@hook@maketitle@conference
+       \typeout{LPSB-MCID Info: ieeetran detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@iccv
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: iccv detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@wacv
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: wacv detected - using conference-style @title/@author hooks}%
+    \else\ifx\lpsb@detected@template\lpsb@tmp@aistats
+      \lpsb@hook@maketitle@conference
+      \typeout{LPSB-MCID Info: aistats detected - using conference-style @title/@author hooks}%
+    %
+    % Standard article class and others - use full \@maketitle hook
+    \else
+      \lpsb@hook@maketitle@standard
+      \typeout{LPSB-MCID Info: using standard @maketitle hooks for Title/Author/Date}%
+    \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+  }%
+}
+
+% Special hook for AAAI's \affiliations command (separate from author)
+\AtBeginDocument{%
+  \@ifundefined{affiliations}{}{%
+    \let\lpsb@orig@affiliations\affiliations
+    \renewcommand{\affiliations}[1]{%
+      \def\lpsb@affil@content{#1}%
+      \lpsb@orig@affiliations{#1}%
+    }%
+  }%
+}
+
+% Hook abstract environment to use Abstract tag
+\AtBeginDocument{%
+  % Check for conflict templates
+  \def\lpsb@tmp@iclr{iclr}%
+  \def\lpsb@tmp@neurips{neurips}%
+  \def\lpsb@tmp@cvpr{cvpr}%
+  \def\lpsb@tmp@icml{icml}%
+  \def\lpsb@tmp@acl{acl}%
+  \def\lpsb@tmp@aaai{aaai}%
+  \def\lpsb@tmp@iccv{iccv}%
+  \def\lpsb@tmp@tmlr{tmlr}%
+  \newif\if@lpsb@skip@abstract \@lpsb@skip@abstractfalse
+
+  \ifx\lpsb@detected@template\lpsb@tmp@iclr \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@neurips \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@cvpr \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@icml \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@acl \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@aaai \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@iccv \global\@lpsb@skip@abstracttrue \fi
+  \ifx\lpsb@detected@template\lpsb@tmp@tmlr \global\@lpsb@skip@abstracttrue \fi
+
+  \if@lpsb@skip@abstract
+    \typeout{LPSB-MCID Info: Skipping Abstract hook for template '\lpsb@detected@template' (known conflict)}%
+  \else
+    \@ifundefined{abstract}{}{%
+      \let\lpsb@orig@abstract\abstract
+      \let\lpsb@orig@endabstract\endabstract
+      \renewenvironment{abstract}{%
+      % End any active P tag
+      \if@lpsb@active
+        \lpsbTagEnd
+      \fi
+      \lpsbTagBegin{Abstract}%
+      \lpsb@orig@abstract
+    }{%
+      \lpsb@orig@endabstract
+      \lpsbTagEnd
+    }%
+  }%
+  \fi
+}
+
+% CVPR/ICLR Section Hooks
+\AtBeginDocument{%
+  % CVPR: wrap number+title inside H tags via cvprsect overrides
+  \def\lpsb@tmp@cvpr{cvpr}%
+  \ifx\lpsb@detected@template\lpsb@tmp@cvpr
+    \@ifundefined{cvprsect}{}{%
+      \let\lpsb@orig@cvprsect\cvprsect
+      \def\cvprsect#1{%
+        \refstepcounter{section}%
+        \edef\lpsb@cvpr@num{\thesection}%
+        \lpsbTagBeginForce{\lpsb@H@section}%
+        \cvprsection*{\lpsb@cvpr@num.\hskip 0.4em #1}%
+        \lpsbTagEndForce
+        \addcontentsline{toc}{section}{\protect\numberline{\lpsb@cvpr@num}#1}%
+        \global\@lpsb@P@pending@after@sectiontrue
+      }%
+    }%
+    \@ifundefined{cvprssect}{}{%
+      \let\lpsb@orig@cvprssect\cvprssect
+      \def\cvprssect#1{%
+        \lpsbTagBeginForce{\lpsb@H@section}%
+        \cvprsection*{#1}%
+        \lpsbTagEndForce
+        \global\@lpsb@P@pending@after@sectiontrue
+      }%
+    }%
+    \@ifundefined{cvprsubsect}{}{%
+      \let\lpsb@orig@cvprsubsect\cvprsubsect
+      \def\cvprsubsect#1{%
+        \refstepcounter{subsection}%
+        \edef\lpsb@cvpr@subnum{\thesubsection}%
+        \lpsbTagBeginForce{\lpsb@H@subsection}%
+        \cvprsubsection*{\lpsb@cvpr@subnum.\hskip 0.4em #1}%
+        \lpsbTagEndForce
+        \addcontentsline{toc}{subsection}{\protect\numberline{\lpsb@cvpr@subnum}#1}%
+        \global\@lpsb@P@pending@after@sectiontrue
+      }%
+    }%
+    \@ifundefined{cvprssubsect}{}{%
+      \let\lpsb@orig@cvprssubsect\cvprssubsect
+      \def\cvprssubsect#1{%
+        \lpsbTagBeginForce{\lpsb@H@subsection}%
+        \cvprsubsection*{#1}%
+        \lpsbTagEndForce
+        \global\@lpsb@P@pending@after@sectiontrue
+      }%
+    }%
+  \fi
+  % CVPR: override \@sect to wrap number+title in H tag
+  \def\lpsb@tmp@cvpr{cvpr}%
+  \ifx\lpsb@detected@template\lpsb@tmp@cvpr
+    \@ifundefined{@sect}{}{%
+      \let\lpsb@orig@@sect@cvpr\@sect
+      \def\@sect#1#2#3#4#5#6[#7]#8{%
+        \lpsb@set@heading@level@from@num{#2}%
+        \ifnum #2>\c@secnumdepth
+          \def\@svsec{}%
+        \else
+          \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 0.4em }%
+        \fi
+        \@tempskipa #5\relax
+        \ifdim \@tempskipa>\z@
+          \begingroup #6\relax
+            \global\@lpsb@in@sectiontrue
+            \global\@lpsb@runin@heading@guardtrue
+            \lpsbTagBeginForce{\lpsb@tmp@heading@level}%
+            \@hangfrom{\hskip #3\relax}{\interlinepenalty \@M \@svsec #8}%
+            \lpsbTagEndForce\par
+            \global\@lpsb@in@sectionfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+          \endgroup
+         \csname #1mark\endcsname{#7}\addcontentsline
+           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                        \protect\numberline{\csname the#1\endcsname}\fi
+                      #7}%
+        \else
+          % Run-in headings: fall back to original behavior
+          \lpsb@orig@@sect@cvpr{#1}{#2}{#3}{#4}{#5}{#6}[#7]{#8}%
+        \fi
+        \@xsect{#5}%
+      }%
+    }%
+  \fi
+  % ICLR: override \@sect to wrap number+title in H tag
+  % ICLR uses \@startsection which calls \@sect internally
+  \def\lpsb@tmp@iclr{iclr}%
+  \ifx\lpsb@detected@template\lpsb@tmp@iclr
+    \typeout{LPSB-MCID Info: Installing ICLR-specific @sect hook}%
+    \@ifundefined{@sect}{}{%
+      \let\lpsb@orig@@sect@iclr\@sect
+      \def\@sect#1#2#3#4#5#6[#7]#8{%
+        \lpsb@set@heading@level@from@num{#2}%
+        \ifnum #2>\c@secnumdepth
+          \def\@svsec{}%
+        \else
+          \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 0.4em }%
+        \fi
+        \@tempskipa #5\relax
+        \ifdim \@tempskipa>\z@
+          % Display heading (afterskip > 0)
+          \begingroup #6\relax
+            \global\@lpsb@in@sectiontrue
+            \global\@lpsb@runin@heading@guardtrue
+            \lpsbTagBeginForce{\lpsb@tmp@heading@level}%
+            \@hangfrom{\hskip #3\relax}{\interlinepenalty \@M \@svsec #8}%
+            \lpsbTagEndForce\par
+            \global\@lpsb@in@sectionfalse
+            \global\@lpsb@P@pending@after@sectiontrue
+          \endgroup
+         \csname #1mark\endcsname{#7}\addcontentsline
+           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                        \protect\numberline{\csname the#1\endcsname}\fi
+                      #7}%
+        \else
+          % Run-in headings: fall back to original behavior
+          \lpsb@orig@@sect@iclr{#1}{#2}{#3}{#4}{#5}{#6}[#7]{#8}%
+        \fi
+        \@xsect{#5}%
+      }%
+    }%
+  \fi
+  % Hook \@sict (icml-style numbered sections)
+  \@ifundefined{@sict}{}{%
+    \def\@sict#1#2#3#4#5#6[#7]#8{%
+      \lpsb@set@heading@level@from@num{#2}%
+      \ifnum #2>\c@secnumdepth
+        \def\@svsec{}%
+      \else
+        \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 0.4em }%
+      \fi
+      \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@
+        \begingroup #6\relax
+          \global\@lpsb@in@sectiontrue
+          \global\@lpsb@runin@heading@guardtrue
+          \lpsbTagBegin{\lpsb@tmp@heading@level}%
+          \@hangfrom{\hskip #3\relax}{\interlinepenalty \@M \@svsec #8}%
+          \lpsbTagEnd\par
+          \global\@lpsb@runin@heading@guardfalse
+          \global\@lpsb@in@sectionfalse
+          \global\@lpsb@P@pending@after@sectiontrue
+          \lpsb@debug{@sict display heading done, P@pending=TRUE}%
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}%
+      \else
+        \def\@svsechd{#6\hskip #3\relax\global\@lpsb@in@sectiontrue\global\@lpsb@runin@heading@guardtrue\lpsbTagBegin{\lpsb@tmp@heading@level}\@svsec #8\lpsbTagEnd\global\@lpsb@runin@heading@guardfalse\global\@lpsb@in@sectionfalse\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}%
+      \fi
+      \@xsect{#5}%
+    }%
+  }%
+}
+
+\makeatother
+\endinput

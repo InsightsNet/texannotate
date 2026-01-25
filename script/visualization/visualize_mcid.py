@@ -444,6 +444,33 @@ def get_figure_mcid_image_bboxes(doc: fitz.Document, page_num: int) -> Dict[int,
         else:
             fig_mcid_to_bbox[fig_mcid] = bb
 
+    # CRITICAL FIX: Expand Figure bboxes to include all XObjects in the same area.
+    # Embedded PDFs (Form XObjects) contain multiple sub-images that are not directly
+    # referenced in the main content stream's Figure BDC. We expand the Figure bbox
+    # to include all images whose centers are near the initial Figure bbox.
+    if fig_mcid_to_bbox and name_to_bbox:
+        for fig_mcid, fig_bb in list(fig_mcid_to_bbox.items()):
+            # Find all XObject bboxes that overlap significantly with the Figure bbox
+            # or are in the same vertical region (figures often span horizontal area)
+            fig_cx = (fig_bb[0] + fig_bb[2]) / 2
+            fig_cy = (fig_bb[1] + fig_bb[3]) / 2
+            fig_h = fig_bb[3] - fig_bb[1]
+            
+            expanded_bb = fig_bb
+            for name, xbb in name_to_bbox.items():
+                xbb_cx = (xbb[0] + xbb[2]) / 2
+                xbb_cy = (xbb[1] + xbb[3]) / 2
+                
+                # Check if XObject is in the figure area (within ~200pt vertical range)
+                # and horizontally overlaps with the figure
+                vertical_dist = abs(xbb_cy - fig_cy)
+                horizontal_overlap = not (xbb[2] < fig_bb[0] - 50 or xbb[0] > fig_bb[2] + 50)
+                
+                if vertical_dist < 200 and horizontal_overlap:
+                    expanded_bb = _merge_bbox(expanded_bb, xbb)
+            
+            fig_mcid_to_bbox[fig_mcid] = expanded_bb
+
     return fig_mcid_to_bbox
 
 
@@ -551,25 +578,63 @@ def get_lpsbimg_bboxes(doc: fitz.Document, page_num: int) -> Dict[int, Tuple[flo
 
 
 
-def get_elements_from_aux(aux_path: str) -> List[Dict]:
-    """Parse aux and return element dicts with role + mcids (no geometry)."""
+def get_elements_from_aux(aux_path: str, pdf_path: Optional[str] = None) -> List[Dict]:
+    """Parse aux and return element dicts with role + mcids (no geometry).
+    
+    If pdf_path is provided, reconcile element pages with actual PDF MCID locations
+    to fix float/async page mismatches.
+    
+    Returns a list of element dicts. Image data is also returned if include_images=True.
+    """
+    from ..parsing.parse_lpsb_mcid import reconcile_element_pages
+    
     auxp = Path(aux_path)
     if not auxp.exists():
         return []
 
-    elements, _summary = parse_aux_file(auxp)
+    elements, summary = parse_aux_file(auxp)
+    
+    # Extract image data from summary (added by parse_aux_file)
+    images = summary.get("images", {})
+    
+    # Reconcile pages if PDF is provided (fixes float/async page mismatches)
+    if pdf_path:
+        pdfp = Path(pdf_path)
+        if pdfp.exists():
+            reconcile_element_pages(elements, pdfp, verbose=False)
+    
     out = []
     for e in elements:
-        out.append(
-            {
-                "elem_id": e.elem_id,
-                "role": e.tag_type,
-                "is_atom": bool(getattr(e, "is_atom", False)),
-                "parent_id": getattr(e, "parent_id", None),
-                "mcids": [{"mcid": int(m.mcid), "page": int(m.page)} for m in getattr(e, "mcids", [])],
-            }
-        )
+        elem_dict = {
+            "elem_id": e.elem_id,
+            "role": e.tag_type,
+            "is_atom": bool(getattr(e, "is_atom", False)),
+            "parent_id": getattr(e, "parent_id", None),
+            "mcids": [{"mcid": int(m.mcid), "page": int(m.page)} for m in getattr(e, "mcids", [])],
+        }
+        out.append(elem_dict)
+    
+    # Store image data in a module-level variable for access by visualization
+    # Note: images from summary is already a dict of dicts (converted in parse_aux_file)
+    global _aux_image_data
+    _aux_image_data = {
+        img_id: {
+            "width_pt": img_data["width_pt"],
+            "height_pt": img_data["height_pt"],
+            "depth_pt": img_data["depth_pt"],
+            "page": img_data["page"]
+        }
+        for img_id, img_data in images.items()
+    }
+    
     return out
+
+# Module-level storage for image data
+_aux_image_data: Dict[int, Dict] = {}
+
+def get_aux_image_data() -> Dict[int, Dict]:
+    """Get image dimension data parsed from aux file."""
+    return _aux_image_data
 
 
 def _extract_stroke_bboxes(page: fitz.Page) -> List[Tuple[float, float, float, float]]:
@@ -972,12 +1037,44 @@ def visualize_mcid(
 
     def _guess_aux_path(pdfp: Path) -> Optional[Path]:
         # Mirror lpsb_compiler.py behavior.
-        cands = [
-            pdfp.with_name("main.aux.merged"),
-            pdfp.with_name("main.aux.fixed"),
-            pdfp.with_name("main.aux"),
-            pdfp.with_suffix(".aux"),
-        ]
+        cands: List[Path] = []
+        cands.extend(
+            [
+                pdfp.with_name("main.aux.merged"),
+                pdfp.with_name("main.aux.fixed"),
+                pdfp.with_name("main.aux"),
+                pdfp.with_suffix(".aux"),
+            ]
+        )
+
+        stem = pdfp.stem
+        stems = [stem]
+        for suf in ("_fixed_tagged", "_tagged", "_fixed"):
+            if stem.endswith(suf):
+                stems.append(stem[: -len(suf)])
+        # Try aux files that match the PDF stem (including common suffix-stripped stems).
+        for s in stems:
+            cands.extend(
+                [
+                    pdfp.with_name(f"{s}.aux.merged"),
+                    pdfp.with_name(f"{s}.aux.fixed"),
+                    pdfp.with_name(f"{s}.aux"),
+                ]
+            )
+
+        # If still missing, fall back to any single aux-like file in the same dir.
+        if not any(p.exists() for p in cands):
+            try:
+                aux_cands = list(pdfp.parent.glob("*.aux.*")) + list(pdfp.parent.glob("*.aux"))
+            except Exception:
+                aux_cands = []
+            if len(aux_cands) == 1:
+                return aux_cands[0]
+            if stems:
+                for s in stems:
+                    for p in aux_cands:
+                        if p.name.startswith(f"{s}.aux"):
+                            return p
         for p in cands:
             try:
                 if p.exists():
@@ -1007,13 +1104,13 @@ def visualize_mcid(
     page_data = get_mcid_bboxes(pdf_path)
 
     aux_elements = []
-    # Parse aux whenever provided: it's also used for reading-order labels even
-    # when we are not merging Table MCIDs.
+    # Parse aux; required for visualization.
     aux_path = _guess_aux_path(pdfp)
-    if aux_path:
-        aux_elements = get_elements_from_aux(str(aux_path))
-        if not aux_elements:
-            raise SystemExit(f"[viz] ERROR: aux parsed but produced no elements: {aux_path}")
+    if not aux_path:
+        raise SystemExit(f"[viz] ERROR: aux not found for PDF: {pdfp}")
+    aux_elements = get_elements_from_aux(str(aux_path), pdf_path=pdf_path)
+    if not aux_elements:
+        raise SystemExit(f"[viz] ERROR: aux parsed but produced no elements: {aux_path}")
 
     # Optional: external element order map (elem_id -> order index).
     order_map: Dict[int, int] = {}
@@ -1080,9 +1177,19 @@ def visualize_mcid(
         except Exception as e:
             raise SystemExit(f"[viz] ERROR: failed to extract math spans on page={page_num}: {e}") from e
         
-        # Get tag types from aux file (authoritative source including continuation MCIDs)
-        # Use aux_mcid_to_type directly instead of parsing PDF content stream
+        # Get tag types from aux file (authoritative source including continuation MCIDs).
         mcid_tags = dict(aux_mcid_to_type)
+        
+        # CRITICAL FIX: Also get tags from content stream for this page.
+        # This fixes Figure/Table page mismatches where reconciliation moved elements
+        # to different pages based on pdfplumber char extraction, but the actual
+        # BDC markers are on the original page.
+        content_stream_tags = get_mcid_tag_types(doc, page_num)
+        for mcid, tag in content_stream_tags.items():
+            # Only override if not already set or if it's a Figure/Table (float types prone to page mismatch)
+            if mcid not in mcid_tags or tag in ('Figure', 'Table', 'Caption'):
+                mcid_tags[mcid] = tag
+        
         table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
 
         # Augment Figure MCID bboxes with image rects (so figures don't look "missing").
@@ -1098,6 +1205,52 @@ def visualize_mcid(
                         mcid_bboxes[mcid]["bbox"] = bb
                 else:
                     mcid_bboxes[mcid] = {"bbox": bb, "line_bboxes": [bb], "text_preview": "", "char_count": 0}
+        
+        # CRITICAL FIX: Filter out non-Figure MCIDs whose bboxes are inside Figure bboxes.
+        # pdfplumber incorrectly parses MCIDs from embedded PDF XObjects (e.g., vector figures),
+        # causing text labels inside figures to be attributed to unrelated MCIDs from the main doc.
+        # Collect Figure MCIDs using content stream tags (mcid_tags) to find which MCIDs are Figures
+        fig_mcids_on_this_page = [mcid for mcid, tag in content_stream_tags.items() if tag == "Figure"]
+        if fig_mcids_on_this_page:
+            # Collect all Figure bboxes on this page from mcid_bboxes (already expanded)
+            fig_bboxes_list = []
+            for fig_mcid in fig_mcids_on_this_page:
+                fig_data = mcid_bboxes.get(fig_mcid, {})
+                fig_bb = fig_data.get("bbox")
+                if _bbox_valid(fig_bb):
+                    fig_bboxes_list.append((fig_mcid, tuple(fig_bb)))
+            
+            def _is_inside_figure(bb):
+                """Check if bbox is mostly inside any Figure bbox."""
+                if not _bbox_valid(bb):
+                    return False
+                for fig_mcid, fig_bb in fig_bboxes_list:
+                    # Check if bb center is inside fig_bb
+                    cx = (bb[0] + bb[2]) / 2
+                    cy = (bb[1] + bb[3]) / 2
+                    if fig_bb[0] <= cx <= fig_bb[2] and fig_bb[1] <= cy <= fig_bb[3]:
+                        return True
+                    # Also check for high overlap
+                    inter = _intersect(bb, fig_bb)
+                    if inter:
+                        inter_area = _area(inter)
+                        bb_area = _area(bb)
+                        if bb_area > 0 and inter_area / bb_area > 0.5:
+                            return True
+                return False
+            
+            # Remove non-Figure MCIDs that are inside Figure bboxes
+            mcids_to_remove = []
+            for mcid, data in mcid_bboxes.items():
+                tag = mcid_tags.get(mcid, '?')
+                if tag in ('Figure', 'Caption'):
+                    continue  # Keep Figure and Caption MCIDs
+                bb = data.get("bbox")
+                if bb and _is_inside_figure(bb):
+                    mcids_to_remove.append(mcid)
+            
+            for mcid in mcids_to_remove:
+                del mcid_bboxes[mcid]
 
         # Also use LPSBImg markers for more accurate image positions.
         # LPSBImg markers are injected by LPSB around \includegraphics content
@@ -1157,51 +1310,8 @@ def visualize_mcid(
                     
                     if fig_bb:
                         # LPSBImg bboxes are more accurate than other sources
-                        # (they come from CTM parsing), so REPLACE instead of merge
                         mcid_bboxes[fig_mcid] = {"bbox": fig_bb, "line_bboxes": [fig_bb], "text_preview": "", "char_count": 0}
 
-        # Second-level fallback for image-only Figures:
-        # If a Figure MCID exists (from content stream) but we still have no bbox
-        # (e.g. due to XObject/Form indirection), assign a plausible image block bbox.
-        fig_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Figure"]
-        if fig_mcids_on_page:
-            missing_figs = []
-            for mcid in fig_mcids_on_page:
-                bb = mcid_bboxes.get(mcid, {}).get("bbox")
-                if not _bbox_valid(bb):
-                    missing_figs.append(mcid)
-
-            if missing_figs:
-                cands = sorted(_page_image_block_bboxes(page), key=_bbox_area, reverse=True)
-
-                used: List[Tuple[float, float, float, float]] = []
-                for mcid in fig_mcids_on_page:
-                    bb = mcid_bboxes.get(mcid, {}).get("bbox")
-                    if _bbox_valid(bb):
-                        used.append(tuple(map(float, bb)))
-
-                def _is_taken(bb: Tuple[float, float, float, float]) -> bool:
-                    for u in used:
-                        try:
-                            if _iou(bb, u) >= 0.20:
-                                return True
-                        except Exception:
-                            continue
-                    return False
-
-                for mcid in missing_figs:
-                    pick = None
-                    for bb in cands:
-                        if _bbox_area(bb) < 64.0:  # ignore tiny marks/icons
-                            continue
-                        if _is_taken(bb):
-                            continue
-                        pick = bb
-                        break
-                    if pick is None:
-                        continue
-                    mcid_bboxes[mcid] = {"bbox": pick, "line_bboxes": [pick], "text_preview": "", "char_count": 0}
-                    used.append(pick)
 
         # Final fallback: if an MCID exists in the content stream but has no text
         # bbox (pdfplumber couldn't extract chars), draw a tiny anchor box so the

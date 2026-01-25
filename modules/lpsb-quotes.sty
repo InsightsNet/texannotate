@@ -1,0 +1,72 @@
+%% lpsb-quotes.sty - Quote/Verse Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-quotes}[2026/01/25 LPSB Quotes Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-quotes}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Quote/Quotation/Verse Environment Tagging ---
+% These environments should be tagged as BlockQuote, not LI.
+% Suppress inline tags to avoid fragmentation.
+
+\AtBeginEnvironment{quote}{%
+  \if@lpsb@active
+    % Skip if inside abstract (ICML abstract uses quote internally)
+    \if@lpsb@in@abstract\else
+      \lpsbTagEnd
+      \lpsbTagBegin{BlockQuote}%
+      \global\@lpsb@suppress@inlinetrue
+    \fi
+  \fi
+}
+\AtEndEnvironment{quote}{%
+  \if@lpsb@active
+    % Skip if inside abstract (ICML abstract uses quote internally)
+    \if@lpsb@in@abstract\else
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+    \fi
+  \fi
+}
+
+\AtBeginEnvironment{quotation}{%
+  \if@lpsb@active
+    % Skip if inside abstract
+    \if@lpsb@in@abstract\else
+      \lpsbTagEnd
+      \lpsbTagBegin{BlockQuote}%
+      \global\@lpsb@suppress@inlinetrue
+    \fi
+  \fi
+}
+\AtEndEnvironment{quotation}{%
+  \if@lpsb@active
+    % Skip if inside abstract
+    \if@lpsb@in@abstract\else
+      \global\@lpsb@suppress@inlinefalse
+      \lpsbTagEnd
+      \lpsbTagBegin{P}%
+  \fi
+  \fi
+}
+
+\AtBeginEnvironment{verse}{%
+  \if@lpsb@active
+    \lpsbTagEnd
+    \lpsbTagBegin{BlockQuote}%  % Verse is similar to quote semantically
+    \global\@lpsb@suppress@inlinetrue
+  \fi
+}
+\AtEndEnvironment{verse}{%
+  \if@lpsb@active
+    \global\@lpsb@suppress@inlinefalse
+    \lpsbTagEnd
+    \lpsbTagBegin{P}%
+  \fi
+}
+
+\endinput

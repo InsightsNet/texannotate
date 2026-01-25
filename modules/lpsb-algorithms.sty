@@ -1,0 +1,119 @@
+%% lpsb-algorithms.sty - Algorithm Environment Tagging for LPSB
+%% Handles algorithm2e, algorithm, algorithmic, algorithmicx packages
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-algorithms}[2026/01/25 LPSB Algorithm Support]
+
+\makeatletter
+
+% Flag to suppress inline tags (Strong, Em, etc.) inside certain environments
+% Re-uses flags defined in main package, or defines them if standalone (safe)
+\@ifundefined{if@lpsb@suppress@inline}{\newif\if@lpsb@suppress@inline \@lpsb@suppress@inlinefalse}{}
+\@ifundefined{if@lpsb@in@algorithm}{\newif\if@lpsb@in@algorithm \@lpsb@in@algorithmfalse}{}
+\@ifundefined{if@lpsb@algorithm@hooked}{\newif\if@lpsb@algorithm@hooked \@lpsb@algorithm@hookedfalse}{}
+
+% algorithm2e package
+\AtBeginDocument{%
+  \@ifpackageloaded{algorithm2e}{%
+    \if@lpsb@algorithm@hooked\else
+      \global\@lpsb@algorithm@hookedtrue
+      \BeforeBeginEnvironment{algorithm}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \BeforeBeginEnvironment{algorithm*}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \AfterEndEnvironment{algorithm}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+        % CRITICAL FIX: Use deferred P mechanism instead of direct call
+        % Direct lpsb@start@P@after@float inserts BDC at wrong PDF position
+        \global\@lpsb@P@pending@after@floattrue
+        \global\@lpsb@first@paratrue
+      }%
+      \AfterEndEnvironment{algorithm*}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+        \global\@lpsb@P@pending@after@floattrue
+        \global\@lpsb@first@paratrue
+      }%
+    \fi
+  }{}%
+}
+
+% algorithm package (algorithm + algorithmic)
+\AtBeginDocument{%
+  \@ifpackageloaded{algorithm}{%
+    \if@lpsb@algorithm@hooked\else
+      \global\@lpsb@algorithm@hookedtrue
+      \BeforeBeginEnvironment{algorithm}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \BeforeBeginEnvironment{algorithm*}{%
+        \lpsbTagBegin{Algorithm}%
+        \global\@lpsb@in@algorithmtrue
+        \global\@lpsb@suppress@inlinetrue
+      }%
+      \AfterEndEnvironment{algorithm}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+        % Start P immediately - same pattern as equation environments
+        \lpsb@start@P@after@float
+      }%
+      \AfterEndEnvironment{algorithm*}{%
+        \global\@lpsb@suppress@inlinefalse
+        \global\@lpsb@in@algorithmfalse
+        \lpsbTagEnd
+        \lpsb@start@P@after@float
+      }%
+    \fi
+  }{}%
+  \@ifpackageloaded{algorithmic}{%
+    \BeforeBeginEnvironment{algorithmic}{%
+      \global\@lpsb@in@algorithmtrue
+    }%
+    \AfterEndEnvironment{algorithmic}{%
+      % Close any dangling LI from algorithmic list.
+      \if@lpsb@active
+        \def\lpsb@tmp@li{LI}%
+        \ifx\lpsb@current@tag@type\lpsb@tmp@li
+          \lpsbTagEndForce
+          \global\@lpsb@P@pending@after@listtrue
+        \fi
+      \fi
+      \global\@lpsb@in@algorithmfalse
+      % Start P after algorithmic ends (if not inside algorithm wrapper)
+      \if@lpsb@in@algorithm\else
+        \lpsb@start@P@after@float
+      \fi
+    }%
+  }{}%
+  \@ifpackageloaded{algorithmicx}{%
+    \BeforeBeginEnvironment{algorithmic}{%
+      \global\@lpsb@in@algorithmtrue
+    }%
+    \AfterEndEnvironment{algorithmic}{%
+      % Close any dangling LI from algorithmic list.
+      \if@lpsb@active
+        \def\lpsb@tmp@li{LI}%
+        \ifx\lpsb@current@tag@type\lpsb@tmp@li
+          \lpsbTagEndForce
+          \global\@lpsb@P@pending@after@listtrue
+        \fi
+      \fi
+      \global\@lpsb@in@algorithmfalse
+    }%
+  }{}%
+}
+
+\makeatother
+\endinput

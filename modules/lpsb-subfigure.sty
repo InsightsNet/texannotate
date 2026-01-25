@@ -1,0 +1,406 @@
+%% lpsb-subfigure.sty - Subfigure and Caption Package Support for LPSB
+%% Handles caption, subcaption, subfigure, float packages
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-subfigure}[2026/01/25 LPSB Subfigure Support]
+
+\makeatletter
+
+% Caption-related flags (must be defined before use)
+\newif\if@lpsb@in@caption
+\@lpsb@in@captionfalse
+\newif\if@lpsb@caption@emitted
+\@lpsb@caption@emittedfalse
+
+% Helper: Safe Caption Wrapper (checks guard)
+% [PHASE 4] Uses block tag lock to prevent spurious P tags inside caption
+%
+% IMPORTANT:
+% - Captions write to .lof/.lot and can execute in moving/expansion-only contexts.
+% - Do NOT run tagging side effects unless we are in typesetting mode.
+% - Skip tagging inside \setbox (measurement mode) to prevent content duplication
+% IMPORTANT: Made \protected to prevent expansion during .lof writing / calc
+% NOTE: Duplicate prevention is handled by @lpsb@caption@measuring flag in \caption@@make hook
+\protected\def\lpsb@safe@caption@wrapper#1#2{%
+  \ifx\protect\@typeset@protect
+    \if@lpsb@in@caption
+       #1{#2}% Direct call to orig if already inside caption
+    \else
+       % Apply tagging
+       \global\@lpsb@lock@block@tagstrue
+       \lpsbTagAtom{Caption}{%
+         \global\@lpsb@in@captiontrue
+         #1{#2}%
+         \global\@lpsb@in@captionfalse
+       }%
+       \global\@lpsb@lock@block@tagsfalse
+    \fi
+  \else
+    #1{#2}%
+  \fi
+}
+
+% Helper: Safe Caption Wrapper with Option
+% [PHASE 4] Uses block tag lock
+% IMPORTANT: Made \protected
+\protected\def\lpsb@safe@caption@wrapper@opt#1#2#3{%
+  \ifx\protect\@typeset@protect
+    % NOTE: We do NOT use \ifinner here because float content is always inside
+    % a box (that's how LaTeX collects float material), so captions inside floats
+    % would never get tagged. Duplicate prevention is handled by @lpsb@in@caption
+    % and @lpsb@caption@emitted guards instead.
+    \if@lpsb@in@caption
+       #1[#2]{#3}%
+    \else
+       % Prevent duplicate captions within a single float (figure*/table* repeats)
+       \if@lpsb@in@float
+         \edef\lpsb@current@caption@key{\@captype:\csname the\@captype\endcsname}%
+         \ifx\lpsb@current@caption@key\lpsb@last@caption@key
+           % Same figure/table number: skip duplicate typesetting
+         \else
+           \xdef\lpsb@last@caption@key{\lpsb@current@caption@key}%
+           \global\@lpsb@caption@emittedtrue
+           \global\@lpsb@lock@block@tagstrue  % LOCK
+           \ifcsname if@lpsb@wf@boxing\endcsname
+             \if@lpsb@wf@boxing
+               \lpsb@TagAtomImplEndParent{Caption}{%
+                 \global\@lpsb@in@captiontrue
+                 #1[#2]{#3}%
+                 \global\@lpsb@in@captionfalse
+               }%
+             \else
+               \lpsbTagAtom{Caption}{%
+                 \global\@lpsb@in@captiontrue
+                 #1[#2]{#3}%
+                 \global\@lpsb@in@captionfalse
+               }%
+             \fi
+           \else
+             \lpsbTagAtom{Caption}{%
+               \global\@lpsb@in@captiontrue
+               #1[#2]{#3}%
+               \global\@lpsb@in@captionfalse
+             }%
+           \fi
+           \global\@lpsb@lock@block@tagsfalse % UNLOCK
+         \fi
+       \else
+         \global\@lpsb@lock@block@tagstrue  % LOCK
+         \ifcsname if@lpsb@wf@boxing\endcsname
+           \if@lpsb@wf@boxing
+             \lpsb@TagAtomImplEndParent{Caption}{%
+               \global\@lpsb@in@captiontrue
+               #1[#2]{#3}%
+               \global\@lpsb@in@captionfalse
+             }%
+           \else
+             \lpsbTagAtom{Caption}{%
+               \global\@lpsb@in@captiontrue
+               #1[#2]{#3}%
+               \global\@lpsb@in@captionfalse
+             }%
+           \fi
+         \else
+           \lpsbTagAtom{Caption}{%
+             \global\@lpsb@in@captiontrue
+             #1[#2]{#3}%
+             \global\@lpsb@in@captionfalse
+           }%
+         \fi
+         \global\@lpsb@lock@block@tagsfalse % UNLOCK
+       \fi
+    \fi
+  \else
+    % Not typesetting: preserve original behavior, no tagging.
+    #1[#2]{#3}%
+  \fi
+}
+
+% --- Caption → Caption ---
+
+% Hook \caption and \subcaption as Caption atoms.
+%
+% Rationale: patching caption internals (\caption@makecaption / \@makecaption) is
+% fragile and can miss some code paths. Wrapping the user-level macros is much
+% more reliable, and also gives us a parent_id (Figure/Table) via lpsbTagAtom.
+\newcommand{\lpsb@patch@subfigure@caption}{%
+  % subcaption's subfigure environment often rebinds \caption locally; that can
+  % bypass our global \caption wrapper. Re-wrap the *current* \caption inside
+  % the subfigure group so subcaptions get tagged as Caption atoms.
+  % Uses the same recursion guard to prevent infinite loops.
+  \@ifundefined{caption}{}{%
+    \let\lpsb@orig@subfig@caption\caption
+    \renewcommand{\caption}{\@ifnextchar[\lpsb@subfigcap@opt\lpsb@subfigcap@noopt}%
+    % IMPORTANT: Use \long\def to handle captions with paragraph breaks
+    \long\def\lpsb@subfigcap@opt[##1]##2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subfig@caption{##1}{##2}}%
+    \long\def\lpsb@subfigcap@noopt##1{\lpsb@safe@caption@wrapper\lpsb@orig@subfig@caption{##1}}%
+  }%
+}
+
+\AtBeginDocument{%
+  % Always hook user-level caption macros.
+  %
+  % FIX (Jan 2026): If 'caption' package is loaded, it redefines \caption heavily.
+  % We hook \caption@makecaption instead, which handles the actual typesetting
+  % after argument parsing is complete. This is stable and preserves semantics.
+  %
+  % FIX (Jan 2026): Safe Mode check.
+  % If Safe Mode is active (e.g. axessibility loaded), skip ALL caption hooking.
+  \if@lpsb@safe@mode
+     \typeout{LPSB-MCID Info: Safe Mode active - skipping all caption/subcaption hooks.}%
+  \else
+    \@ifpackageloaded{caption}{%
+      \typeout{LPSB-MCID Info: caption package detected - hooking internal \string\caption@makecaption}%
+    % Define flag to track measurement phase
+    \newif\if@lpsb@caption@measuring
+    \@lpsb@caption@measuringfalse
+
+    % Hook \caption@slc to set the flag during singlelinecheck
+    \@ifundefined{caption@slc}{%
+      \typeout{LPSB-DEBUG: caption@slc NOT DEFINED at hook time}%
+    }{%
+      \typeout{LPSB-DEBUG: caption@slc EXISTS at hook time - hooking now}%
+      \let\lpsb@orig@caption@slc\caption@slc
+      \long\def\caption@slc#1#2#3#4{%
+        \typeout{LPSB-DEBUG: caption@slc CALLED}%
+        \global\@lpsb@caption@measuringtrue
+        \lpsb@orig@caption@slc{#1}{#2}{#3}{#4}%
+        \global\@lpsb@caption@measuringfalse
+      }%
+    }%
+    % Check at begin document if hook is still in place
+    \AtBeginDocument{%
+      \@ifundefined{caption@slc}{%
+        \typeout{LPSB-DEBUG: caption@slc NOT DEFINED at BeginDocument}%
+      }{%
+        \typeout{LPSB-DEBUG: caption@slc EXISTS at BeginDocument}%
+      }%
+    }%
+
+    % Hook \caption@@make - the lower-level function that actually typesets
+    % This ensures ALL captions are processed (including figure[t])
+    \let\lpsb@orig@caption@@make\caption@@make
+    \long\def\caption@@make#1#2{%
+      \if@lpsb@caption@measuring
+        % Measurement phase: skip tagging
+        \lpsb@orig@caption@@make{#1}{#2}%
+      \else
+        \ifinner
+          % Inside box (e.g., figure* output routine): skip tagging
+          \lpsb@orig@caption@@make{#1}{#2}%
+        \else
+          % Final typesetting: apply tagging
+          \lpsb@safe@caption@wrapper{\lpsb@orig@caption@@make{#1}}{#2}%
+        \fi
+      \fi
+    }%
+  }{%
+    \@ifundefined{caption}{}{%
+      \let\lpsb@orig@caption\caption
+      \renewcommand{\caption}{\@ifstar\lpsb@cap@star\@lpsb@cap@checkopt}%
+      \def\@lpsb@cap@checkopt{\@ifnextchar[\lpsb@cap@opt\lpsb@cap@noopt}%
+      % Use recursion guard to prevent infinite loops
+      % IMPORTANT: Use \long\def to handle captions containing \par
+      \long\def\lpsb@cap@star#1{\lpsb@safe@caption@wrapper{\lpsb@orig@caption*}{#1}}%
+      \long\def\lpsb@cap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@caption{#1}{#2}}%
+      \long\def\lpsb@cap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@caption{#1}}%
+    }%
+    % subcaption package: \subcaption has same optional-arg pattern.
+    \@ifundefined{subcaption}{}{%
+      \let\lpsb@orig@subcaption\subcaption
+      \renewcommand{\subcaption}{\@ifstar\lpsb@subcap@star\@lpsb@subcap@checkopt}%
+      \def\@lpsb@subcap@checkopt{\@ifnextchar[\lpsb@subcap@opt\lpsb@subcap@noopt}%
+      % Use same recursion guard (caption flag) since subcaption may call caption
+      \long\def\lpsb@subcap@star#1{\lpsb@safe@caption@wrapper{\lpsb@orig@subcaption*}{#1}}%
+      \long\def\lpsb@subcap@opt[#1]#2{\lpsb@safe@caption@wrapper@opt\lpsb@orig@subcaption{#1}{#2}}%
+      \long\def\lpsb@subcap@noopt#1{\lpsb@safe@caption@wrapper\lpsb@orig@subcaption{#1}}%
+    }%
+  }%
+  % subcaption package: subfigure environment can override \caption locally.
+  % Hook the environment start and re-wrap \caption inside its group.
+  \@ifundefined{subfigure}{}{%
+    % Check if \subfigure is a command (subfig package) or environment (subcaption package)
+    % by testing if \endsubfigure exists (environments have \end... defined)
+    \@ifundefined{endsubfigure}{%
+      % \subfigure is a COMMAND (subfig package style): \subfigure[caption]{content}
+      % Hook it directly to tag the caption text
+      \let\lpsb@orig@subfigure@cmd\subfigure
+      \renewcommand{\subfigure}{\@ifnextchar[\lpsb@subfigure@cmd@opt\lpsb@subfigure@cmd@noopt}%
+      \def\lpsb@subfigure@cmd@opt[#1]#2{%
+        \ifx\protect\@typeset@protect
+          \if@lpsb@active
+            \if@lpsb@in@float
+              % Tag the entire subfigure (including caption) - caption text is in #1
+              \lpsb@orig@subfigure@cmd[\lpsbTagAtom{Caption}{#1}]{#2}%
+            \else
+              \lpsb@orig@subfigure@cmd[#1]{#2}%
+            \fi
+          \else
+            \lpsb@orig@subfigure@cmd[#1]{#2}%
+          \fi
+        \else
+          \lpsb@orig@subfigure@cmd[#1]{#2}%
+        \fi
+      }%
+      \def\lpsb@subfigure@cmd@noopt#1{%
+        \lpsb@orig@subfigure@cmd{#1}%
+      }%
+    }{%
+      % \subfigure is an ENVIRONMENT (subcaption package style)
+      \AtBeginEnvironment{subfigure}{\lpsb@patch@subfigure@caption}%
+    }%
+  }%
+  % subcaption: setcaptionsubtype triggers \caption@subtypehook; use that as a
+  % reliable place to re-wrap \caption for sub-captions (works even if subcaption
+  % swaps \caption behind our back).
+  \@ifundefined{caption@subtypehook}{}{%
+    \g@addto@macro\caption@subtypehook{\lpsb@patch@subfigure@caption}%
+  }%
+  %
+  % LEGACY subfigure.sty support: Hook \@thesubfigure and \@thesubtable
+  % These commands generate the (a), (b), (c) labels that appear below subfigures.
+  % By wrapping them in Caption atoms, we ensure the labels are correctly tagged.
+  %
+  % Hook \@thesubfigure - generates "(a)", "(b)", etc. for subfigure labels
+  \@ifundefined{@thesubfigure}{}{%
+    \let\lpsb@orig@@thesubfigure\@thesubfigure
+    \def\@thesubfigure{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@in@float
+            % Inside float: wrap label in Caption tag
+            \lpsbTagAtom{Caption}{\lpsb@orig@@thesubfigure}%
+          \else
+            \lpsb@orig@@thesubfigure
+          \fi
+        \else
+          \lpsb@orig@@thesubfigure
+        \fi
+      \else
+        \lpsb@orig@@thesubfigure
+      \fi
+    }%
+  }%
+  % Hook \@thesubtable - same for subtables
+  \@ifundefined{@thesubtable}{}{%
+    \let\lpsb@orig@@thesubtable\@thesubtable
+    \def\@thesubtable{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \if@lpsb@in@float
+            \lpsbTagAtom{Caption}{\lpsb@orig@@thesubtable}%
+          \else
+            \lpsb@orig@@thesubtable
+          \fi
+        \else
+          \lpsb@orig@@thesubtable
+        \fi
+      \else
+        \lpsb@orig@@thesubtable
+      \fi
+    }%
+  }%
+  %
+  % Hook \sf@subcaption which outputs the full caption text (label + text)
+  \@ifundefined{sf@subcaption}{}{%
+    \let\lpsb@orig@sf@subcaption\sf@subcaption
+    \long\def\sf@subcaption#1#2{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \lpsbTagAtom{Caption}{%
+            \lpsb@orig@sf@subcaption{#1}{#2}%
+          }%
+        \else
+          \lpsb@orig@sf@subcaption{#1}{#2}%
+        \fi
+      \else
+        \lpsb@orig@sf@subcaption{#1}{#2}%
+      \fi
+    }%
+  }%
+
+  % Fallback: Hook internal \@caption as well.
+  % FIX: Always hook @caption as fallback (recursion guard prevents double tagging)
+  \@ifundefined{@caption}{}{%
+    \let\lpsb@orig@@caption\@caption
+    \long\def\@caption#1[#2]#3{%
+      \ifx\protect\@typeset@protect
+        \if@lpsb@active
+          \edef\lpsb@tmp@captext{\detokenize{#3}}%
+          \if@lpsb@in@caption
+            \lpsb@if@main@captype{%
+              \global\@lpsb@caption@emittedtrue
+            }{}%
+            \lpsb@maybe@emit@caption{\lpsb@orig@@caption{#1}[#2]{#3}}%
+          \else
+            \if@lpsb@caption@emitted
+              \lpsb@if@main@captype{%
+                % Skip duplicate main caption to avoid double typesetting
+              }{%
+                \global\@lpsb@lock@block@tagstrue
+                \lpsbTagAtom{Caption}{%
+                  \global\@lpsb@in@captiontrue
+                  \lpsb@maybe@emit@caption{\lpsb@orig@@caption{#1}[#2]{#3}}%
+                  \global\@lpsb@in@captionfalse
+                }%
+                \global\@lpsb@lock@block@tagsfalse
+              }%
+            \else
+              \lpsb@if@main@captype{%
+                \global\@lpsb@caption@emittedtrue
+              }{}%
+              \global\@lpsb@lock@block@tagstrue
+              \lpsbTagAtom{Caption}{%
+                \global\@lpsb@in@captiontrue
+                \lpsb@maybe@emit@caption{\lpsb@orig@@caption{#1}[#2]{#3}}%
+                \global\@lpsb@in@captionfalse
+              }%
+              \global\@lpsb@lock@block@tagsfalse
+            \fi
+          \fi
+        \else
+          \lpsb@orig@@caption{#1}[#2]{#3}%
+        \fi
+      \else
+        \lpsb@orig@@caption{#1}[#2]{#3}%
+      \fi
+    }%
+  }%
+
+  % float.sty / newfloat support: tag \@floatcapt at UNBOX time, not at CAPTURE time.
+  \@ifundefined{float@makebox}{}{%
+    \let\lpsb@orig@float@makebox\float@makebox
+    % Re-implement float@makebox with only one change: wrap \unvbox\@floatcapt
+    % in a Caption atom tag.
+    \renewcommand\float@makebox[1]{%
+      \vbox{\hsize=#1 \@parboxrestore
+        \@fs@pre\@fs@iftopcapt
+          \ifvoid\@floatcapt\else
+            \global\@lpsb@lock@block@tagstrue
+            \lpsbTagAtom{Caption}{%
+              \global\@lpsb@in@captiontrue
+              \unvbox\@floatcapt
+              \global\@lpsb@in@captionfalse
+            }%
+            \global\@lpsb@lock@block@tagsfalse
+            \par\@fs@mid
+          \fi
+          \unvbox\@currbox
+        \else\unvbox\@currbox
+          \ifvoid\@floatcapt\else
+            \par\@fs@mid
+            \global\@lpsb@lock@block@tagstrue
+            \lpsbTagAtom{Caption}{%
+              \global\@lpsb@in@captiontrue
+              \unvbox\@floatcapt
+              \global\@lpsb@in@captionfalse
+            }%
+            \global\@lpsb@lock@block@tagsfalse
+          \fi
+        \fi\par\@fs@post\vskip\z@}%
+    }%
+  }%
+}
+
+\makeatother
+\endinput

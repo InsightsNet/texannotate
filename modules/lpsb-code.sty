@@ -1,0 +1,43 @@
+%% lpsb-code.sty - Code Listing Tagging
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-code}[2026/01/25 LPSB Code Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-code}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Code Listing Semantic Tagging ---
+% lstlisting environments should be tagged as Code instead of P
+% Note: listings package uses complex internals, use etoolbox hooks instead
+
+\AtBeginDocument{%
+  \@ifpackageloaded{listings}{%
+    % Use etoolbox hooks instead of renewenvironment (listings is complex)
+    \BeforeBeginEnvironment{lstlisting}{%
+      \lpsbTagBegin{Code}%
+    }%
+    \AfterEndEnvironment{lstlisting}{%
+      \lpsbTagEnd
+    }%
+    % Hook listings caption: listings uses \lst@MakeCaption internally
+    \@ifundefined{lst@MakeCaption}{}{%
+      \let\lpsb@orig@lstMakeCaption\lst@MakeCaption
+      \def\lst@MakeCaption#1{%
+        \lpsbTagAtom{Caption}{\lpsb@orig@lstMakeCaption{#1}}%
+      }%
+    }%
+  }{}%
+  % fancyvrb package: Verbatim environment
+  \@ifpackageloaded{fancyvrb}{%
+    \BeforeBeginEnvironment{Verbatim}{%
+      \lpsbTagBegin{Code}%
+    }%
+    \AfterEndEnvironment{Verbatim}{%
+      \lpsbTagEnd
+    }%
+  }{}%
+}
+
+\endinput

@@ -1,0 +1,61 @@
+%% lpsb-graphics.sty - Graphics Tagging Support
+%% Part of LPSB
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lpsb-graphics}[2026/01/25 LPSB Graphics Support]
+
+% Requirement: lpsb-mcid must be loaded
+\@ifundefined{lpsb@mcid@loaded}{
+  \PackageError{lpsb-graphics}{lpsb-mcid package must be loaded first}{Load lpsb-mcid before this package.}
+}{}
+
+% --- Image Position Tracking (\includegraphics) ---
+% Hook \includegraphics to:
+% 1) Emit image-specific MCID markers (LPSBImg)
+% 2) Measure actual rendered dimensions using \setbox
+% This allows accurate image bbox extraction from the PDF content stream
+% even for embedded PDF/Form XObjects where standard extraction fails.
+
+% Define the aux file command as no-op (will be read back on second pass)
+% Arguments: {imgID}{width}{height}{depth}{page}
+\providecommand{\lpsb@img@data}[5]{}
+
+\AtBeginDocument{%
+  \@ifpackageloaded{graphicx}{%
+    \let\lpsb@orig@includegraphics\includegraphics
+    \renewcommand{\includegraphics}[2][]{%
+      \stepcounter{lpsb@imgID}%
+      % 
+      % Measure the image dimensions by rendering into a box
+      % Use \setbox0 (scratch box) and \copy0 to preserve content
+      % This captures the ACTUAL rendered size including scaling, rotation, etc.
+      %
+      \setbox0=\hbox{\lpsb@orig@includegraphics[#1]{#2}}%
+      %
+      % Only emit markers if active and inside a figure
+      \if@lpsb@active
+        \if@lpsb@in@float
+          % Record image info to aux with measured dimensions BEFORE output
+          % This ensures dimensions are captured while box0 still has content
+          % Format: {imgID}{width}{height}{depth}{page}
+          \immediate\write\@auxout{%
+            \string\lpsb@img@data{\thelpsb@imgID}{\the\wd0}{\the\ht0}{\the\dp0}{\thelpsb@currentPage}%
+          }%
+          % Emit custom BDC with image ID for tracking
+          \lpsb@pdfliteralcmd{ /LPSBImg \thelpsb@imgID\space BDC }%
+          % Output the measured box (use \box0 to consume it)
+          \box0\relax
+          \lpsb@pdfliteralcmd{ EMC }%
+        \else
+          % Not in float - just render the box normally
+          \box0\relax
+        \fi
+      \else
+        % LPSB not active - just render the box
+        \box0\relax
+      \fi
+    }%
+  }{}%
+}
+
+\endinput
+

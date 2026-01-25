@@ -52,6 +52,16 @@ class TaggedElement:
     source_line: int = 0  # Source code line number for reading order
 
 
+@dataclass
+class ImageData:
+    """Image dimension data from \\includegraphics measurement."""
+    img_id: int
+    width_pt: float  # Width in points
+    height_pt: float  # Height in points 
+    depth_pt: float  # Depth in points (usually 0)
+    page: int  # Page where image appears
+
+
 def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
     """Parse aux file for MCID structure data.
     
@@ -98,6 +108,15 @@ def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
     refkey_pattern = re.compile(
         r"\\lpsb@refkey\{(\d+)\}\{([^}]*)\}"
     )
+    
+    # Pattern: \lpsb@img@data{img_id}{width}{height}{depth}{page}
+    # Note: dimensions include "pt" suffix, e.g., "213.4209pt"
+    img_data_pattern = re.compile(
+        r"\\lpsb@img@data\{(\d+)\}\{([0-9.]+)pt\}\{([0-9.]+)pt\}\{([0-9.]+)pt\}\{(\d+)\}"
+    )
+    
+    # Storage for image data
+    images: Dict[int, ImageData] = {}
     
     # Parse tag starts (block elements)
     for m in tag_data_pattern.finditer(content):
@@ -165,6 +184,35 @@ def parse_aux_file(aux_path: Path) -> Tuple[List[TaggedElement], Dict]:
         summary["total_elements"] = int(m.group(1))
         summary["total_mcids"] = int(m.group(2))
         summary["total_pages"] = int(m.group(3))
+    
+    # Parse image dimension data
+    for m in img_data_pattern.finditer(content):
+        img_id = int(m.group(1))
+        width = float(m.group(2))
+        height = float(m.group(3))
+        depth = float(m.group(4))
+        page = int(m.group(5))
+        
+        images[img_id] = ImageData(
+            img_id=img_id,
+            width_pt=width,
+            height_pt=height,
+            depth_pt=depth,
+            page=page
+        )
+    
+    # Include image data in summary for downstream access
+    # Convert ImageData to dicts for JSON serializability
+    summary["images"] = {
+        img_id: {
+            "img_id": img.img_id,
+            "width_pt": img.width_pt,
+            "height_pt": img.height_pt,
+            "depth_pt": img.depth_pt,
+            "page": img.page
+        }
+        for img_id, img in images.items()
+    }
     
     return list(elements.values()), summary
 
