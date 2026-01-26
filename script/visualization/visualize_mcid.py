@@ -1185,9 +1185,10 @@ def visualize_mcid(
         # to different pages based on pdfplumber char extraction, but the actual
         # BDC markers are on the original page.
         content_stream_tags = get_mcid_tag_types(doc, page_num)
+        aux_mcid_set = set(aux_mcid_to_type.keys())
         for mcid, tag in content_stream_tags.items():
-            # Only override if not already set or if it's a Figure/Table (float types prone to page mismatch)
-            if mcid not in mcid_tags or tag in ('Figure', 'Table', 'Caption'):
+            # Only override known MCIDs, or floats prone to page mismatch.
+            if (mcid in aux_mcid_set) or (tag in ('Figure', 'Table', 'Caption')):
                 mcid_tags[mcid] = tag
         
         table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
@@ -1247,6 +1248,10 @@ def visualize_mcid(
                     continue  # Keep Figure and Caption MCIDs
                 bb = data.get("bbox")
                 if bb and _is_inside_figure(bb):
+                    # Drop stray MCIDs from embedded XObjects (not present in aux).
+                    if mcid not in aux_mcid_set:
+                        mcids_to_remove.append(mcid)
+                        continue
                     mcids_to_remove.append(mcid)
             
             for mcid in mcids_to_remove:

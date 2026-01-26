@@ -449,10 +449,13 @@
         % We're inside a float - use P for any subsequent content
         \xdef\lpsb@actual@reopen@type{P}%
       \else
-        % Headings should not span pages; always reopen as P.
+        % Headings: If we're inside a section heading, we need to reopen as H* not P.
+        % The heading content hasn't been output yet (it's in everypar).
+        % Don't clear @in@section - let @afterheading close the heading properly.
         \if@lpsb@in@section
-          \xdef\lpsb@actual@reopen@type{P}%
-          \global\@lpsb@in@sectionfalse
+          % Reopen as the original type (H* tag) so heading content lands there
+          \xdef\lpsb@actual@reopen@type{\lpsb@reopen@type}%
+          % DON'T clear @in@section - we're still processing the section
         \else
           \xdef\lpsb@actual@reopen@type{\lpsb@reopen@type}%
         \fi
@@ -486,9 +489,12 @@
       \fi\fi\fi\fi
     \fi
     % Fallback: ensure a P is open at page top for continuation text.
-    \if@lpsb@in@tag\else
-      \lpsbTagBegin{P}%
-      \global\@lpsb@first@parafalse
+    % CRITICAL: Skip if inside a section heading - don't interrupt H1/H2 with P
+    \if@lpsb@in@section\else
+      \if@lpsb@in@tag\else
+        \lpsbTagBegin{P}%
+        \global\@lpsb@first@parafalse
+      \fi
     \fi
   \fi
 }

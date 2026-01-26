@@ -60,8 +60,9 @@
     \def\@afterheading{%
       % Call original FIRST - it sets \@nobreaktrue and OVERWRITES \everypar
       \lpsb@orig@@afterheading
-      % Skip our processing if WACV hooks are handling it
-      \if@lpsb@wacv@in@section\else
+      % NOTE: We now ALSO process WACV sections here (removed skip condition)
+      % because we need to inject our H-close/P-start logic into the everypar
+      % that @afterheading just set up.
       % Now check if heading is deferred (display-style)
       % \@nobreak is true for display headings, false for run-in
       \if@nobreak
@@ -96,7 +97,6 @@
           \global\@lpsb@heading@deferredtrue
         \fi
       \fi
-      \fi % @lpsb@wacv@in@section
     }%
   }%
   %
@@ -152,6 +152,8 @@
   \@ifundefined{@sict}{}{\global\@lpsb@use@sict@headingtrue}
   \gdef\lpsb@runin@heading@level{H4}%
   \newif\if@lpsb@current@is@heading \@lpsb@current@is@headingfalse
+  % Constant for heading prefix comparison (must be defined here, not only in lpsb-mcid.sty)
+  \def\lpsb@const@H{H}%
   \def\lpsb@set@current@heading@flag{%
     \global\@lpsb@current@is@headingfalse
     \edef\lpsb@tmp@chk@type{\lpsb@current@tag@type}%
@@ -438,65 +440,83 @@
         \everypar{\lpsb@wacv@saved@everypar}%
       }%
     }%
+    % Helper to close H tag in everypar AFTER heading text is typeset, then start P
+    % This is for display headings where @startsection defers title output via everypar.
+    % #1 = heading level (e.g., \lpsb@H@section)
+    \def\lpsb@wacv@setup@H@close@everypar#1{%
+      \edef\lpsb@wacv@saved@everypar{\the\everypar}%
+      \everypar{%
+        % First, run LaTeX's original everypar (which outputs the heading title)
+        \lpsb@wacv@saved@everypar
+        % Now close the H tag (heading just finished) and start P for body text
+        \if@lpsb@P@pending@after@section
+          \global\@lpsb@P@pending@after@sectionfalse
+          \lpsbTagEnd
+          \lpsbTagBegin{P}%
+          \global\@lpsb@in@sectionfalse
+        \fi
+        % Restore everypar to original (prevent re-triggering)
+        \everypar{\lpsb@wacv@saved@everypar}%
+      }%
+    }%
+    % --- wacvsection hook: Set flags only, H wrapping happens at wacvsect level ---
+    \@ifundefined{wacvsection}{}{%
+      \let\lpsb@orig@wacvsection\wacvsection
+      \def\wacvsection#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        % NO H wrapping here - it happens at wacvsect level
+        \lpsb@orig@wacvsection{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \global\@lpsb@in@sectionfalse
+      }%
+    }%
+    % --- wacvsubsection hook: Set flags only ---
+    \@ifundefined{wacvsubsection}{}{%
+      \let\lpsb@orig@wacvsubsection\wacvsubsection
+      \def\wacvsubsection#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
+        % NO H wrapping here - it happens at wacvsubsect level
+        \lpsb@orig@wacvsubsection{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \global\@lpsb@in@sectionfalse
+      }%
+    }%
+    % --- wacvsect: Simple inline H1 wrapping for title ---
+    % Note: Section NUMBER is output by @svsec before title and won't be in H1.
+    % This is a limitation of @startsection architecture. Title text is in H1.
     \@ifundefined{wacvsect}{}{%
       \let\lpsb@orig@wacvsect\wacvsect
       \def\wacvsect#1{%
-        \stepcounter{lpsb@sectionID}%
-        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-        \lpsbTagEnd
-        \lpsbTagBegin{\lpsb@H@section}%
-        \global\@lpsb@in@sectiontrue
-        \global\@lpsb@wacv@in@sectiontrue
-        \lpsb@orig@wacvsect{#1}%
-        \global\@lpsb@wacv@in@sectionfalse
-        % Close H tag immediately after original returns
-        \lpsbTagEnd
-        \global\@lpsb@P@pending@after@sectiontrue
-        \lpsb@wacv@setup@P@everypar
+        \lpsb@orig@wacvsect{\lpsbTagBeginForce{\lpsb@H@section}#1\lpsbTagEnd}%
       }%
     }%
+    % --- wacvssect: Starred section (References) - inline H1 wrapping ---
     \@ifundefined{wacvssect}{}{%
       \let\lpsb@orig@wacvssect\wacvssect
       \def\wacvssect#1{%
-        \lpsbTagEnd
-        \lpsbTagBegin{\lpsb@H@section}%
-        \global\@lpsb@in@sectiontrue
-        \global\@lpsb@wacv@in@sectiontrue
-        \lpsb@orig@wacvssect{#1}%
-        \global\@lpsb@wacv@in@sectionfalse
-        \lpsbTagEnd
-        \global\@lpsb@P@pending@after@sectiontrue
-        \lpsb@wacv@setup@P@everypar
+        \lpsb@orig@wacvssect{\lpsbTagBeginForce{\lpsb@H@section}#1\lpsbTagEnd}%
       }%
     }%
+    % --- wacvsubsect: Simple inline H2 wrapping for title ---
     \@ifundefined{wacvsubsect}{}{%
       \let\lpsb@orig@wacvsubsect\wacvsubsect
       \def\wacvsubsect#1{%
-        \stepcounter{lpsb@sectionID}%
-        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
-        \lpsbTagEnd
-        \lpsbTagBegin{\lpsb@H@subsection}%
-        \global\@lpsb@in@sectiontrue
-        \global\@lpsb@wacv@in@sectiontrue
-        \lpsb@orig@wacvsubsect{#1}%
-        \global\@lpsb@wacv@in@sectionfalse
-        \lpsbTagEnd
-        \global\@lpsb@P@pending@after@sectiontrue
-        \lpsb@wacv@setup@P@everypar
+        \lpsb@orig@wacvsubsect{\lpsbTagBeginForce{\lpsb@H@subsection}#1\lpsbTagEnd}%
       }%
     }%
+    % --- wacvssubsect: Starred subsection - inline H2 wrapping ---
     \@ifundefined{wacvssubsect}{}{%
       \let\lpsb@orig@wacvssubsect\wacvssubsect
       \def\wacvssubsect#1{%
-        \lpsbTagEnd
-        \lpsbTagBegin{\lpsb@H@subsection}%
-        \global\@lpsb@in@sectiontrue
-        \global\@lpsb@wacv@in@sectiontrue
-        \lpsb@orig@wacvssubsect{#1}%
-        \global\@lpsb@wacv@in@sectionfalse
-        \lpsbTagEnd
-        \global\@lpsb@P@pending@after@sectiontrue
-        \lpsb@wacv@setup@P@everypar
+        \lpsb@orig@wacvssubsect{\lpsbTagBeginForce{\lpsb@H@subsection}#1\lpsbTagEnd}%
       }%
     }%
   \fi
