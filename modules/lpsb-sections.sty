@@ -178,11 +178,7 @@
   % We patch \@xsect itself (kernel macro) so we can bracket \@svsechd precisely:
   % - before \@svsechd: start H4 (pending)
   % - after \hskip -\@tempskipa: end H4 and start P so the body continues in P
-  % Skip for WACV - it has its own wacvsect/wacvsubsect hooks
-  \def\lpsb@tmp@wacv@xsect{wacv}%
-  \ifx\lpsb@detected@template\lpsb@tmp@wacv@xsect
-    \typeout{LPSB-MCID Info: Skipping @xsect hook for WACV (uses wacvsect hooks)}%
-  \else
+  % NOTE: WACV also needs this hook for \paragraph handling
   \@ifundefined{@xsect}{}{%
     \let\lpsb@orig@@xsect\@xsect
     \def\@xsect#1{%
@@ -236,7 +232,6 @@
       \fi
       \ignorespaces}%
   }%
-  \fi % skip @xsect for WACV
   %
   % Dynamic heading levels based on document class:
   % - If \chapter is defined (book/report): chapter=H1, section=H2, subsection=H3, etc.
@@ -440,6 +435,23 @@
         \everypar{\lpsb@wacv@saved@everypar}%
       }%
     }%
+    % Helper to inject P tag everypar after WACV section hooks
+    % This is called after the section heading is typeset to ensure
+    % ALL paragraphs in the section get P tags (not just the first one).
+    % CRITICAL: Check @lpsb@in@tag to avoid double-tagging
+    \def\lpsb@wacv@inject@P@everypar{%
+      \edef\lpsb@wacv@orig@everypar{\the\everypar}%
+      \everypar{%
+        \lpsb@wacv@orig@everypar
+        % Always check if we need to start a P tag for this paragraph
+        \if@lpsb@active
+          \if@lpsb@in@tag\else
+            \lpsbTagBegin{P}%
+          \fi
+        \fi
+        % DO NOT reset everypar - keep it persistent for all paragraphs
+      }%
+    }%
     % Helper to close H tag in everypar AFTER heading text is typeset, then start P
     % This is for display headings where @startsection defers title output via everypar.
     % #1 = heading level (e.g., \lpsb@H@section)
@@ -459,64 +471,137 @@
         \everypar{\lpsb@wacv@saved@everypar}%
       }%
     }%
-    % --- wacvsection hook: Set flags only, H wrapping happens at wacvsect level ---
+    % --- wacvsection hook: Handle star properly, set flags only ---
     \@ifundefined{wacvsection}{}{%
       \let\lpsb@orig@wacvsection\wacvsection
-      \def\wacvsection#1{%
+      \def\wacvsection{\@ifstar\lpsb@wacvsection@star\lpsb@wacvsection@nostar}%
+      \def\lpsb@wacvsection@star#1{%
         \stepcounter{lpsb@sectionID}%
         \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
         \lpsbTagEnd
         \global\@lpsb@in@sectiontrue
         \global\@lpsb@wacv@in@sectiontrue
-        % NO H wrapping here - it happens at wacvsect level
+        \lpsb@orig@wacvsection*{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \global\@lpsb@in@sectionfalse
+      }%
+      \def\lpsb@wacvsection@nostar#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
         \lpsb@orig@wacvsection{#1}%
         \global\@lpsb@wacv@in@sectionfalse
         \global\@lpsb@in@sectionfalse
       }%
     }%
-    % --- wacvsubsection hook: Set flags only ---
+    % --- wacvsubsection hook: Handle star properly, set flags only ---
     \@ifundefined{wacvsubsection}{}{%
       \let\lpsb@orig@wacvsubsection\wacvsubsection
-      \def\wacvsubsection#1{%
+      \def\wacvsubsection{\@ifstar\lpsb@wacvsubsection@star\lpsb@wacvsubsection@nostar}%
+      \def\lpsb@wacvsubsection@star#1{%
         \stepcounter{lpsb@sectionID}%
         \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
         \lpsbTagEnd
         \global\@lpsb@in@sectiontrue
         \global\@lpsb@wacv@in@sectiontrue
-        % NO H wrapping here - it happens at wacvsubsect level
+        \lpsb@orig@wacvsubsection*{#1}%
+        \global\@lpsb@wacv@in@sectionfalse
+        \global\@lpsb@in@sectionfalse
+      }%
+      \def\lpsb@wacvsubsection@nostar#1{%
+        \stepcounter{lpsb@sectionID}%
+        \xdef\lpsb@current@section@id{\thelpsb@sectionID}%
+        \lpsbTagEnd
+        \global\@lpsb@in@sectiontrue
+        \global\@lpsb@wacv@in@sectiontrue
         \lpsb@orig@wacvsubsection{#1}%
         \global\@lpsb@wacv@in@sectionfalse
         \global\@lpsb@in@sectionfalse
       }%
     }%
-    % --- wacvsect: Simple inline H1 wrapping for title ---
-    % Note: Section NUMBER is output by @svsec before title and won't be in H1.
-    % This is a limitation of @startsection architecture. Title text is in H1.
+    % --- wacvsect: Include section NUMBER in H1 tag ---
+    % Strategy: Manually increment counter, use starred wacvsection (skip auto-number),
+    % and include \thesection manually inside the H tag.
+    % Format: "1. Introduction" (number + dot + space + title)
     \@ifundefined{wacvsect}{}{%
       \let\lpsb@orig@wacvsect\wacvsect
       \def\wacvsect#1{%
-        \lpsb@orig@wacvsect{\lpsbTagBeginForce{\lpsb@H@section}#1\lpsbTagEnd}%
+        \refstepcounter{section}%
+        \global\@lpsb@manual@star@sectiontrue
+        \lpsb@orig@wacvsection*{%
+          \lpsbTagBeginForce{\lpsb@H@section}%
+          \thesection.~#1%
+          \lpsbTagEnd
+        }%
+        % Set P pending and inject everypar to start P tag on next paragraph
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@inject@P@everypar
       }%
     }%
-    % --- wacvssect: Starred section (References) - inline H1 wrapping ---
+    % --- wacvssect: Starred section (References) - no number, just title in H1 ---
     \@ifundefined{wacvssect}{}{%
       \let\lpsb@orig@wacvssect\wacvssect
       \def\wacvssect#1{%
-        \lpsb@orig@wacvssect{\lpsbTagBeginForce{\lpsb@H@section}#1\lpsbTagEnd}%
+        \global\@lpsb@manual@star@sectiontrue
+        \lpsb@orig@wacvsection*{%
+          \lpsbTagBeginForce{\lpsb@H@section}%
+          #1%
+          \lpsbTagEnd
+        }%
+        % Set P pending and inject everypar to start P tag on next paragraph
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@inject@P@everypar
       }%
     }%
-    % --- wacvsubsect: Simple inline H2 wrapping for title ---
+    % --- wacvsubsect: Include subsection NUMBER in H2 tag ---
+    % Format: "2.1. Related Work" (number + dot + space + title)
     \@ifundefined{wacvsubsect}{}{%
       \let\lpsb@orig@wacvsubsect\wacvsubsect
       \def\wacvsubsect#1{%
-        \lpsb@orig@wacvsubsect{\lpsbTagBeginForce{\lpsb@H@subsection}#1\lpsbTagEnd}%
+        \refstepcounter{subsection}%
+        \global\@lpsb@manual@star@sectiontrue
+        \lpsb@orig@wacvsubsection*{%
+          \lpsbTagBeginForce{\lpsb@H@subsection}%
+          \thesubsection.~#1%
+          \lpsbTagEnd
+        }%
+        % Set P pending and inject everypar to start P tag on next paragraph
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@inject@P@everypar
       }%
     }%
-    % --- wacvssubsect: Starred subsection - inline H2 wrapping ---
+    % --- wacvssubsect: Starred subsection - no number, just title in H2 ---
     \@ifundefined{wacvssubsect}{}{%
       \let\lpsb@orig@wacvssubsect\wacvssubsect
       \def\wacvssubsect#1{%
-        \lpsb@orig@wacvssubsect{\lpsbTagBeginForce{\lpsb@H@subsection}#1\lpsbTagEnd}%
+        \global\@lpsb@manual@star@sectiontrue
+        \lpsb@orig@wacvsubsection*{%
+          \lpsbTagBeginForce{\lpsb@H@subsection}%
+          #1%
+          \lpsbTagEnd
+        }%
+        % Set P pending and inject everypar to start P tag on next paragraph
+        \global\@lpsb@P@pending@after@sectiontrue
+        \lpsb@wacv@inject@P@everypar
+      }%
+    }%
+    % --- WACV paragraph hook: Tag run-in headings as H4 ---
+    % \paragraph is a run-in heading (afterskip < 0), title appears inline with text.
+    % We wrap the title text in H4, then the body continues in P.
+    \@ifundefined{paragraph}{}{%
+      \let\lpsb@orig@wacv@paragraph\paragraph
+      \def\paragraph{\@ifstar\lpsb@wacv@paragraph@star\lpsb@wacv@paragraph@nostar}%
+      \long\def\lpsb@wacv@paragraph@star#1{%
+        \lpsb@orig@wacv@paragraph*{\lpsbTagBeginForce{\lpsb@H@paragraph}#1\lpsbTagEnd}%
+      }%
+      \def\lpsb@wacv@paragraph@nostar{\@ifnextchar[\lpsb@wacv@paragraph@opt\lpsb@wacv@paragraph@noopt}%
+      \long\def\lpsb@wacv@paragraph@opt[#1]#2{%
+        \lpsb@orig@wacv@paragraph[#1]{\lpsbTagBeginForce{\lpsb@H@paragraph}#2\lpsbTagEnd}%
+      }%
+      \long\def\lpsb@wacv@paragraph@noopt#1{%
+        \lpsb@orig@wacv@paragraph{\lpsbTagBeginForce{\lpsb@H@paragraph}#1\lpsbTagEnd}%
       }%
     }%
   \fi

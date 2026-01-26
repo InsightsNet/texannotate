@@ -7,9 +7,28 @@
 
 \makeatletter
 
+% --- Helper macros for \thanks tagging ---
+% Strategy: Allocate MCID at render time using a global counter.
+% The \protected\def prevents expansion when \thanks stores its argument.
+
+% Helper to emit Note BDC with fresh MCID (protected to prevent expansion)
+\protected\def\lpsb@thanks@emit@note{%
+  \lpsb@pdfliteralcmd{ EMC }%
+  % Increment global counter and use its value
+  \global\advance\c@lpsb@mcid\@ne
+  \lpsb@pdfliteralcmd{ /Note << /MCID \number\c@lpsb@mcid\space >> BDC }%
+}
+% Helper to emit P BDC after Note content
+\protected\def\lpsb@thanks@emit@p{%
+  \lpsb@pdfliteralcmd{ EMC }%
+  \global\advance\c@lpsb@mcid\@ne
+  \lpsb@pdfliteralcmd{ /P << /MCID \the\c@lpsb@mcid\space >> BDC }%
+}
+
 % --- Footnote → Note ---
 % Hook \footnote to tag as Note (PDF/UA)
 \AtBeginDocument{%
+  \typeout{LPSB-DEBUG: lpsb-footnotes AtBeginDocument EXECUTING}%
   \@ifundefined{footnote}{}{%
     \let\lpsb@orig@footnote\footnote
     % \footnote produces both a mark (superscript) and text (at page bottom)
@@ -24,6 +43,22 @@
       \fi
     }%
   }%
+  % Hook \thanks for title area footnotes (author acknowledgments)
+  % NOTE: \thanks uses \@footnotetext internally, which we already hook.
+  % The previous approach with \lpsb@thanks@emit@note/p caused spurious
+  % empty Note tags in TitleArea. Disabling this hook - footnotes from
+  % \thanks will be tagged via the \@footnotetext hook instead.
+  %
+  % \@ifundefined{thanks}{}{%
+  %   \let\lpsb@orig@thanks\thanks
+  %   \renewcommand{\thanks}[1]{%
+  %     \lpsb@orig@thanks{%
+  %       \lpsb@thanks@emit@note
+  %       #1%
+  %       \lpsb@thanks@emit@p
+  %     }%
+  %   }%
+  % }%
   % Many papers use split footnotes: \footnotemark + \footnotetext.
   % Footnotemark is the superscript reference - tag as Lbl (label)
   \@ifundefined{footnotemark}{}{%
@@ -35,23 +70,33 @@
     \def\lpsb@fnmark@noopt{\lpsbTagAtom{Lbl}{\lpsb@orig@footnotemark}}%
   }%
   \@ifundefined{footnotetext}{}{%
-    % Hook \footnotetext for tagging. Use \long\def to handle paragraph breaks
-    % in the argument (common in complex macro content like ICML's \printAffiliationsAndNotice).
     \let\lpsb@orig@footnotetext\footnotetext
-    %
-    % The challenge: \footnotetext[num]{text} has optional arg.
-    % We use \@ifnextchar to detect [...], then capture args with \long\def.
     \renewcommand{\footnotetext}{%
       \@ifnextchar[\lpsb@fntext@opt\lpsb@fntext@noopt
     }%
-    % Optional argument version: \footnotetext[num]{text}
-    \long\def\lpsb@fntext@opt[#1]#2{%
-      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext[#1]{#2}}%
+    \def\lpsb@fntext@opt[#1]#2{%
+      \begingroup
+        % Tagging happens inside \@makefntext in the insert context.
+        \let\lpsb@orig@@makefntext\@makefntext
+        \long\def\@makefntext##1{%
+          \lpsbTagBeginForce{Note}%
+          \lpsb@orig@@makefntext{##1}%
+          \lpsbTagEndForce
+        }%
+        \lpsb@orig@footnotetext[#1]{#2}%
+      \endgroup
     }%
-    % No optional argument: \footnotetext{text}
-    % IMPORTANT: Use \long to handle \par and complex macro content
-    \long\def\lpsb@fntext@noopt#1{%
-      \lpsbTagAtom{Note}{\lpsb@orig@footnotetext{#1}}%
+    \def\lpsb@fntext@noopt#1{%
+      \begingroup
+        % Tagging happens inside \@makefntext in the insert context.
+        \let\lpsb@orig@@makefntext\@makefntext
+        \long\def\@makefntext##1{%
+          \lpsbTagBeginForce{Note}%
+          \lpsb@orig@@makefntext{##1}%
+          \lpsbTagEndForce
+        }%
+        \lpsb@orig@footnotetext{#1}%
+      \endgroup
     }%
   }%
   % Standard \footnote uses internal \@footnotemark/\@footnotetext; hook those too so the
@@ -75,24 +120,7 @@
     }%
   }%
   %
-  \@ifundefined{@makefntext}{}{%
-    \let\lpsb@orig@@makefntext\@makefntext
-    \long\def\@makefntext#1{%
-      \if@lpsb@active
-        % Open Note tag for footnote text, close current P if any
-        \lpsbTagEnd
-        \lpsbTagBegin{Note}%
-        \global\@lpsb@in@footnotetrue
-        \lpsb@orig@@makefntext{#1}%
-        \lpsbTagEnd
-        % Restore P for any content after footnote
-        \lpsbTagBegin{P}%
-        \global\@lpsb@in@footnotefalse
-      \else
-        \lpsb@orig@@makefntext{#1}%
-      \fi
-    }%
-  }%
+  % No separate \@footnotetext patch needed - handled via \footnotetext wrapper.
   % Also hook minipage footnotes
   \@ifundefined{@mpfootnotetext}{}{%
     \let\lpsb@orig@@mpfootnotetext\@mpfootnotetext

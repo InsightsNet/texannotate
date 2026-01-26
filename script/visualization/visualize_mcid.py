@@ -72,22 +72,35 @@ def get_mcid_tag_types(doc: fitz.Document, page_num: int) -> dict:
 
 def get_mcid_bboxes(pdf_path: str, line_based: bool = True) -> dict:
     """Extract bounding boxes for each MCID on each page.
-    
+
     Args:
         pdf_path: Path to PDF file
         line_based: If True, group chars by line to avoid cross-column merged boxes.
                    Each MCID will have a list of line bboxes instead of one merged bbox.
+
+    Note:
+        pdfplumber may extract chars from embedded XObjects (e.g., vector figures)
+        which have their own MCID markers that conflict with the main document's MCIDs.
+        We filter out these stray MCIDs by checking against the main content stream.
     """
     pdf = pdfplumber.open(pdf_path)
+    # Open with fitz to get authoritative MCID list from content stream
+    doc = fitz.open(pdf_path)
     page_data = {}
-    
+
     for page_idx, page in enumerate(pdf.pages):
         page_num = page_idx + 1  # Use 1-based indexing to match aux files and cache
         try:
+            # Get authoritative MCIDs from main content stream (excludes XObject internal MCIDs)
+            content_stream_mcids = set(get_mcid_tag_types(doc, page_idx).keys())
+
             mcid_chars = {}
             for char in page.chars:
                 mcid = char.get('mcid')
                 if mcid is not None:
+                    # Filter: only keep MCIDs that exist in main content stream
+                    if mcid not in content_stream_mcids:
+                        continue
                     if mcid not in mcid_chars:
                         mcid_chars[mcid] = []
                     mcid_chars[mcid].append(char)
@@ -1184,12 +1197,14 @@ def visualize_mcid(
         # This fixes Figure/Table page mismatches where reconciliation moved elements
         # to different pages based on pdfplumber char extraction, but the actual
         # BDC markers are on the original page.
+        # NOTE: We add ALL content stream MCIDs, not just aux-known ones,
+        # to ensure continuation MCIDs (like footnotes) are properly annotated.
         content_stream_tags = get_mcid_tag_types(doc, page_num)
-        aux_mcid_set = set(aux_mcid_to_type.keys())
         for mcid, tag in content_stream_tags.items():
-            # Only override known MCIDs, or floats prone to page mismatch.
-            if (mcid in aux_mcid_set) or (tag in ('Figure', 'Table', 'Caption')):
-                mcid_tags[mcid] = tag
+            mcid_tags[mcid] = tag
+        
+        # Keep track of aux MCIDs for stray XObject filtering below
+        aux_mcid_set = set(aux_mcid_to_type.keys())
         
         table_mcids_on_page = [mcid for mcid, t in mcid_tags.items() if t == "Table"]
 
@@ -1240,19 +1255,20 @@ def visualize_mcid(
                             return True
                 return False
             
-            # Remove non-Figure MCIDs that are inside Figure bboxes
+            # Remove only STRAY MCIDs from embedded XObjects that are inside Figure bboxes.
+            # IMPORTANT: Only remove MCIDs that are NOT in aux_mcid_set.
+            # Figure bboxes can be incorrectly oversized (covering entire page sections),
+            # so we must NOT remove valid aux MCIDs just because they overlap with Figure bbox.
             mcids_to_remove = []
             for mcid, data in mcid_bboxes.items():
                 tag = mcid_tags.get(mcid, '?')
                 if tag in ('Figure', 'Caption'):
                     continue  # Keep Figure and Caption MCIDs
-                bb = data.get("bbox")
-                if bb and _is_inside_figure(bb):
-                    # Drop stray MCIDs from embedded XObjects (not present in aux).
-                    if mcid not in aux_mcid_set:
+                # Only remove if NOT in aux (stray XObject MCID) AND inside Figure bbox
+                if mcid not in aux_mcid_set:
+                    bb = data.get("bbox")
+                    if bb and _is_inside_figure(bb):
                         mcids_to_remove.append(mcid)
-                        continue
-                    mcids_to_remove.append(mcid)
             
             for mcid in mcids_to_remove:
                 del mcid_bboxes[mcid]

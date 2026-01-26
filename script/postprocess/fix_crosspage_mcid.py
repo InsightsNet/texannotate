@@ -364,6 +364,7 @@ def inject_bdc_for_untagged_regions(
     target_lines: Set[Tuple[str, int]],
     allocator: MCIDAllocator,
     tag_type: str = 'P',
+    line_to_tag_type: Optional[Dict[int, str]] = None,
     verbose: bool = False
 ) -> Tuple[bytes, int, List[Dict]]:
     """Inject BDC/EMC pairs for untagged text regions that match SyncTeX targets.
@@ -412,12 +413,71 @@ def inject_bdc_for_untagged_regions(
 
     insert_ops = []  # (pos, priority, text) - higher priority applied first at same pos
 
+    # Helper to find preceding tag type
+    def get_preceding_tag_type(text: str, pos: int) -> str:
+        """Find the tag type of the immediately preceding closed tag (before pos).
+        
+        If no preceding BDC exists (e.g., at page start), look forward to infer
+        from the dominant tag type on the page.
+        """
+        bdc_pattern = re.compile(r'/(\w+)\s*<<\s*/MCID\s*\d+\s*>>\s*BDC')
+        
+        # Look for preceding BDC
+        search_region = text[:pos]
+        last_bdc = None
+        for m in bdc_pattern.finditer(search_region):
+            last_bdc = m
+        
+        if last_bdc:
+            preceding_tag = last_bdc.group(1)
+            # If the preceding tag is a bibliography type, use it
+            if preceding_tag in ('BibEntry', 'BibList', 'Reference'):
+                return preceding_tag
+            return tag_type  # Default for non-bib tags
+        
+        # No preceding BDC - this is likely a page-start cross-page situation
+        # Look at subsequent tags on this page to infer the dominant type
+        remaining = text[pos:]
+        bib_count = 0
+        other_count = 0
+        
+        for m in bdc_pattern.finditer(remaining):
+            tag = m.group(1)
+            if tag in ('BibEntry', 'BibList', 'Reference'):
+                bib_count += 1
+            elif tag == 'P':
+                other_count += 1
+            # Stop after checking first 10 tags
+            if bib_count + other_count >= 10:
+                break
+        
+        # If the page is dominated by bibliography tags, use BibEntry
+        if bib_count > other_count and bib_count >= 3:
+            return 'BibEntry'
+        
+        return tag_type  # Default to the provided tag_type
+
     injected_info: List[Dict] = []
     for bdc_pos, emc_pos, source in injections:
         mcid = allocator.allocate()
 
+        # Infer tag type from source (SyncTeX-based) if available
+        inferred_tag = tag_type  # Default
+        if source:
+            src_filename, src_line = source
+            # Direct detection: .bbl files are bibliography, use BibEntry
+            if src_filename and src_filename.endswith('.bbl'):
+                inferred_tag = 'BibEntry'
+            # Otherwise try line-based lookup from aux
+            elif line_to_tag_type and src_line in line_to_tag_type:
+                inferred_tag = line_to_tag_type[src_line]
+        
+        # Fallback: infer from page context if source lookup failed
+        if inferred_tag == tag_type:
+            inferred_tag = get_preceding_tag_type(text, bdc_pos)
+
         # Close tag right after the last TEXT op in this untagged run
-        insert_ops.append((bdc_pos, 1, f'/{tag_type} << /MCID {mcid} >> BDC\n'))
+        insert_ops.append((bdc_pos, 1, f'/{inferred_tag} << /MCID {mcid} >> BDC\n'))
         insert_ops.append((emc_pos, 0, ' EMC\n'))
         injected_info.append(
             {
@@ -916,7 +976,11 @@ def split_tags_at_synctex_boundaries(
             
         # Op is inside region!
         tag_name = region['tag']
-        if tag_name in ('P', 'L', 'LI', 'Artifact', 'Header', 'Footer'):
+        # Skip tag types that shouldn't be split:
+        # - P/L/LI: Normal content that's already flexible
+        # - Artifact/Header/Footer: Decorative/structural content
+        # - BibEntry/BibList/Reference: Bibliography entries often span multiple source lines
+        if tag_name in ('P', 'L', 'LI', 'Artifact', 'Header', 'Footer', 'BibEntry', 'BibList', 'Reference'):
             continue
             
         # Check source
@@ -950,7 +1014,7 @@ def split_tags_at_synctex_boundaries(
                     # For simplicity, take the FIRST split and stop processing this region?
                     # Or continue? If we split, the rest is in New Tag.
                     # We should stop processing this region to avoid double splitting at every line.
-                    splits_needed.append((split_pos, region['mcid']))
+                    splits_needed.append((split_pos, region['mcid'], tag_name))
                     if verbose:
                         print(f"    Page {page_num}: Detected leak in {tag_name} (L{first_line} -> L{current_line}). Split at {split_pos}")
                     
@@ -965,9 +1029,10 @@ def split_tags_at_synctex_boundaries(
     splits_needed.sort(key=lambda x: x[0], reverse=True)
     
     split_info = []
-    for pos, old_mcid in splits_needed:
+    for pos, old_mcid, tag_type in splits_needed:
         new_mcid = allocator.allocate()
-        injection = f' EMC\n/P << /MCID {new_mcid} >> BDC\n'
+        # Preserve original tag type instead of defaulting to P
+        injection = f' EMC\n/{tag_type} << /MCID {new_mcid} >> BDC\n'
         text = text[:pos] + injection + text[pos:]
         split_info.append((old_mcid, new_mcid))
 
@@ -1060,6 +1125,17 @@ def process_pdf_synctex(
     injected_records: List[Dict] = []
     split_records: List[Tuple[int, int, int]] = []  # (orig_mcid, new_mcid, page)
 
+    # Build line_to_tag_type mapping from aux file for source-based tag type inference
+    line_to_tag_type: Dict[int, str] = {}
+    aux_elements, _ = parse_aux_file(Path(aux_path))
+    for e in aux_elements:
+        src_line = int(getattr(e, "source_line", 0) or 0)
+        tag_type_val = getattr(e, "tag_type", "")
+        if src_line > 0 and tag_type_val:
+            # Prefer more specific types (e.g., BibEntry over P)
+            if src_line not in line_to_tag_type or tag_type_val in ('BibEntry', 'BibList', 'Reference'):
+                line_to_tag_type[src_line] = tag_type_val
+
     for page_num in range(1, len(doc) + 1):
         # Skip pages if we want optimization? 
         # But split logic and balance logic need to run everywhere.
@@ -1106,7 +1182,7 @@ def process_pdf_synctex(
         stream, n_inject, injected_info = inject_bdc_for_untagged_regions(
             stream, page_num, page_height,
             synctex_data, target_lines, allocator,
-            tag_type='P', verbose=verbose
+            tag_type='P', line_to_tag_type=line_to_tag_type, verbose=verbose
         )
         total_injections += n_inject
         if injected_info:

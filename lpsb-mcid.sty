@@ -350,19 +350,28 @@
 % Global constants for container type checking (defined once, used everywhere)
 \def\lpsb@const@Table{Table}%
 \def\lpsb@const@Figure{Figure}%
+\def\lpsb@const@TitleArea{TitleArea}%
+\def\lpsb@const@Abstract{Abstract}%
+\def\lpsb@const@BibList{BibList}%
 
-% Helper: Check if current tag type is a container (Table/Figure)
+% Helper: Check if current tag type is a container (Table/Figure/TitleArea/Abstract/BibList)
 % Containers should NOT be reopened after atoms - they are structural elements.
 % Usage: \lpsb@if@container@type{<true-code>}{<false-code>}
-% Checks \lpsb@current@tag@type against Table/Figure
+% Checks \lpsb@current@tag@type against container types
 \newcommand{\lpsb@if@container@type}[2]{%
   \ifx\lpsb@current@tag@type\lpsb@const@Table
     #1%
   \else\ifx\lpsb@current@tag@type\lpsb@const@Figure
     #1%
+  \else\ifx\lpsb@current@tag@type\lpsb@const@TitleArea
+    #1%
+  \else\ifx\lpsb@current@tag@type\lpsb@const@Abstract
+    #1%
+  \else\ifx\lpsb@current@tag@type\lpsb@const@BibList
+    #1%
   \else
     #2%
-  \fi\fi
+  \fi\fi\fi\fi\fi
 }
 
 % Helper: Check if a given tag type is a container
@@ -373,9 +382,15 @@
     #2%
   \else\ifx\lpsb@tmp@chk\lpsb@const@Figure
     #2%
+  \else\ifx\lpsb@tmp@chk\lpsb@const@TitleArea
+    #2%
+  \else\ifx\lpsb@tmp@chk\lpsb@const@Abstract
+    #2%
+  \else\ifx\lpsb@tmp@chk\lpsb@const@BibList
+    #2%
   \else
     #3%
-  \fi\fi
+  \fi\fi\fi\fi\fi
 }
 
 % Helper: Reopen a parent tag with continuation MCID
@@ -683,6 +698,26 @@
       \else
         \lpsb@pop@tag
         \lpsb@maybe@close@heading@or@reopen
+      \fi
+    \fi
+  \fi
+}
+
+% Force-end a tag WITHOUT reopening parent tag.
+% Used for forced cleanup (e.g., after maketitle) where we want to close all tags.
+\newcommand{\lpsbTagEndNoReopen}{%
+  \if@lpsb@active
+    \if@lpsb@in@tag
+      \lpsb@pdfliteralcmd{ EMC }%
+      \immediate\write\@auxout{%
+        \string\lpsb@tag@end{\lpsb@current@logical@id}{\thelpsb@currentPage}%
+      }%
+      \ifx\lpsb@tag@stack\empty
+        \global\@lpsb@in@tagfalse
+      \else
+        \lpsb@pop@tag
+        % Do NOT reopen parent - just set state to the popped parent
+        % (no BDC emission, parent already has its MCID from original open)
       \fi
     \fi
   \fi

@@ -143,8 +143,12 @@
       \fi
       \lpsb@orig@maketitle
       \if@lpsb@active
-        % Close TitleArea tag
-        \lpsbTagEnd
+        % Close ALL tags opened during maketitle (TitleArea + any nested tags)
+        % Some templates leave nested tags unclosed, so we loop until stack is empty
+        % Use lpsbTagEndNoReopen to prevent parent tags from being reopened
+        \loop\if@lpsb@in@tag
+          \lpsbTagEndNoReopen
+        \repeat
       \fi
       \global\@lpsb@suppress@inlinefalse
       \global\@lpsb@in@maketitlefalse
