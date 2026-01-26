@@ -274,6 +274,7 @@ def create_struct_elem(pdf: Pdf, node: Dict, parent_obj, page_objs: List) -> Any
     except AttributeError:
         # Fallback: some names may not be predefined in pikepdf
         # In this case, use the string directly
+        print(f"[WARN] inject_structtree: unknown tag '{pdf_type}', using raw name")
         name_obj = "/" + pdf_type
     
     # Create structure element dictionary using string keys

@@ -331,6 +331,8 @@ def compute_order_map_layout(aux_path: Path, pdf_path: Path, verbose: bool = Fal
                 if bb is not None:
                     page_bbs.append(bb)
             bbox = _union_bbox(page_bbs)
+            if bbox is not None and verbose:
+                print(f"[WARN] order-map: using union bbox for elem {e.elem_id}")
         if bbox is None:
             missing_bbox += 1
 
@@ -420,6 +422,8 @@ def compute_order_map_mixed(aux_path: Path, pdf_path: Path, verbose: bool = Fals
     def latex_rank(eid: int) -> int:
         if eid in latex_order:
             return int(latex_order[eid])
+        if verbose:
+            print(f"[WARN] order-map: missing latex order for elem {eid}, using fallback rank")
         return 10**12 + int(eid)
 
     # Group elements by start_page (1-based).

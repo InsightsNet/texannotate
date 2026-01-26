@@ -313,6 +313,7 @@ def _estimate_mcid_anchor_bboxes(
                 try:
                     x = float(tm.group(5))
                     y = float(tm.group(6))
+                    print(f"[WARN] visualize: fallback to Tm for MCID {mcid} on page {page_num}")
                 except Exception:
                     x = None
                     y = None
@@ -642,6 +643,91 @@ def get_elements_from_aux(aux_path: str, pdf_path: Optional[str] = None) -> List
     
     return out
 
+
+def get_elements_from_json(json_path: str) -> List[Dict]:
+    """Parse mcid.json and return element dicts with role + mcids (no geometry)."""
+    jsonp = Path(json_path)
+    if not jsonp.exists():
+        return []
+    raw = json.loads(jsonp.read_text(errors="replace"))
+    elems = raw.get("elements", [])
+    summary = raw.get("summary", {})
+
+    out = []
+    for e in elems:
+        elem_dict = {
+            "elem_id": e.get("id"),
+            "role": e.get("type"),
+            "is_atom": bool(e.get("is_atom", False)),
+            "parent_id": e.get("parent_id"),
+            "mcids": [
+                {"mcid": int(m.get("mcid")), "page": int(m.get("page"))}
+                for m in e.get("mcids", [])
+            ],
+        }
+        out.append(elem_dict)
+
+    # Populate image data if present
+    images = summary.get("images", {})
+    global _aux_image_data
+    _aux_image_data = {
+        int(img_id): {
+            "width_pt": img_data["width_pt"],
+            "height_pt": img_data["height_pt"],
+            "depth_pt": img_data["depth_pt"],
+            "page": img_data["page"]
+        }
+        for img_id, img_data in images.items()
+    }
+    return out
+
+
+def augment_mcid_json_bboxes(pdf_path: str, json_path: str) -> None:
+    """Augment mcid.json with MCID bboxes (with anchor fallback)."""
+    pdfp = Path(pdf_path)
+    jsonp = Path(json_path)
+    if not pdfp.exists() or not jsonp.exists():
+        return
+
+    data = json.loads(jsonp.read_text(errors="replace"))
+    mcid_bboxes = get_mcid_bboxes(str(pdfp))
+
+    doc = fitz.open(str(pdfp))
+    anchor_added = 0
+    for page_num in range(len(doc)):
+        mcid_tags = get_mcid_tag_types(doc, page_num)
+        missing = [mc for mc in mcid_tags.keys() if mc not in mcid_bboxes]
+        if missing:
+            anchors = _estimate_mcid_anchor_bboxes(doc, page_num, mcid_tags, missing)
+            for mcid, bb in anchors.items():
+                if mcid not in mcid_bboxes:
+                    mcid_bboxes[mcid] = {
+                        "bbox": bb,
+                        "line_bboxes": [bb],
+                        "text_preview": "",
+                        "char_count": 0,
+                        "source": "anchor",
+                    }
+                    anchor_added += 1
+    doc.close()
+
+    # Normalize to JSON-friendly lists and add sources.
+    out = {}
+    for mcid, payload in mcid_bboxes.items():
+        bbox = payload.get("bbox")
+        line_bboxes = payload.get("line_bboxes", [])
+        out[str(mcid)] = {
+            "bbox": list(bbox) if bbox is not None else None,
+            "line_bboxes": [list(bb) for bb in line_bboxes],
+            "text_preview": payload.get("text_preview", ""),
+            "char_count": int(payload.get("char_count", 0) or 0),
+            "source": payload.get("source", "pdfplumber"),
+        }
+    data["mcid_bboxes"] = out
+    jsonp.write_text(json.dumps(data, indent=2))
+    if anchor_added:
+        print(f"[WARN] json: filled {anchor_added} MCIDs with anchor fallback")
+
 # Module-level storage for image data
 _aux_image_data: Dict[int, Dict] = {}
 
@@ -855,6 +941,8 @@ def _detect_table_bbox_near_hint(page: fitz.Page, hint: Tuple[float, float, floa
     x1 = max((h[2] for h in horiz), default=hx1)
     y0 = min((h[1] for h in horiz), default=hy0)
     y1 = max((h[1] for h in horiz), default=hy1)
+    if not horiz or not vert:
+        print("[WARN] visualize: table bbox fallback to hint bounds")
 
     if vert:
         x0 = min(x0, min(v[0] for v in vert))
@@ -929,6 +1017,7 @@ def _detect_table_border_bboxes_by_rules(page: fitz.Page) -> List[Tuple[float, f
 
     # Fallback: if we have vertical rules, cluster them by proximity and use that bbox.
     if not cand and vert:
+        print("[WARN] visualize: table bbox fallback to vertical-rule clustering")
         v = sorted(vert, key=lambda b: (b[0], b[1]))
         clusters = _cluster_bboxes(v, margin=8.0)
         for bb in clusters:
@@ -1045,6 +1134,7 @@ def _extract_math_spans(page, y_tol: float = 2.0, x_gap: float = 2.0) -> List[Di
 def visualize_mcid(
     pdf_path: str,
     output_path: str,
+    json_path: Optional[str] = None,
 ):
     """Create a visualization of MCID boxes on the PDF."""
 
@@ -1111,23 +1201,47 @@ def visualize_mcid(
                 continue
         return None
 
+    def _guess_mcid_json_path(pdfp: Path) -> Optional[Path]:
+        cands: List[Path] = []
+        stem = pdfp.stem
+        stems = [stem]
+        for suf in ("_fixed_tagged", "_tagged", "_fixed"):
+            if stem.endswith(suf):
+                stems.append(stem[: -len(suf)])
+        for s in stems:
+            cands.append(pdfp.with_name(f"{s}.mcid.json"))
+        # If still missing, fall back to any single mcid.json in same dir.
+        try:
+            json_cands = list(pdfp.parent.glob("*.mcid.json"))
+        except Exception:
+            json_cands = []
+        if len(json_cands) == 1:
+            return json_cands[0]
+        for p in cands:
+            try:
+                if p.exists():
+                    return p
+            except Exception:
+                continue
+        return None
+
     pdfp = Path(pdf_path)
 
     # Get MCID data from pdfplumber
     page_data = get_mcid_bboxes(pdf_path)
 
     aux_elements = []
-    # Parse aux; required for visualization.
-    aux_path = _guess_aux_path(pdfp)
-    if not aux_path:
-        raise SystemExit(f"[viz] ERROR: aux not found for PDF: {pdfp}")
-    aux_elements = get_elements_from_aux(str(aux_path), pdf_path=pdf_path)
+    # Require mcid.json for strict alignment; allow explicit override.
+    mcid_json_path = Path(json_path) if json_path else _guess_mcid_json_path(pdfp)
+    if not mcid_json_path or not mcid_json_path.exists():
+        raise SystemExit(f"[viz] ERROR: mcid.json not found for PDF: {pdfp}")
+    aux_elements = get_elements_from_json(str(mcid_json_path))
     if not aux_elements:
-        raise SystemExit(f"[viz] ERROR: aux parsed but produced no elements: {aux_path}")
+        raise SystemExit(f"[viz] ERROR: mcid.json parsed but produced no elements: {mcid_json_path}")
 
     # Optional: external element order map (elem_id -> order index).
     order_map: Dict[int, int] = {}
-    order_map_path = _guess_order_map_path(pdfp, aux_path)
+    order_map_path = _guess_order_map_path(pdfp, mcid_json_path)
     if order_map_path:
         raw = json.loads(Path(order_map_path).read_text(errors="replace"))
         d = raw.get("order_by_elem_id", raw) if isinstance(raw, dict) else None
@@ -1339,6 +1453,7 @@ def visualize_mcid(
         # label doesn't look like the structure "breaks" after atoms like Reference.
         missing_any = [mc for mc in mcid_tags.keys() if mc not in mcid_bboxes]
         if missing_any:
+            print(f"[WARN] visualize: fallback anchor bboxes for {len(missing_any)} MCIDs on page {page_num}")
             anchors = _estimate_mcid_anchor_bboxes(doc, page_num, mcid_tags, missing_any)
             for mcid, bb in anchors.items():
                 if mcid not in mcid_bboxes:
@@ -1435,6 +1550,7 @@ def visualize_mcid(
                 return (elem_rank, 2, 1e9, 1e9, mcid)
             else:
                 # Fallback: use a large elem_id so unmapped MCIDs come last, sorted by mcid
+                print(f"[WARN] visualize: unmapped MCID {mcid}, using fallback order key")
                 return (999999, 2, 1e9, 1e9, mcid)
 
         sorted_mcids = sorted(mcid_bboxes.keys(), key=get_sort_key)
@@ -1585,11 +1701,14 @@ def visualize_mcid(
                 by_elem: Dict[int, Dict] = {}
                 for mcid in table_mcids_on_page:
                     elem_id = table_mcid_to_elem.get(mcid, mcid)  # fallback to mcid if unmapped
+                    if elem_id == mcid:
+                        print(f"[WARN] visualize: table MCID {mcid} unmapped, using mcid as elem_id")
                     by_elem.setdefault(elem_id, {"elem_id": elem_id, "mcids": [], "hint_bbox": None})
                     by_elem[elem_id]["mcids"].append(mcid)
                 tables = [by_elem[k] for k in sorted(by_elem.keys())]
             else:
                 # No aux: auto-group MCIDs into table instances by hint overlap.
+                print("[WARN] visualize: no aux, auto-grouping table MCIDs by hint overlap")
                 auto = _group_table_mcids_auto(table_mcids_on_page, mcid_bboxes)
                 for idx, g in enumerate(auto, 1):
                     tables.append({"elem_id": f"mcidgrp{idx}", "mcids": g["mcids"], "hint_bbox": g.get("hint_bbox")})
@@ -1640,6 +1759,7 @@ def visualize_mcid(
 
                     if bbox is None:
                         # Final fallback: use hint itself.
+                        print("[WARN] visualize: table bbox fallback to hint")
                         bbox = hint
 
                     # If the detected bbox is suspiciously small vs hint, use hint.
@@ -1668,6 +1788,7 @@ def visualize_mcid(
 
         # Draw math spans (heuristic fallback, not MCID-based)
         if math_spans:
+            print(f"[WARN] visualize: drawing {len(math_spans)} math spans (heuristic fallback)")
             math_color = (0.85, 0.0, 0.85)  # magenta
             for i, s in enumerate(math_spans, 1):
                 bbox = s["bbox"]

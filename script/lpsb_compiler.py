@@ -43,6 +43,7 @@ from .parsing.parse_lpsb_mcid import parse_aux_file, elements_to_json, reconcile
 from .postprocess.fix_crosspage_mcid import process_pdf_synctex as fix_crosspage_process_pdf
 from .postprocess.inject_structtree import inject_structtree as inject_structtree_func
 from .visualization.visualize_mcid import visualize_mcid as visualize_mcid_func
+from .visualization.visualize_mcid import augment_mcid_json_bboxes
 
 
 def verify_without_lpsb_injection(
@@ -353,9 +354,11 @@ class MultiVersionContainerPool:
             return self.version_containers[version]
         # Fallback to default (latest)
         if ARXIV_TEXLIVE_DEFAULT in self.version_containers:
+            print(f"[WARN] texlive: version {version} missing, using default {ARXIV_TEXLIVE_DEFAULT}")
             return self.version_containers[ARXIV_TEXLIVE_DEFAULT]
         # Return any available container
         if self.version_containers:
+            print(f"[WARN] texlive: version {version} missing, using any available container")
             return next(iter(self.version_containers.values()))
         raise RuntimeError("No containers started")
     
@@ -1809,7 +1812,7 @@ def extract_archive(src_file, dst_dir):
             return True
         except Exception as e:
             # Fallback to gunzip if tar fails (sometimes misidentified)
-            pass
+            print(f"[WARN] extract: tar failed, falling back to gunzip ({e})")
 
     # Gunzip (Single file)
     try:
@@ -2601,6 +2604,7 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         # DVI-to-PDF fallback: some legacy documents produce DVI instead of PDF
         # (e.g., using dvips.def or explicit DVI mode). Convert using dvipdf.
         if not pdf_file.exists() and dvi_file.exists():
+            print("[WARN] compile: PDF missing, converting DVI to PDF")
             with open(log_file, "a") as log:
                 log.write("\nInfo: DVI file detected, converting to PDF with dvipdf\n")
             rc_dvipdf = _run(pdflatex_dir, pd_container_wd, 
@@ -2809,6 +2813,8 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
             raise SystemExit(f"[postprocess] ERROR: parse-mcid produced no output: {mcid_json}")
         with open(log_file, "a") as log:
             log.write(f"\nInfo: MCID JSON generated: {mcid_json}\n")
+        # Augment JSON with MCID bboxes to maximize coverage (aligned with viz).
+        augment_mcid_json_bboxes(str(pdf_fixed), str(mcid_json))
 
         # 3. Reading order map:
         # Inject StructTree auto-detects an adjacent *.order.json, and will compute one
@@ -2833,16 +2839,21 @@ def process_one_paper(src_path, out_dir, lpsb_root, use_ramdisk=False, disable_b
         shutil.copy(pdf_tagged, final_pdf)
         
         # Copy post-processed files to result directory
-        for src_file in [mcid_json, aux_fixed, aux_merged, pdf_fixed, pdf_tagged, order_map_json]:
+        # Default: only keep final outputs (json + tagged pdf).
+        # Debug: keep full intermediate artifacts.
+        if lpsb_debug:
+            src_list = [mcid_json, aux_fixed, aux_merged, pdf_fixed, pdf_tagged, order_map_json]
+        else:
+            src_list = [mcid_json, pdf_tagged]
+        for src_file in src_list:
             if src_file.exists():
                 try:
                     shutil.copy(src_file, res_dir / src_file.name)
                 except Exception:
                     pass
         
-        # Support visualization: copy the best aux file to match paper_id
-        # match the PDF name so visualize_mcid can find it
-        if aux_merged.exists():
+        # Support visualization (debug only): copy aux to match paper_id
+        if lpsb_debug and aux_merged.exists():
             try:
                 shutil.copy(aux_merged, res_dir / f"{paper_id}.aux")
             except Exception:
@@ -2884,6 +2895,7 @@ def _run_visualization(output_dir: str, script_dir: Path) -> None:
 
     # Fallback: look for <paper_id>.pdf
     if not pdf_candidates and output_path.is_dir():
+        print("[WARN] visualize: no *_fixed_tagged.pdf found, falling back to <paper_id>.pdf")
         # If output_dir is the paper dir, look for <paper_id>.pdf.
         paper_id = output_path.name
         final_pdf = output_path / f"{paper_id}.pdf"
@@ -2914,7 +2926,9 @@ def _run_visualization(output_dir: str, script_dir: Path) -> None:
     
     # Direct function call instead of subprocess
     try:
-        visualize_mcid_func(str(pdf_path), str(viz_output))
+        # Pass mcid.json explicitly to enforce json-viz alignment.
+        json_path = pdf_path.with_suffix(".mcid.json")
+        visualize_mcid_func(str(pdf_path), str(viz_output), json_path=str(json_path))
         print(f"[Visualize] Success: {viz_output}")
     except BaseException as e:
         import traceback

@@ -320,7 +320,8 @@ def match_position_to_source(
     x_pdf: float,
     y_pdf: float,
     page_height: float,
-    tolerance: float = 25.0
+    tolerance: float = 25.0,
+    allow_nearest: bool = False
 ) -> Optional[Tuple[str, int]]:
     """Match PDF position to source (filename, line) via SyncTeX.
 
@@ -328,6 +329,7 @@ def match_position_to_source(
     """
     # Build lookup for this page
     candidates = []
+    fallback = []
     for rec in synctex_data.records:
         if rec.page != page:
             continue
@@ -344,10 +346,15 @@ def match_position_to_source(
             dist = ((sx - x_pdf)**2 + (sy - y_pdf)**2)**0.5
             if dist <= tolerance:
                 candidates.append((dist, filename, rec.line))
+            elif allow_nearest:
+                fallback.append((dist, filename, rec.line))
 
     if candidates:
         candidates.sort(key=lambda x: x[0])
         return (candidates[0][1], candidates[0][2])
+    if allow_nearest and fallback:
+        fallback.sort(key=lambda x: x[0])
+        return (fallback[0][1], fallback[0][2])
 
     return None
 
@@ -361,7 +368,7 @@ def inject_bdc_for_untagged_regions(
     page_num: int,
     page_height: float,
     synctex_data: SyncTeXData,
-    target_lines: Set[Tuple[str, int]],
+    target_lines: Optional[Set[Tuple[str, int]]],
     allocator: MCIDAllocator,
     tag_type: str = 'P',
     line_to_tag_type: Optional[Dict[int, str]] = None,
@@ -381,31 +388,62 @@ def inject_bdc_for_untagged_regions(
     if not untagged:
         return content_stream, 0, []
 
+    # Pre-calculate text op positions for more accurate SyncTeX mapping
+    text_ops = generate_text_positions(text)
+
     # For each untagged region, check if it matches a target source line
     injections = []  # (bdc_pos, emc_pos, source)
 
     for start_pos, end_pos in untagged:
-        # Get text position from content stream
-        x_pdf, y_pdf = get_text_position_from_context(text, start_pos)
+        # Find a text op inside this untagged region
+        x_pdf, y_pdf = None, None
+        for op_pos, x, y, _op_text in text_ops:
+            if op_pos < start_pos:
+                continue
+            if op_pos > end_pos:
+                break
+            x_pdf, y_pdf = x, y
+            break
+        if x_pdf is None or y_pdf is None:
+            # Fallback to context-based position (less reliable).
+            if verbose:
+                print(f"[WARN] synctex match: using context position for page {page_num}")
+            x_pdf, y_pdf = get_text_position_from_context(text, start_pos)
 
         # Match to source line
+        # Use a larger tolerance when doing general P recovery.
+        tol = 60.0 if not target_lines else 25.0
         source = match_position_to_source(
-            synctex_data, page_num, x_pdf, y_pdf, page_height
+            synctex_data, page_num, x_pdf, y_pdf, page_height,
+            tolerance=tol, allow_nearest=False
         )
 
         if source is None:
             continue
 
-        # Check if this source line is in our targets
-        # Normalize filename for comparison
-        fname = Path(source[0]).name if source[0] else ''
-        for target_fname, target_line in target_lines:
-            target_base = Path(target_fname).name if target_fname else ''
-            if target_base == fname and target_line == source[1]:
-                injections.append((start_pos, end_pos, source))
-                if verbose:
-                    print(f"    Page {page_num}: matched untagged text at ({x_pdf:.0f}, {y_pdf:.0f}) to {fname}:{source[1]}")
-                break
+        # If target_lines is provided, only inject when source matches targets.
+        # If target_lines is None, allow any source line that maps to the desired tag_type.
+        if target_lines:
+            # Normalize filename for comparison
+            fname = Path(source[0]).name if source[0] else ''
+            for target_fname, target_line in target_lines:
+                target_base = Path(target_fname).name if target_fname else ''
+                if target_base == fname and target_line == source[1]:
+                    injections.append((start_pos, end_pos, source))
+                    if verbose:
+                        print(f"    Page {page_num}: matched untagged text at ({x_pdf:.0f}, {y_pdf:.0f}) to {fname}:{source[1]}")
+                    break
+        else:
+            # Tight mode: only inject when aux line mapping says this is the right tag.
+            if not line_to_tag_type:
+                continue
+            mapped_tag = line_to_tag_type.get(source[1])
+            if mapped_tag != tag_type:
+                continue
+            injections.append((start_pos, end_pos, source))
+            if verbose:
+                fname = Path(source[0]).name if source[0] else ''
+                print(f"    Page {page_num}: inferred {tag_type} for untagged text at ({x_pdf:.0f}, {y_pdf:.0f}) from {fname}:{source[1]}")
 
     if not injections:
         # No reliable SyncTeX match: skip injection to avoid corrupting text layer.
@@ -474,6 +512,8 @@ def inject_bdc_for_untagged_regions(
         
         # Fallback: infer from page context if source lookup failed
         if inferred_tag == tag_type:
+            if verbose:
+                print(f"[WARN] synctex tag inference: using page-context fallback on page {page_num}")
             inferred_tag = get_preceding_tag_type(text, bdc_pos)
 
         # Close tag right after the last TEXT op in this untagged run
@@ -737,6 +777,25 @@ def fix_empty_p_tags(content_stream: bytes, verbose: bool = False) -> Tuple[byte
             new_text = new_text[:adjusted_next_bdc_pos] + 'EMC\n' + new_text[adjusted_next_bdc_pos:]
             fixed += 1
 
+    # Second pass: close empty P tags that directly precede another BDC (no EMC/text between).
+    insert_positions = []
+    p_bdc_pattern = re.compile(r'/P\s*<<\s*/MCID\s*(\d+)\s*>>\s*BDC', re.MULTILINE)
+    for m in p_bdc_pattern.finditer(new_text):
+        start = m.end()
+        remaining = new_text[start:]
+        next_bdc_match = next_bdc_pattern.search(remaining)
+        if not next_bdc_match:
+            continue
+        between = remaining[:next_bdc_match.start()]
+        has_text = bool(re.search(r'\]TJ\b|\)Tj\b', between))
+        has_emc = bool(re.search(r'\bEMC\b', between))
+        if not has_text and not has_emc:
+            insert_positions.append(start + next_bdc_match.start())
+
+    for pos in sorted(insert_positions, reverse=True):
+        new_text = new_text[:pos] + 'EMC\n' + new_text[pos:]
+        fixed += 1
+
     if fixed > 0 and verbose:
         print(f"  Fixed {fixed} empty P tags (removed premature EMCs)")
 
@@ -893,6 +952,7 @@ def split_tags_at_synctex_boundaries(
     page_height: float,
     synctex_data: SyncTeXData,
     allocator: MCIDAllocator,
+    line_to_tag_type: Optional[Dict[int, str]] = None,
     line_threshold: int = 5,
     verbose: bool = False
 ) -> Tuple[bytes, int, List[Tuple[int, int]]]:
@@ -937,11 +997,20 @@ def split_tags_at_synctex_boundaries(
                 current_tag_start = None
                 current_tag_info = None
             level = max(0, level - 1)
+
+    # If a top-level tag never closed, treat the rest of the stream as its region.
+    if level == 1 and current_tag_start is not None and current_tag_info is not None:
+        regions_to_check.append({
+            'start': current_tag_start,
+            'end': len(text),
+            'tag': current_tag_info[0],
+            'mcid': current_tag_info[1]
+        })
             
     if not regions_to_check:
         return content_stream, 0, []
         
-    splits_needed = [] # (pos, old_mcid, new_mcid)
+    splits_needed = [] # (pos, old_mcid, old_tag, new_tag)
     
     # Pre-calculate all text positions statefully
     text_ops = generate_text_positions(text)
@@ -977,10 +1046,10 @@ def split_tags_at_synctex_boundaries(
         # Op is inside region!
         tag_name = region['tag']
         # Skip tag types that shouldn't be split:
-        # - P/L/LI: Normal content that's already flexible
+        # - L/LI: Normal list content that's already flexible
         # - Artifact/Header/Footer: Decorative/structural content
         # - BibEntry/BibList/Reference: Bibliography entries often span multiple source lines
-        if tag_name in ('P', 'L', 'LI', 'Artifact', 'Header', 'Footer', 'BibEntry', 'BibList', 'Reference'):
+        if tag_name in ('L', 'LI', 'Artifact', 'Header', 'Footer', 'BibEntry', 'BibList', 'Reference'):
             continue
             
         # Check source
@@ -988,6 +1057,9 @@ def split_tags_at_synctex_boundaries(
         
         if source:
             current_line = source[1]
+            target_tag = None
+            if line_to_tag_type:
+                target_tag = line_to_tag_type.get(current_line)
             
             # Use 'first_line' from the region dict (store it there)
             if 'first_line' not in region:
@@ -1001,7 +1073,28 @@ def split_tags_at_synctex_boundaries(
                 if verbose and page_num == 6 and diff > 0:
                      print(f"    [P6-Debug] Op '{op_text[:15]}' L{current_line} (Diff={diff})")
 
-                if diff > line_threshold:
+                # For P, use a higher threshold to avoid splitting normal paragraphs.
+                p_threshold = max(line_threshold, 20) if tag_name == "P" else line_threshold
+
+                if target_tag and target_tag != tag_name:
+                    # Tag mismatch: split and reopen with mapped tag type
+                    split_pos = op_pos
+                    if split_pos - region['start'] < 10:
+                        continue
+                    splits_needed.append((split_pos, region['mcid'], tag_name, target_tag))
+                    if verbose:
+                        print(f"    Page {page_num}: Tag mismatch {tag_name}->{target_tag} at L{current_line}. Split at {split_pos}")
+                    current_region_idx += 1
+                elif tag_name == "Abstract" and diff >= 1:
+                    # Abstract should not leak into body text; split early.
+                    split_pos = op_pos
+                    if split_pos - region['start'] < 10:
+                        continue
+                    splits_needed.append((split_pos, region['mcid'], tag_name, "P"))
+                    if verbose:
+                        print(f"    Page {page_num}: Abstract split at L{current_line}. Split at {split_pos}")
+                    current_region_idx += 1
+                elif diff > p_threshold:
                     # LEAK DETECTED!
                     split_pos = op_pos
                     # Avoid splitting right at start
@@ -1014,7 +1107,7 @@ def split_tags_at_synctex_boundaries(
                     # For simplicity, take the FIRST split and stop processing this region?
                     # Or continue? If we split, the rest is in New Tag.
                     # We should stop processing this region to avoid double splitting at every line.
-                    splits_needed.append((split_pos, region['mcid'], tag_name))
+                    splits_needed.append((split_pos, region['mcid'], tag_name, target_tag))
                     if verbose:
                         print(f"    Page {page_num}: Detected leak in {tag_name} (L{first_line} -> L{current_line}). Split at {split_pos}")
                     
@@ -1029,10 +1122,16 @@ def split_tags_at_synctex_boundaries(
     splits_needed.sort(key=lambda x: x[0], reverse=True)
     
     split_info = []
-    for pos, old_mcid, tag_type in splits_needed:
+    for pos, old_mcid, tag_type, target_tag in splits_needed:
         new_mcid = allocator.allocate()
-        # Preserve original tag type instead of defaulting to P
-        injection = f' EMC\n/{tag_type} << /MCID {new_mcid} >> BDC\n'
+        # If a heading/abstract leaks, reopen as P (body text), not the original tag.
+        if target_tag:
+            new_tag = target_tag
+        elif tag_type in ("Abstract", "Title", "H1", "H2", "H3", "H4", "H5", "H6"):
+            new_tag = "P"
+        else:
+            new_tag = tag_type
+        injection = f' EMC\n/{new_tag} << /MCID {new_mcid} >> BDC\n'
         text = text[:pos] + injection + text[pos:]
         split_info.append((old_mcid, new_mcid))
 
@@ -1170,7 +1269,8 @@ def process_pdf_synctex(
 
         # Phase 1.5: Split tags that leak into subsequent text (SyncTeX detection)
         stream, n_splits_sync, split_sync_info = split_tags_at_synctex_boundaries(
-            stream, page_num, page_height, synctex_data, allocator, verbose=verbose
+            stream, page_num, page_height, synctex_data, allocator,
+            line_to_tag_type=line_to_tag_type, verbose=verbose
         )
         if split_sync_info:
             split_records.extend([(old, new, page_num) for old, new in split_sync_info])
@@ -1187,6 +1287,16 @@ def process_pdf_synctex(
         total_injections += n_inject
         if injected_info:
             injected_records.extend(injected_info)
+
+        # Phase 3b: Fill any remaining untagged P text using SyncTeX line mapping.
+        stream, n_inject_any, injected_info_any = inject_bdc_for_untagged_regions(
+            stream, page_num, page_height,
+            synctex_data, None, allocator,
+            tag_type='P', line_to_tag_type=line_to_tag_type, verbose=verbose
+        )
+        total_injections += n_inject_any
+        if injected_info_any:
+            injected_records.extend(injected_info_any)
 
         # Phase 4: Split cross-column tags
         if page_num in disc['crosscolumn_pages']:
@@ -1211,6 +1321,12 @@ def process_pdf_synctex(
     doc.close()
 
     # Update aux with injected/split MCIDs so StructTree can map them.
+    #
+    # NOTE: MCID numeric value does NOT control reading order. The aux/StructTree
+    # mapping does. This block is the safety net that attaches newly injected
+    # MCIDs (often >=10000) to an existing logical element via \lpsb@mcid@cont.
+    # If we fail to write these records, the injected MCIDs become "orphans"
+    # and can drop out of the reading order.
     try:
         elements, _summary = parse_aux_file(Path(aux_path))
         mcid_to_elem: Dict[int, int] = {}
@@ -1258,7 +1374,9 @@ def process_pdf_synctex(
                 start_page = int(meta.get("start_page") or 0)
                 if start_page > 0 and start_page <= page:
                     return eid
-            # Fallback: first candidate
+            # Fallback: first candidate (non-deterministic if aux is noisy)
+            if verbose:
+                print(f"[WARN] aux line map: fallback to first elem for line {line}")
             return cands[0]
 
         aux_lines = Path(aux_path).read_text(errors="replace").splitlines(keepends=True)
@@ -1268,6 +1386,9 @@ def process_pdf_synctex(
             for m in getattr(e, "mcids", []):
                 existing.add((int(e.elem_id), int(m.mcid), int(m.page)))
 
+        # Attach injected MCIDs to existing elements using SyncTeX source line.
+        # Primary path: map (source_line -> elem_id) via aux metadata.
+        # Fallbacks: nearest P on prev page, then nearest P on same page.
         for rec in injected_records:
             src = rec.get("source")
             if not src:
@@ -1280,28 +1401,42 @@ def process_pdf_synctex(
             # Check if matched element is a P type (paragraph); if not, we need fallback
             matched_is_p = eid is not None and elem_meta.get(eid, {}).get("tag") == "P"
 
-            # Fallback: if no P element found by line match and this is a cross-page continuation,
-            # link to the last P element on the previous page
-            if not matched_is_p and page > 1:
-                prev_page = page - 1
+            # Tight mode: do NOT fall back to previous page elements.
+
+            if eid is None:
+                if verbose:
+                    print(f"[DEBUG] injected_records: mcid={mcid}, page={page}, eid=None, skipping")
+                # WARNING: We could not map by source line. Only attach to a
+                # nearby P on the same page if it's within a tight window.
                 candidates = []
                 for e_id, meta in elem_meta.items():
                     if meta.get("tag") != "P":
                         continue
                     if meta.get("is_atom"):
                         continue
-                    mcids_on_page = [m for m, p in meta.get("mcids", []) if p == prev_page]
+                    mcids_on_page = [m for m, p in meta.get("mcids", []) if p == page]
                     if mcids_on_page:
                         max_mcid = max(mcids_on_page)
                         candidates.append((e_id, max_mcid))
                 if candidates:
-                    candidates.sort(key=lambda x: x[1], reverse=True)
-                    eid = candidates[0][0]
-
-            if eid is None:
-                if verbose:
-                    print(f"[DEBUG] injected_records: mcid={mcid}, page={page}, eid=None, skipping")
-                continue
+                    # Prefer nearest preceding MCID on the same page
+                    candidates.sort(key=lambda x: x[1])
+                    prev = [c for c in candidates if c[1] <= mcid]
+                    if prev:
+                        nearest_eid, nearest_mcid = prev[-1]
+                        if (mcid - nearest_mcid) <= 500:
+                            print(f"[WARN] aux fallback: mcid={mcid} page={page} -> P elem {nearest_eid} (mcid {nearest_mcid})")
+                            eid = nearest_eid
+                        else:
+                            print(f"[WARN] aux fallback skipped: mcid={mcid} page={page} no close P within 500")
+                            continue
+                    else:
+                        print(f"[WARN] aux fallback skipped: mcid={mcid} page={page} no preceding P on page")
+                        continue
+                else:
+                    print(f"[WARN] aux fallback skipped: mcid={mcid} page={page} no P elems on page")
+                    continue
+            # Guard: don't duplicate existing cont records.
             if (eid, mcid, page) in existing:
                 if verbose:
                     print(f"[DEBUG] injected_records: ({eid}, {mcid}, {page}) already in existing")
@@ -1312,6 +1447,8 @@ def process_pdf_synctex(
             if verbose:
                 print(f"[DEBUG] injected_records: Added ({eid}, {mcid}, {page}) to aux_lines")
 
+        # For split tags, reattach the new MCID to the original element id.
+        # This preserves reading order across the split.
         for orig_mcid, new_mcid, page in split_records:
             eid = mcid_to_elem.get(int(orig_mcid))
             if eid is None:
@@ -1395,22 +1532,9 @@ def process_pdf_synctex(
                         matching_line = (filename, line)
                         break
 
-            # Fallback to lowercase detection if synctex doesn't have data
-            if not is_crosspage:
-                # Find the text content after this BDC (before next EMC or BDC)
-                bdc_end = first_p_match.end()
-                text_match = re.search(r'\[([^\]]+)\]TJ|\(([^)]+)\)Tj', text[bdc_end:bdc_end+500])
-                if text_match:
-                    text_content = text_match.group(1) or text_match.group(2)
-                    char_match = re.search(r'\(([^)]+)\)', text_content)
-                    if char_match:
-                        first_text = char_match.group(1)
-                        if first_text:
-                            for ch in first_text:
-                                if ch.isalpha():
-                                    if ch.islower():
-                                        is_crosspage = True
-                                    break
+            # No heuristic fallback: if SyncTeX can't prove continuity, skip.
+            if not is_crosspage and verbose:
+                print(f"[WARN] synctex crosspage: no matching line on page {page_num}")
 
             if not is_crosspage and not is_injected_mcid:
                 continue

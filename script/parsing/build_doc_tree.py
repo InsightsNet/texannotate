@@ -139,6 +139,8 @@ def _merge_split_headings(elements: List[TaggedElement]) -> List[TaggedElement]:
 
 
 def build_tree(elements: List[TaggedElement], order_map: Optional[Dict[int, int]] = None) -> Dict:
+    if order_map is None:
+        print("[WARN] build_doc_tree: no order_map provided, using aux emission order")
     elements = _merge_split_headings(elements)
     # Build node map.
     nodes: Dict[int, Node] = {}
@@ -168,6 +170,8 @@ def build_tree(elements: List[TaggedElement], order_map: Optional[Dict[int, int]
         if order_map and eid in order_map:
             return (int(order_map[eid]), eid)
         # Fallback: keep original aux emission order.
+        if order_map is not None and eid not in order_map:
+            print(f"[WARN] build_doc_tree: missing order_map for elem {eid}, using aux order")
         return (10**12 + eid, eid)
 
     # Attach block elements using heading stack heuristic.

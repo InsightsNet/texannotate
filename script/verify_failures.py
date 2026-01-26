@@ -46,7 +46,10 @@ def find_main_tex(work_dir: Path) -> Optional[Path]:
             continue
     
     # Fallback: first .tex file
-    return tex_files[0] if tex_files else None
+    if tex_files:
+        print(f"[WARN] verify_failures: fallback to first .tex file ({tex_files[0].name})")
+        return tex_files[0]
+    return None
 
 
 def extract_paper(src_file: Path, dst_dir: Path) -> bool:
@@ -63,7 +66,7 @@ def extract_paper(src_file: Path, dst_dir: Path) -> bool:
                 tar.extractall(path=dst_dir, members=safe_members, filter='data')
             return True
     except:
-        pass
+        print("[WARN] verify_failures: tar detection failed, falling back to single-file gzip")
     
     # Single-file gzip
     try:

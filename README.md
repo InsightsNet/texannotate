@@ -39,10 +39,11 @@ docker build -f docker/Dockerfile.latest -t lpsb-texlive:latest docker
 LPSB_TWO_PASS=1 python3 script/lpsb_compiler.py --single <source_dir> --output <output_dir>
 ```
 
-**Output files**:
+**Output files (default)**:
 - `<paper>_tagged.pdf` — PDF with StructTree (PDF/UA compliant)
-- `<paper>.mcid.json` — MCID structure data
-- `<paper>.lpsb.json` — Structure events
+- `<paper>.mcid.json` — MCID structure data (authoritative)
+**Optional**:
+- `<paper>_tagged_mcid_viz.pdf` — visualization overlay (only when `--visualize`)
 
 ### 3. Batch Processing (arXiv)
 
@@ -165,16 +166,7 @@ The final PDF includes a complete StructTree for PDF/UA compliance:
 
 ### MCID JSON (`*.mcid.json`)
 
-```json
-{
-  "elements": {
-    "1": {"type": "H1", "start_mcid": 1, "start_page": 1, "end_page": 1}
-  },
-  "continuations": [
-    {"logical_id": "82", "mcid": 120, "page": 5}
-  ]
-}
-```
+`*.mcid.json` is the authoritative structure output used by visualization.
 
 ---
 
@@ -206,7 +198,7 @@ docker build -f docker/Dockerfile.tl2023 -t lpsb-texlive:TL2023-historic docker
 
 ## Visualization
 
-Generate a visual overlay showing MCID tags:
+Generate a visual overlay showing MCID tags (aligned to `*.mcid.json`):
 
 ```bash
 python3 script/visualization/visualize_mcid.py output.pdf -o visualized.pdf
@@ -215,7 +207,7 @@ python3 script/visualization/visualize_mcid.py output.pdf -o visualized.pdf
 Features:
 - **Line-based boxes**: Text elements (P, H1-H4) display per-line boxes to avoid cross-column artifacts
 - **Float bodies merged**: Figure, Table, Caption show as single blocks
-- **Reading order**: Labels follow logical element order when an adjacent `*.aux` is available (and `*.order.json` when present)
+- **Reading order**: Labels follow logical element order when `*.order.json` is available
 
 ---
 
